@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback & Moderation</title>
+    <link rel="stylesheet" href="/admin_dashboard.css">
+    <link rel="stylesheet" href="/feedback_and_moderation.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-btn" onclick="toggleLeftNavbar()">☰</button>
+            <div class="sidebar" id="sidebar">
+                <button class="close-btn" onclick="toggleLeftNavbar()">×</button>
+                <div class="menu">
+                    <ul class="list">
+                        <li>
+                            <a href="/admin/dashboard">
+                                <i class="fas fa-users"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/user_management">
+                                <i class="fas fa-users"></i>
+                                <span>User Management</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/collaboration_monitoring">
+                                <i class="fas fa-handshake"></i>
+                                <span>Collaboration Monitoring</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/payment_verification">
+                                <i class="fas fa-money-check"></i>
+                                <span>Payment Verification</span>
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a href="/admin/feedback_and_moderation">
+                                <i class="fas fa-comments"></i>
+                                <span>Feedback & Moderation</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="heading">
+            <h1>CollabSync</h1>
+        </div>
+
+        <div class="navbar-right">
+            <div class="notifications">
+                <div class="notification-icon" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-count">0</span>
+                </div>
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="notifications-header">
+                        <h3>Notifications</h3>
+                        <button onclick="markAllAsRead()" class="mark-read-btn">Mark all as read</button>
+                    </div>
+                    <div class="notifications-list" id="notifications-list">
+                        <!-- Notifications will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </button>
+
+            <div class="profile">
+                <div class="profile-icon" onclick="toggleProfileDropdown()">
+                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image">
+                    <span id="user-name">
+                        <%= user.name %>
+                    </span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="/admin/settings">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <a href="#" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <section class="feedback-moderation">
+            <h1>Feedback & Moderation</h1>
+
+            <!-- Filters -->
+            <div class="filters">
+                <input type="text" id="search-feedback" placeholder="Search feedback...">
+                <select id="type-filter">
+                    <option value="all">All Types</option>
+                    <option value="feedback">Feedback</option>
+                    <option value="issue">Reported Issue</option>
+                </select>
+                <select id="status-filter">
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+                <button id="reset-filters"><i class="fas fa-sync"></i> Reset Filters</button>
+            </div>
+
+            <!-- Feedback List -->
+            <table id="feedback-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>User</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% feedbacks.forEach(feedback=> { %>
+                        <tr>
+                            <td>
+                                <%= feedback.id %>
+                            </td>
+                            <td>
+                                <%= feedback.type %>
+                            </td>
+                            <td>
+                                <%= feedback.user %>
+                            </td>
+                            <td>
+                                <%= feedback.message %>
+                            </td>
+                            <td>
+                                <%= feedback.status %>
+                            </td>
+                            <td>
+                                <%= feedback.date %>
+                            </td>
+                            <td>
+                                <button class="view" onclick="viewFeedback('<%= feedback.id %>')">View</button>
+                            </td>
+                        </tr>
+                        <% }); %>
+                </tbody>
+            </table>
+
+            <!-- Feedback Details Modal -->
+            <div id="feedback-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2 id="modal-feedback-id">Feedback Details</h2>
+                    <div class="modal-details">
+                        <p><strong>Type:</strong> <span id="modal-type"></span></p>
+                        <p><strong>User:</strong> <span id="modal-user"></span></p>
+                        <p><strong>Message:</strong> <span id="modal-message"></span></p>
+                        <p><strong>Status:</strong> <span id="modal-status"></span></p>
+                        <p><strong>Date:</strong> <span id="modal-date"></span></p>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="resolve" onclick="resolveFeedback()">Resolve</button>
+                        <button class="warn" onclick="warnUser()">Warn User</button>
+                        <button class="ban" onclick="banUser()">Ban User</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/admin_dashboard.js"></script>
+    <script src="/feedback_and_moderation.js"></script>
+</body>
+
+</html>

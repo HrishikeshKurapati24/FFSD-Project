@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collabs - CollabSync</title>
+  <link rel="stylesheet" href="/B2_index/B2_collab.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/B2_index">Home</a></li>
+          <li><a href="/B2_explore">Explore Influencers</a></li>
+          <li><a href="/B2_profi">My Brand Profile</a></li>
+          <!-- <li><a href="logout">Logout</a></li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <a href="/B2_collab">Collabs</a>
+    <a href="/B2_recievedRequests">Collab requests</a>
+    <a href="/Create_collab">Create Collab</a>
+    <a href="/Lp_index">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div> 
+
+  <!-- Main Content -->
+  <div class="container">
+    <input type="text" class="search-bar" placeholder="Search for collabs...">
+    <div class="collab-list">
+      
+      <!-- Collab Box 1: 8 Billion Project -->
+      <div class="collab-box">
+        <div class="collab-title">
+          Calling All Pakistani and Indian Creators -- Wear Culture - Make Impact
+        </div>
+        <div class="bottom-row">
+          <!-- Left Column: Blue Box with Attributes + Extra Sentence -->
+          <div class="left-col">
+            <div class="blue-box">
+              <span class="attr">By:</span> <span class="value">8 Billion Project</span><br>
+              <span class="attr">Most influence in:</span> <span class="value">India 🇮🇳 Pakistan 🇵🇰 United Arab Emirates 🇦🇪</span><br>
+              <span class="attr">Interests:</span> <span class="value">Streetwear Music Education</span><br>
+              <span class="attr">Pay-per-post:</span> <span class="value">None</span><br>
+              <span class="attr">Commission:</span> <span class="value">8%</span>
+            </div>
+            <div class="offer-sentence">
+              Every drop is limit ...
+            </div>
+          </div>
+          <!-- Right Column: Red Box with Requirements and View Button -->
+          <div class="red-col">
+            <div class="collab-requirements">
+              <h3>Requirements:</h3>
+              <p>
+                <span class="attr">Channels:</span> <span class="value">Facebook, Instagram, Twitter</span><br>
+                <span class="attr">Minimum Followers:</span> <span class="value">Any</span><br>
+                <span class="attr">Age Group:</span> <span class="value">18-50</span><br>
+                <span class="attr">Genders:</span> <span class="value">Any</span>
+              </p>
+              <!-- <a href="/Collab_form_open" class="view-btn">View Details</a> -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Collab Box 2: A Cool Spring Treat for your Pup -->
+      <div class="collab-box">
+        <div class="collab-title">
+          A Cool Spring Treat for your Pup
+        </div>
+        <div class="bottom-row">
+          <div class="left-col">
+            <div class="blue-box">
+              <span class="attr">By:</span> <span class="value">The Bear &amp; The Rat</span><br>
+              <span class="attr">Most influence in:</span> <span class="value">United States 🇺🇸</span><br>
+              <span class="attr">Interests:</span> <span class="value">Pets, Nutrition</span><br>
+              <span class="attr">Pay-per-post:</span> <span class="value">$10 per post</span><br>
+              <span class="attr">Commission:</span> <span class="value">None</span>
+            </div>
+            <div class="offer-sentence">
+              Treat your pup with our frozen dog treats.
+            </div>
+          </div>
+          <div class="red-col">
+            <div class="collab-requirements">
+              <h3>Requirements:</h3>
+              <p>
+                <span class="attr">Channels:</span> <span class="value">Instagram, TikTok</span><br>
+                <span class="attr">Minimum Followers:</span> <span class="value">Any</span><br>
+                <span class="attr">Age Group:</span> <span class="value">Any</span><br>
+                <span class="attr">Genders:</span> <span class="value">Any</span>
+              </p>
+              <!-- <a href="/Collab_form_open" class="view-btn">View Details</a> -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Collab Box 3: Eco-Friendly Fashion Collaboration -->
+      <div class="collab-box">
+        <div class="collab-title">
+          Eco-Friendly Fashion Collaboration
+        </div>
+        <div class="bottom-row">
+          <div class="left-col">
+            <div class="blue-box">
+              <span class="attr">By:</span> <span class="value">GreenWear</span><br>
+              <span class="attr">Most influence in:</span> <span class="value">Europe</span><br>
+              <span class="attr">Interests:</span> <span class="value">Fashion, Sustainability</span><br>
+              <span class="attr">Pay-per-post:</span> <span class="value">$50 per post + Free eco-friendly apparel</span><br>
+              <span class="attr">Commission:</span> <span class="value">N/A</span>
+            </div>
+            <div class="offer-sentence">
+              Support sustainability with our latest organic clothing line.
+            </div>
+          </div>
+          <div class="red-col">
+            <div class="collab-requirements">
+              <h3>Requirements:</h3>
+              <p>
+                <span class="attr">Channels:</span> <span class="value">Instagram</span><br>
+                <span class="attr">Minimum Followers:</span> <span class="value">10k+</span><br>
+                <span class="attr">Age Group:</span> <span class="value">18-35</span><br>
+                <span class="attr">Genders:</span> <span class="value">Any</span>
+              </p>
+              <!-- <a href="/Collab_form_open" class="view-btn">View Details</a> -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+      <!-- This script handles the sidebar toggle. -->
+      <script>
+        function openMenu() {
+            document.getElementById("navMenu").style.width = "250px";
+        }
+        function closeMenu() {
+            document.getElementById("navMenu").style.width = "0";
+        }
+        </script>
+
+</body>
+</html>

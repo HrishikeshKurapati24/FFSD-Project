@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Influencer Dashboard - CollabSync</title>
+  <link rel="stylesheet" href="/i_index/I_index.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    #myChart {
+        width: 80%;
+        height: 400px;
+        margin: 0 auto;
+        flex:left;
+    }
+  </style>
+  <style>
+    #myRadarChart {
+        width: 60%;
+        height: 400px;
+        margin: 0 auto;
+        flex:right;
+    }
+</style>
+
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/I_index">Home</a></li>
+          <li><a href="/I_explore">Explore brands</a></li>
+          <li><a href="/I_profile2">My Profile</a></li>
+          <!-- <li><a href="logout">Logout</a></li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <!-- <a href="#">Influencers</a> -->
+    <a href="/I_collab">Collabs</a> 
+    <a href="/Lp_index">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div> 
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Intro Section -->
+    <div class="intro">
+      <h1>Welcome, [Influencer Name]</h1>
+      <p>
+        Discover how CollabSync empowers influencers with seamless brand collaborations, exclusive opportunities, 
+        and performance insights to elevate your influence.
+      </p>
+    </div>
+    
+    <!-- Dashboard Overview -->
+    <section class="dashboard">
+      <h2>Dashboard Overview</h2>
+      <div class="dashboard-items">
+        <div class="dashboard-item">
+          <h3>Active Collaborations</h3>
+          <p>5 collaborations ongoing</p>
+        </div>
+        <div class="dashboard-item">
+          <h3>Pending Collab Requests</h3>
+          <p>2 new requests</p>
+        </div>
+        <div class="dashboard-item">
+          <h3>Notifications</h3>
+          <p>3 new alerts</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Benefits Section for Influencers -->
+    <section class="benefits">
+      <div class="benefit-item">
+        <h2>Increased Exposure</h2>
+        <p>
+          Showcase your unique style and connect with top brands looking for influential voices.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Collaboration Opportunities</h2>
+        <p>
+          Discover and apply for exciting brand collaborations tailored to your audience.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Personalized Partnerships</h2>
+        <p>
+          Receive collab requests that align with your niche and creative vision.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Performance Insights</h2>
+        <p>
+          Access real-time analytics to track your campaign performance and audience engagement.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Profile Management</h2>
+        <p>
+          Maintain a dynamic profile that highlights your work, collaborations, and achievements.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Dedicated Support</h2>
+        <p>
+          Benefit from expert guidance and resources tailored to your influencer journey.
+        </p>
+      </div>
+    </section>
+    
+    <!-- Main Features Section -->
+    <section class="features">
+      <h2>Main Features</h2>
+      <div class="feature-list">
+        <div class="feature-item">
+          <h3>Collaboration Application Tools</h3>
+          <p>
+            Apply for brand collaborations seamlessly through our intuitive dashboard.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Brand Discovery & Search</h3>
+          <p>
+            Explore and connect with brands that match your style and audience.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Performance Analytics</h3>
+          <p>
+            Access detailed insights on your collaboration performance and engagement metrics.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Direct Communication</h3>
+          <p>
+            Engage with brands directly using our integrated messaging system.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Feedback & Reviews</h3>
+          <p>
+            Receive constructive feedback and ratings from past collaborations.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Earnings Tracking</h3>
+          <p>
+            Monitor your earnings and track payments from successful collaborations.
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Quick Links Section -->
+    <div class="links">
+      <a href="Influencer_explore">Explore Brands</a>
+      <a href="Influencer_profile">View My Profile</a>
+    </div>
+  </div>
+
+  
+<div class="charts-container">
+  <div>
+<canvas id="myRadarChart"></canvas>
+  <script>
+      var ctx = document.getElementById('myRadarChart').getContext('2d');
+      var myRadarChart = new Chart(ctx, {
+           type: 'radar', 
+          data: {
+              labels: ['growth', 'age', 'reach', 'no of likes', 'Flexibility'], // Labels for each axis
+              datasets: [{
+                  label: ' Performance of Influence',
+                  data: [80, 70, 90, 85, 75], // Data points for each axis
+                  fill: true,
+                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                  borderColor: 'rgba(75, 192, 192, 1)',
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              responsive: true,
+              scale: {
+                  ticks: {
+                      beginAtZero: true,
+                      max: 100
+                  }
+              },
+              plugins: {
+                  legend: {
+                      position: 'top'
+                  },
+                  tooltip: {
+                      callbacks: {
+                          label: function(tooltipItem) {
+                              return tooltipItem.label + ': ' + tooltipItem.raw;
+                          }
+                      }
+                  }
+              }
+          }
+      });
+  </script>
+</div>
+<div>
+  <canvas id="myChart"></canvas>
+  <script>
+      var ctx = document.getElementById('myChart').getContext('2d');
+      var myChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: ['January', 'February', 'March', 'April', 'May','June','July','August','September','october','Novemeber','December'],
+              datasets: [{
+                  label: 'increase in followers',
+                  data: [50, 20, 100, 90, 100,80,110,100,180,120,150,110], 
+                  backgroundColor: 'rgba(54, 162, 23, 0.5)',
+                  borderColor: 'rgba(54, 162, 35, 1)',
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              responsive: true,
+              scales: {
+                  y: {
+                      beginAtZero: true
+                  }
+              }
+          }
+      });
+  </script>
+</div>
+</div>
+  
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 CollabSync. All rights reserved.</p>
+  </footer>
+
+  <!-- This script handles the sidebar toggle. -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+  </script>
+</body>
+</html>

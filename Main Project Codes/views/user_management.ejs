@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="/admin_dashboard.css">
+    <link rel="stylesheet" href="/user_management.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-btn" onclick="toggleLeftNavbar()">☰</button>
+            <div class="sidebar" id="sidebar">
+                <button class="close-btn" onclick="toggleLeftNavbar()">×</button>
+                <div class="menu">
+                    <ul class="list">
+                        <li>
+                            <a href="/admin/dashboard">
+                                <i class="fas fa-users"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a href="/admin/user_management">
+                                <i class="fas fa-users"></i>
+                                <span>User Management</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/collaboration_monitoring">
+                                <i class="fas fa-handshake"></i>
+                                <span>Collaboration Monitoring</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/payment_verification">
+                                <i class="fas fa-money-check"></i>
+                                <span>Payment Verification</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/feedback_and_moderation">
+                                <i class="fas fa-comments"></i>
+                                <span>Feedback & Moderation</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="heading">
+            <h1>CollabSync</h1>
+        </div>
+
+        <div class="navbar-right">
+            <div class="notifications">
+                <div class="notification-icon" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-count">0</span>
+                </div>
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="notifications-header">
+                        <h3>Notifications</h3>
+                        <button onclick="markAllAsRead()" class="mark-read-btn">Mark all as read</button>
+                    </div>
+                    <div class="notifications-list" id="notifications-list">
+                        <!-- Notifications will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </button>
+
+            <div class="profile">
+                <div class="profile-icon" onclick="toggleProfileDropdown()">
+                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image">
+                    <span id="user-name">
+                        <%= user.name %>
+                    </span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="/admin/settings">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <a href="#" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <% if (typeof error !=='undefined' && error) { %>
+            <div class="error-alert">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <div class="container">
+                    <h1>User Management</h1>
+
+                    <!-- Tabs for Different Moderation Categories -->
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="showTab('verifyRegistrations')">Verify
+                            Registrations</button>
+                        <button class="tab-button" onclick="showTab('flaggedContent')">Flagged Content</button>
+                        <button class="tab-button" onclick="showTab('suspiciousActivity')">Suspicious Activity</button>
+                        <button class="tab-button" onclick="showTab('userTypeRequests')">User Type Change
+                            Requests</button>
+                        <button class="tab-button" onclick="showTab('profileImprovement')">Profile Improvement
+                            Suggestions</button>
+                    </div>
+
+                    <!-- Verify Registrations Tab -->
+                    <div id="verifyRegistrations" class="tab-content">
+                        <h2>Verify Registrations</h2>
+
+                        <!-- Verify Influencer Registrations Section -->
+                        <h3>Verify Influencer Registrations</h3>
+                        <% if (influencers && influencers.length> 0) { %>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Influencer Name</th>
+                                        <th>Email</th>
+                                        <th>Category</th>
+                                        <th>Social Media Handles</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% influencers.forEach(influencer=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= influencer.name %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.email %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.category %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.social_handles %>
+                                            </td>
+                                            <td><button
+                                                    onclick="approveInfluencer('<%= influencer.id %>')">Approve</button>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                            <% } else { %>
+                                <p>No pending influencer registrations</p>
+                                <% } %>
+
+                                    <!-- Verify Brand Registrations Section -->
+                                    <h3>Verify Brand Registrations</h3>
+                                    <% if (brands && brands.length> 0) { %>
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Brand Name</th>
+                                                    <th>Email</th>
+                                                    <th>Website</th>
+                                                    <th>Business Category</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% brands.forEach(brand=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= brand.name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.email %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.website %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.category %>
+                                                        </td>
+                                                        <td><button
+                                                                onclick="approveBrand('<%= brand.id %>')">Approve</button>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                        <% } else { %>
+                                            <p>No pending brand registrations</p>
+                                            <% } %>
+                    </div>
+
+                    <!-- Flagged Content -->
+                    <div id="flaggedContent" class="tab-content">
+                        <h2>Flagged Content for Review</h2>
+                        <% if (flaggedContent && flaggedContent.length> 0) { %>
+                            <ul>
+                                <% flaggedContent.forEach(content=> { %>
+                                    <li>
+                                        <%= content %>
+                                    </li>
+                                    <% }); %>
+                            </ul>
+                            <% } else { %>
+                                <p>No flagged content to review</p>
+                                <% } %>
+                    </div>
+
+                    <!-- Suspicious Activity -->
+                    <div id="suspiciousActivity" class="tab-content">
+                        <h2>Suspicious User Activity</h2>
+                        <ul>
+                            <% suspiciousUsers.forEach(user=> { %>
+                                <li>
+                                    <%= user %>
+                                </li>
+                                <% }); %>
+                        </ul>
+                    </div>
+
+                    <!-- User Type Change Requests -->
+                    <div id="userTypeRequests" class="tab-content">
+                        <h2>User Type Change Requests</h2>
+                        <ul>
+                            <% userTypeRequests.forEach(request=> { %>
+                                <li>
+                                    <%= request %>
+                                </li>
+                                <% }); %>
+                        </ul>
+                    </div>
+
+                    <!-- Profile Improvement Suggestions -->
+                    <div id="profileImprovement" class="tab-content">
+                        <h2>Profile Improvement Suggestions</h2>
+                        <ul>
+                            <% profileSuggestions.forEach(suggestion=> { %>
+                                <li>
+                                    <%= suggestion %>
+                                </li>
+                                <% }); %>
+                        </ul>
+                    </div>
+                </div>
+    </div>
+
+    <script src="/admin_dashboard.js"></script>
+    <script src="/user_management.js"></script>
+</body>
+
+</html>

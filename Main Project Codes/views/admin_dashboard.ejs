@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin_dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-btn" onclick="toggleLeftNavbar()">☰</button>
+            <div class="sidebar" id="sidebar">
+                <button class="close-btn" onclick="toggleLeftNavbar()">×</button>
+                <div class="menu">
+                    <ul class="list">
+                        <li class="active">
+                            <a href="/admin/dashboard">
+                                <i class="fas fa-users"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/user_management">
+                                <i class="fas fa-users"></i>
+                                <span>User Management</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/collaboration_monitoring">
+                                <i class="fas fa-handshake"></i>
+                                <span>Collaboration Monitoring</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/payment_verification">
+                                <i class="fas fa-money-check"></i>
+                                <span>Payment Verification</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin/feedback_and_moderation">
+                                <i class="fas fa-comments"></i>
+                                <span>Feedback & Moderation</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="heading">
+            <h1>CollabSync</h1>
+        </div>
+
+        <div class="navbar-right">
+            <div class="notifications">
+                <div class="notification-icon" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notification-count">0</span>
+                </div>
+                <div class="notifications-dropdown" id="notifications-dropdown">
+                    <div class="notifications-header">
+                        <h3>Notifications</h3>
+                        <button onclick="markAllAsRead()" class="mark-read-btn">
+                            Mark all as read
+                        </button>
+                    </div>
+                    <div class="notifications-list" id="notifications-list">
+                        <!-- Notifications will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </button>
+
+            <div class="profile">
+                <div class="profile-icon" onclick="toggleProfileDropdown()">
+                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image">
+                    <span id="user-name">
+                        <%= user.name %>
+                    </span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="/admin/settings">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <a href="#" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <h1>
+        Admin Dashboard
+    </h1>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <div class="stats-container">
+            <% stats.filter(stat=> stat.label !== "Total Revenue").forEach(stat => { %>
+                <div class="stats-card">
+                    <p>
+                        <%= stat.label %>
+                    </p>
+                    <h2>
+                        <%= stat.value %>
+                            <span class="badge <%= stat.color %>">&#9633; <%= stat.growth %>%</span>
+                    </h2>
+                    <p>
+                        <%= stat.description %>
+                    </p>
+                </div>
+                <% }); %>
+        </div>
+
+        <div class="analytics-container">
+            <h2>Revenue Analytics</h2>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Commission Overview</h3>
+                    <div class="commission-stats">
+                        <div class="stat-item">
+                            <span class="label">Total Revenue</span>
+                            <span class="value">$<%= totalRevenue.toLocaleString() %></span>
+                            <span class="growth <%= revenueGrowth >= 0 ? 'positive' : 'negative' %>">
+                                <i class="fas fa-<%= revenueGrowth >= 0 ? 'arrow-up' : 'arrow-down' %>"></i>
+                                <%= Math.abs(revenueGrowth) %>%
+                            </span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Active Collaborations</span>
+                            <span class="value">
+                                <%= activeCollabs %>
+                            </span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Average Deal Size</span>
+                            <span class="value">$<%= avgDealSize.toLocaleString() %></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="analytics-card transactions-card">
+                    <h3>Recent Transactions</h3>
+                    <div class="transactions-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Collaboration</th>
+                                    <th>Amount</th>
+                                    <th>Commission</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% recentTransactions.slice(0, 5).forEach(transaction=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= transaction.date %>
+                                        </td>
+                                        <td>
+                                            <%= transaction.collab %>
+                                        </td>
+                                        <td>$<%= transaction.amount.toLocaleString() %>
+                                        </td>
+                                        <td>$<%= (transaction.amount * 0.05).toLocaleString() %>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-container">
+            <h2>Performance Analytics Dashboard</h2>
+            <div class="analytics-grid">
+                <% analytics.forEach(metric=> { %>
+                    <div class="analytics-card">
+                        <h3>
+                            <%= metric.title %>
+                        </h3>
+                        <canvas id="<%= metric.chartId %>" data-chart="<%= JSON.stringify({
+                                    type: metric.type,
+                                    label: metric.title,
+                                    labels: metric.labels,
+                                    values: metric.values
+                                }) %>">
+                        </canvas>
+                    </div>
+                    <% }); %>
+            </div>
+        </div>
+
+        <!-- New Dashboard Links Section -->
+        <div class="dashboard-links-container">
+            <h2>Detailed Analytics Dashboards</h2>
+            <div class="dashboard-links">
+                <a href="/admin/brand-analytics" class="dashboard-link">
+                    <i class="fas fa-building"></i>
+                    <h3>Brand Analytics</h3>
+                    <p>Detailed analysis of brand performance, engagement, and ROI metrics</p>
+                </a>
+                <a href="/admin/influencer-analytics" class="dashboard-link">
+                    <i class="fas fa-star"></i>
+                    <h3>Influencer Analytics</h3>
+                    <p>Comprehensive insights into influencer performance and campaign success</p>
+                </a>
+                <a href="/admin/customer-analytics" class="dashboard-link">
+                    <i class="fas fa-users"></i>
+                    <h3>Customer Analytics</h3>
+                    <p>In-depth analysis of customer behavior, demographics, and engagement patterns</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin_dashboard.js"></script>
+</body>
+
+</html>

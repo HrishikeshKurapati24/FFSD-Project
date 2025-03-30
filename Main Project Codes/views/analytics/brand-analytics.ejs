@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Analytics - Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin_dashboard.css">
+    <link rel="stylesheet" href="/analytics.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Main Content -->
+    <div class="analytics-wrapper">
+        <% if (typeof error !=='undefined' && error) { %>
+            <div class="error-alert">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <div class="analytics-header">
+                    <h1>Brand Analytics</h1>
+                    <div class="date-filter">
+                        <select id="timeRange">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <% if (metrics) { %>
+                    <!-- Metrics Overview -->
+                    <div class="metrics-overview">
+                        <div class="metric-card">
+                            <h3>Total Brands</h3>
+                            <div class="metric-value">
+                                <%= metrics.totalBrands.toLocaleString() %>
+                            </div>
+                            <div class="metric-change <%= metrics.brandGrowth >= 0 ? 'positive' : 'negative' %>">
+                                <i class="fas fa-<%= metrics.brandGrowth >= 0 ? 'arrow-up' : 'arrow-down' %>"></i>
+                                <%= Math.abs(metrics.brandGrowth) %>% from last month
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <h3>Active Brands</h3>
+                            <div class="metric-value">
+                                <%= metrics.activeBrands.toLocaleString() %>
+                            </div>
+                            <div class="metric-change <%= metrics.activeGrowth >= 0 ? 'positive' : 'negative' %>">
+                                <i class="fas fa-<%= metrics.activeGrowth >= 0 ? 'arrow-up' : 'arrow-down' %>"></i>
+                                <%= Math.abs(metrics.activeGrowth) %>% from last month
+                            </div>
+                        </div>
+
+                        <div class="metric-card highlight-card">
+                            <h3>Highest Collaboration Value</h3>
+                            <div class="metric-value">$<%= metrics.highestCollabBrand.value.toLocaleString() %>
+                            </div>
+                            <div class="brand-detail">
+                                <img src="<%= metrics.highestCollabBrand.logo %>"
+                                    alt="<%= metrics.highestCollabBrand.name %>" class="brand-mini-logo">
+                                <span>
+                                    <%= metrics.highestCollabBrand.name %>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card highlight-card">
+                            <h3>Most Active Brand</h3>
+                            <div class="metric-value">
+                                <%= metrics.mostActiveBrand.totalCollabs %> collabs
+                            </div>
+                            <div class="brand-detail">
+                                <img src="<%= metrics.mostActiveBrand.logo %>" alt="<%= metrics.mostActiveBrand.name %>"
+                                    class="brand-mini-logo">
+                                <span>
+                                    <%= metrics.mostActiveBrand.name %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3>Brand Growth Trend</h3>
+                            <canvas id="brandGrowthChart"></canvas>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Revenue Overview</h3>
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Category Distribution</h3>
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Performing Brands Table -->
+                    <div class="brands-table-container">
+                        <h3>Top Performing Brands</h3>
+                        <table class="brands-table">
+                            <thead>
+                                <tr>
+                                    <th>Brand</th>
+                                    <th>Category</th>
+                                    <th>Active Campaigns</th>
+                                    <th>Revenue</th>
+                                    <th>Engagement Rate</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% metrics.topBrands.forEach(brand=> { %>
+                                    <tr>
+                                        <td>
+                                            <div class="brand-info">
+                                                <img src="<%= brand.logo %>" alt="<%= brand.name %>" class="brand-logo">
+                                                <span>
+                                                    <%= brand.name %>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <%= brand.category %>
+                                        </td>
+                                        <td>
+                                            <%= brand.activeCampaigns %>
+                                        </td>
+                                        <td>$<%= brand.revenue.toLocaleString() %>
+                                        </td>
+                                        <td>
+                                            <%= brand.engagementRate %>%
+                                        </td>
+                                        <td>
+                                            <span class="status-badge <%= brand.status.toLowerCase() %>">
+                                                <%= brand.status %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <div class="no-data-message">
+                            <p>No brand analytics data available</p>
+                        </div>
+                        <% } %>
+    </div>
+
+    <script id="metricsData" type="application/json">
+        <%- JSON.stringify(metrics || {}) %>
+    </script>
+    <script src="/brand-analytics.js"></script>
+</body>
+
+</html>

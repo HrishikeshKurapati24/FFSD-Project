@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand to Influencer Payment</title>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px;
+            color: #1e272e;
+        }
+
+        .container {
+            background: #fff;
+            border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 750px;
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Brand Section */
+        .brand-section {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 25px;
+            border-bottom: 2px dashed #dfe6e9;
+        }
+
+        .brand-logo {
+            width: 140px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            border: 4px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .brand-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .brand-section h1 {
+            font-size: 34px;
+            color: #2d3436;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .brand-section .tagline {
+            font-size: 18px;
+            color: #636e72;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .brand-section .contact {
+            font-size: 15px;
+            color: #3498db;
+        }
+
+        .brand-section .contact a {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .brand-section .contact a:hover {
+            color: #2980b9;
+        }
+
+        /* Influencer Section */
+        .influencer-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 50px;
+            background: #f7f9fc;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .influencer-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .influencer-pic {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin-right: 25px;
+            border: 3px solid #e74c3c;
+        }
+
+        .influencer-details h2 {
+            font-size: 26px;
+            color: #2d3436;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .influencer-details p {
+            font-size: 16px;
+            color: #636e72;
+            margin: 5px 0;
+        }
+
+        .influencer-details .social-handle {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 17px;
+        }
+
+        /* Payment Form */
+        .payment-section h3 {
+            font-size: 24px;
+            color: #2d3436;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 15px;
+            color: #2d3436;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #dfe6e9;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #1e272e;
+            background: #f9fbfc;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            color: #fff;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #2980b9, #2471a3);
+            transform: translateY(-2px);
+        }
+
+        /* Security Section */
+        .security-section {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 14px;
+            color: #636e72;
+        }
+
+        .security-section img {
+            width: 120px;
+            vertical-align: middle;
+            margin: 0 8px;
+            opacity: 0.8;
+        }
+
+        /* Payment Status */
+        #paymentStatus {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        #paymentStatus.success {
+            background: #dff9e6;
+            color: #27ae60;
+        }
+
+        #paymentStatus.error {
+            background: #fce4e4;
+            color: #c0392b;
+        }
+
+        /* Popup Styling */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+            animation: popIn 0.4s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .popup h4 {
+            font-size: 22px;
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .popup p {
+            font-size: 16px;
+            color: #2d3436;
+            margin-bottom: 20px;
+        }
+
+        .popup button {
+            background: #27ae60;
+            padding: 12px 25px;
+            width: auto;
+        }
+
+        .popup button:hover {
+            background: #219653;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .brand-section h1 {
+                font-size: 28px;
+            }
+
+            .influencer-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .influencer-pic {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .influencer-details h2 {
+                font-size: 22px;
+            }
+
+            .payment-section h3 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Brand Section -->
+        <section class="brand-section">
+            <img src="allen solly.jpg" alt="Brand Logo" class="brand-logo">
+            <h1>Allen Solly</h1>
+            <p class="tagline">"Empowering Creativity Worldwide"</p>
+            <p class="contact">
+                Email: <a href="mailto:support@allensolly.com">support@allensolly.com</a> | 
+                Website: <a href="https://www.allensolly.com" target="_blank">www.allensolly.com</a> | 
+                Phone: +1 (800) 555-1234
+            </p>
+        </section>
+
+        <!-- Influencer Section -->
+        <section class="influencer-section">
+            <img src="influencer.jpg" alt="Influencer Profile" class="influencer-pic">
+            <div class="influencer-details">
+                <h2>Jessica Taylor</h2>
+                <p>Social Handle: <span class="social-handle">@JessTheInfluencer</span></p>
+                <p>Campaign: Summer Vibes 2025</p>
+                <p>Payment Due: March 20, 2025</p>
+                <p>Content Delivered: 3 Posts, 2 Stories</p>
+            </div>
+        </section>
+
+        <!-- Payment Form -->
+        <section class="payment-section">
+            <h3>Make Payment</h3>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label for="amount">Amount (USD)</label>
+                    <input type="number" id="amount" name="amount" step="0.01" min="1" placeholder="e.g., 750.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" name="paymentMethod" required>
+                        <option value="" disabled selected>Select payment method</option>
+                        <option value="creditCard">Credit Card</option>
+                        <option value="bankTransfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <!-- Credit Card Fields -->
+                <div id="creditCardFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div class="form-group">
+                        <label for="expiryDate">Expiry Date</label>
+                        <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV</label>
+                        <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardHolder">Cardholder Name</label>
+                        <input type="text" id="cardHolder" name="cardHolder" placeholder="Jessica Taylor">
+                    </div>
+                </div>
+                <!-- Bank Transfer Fields -->
+                <div id="bankTransferFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="accountNumber">Account Number</label>
+                        <input type="text" id="accountNumber" name="accountNumber" placeholder="1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="routingNumber">Routing Number</label>
+                        <input type="text" id="routingNumber" name="routingNumber" placeholder="021000021">
+                    </div>
+                    <div class="form-group">
+                        <label for="bankName">Bank Name</label>
+                        <input type="text" id="bankName" name="bankName" placeholder="Example Bank">
+                    </div>
+                </div>
+                <button type="submit">Submit Payment</button>
+            </form>
+        </section>
+
+        <!-- Security Section -->
+        <section class="security-section">
+            <p>Secured by <img src="ssl.jpg" alt="SSL"> <img src="gateway.jpg" alt="Payment Gateway"></p>
+        </section>
+
+        <!-- Payment Status -->
+        <div id="paymentStatus"></div>
+    </div>
+
+    <!-- Popup and Overlay -->
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="successPopup">
+        <h4>Payment Successful!</h4>
+        <p>Your payment of $<span id="popupAmount"></span> to Jessica Taylor has been processed successfully.</p>
+        <button onclick="downloadInvoice()">Download Invoice</button>
+    </div>
+
+    <script>
+        // Load Poppins font
+        const link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+
+        // JavaScript for interactivity
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const creditCardFields = document.getElementById('creditCardFields');
+        const bankTransferFields = document.getElementById('bankTransferFields');
+        const paymentForm = document.getElementById('paymentForm');
+        const paymentStatus = document.getElementById('paymentStatus');
+        const overlay = document.getElementById('overlay');
+        const successPopup = document.getElementById('successPopup');
+        const popupAmount = document.getElementById('popupAmount');
+
+        // Toggle payment fields based on method
+        paymentMethodSelect.addEventListener('change', function() {
+            creditCardFields.style.display = this.value === 'creditCard' ? 'block' : 'none';
+            bankTransferFields.style.display = this.value === 'bankTransfer' ? 'block' : 'none';
+        });
+
+        // Form submission handling
+        paymentForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Collect form data
+            const amount = document.getElementById('amount').value;
+            const paymentMethod = paymentMethodSelect.value;
+            let isValid = true;
+            let errorMessage = '';
+
+            // Basic validation
+            if (!amount || amount <= 0) {
+                errorMessage += 'Please enter a valid amount.\n';
+                isValid = false;
+            }
+
+            if (!paymentMethod) {
+                errorMessage += 'Please select a payment method.\n';
+                isValid = false;
+            }
+
+            if (paymentMethod === 'creditCard') {
+                const cardNumber = document.getElementById('cardNumber').value;
+                const expiryDate = document.getElementById('expiryDate').value;
+                const cvv = document.getElementById('cvv').value;
+                const cardHolder = document.getElementById('cardHolder').value;
+
+                if (!cardNumber || cardNumber.length < 16) {
+                    errorMessage += 'Please enter a valid card number (min 16 digits).\n';
+                    isValid = false;
+                }
+                if (!expiryDate || !/^\d{2}\/\d{2}$/.test(expiryDate)) {
+                    errorMessage += 'Please enter a valid expiry date (MM/YY).\n';
+                    isValid = false;
+                }
+                if (!cvv || cvv.length < 3) {
+                    errorMessage += 'Please enter a valid CVV (3-4 digits).\n';
+                    isValid = false;
+                }
+                if (!cardHolder) {
+                    errorMessage += 'Please enter the cardholder name.\n';
+                    isValid = false;
+                }
+            } else if (paymentMethod === 'bankTransfer') {
+                const accountNumber = document.getElementById('accountNumber').value;
+                const routingNumber = document.getElementById('routingNumber').value;
+                const bankName = document.getElementById('bankName').value;
+
+                if (!accountNumber) {
+                    errorMessage += 'Please enter an account number.\n';
+                    isValid = false;
+                }
+                if (!routingNumber) {
+                    errorMessage += 'Please enter a routing number.\n';
+                    isValid = false;
+                }
+                if (!bankName) {
+                    errorMessage += 'Please enter a bank name.\n';
+                    isValid = false;
+                }
+            }
+
+            // Display error or simulate payment
+            if (!isValid) {
+                paymentStatus.textContent = errorMessage;
+                paymentStatus.className = 'error';
+                paymentStatus.style.display = 'block';
+                setTimeout(() => { paymentStatus.style.display = 'none'; }, 5000);
+            } else {
+                paymentStatus.textContent = 'Processing payment...';
+                paymentStatus.className = '';
+                paymentStatus.style.display = 'block';
+
+                // Simulate payment processing
+                setTimeout(() => {
+                    paymentStatus.style.display = 'none';
+                    popupAmount.textContent = amount;
+                    overlay.style.display = 'block';
+                    successPopup.style.display = 'block';
+                    paymentForm.reset();
+                    creditCardFields.style.display = 'none';
+                    bankTransferFields.style.display = 'none';
+                }, 1500);
+            }
+        });
+
+        // Close popup on overlay click
+        overlay.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            successPopup.style.display = 'none';
+        });
+
+        // Download invoice function
+        function downloadInvoice() {
+            const amount = popupAmount.textContent;
+            const invoiceContent = `
+                Invoice - BrandSphere
+                Date: ${new Date().toLocaleDateString()}
+                To: Jessica Taylor (@JessTheInfluencer)
+                Campaign: Summer Vibes 2025
+                Amount: $${amount}
+                Payment Method: ${paymentMethodSelect.value === 'creditCard' ? 'Credit Card' : 'Bank Transfer'}
+                Status: Paid
+                Thank you for your collaboration!
+            `;
+            const blob = new Blob([invoiceContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Invoice_BrandSphere.txt';
+            link.click();
+        }
+    </script>
+</body>
+</html>

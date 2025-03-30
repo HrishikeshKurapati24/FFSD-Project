@@ -1,0 +1,478 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Header */
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px 0;
+  }
+  .header-container {
+    width: 80%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+  }
+  nav ul li {
+    margin-left: 20px;
+  }
+  nav ul li a {
+    color: #fff;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+  }
+  nav ul li a:hover {
+    color: #007BFF;
+  }
+
+body {
+    background-color: #f0f0ff;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+.browser-tabs {
+    display: flex;
+    background-color: #333;
+    color: white;
+    height: 35px;
+    padding: 5px 5px 0;
+    overflow-x: auto;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background-color: #444;
+    border-radius: 5px 5px 0 0;
+    margin-right: 2px;
+    height: 30px;
+    min-width: 150px;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab.active {
+    background-color: #666;
+}
+
+.tab i {
+    margin-right: 5px;
+}
+
+.close-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+/* Container for the main content */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    min-height: 100vh;
+}
+
+ 
+.menu {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    right: 0; /* Sidebar on the right */
+    z-index: 1;
+    background-color: #333;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+  }
+  .menu a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 20px;
+    color: white;
+    display: block;
+    transition: 0.2s;
+  }
+  .menu a:hover {
+    background-color: #575757;
+  }
+  
+  /* Toggle Navbar */
+  .toggle-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    background-color: #007BFF;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+  }
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    font-size: 25px;
+    color: white;
+    cursor: pointer;
+  }
+
+/* Header styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.logo img {
+    height: 30px;
+}
+
+.main-nav ul {
+    display: flex;
+}
+
+.main-nav li {
+    margin: 0 15px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.main-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.main-nav i {
+    font-size: 18px;
+    margin-bottom: 5px;
+    color: #777;
+}
+
+.main-nav li.active i {
+    color: #333;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 25px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.menu-toggle span {
+    height: 3px;
+    width: 100%;
+    background-color: #333;
+}
+
+/* Profile banner styles */
+.profile-banner {
+    position: relative;
+    height: 300px;
+}
+
+.banner-image {
+    width: 100%;
+    height: 100%;
+    background-image: url('/i_index/background.jpg');
+    /* background-size: cover; */
+    background-position: center;
+}
+
+.profile-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 20px 20px;
+}
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid white;
+    background-image: url('/i_index/profile.jpg');
+    background-size: cover;
+    background-position: center;
+    margin-right: 15px;
+}
+
+.profile-name h1 {
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.profile-actions {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.invite-btn, .message-btn {
+    padding: 5px 15px;
+    border: none;
+    border-radius: 3px;
+    margin-right: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.invite-btn {
+    background-color: #00cc66;
+    color: white;
+}
+
+.message-btn {
+    background-color: #666;
+    color: white;
+}
+
+.profile-status {
+    display: flex;
+    align-items: center;
+}
+
+.premium-badge {
+    background-color: #333;
+    color: white;
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 12px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.premium-badge i {
+    color: gold;
+    margin-right: 5px;
+}
+
+.influence-info {
+    background-color: white;
+    color: #333;
+    border-radius: 15px;
+    padding: 3px 10px;
+    font-size: 12px;
+}
+
+/* Profile content styles */
+.profile-content {
+    display: flex;
+    padding: 20px;
+}
+
+.profile-left {
+    flex: 2;
+    padding-right: 20px;
+}
+
+.profile-right {
+    flex: 1;
+}
+
+/* Profile tabs */
+.profile-tabs ul {
+    display: flex;
+    border-bottom: 1px solid #e1e1e1;
+    margin-bottom: 20px;
+}
+
+.profile-tabs li {
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #777;
+}
+
+.profile-tabs li.active {
+    color: #333;
+    border-bottom: 2px solid #333;
+}
+
+.profile-tabs i {
+    margin-right: 5px;
+}
+
+/* Profile bio */
+.profile-bio h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.profile-bio p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+/* Profile cards on right side */
+.profile-card {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.profile-card h3 {
+    color: #555;
+    font-size: 16px;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
+
+/* Social media stats */
+.social-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.social-item {
+    width: 18%;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.social-item i {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.social-item .count {
+    display: block;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.social-item .label {
+    display: block;
+    font-size: 12px;
+    color: #777;
+}
+
+.social-item.wide {
+    width: 48%;
+    display: inline-block;
+}
+
+/* Total audience */
+.audience-count {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Website link */
+.website-link {
+    color: #0066cc;
+    word-break: break-all;
+}
+
+ /* Footer */
+ footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+  }
+  
+  .menu {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    right: 0; /* Sidebar on the right */
+    background-color: #333;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 60px;
+  }
+  .menu a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 20px;
+    color: white;
+    display: block;
+    transition: 0.2s;
+  }
+  .menu a:hover {
+    background-color: #575757;
+  }
+  
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+    .profile-content {
+        flex-direction: column;
+    }
+    
+    .profile-left {
+        padding-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .main-nav {
+        display: none;
+    }
+    
+    .menu-toggle {
+        display: flex;
+    }
+    
+    .profile-info {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-pic {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .social-item {
+        width: 30%;
+    }
+}

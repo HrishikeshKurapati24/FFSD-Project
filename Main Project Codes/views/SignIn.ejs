@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - CollabSync</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Helvetica, sans-serif;
+      background-color: #f4f4f4;
+      color: aquamarine;
+    }
+    /* Container for the form and image */
+    .signin-container {
+      display: flex;
+      max-width: 1000px;
+      margin: 100px auto;
+      border: 5px solid red;
+      background-color: black;
+      color: aquamarine;
+      min-height: 500px;
+    }
+    /* Form container on the left */
+    .form-container {
+      flex: 1;
+      background-color: purple; /* Changed inner background to purple */
+      padding: 30px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Vertically center content */
+    }
+    .form-container h1,
+    .form-container h2 {
+      text-align: center;
+      color: aquamarine;
+      margin-bottom: 20px; /* Gap between headings and the rest */
+    }
+    .form-container p {
+      font-size: 20px;
+      font-family: monospace;
+      color: blue;
+      margin: 10px 0;
+    }
+    .form-container label {
+      display: inline-block;
+      width: 150px;
+      text-align: right;
+      margin-right: 10px;
+    }
+    .form-container input[type="email"],
+    .form-container input[type="password"] {
+      padding: 5px;
+      font-size: 16px;
+      margin-bottom: 15px; /* Added gap between fields */
+    }
+    .form-container button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: red;
+      color: aquamarine;
+      border: none;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+    }
+    .checkbox-container {
+      margin: 20px 0;
+      text-align: left;
+      margin-left: 160px;
+    }
+    .form-container a {
+      color: blue;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    /* Image container on the right */
+    .image-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .image-container img {
+      /* changing here */
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="signin-container">
+    <div class="form-container">
+      <h1>Sign In</h1>
+      <form action="SignIn.php" method="post">
+        <h2>Enter your Credentials</h2>
+        <p>
+          <label for="email">Email ID:</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </p>
+        <p>
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </p>
+        <div class="checkbox-container">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember" style="display:inline;">Remember me</label>
+        </div>
+        <p>
+          <button type="submit">Sign In</button>
+        </p>
+        <p style="text-align: center;">
+          <a href="#">Forgot Password?</a>
+        </p>
+      </form>
+    </div>
+    <div class="image-container">
+      <img src="/Sign/SignUp_picture3.jpg" height="600px" width="700px" alt="Sign In Illustration">
+    </div>
+  </div>
+</body>
+</html>
+
+<script>document.addEventListener('DOMContentLoaded', function() {
+    // Get the sign-in form element
+    const signInForm = document.querySelector('form');
+    
+    if (signInForm) {
+        signInForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember').checked;
+            
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            
+            // Find user with matching email and password
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                // If remember me is checked, store the user session
+                if (rememberMe) {
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        email: user.email,
+                        type: user.type,
+                        name: user.fullName || user.companyName
+                    }));
+                } else {
+                    // Use sessionStorage if not remembering
+                    sessionStorage.setItem('currentUser', JSON.stringify({
+                        email: user.email,
+                        type: user.type,
+                        name: user.fullName || user.companyName
+                    }));
+                }
+                
+                // Redirect based on user type
+                if (user.type === 'influencer') {
+                    alert("Welcome back, " + (user.fullName || "Influencer") + "! Redirecting to influencer dashboard.");
+                    window.location.href = '/I_index';
+                } else if (user.type === 'brand') {
+                    alert("Welcome back, " + (user.companyName || "Brand") + "! Redirecting to brand dashboard.");
+                    window.location.href = '/B2_index';
+                } else {
+                    alert("Welcome back! Redirecting to dashboard.");
+                    window.location.href = '/SignIn';
+                }
+            } else {
+                // User not found or incorrect password
+                alert("Invalid email or password. Please try again.");
+            }
+        });
+    } else {
+        console.error("Sign in form not found in the document");
+    }
+    
+    // Handle "Forgot Password" link
+    const forgotPasswordLink = document.querySelector('a[href="#"]');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const email = prompt("Please enter your email to reset your password:");
+            
+            if (email) {
+                // Check if email exists in users
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const userExists = users.some(user => user.email === email);
+                
+                if (userExists) {
+                    alert("Password reset instructions have been sent to your email. Please check your inbox.");
+                    // In a real application, this would trigger an email being sent
+                } else {
+                    alert("No account found with this email address. Please sign up first.");
+                }
+            }
+        });
+    }
+});</script>

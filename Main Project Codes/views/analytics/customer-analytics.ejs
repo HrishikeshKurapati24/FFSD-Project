@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Analytics - Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin_dashboard.css">
+    <link rel="stylesheet" href="/analytics.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Main Content -->
+    <div class="analytics-wrapper">
+        <% if (typeof error !=='undefined' && error) { %>
+            <div class="error-alert">
+                <%= error %>
+            </div>
+            <% } %>
+
+                <div class="analytics-header">
+                    <h1>Customer Analytics</h1>
+                    <div class="date-filter">
+                        <select id="timeRange">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <% if (metrics) { %>
+                    <!-- Customer Metrics Overview -->
+                    <div class="metrics-overview">
+                        <div class="metric-card">
+                            <h3>Total Customers</h3>
+                            <div class="metric-value">
+                                <%= metrics.totalCustomers.toLocaleString() %>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Active Customers</h3>
+                            <div class="metric-value">
+                                <%= metrics.activeCustomers.toLocaleString() %>
+                            </div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <%= metrics.customerGrowth %>% from last month
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Demographics Section -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3>Age Distribution</h3>
+                            <div class="demographics-grid">
+                                <% metrics.demographics.age.forEach(age=> { %>
+                                    <div class="demographic-item">
+                                        <div class="age-range">
+                                            <%= age.range %>
+                                        </div>
+                                        <div class="percentage-bar">
+                                            <div class="bar" style="width: <%= age.percentage %>%;"></div>
+                                        </div>
+                                        <div class="percentage-value">
+                                            <%= age.percentage %>%
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Gender Distribution</h3>
+                            <canvas id="genderChart"></canvas>
+                            <div class="gender-stats">
+                                <% metrics.demographics.gender.forEach(gender=> { %>
+                                    <div class="gender-stat">
+                                        <span class="label">
+                                            <%= gender.type %>
+                                        </span>
+                                        <span class="value">
+                                            <%= gender.percentage %>%
+                                        </span>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Engagement Charts -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3>Customer Engagement Trends</h3>
+                            <canvas id="engagementChart"></canvas>
+                        </div>
+                    </div>
+                    <% } else { %>
+                        <div class="no-data-message">
+                            <p>No customer analytics data available</p>
+                        </div>
+                        <% } %>
+    </div>
+
+    <script id="metricsData" type="application/json">
+        <%- JSON.stringify(metrics || {}) %>
+    </script>
+    <script src="/customer-analytics.js"></script>
+</body>
+
+</html>

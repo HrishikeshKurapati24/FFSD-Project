@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Brand Dashboard - CollabSync</title>
+
+  <link
+  rel="stylesheet"
+  href="/B2_index/B2_index.css" />
+
+  <style>
+    #myChart {
+        width: 80%;
+        height: 400px;
+        margin: 0 auto;
+        flex:left;
+    }
+  </style>
+  <style>
+    #myRadarChart {
+        width: 60%;
+        height: 400px;
+        margin: 0 auto;
+        flex:right;
+    }
+  </style>
+  
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/B2_index">Home</a></li>
+          <li><a href="/B2_explore">Explore Influencers</a></li>
+          <li><a href="/B2_profile2">My Brand Profile</a></li>
+          <!-- <li><a href="logout">Logout</a></li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <a href="/B2_collab">Collabs</a>
+    <a href="/B2_recievedRequests">Collab requests</a>
+    <a href="/Create_collab">Create Collab</a>
+    <a href="/Lp_index">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div> 
+  
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Intro Section -->
+    <div class="intro">
+      <h1>Welcome, [Brand Name]</h1>
+      <p>
+        Discover how CollabSync empowers brands with powerful tools and real-time analytics to manage campaigns, 
+        engage with top influencers, and grow your business.
+      </p>
+    </div>
+    
+    <!-- Dashboard Overview -->
+    <section class="dashboard">
+      <h2>Dashboard Overview</h2>
+      <div class="dashboard-items">
+        <div class="dashboard-item">
+          <h3>Active Campaigns</h3>
+          <p>5 campaigns running</p>
+        </div>
+        <div class="dashboard-item">
+          <h3>Upcoming Deadlines</h3>
+          <p>2 campaigns due soon</p>
+        </div>
+        <div class="dashboard-item">
+          <h3>Notifications</h3>
+          <p>3 new alerts</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Benefits Section for Brands -->
+    <section class="benefits">
+      <div class="benefit-item">
+        <h2>Enhanced Visibility</h2>
+        <p>
+          Showcase your brand to a wide network of top influencers and increase your market reach.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Campaign Management</h2>
+        <p>
+          Plan, execute, and monitor campaigns with comprehensive insights and performance analytics.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Tailored Collaborations</h2>
+        <p>
+          Connect with influencers that align with your brand values and target audience.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Real-Time Analytics</h2>
+        <p>
+          Access up-to-date metrics to track campaign success and optimize your strategies.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Brand Profile Management</h2>
+        <p>
+          Maintain a comprehensive profile showcasing your company details, campaign history, and future plans.
+        </p>
+      </div>
+      <div class="benefit-item">
+        <h2>Dedicated Support</h2>
+        <p>
+          Benefit from expert guidance and support tailored to your brand's needs.
+        </p>
+      </div>
+    </section>
+    
+    <!-- Main Features Section -->
+    <section class="features">
+      <h2>Main Features</h2>
+      <div class="feature-list">
+        <div class="feature-item">
+          <h3>Campaign Management Tools</h3>
+          <p>
+            Create, launch, and monitor campaigns easily using our intuitive dashboard.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Influencer Discovery & Search</h3>
+          <p>
+            Find the right influencers using advanced filters based on niche, audience size, and engagement.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Real-Time Analytics</h3>
+          <p>
+            Access live metrics and performance data to optimize your marketing strategies.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Communication & Collaboration</h3>
+          <p>
+            Interact directly with influencers using our integrated messaging system.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Feedback & Reviews</h3>
+          <p>
+            Collect insights from past campaigns and reviews to continuously improve your approach.
+          </p>
+        </div>
+        <div class="feature-item">
+          <h3>Revenue & Commission Tracking</h3>
+          <p>
+            Monitor your financial performance with tools that track revenue, costs, and commissions.
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Quick Links Section -->
+    <div class="links">
+      <a href="explore-influencers">Explore Influencers</a>
+      <a href="my-brand">View My Brand Profile</a>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="charts-container">
+    <div>
+  <canvas id="myRadarChart"></canvas>
+    <script>
+        var ctx = document.getElementById('myRadarChart').getContext('2d');
+        var myRadarChart = new Chart(ctx, {
+             type: 'radar', 
+            data: {
+                labels: ['growth', 'age', 'reach', 'no of products', 'Flexibility'], // Labels for each axis
+                datasets: [{
+                    label: ' brand statistics',
+                    data: [80, 70, 90, 85, 75], // Data points for each axis
+                    fill: true,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scale: {
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</div>
+<div>
+    <canvas id="myChart"></canvas>
+    <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May','June','July','August','September','october','Novemeber','December'],
+                datasets: [{
+                    label: 'no of products sold',
+                    data: [50, 20, 100, 90, 100,80,110,100,180,120,150,110], 
+                    backgroundColor: 'rgba(54, 162, 23, 0.5)',
+                    borderColor: 'rgba(54, 162, 35, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+  </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 CollabSync. All rights reserved.</p>
+  </footer>
+
+  <!-- This script handles the sidebar toggle. -->
+  <script>
+    function openMenu() {
+        document.getElementById("navMenu").style.width = "250px";
+    }
+    function closeMenu() {
+        document.getElementById("navMenu").style.width = "0";
+    }
+    </script>
+
+
+</body>
+</html>
