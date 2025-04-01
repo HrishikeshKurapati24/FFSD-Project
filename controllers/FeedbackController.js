@@ -4,7 +4,7 @@ const FeedbackController = {
     async getAllFeedback(req, res) {
         try {
             const feedbacks = await FeedbackModel.getAllFeedback();
-            res.render("feedback_and_moderation", {
+            res.render("admin/feedback_and_moderation", {
                 feedbacks: feedbacks || [],
                 user: {
                     name: 'Admin User'
@@ -12,7 +12,7 @@ const FeedbackController = {
             });
         } catch (error) {
             console.error("Error fetching feedback:", error);
-            res.render("feedback_and_moderation", {
+            res.render("admin/feedback_and_moderation", {
                 feedbacks: [],
                 user: {
                     name: 'Admin User'

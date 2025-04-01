@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Brands - CollabSync</title>
+  <link rel="stylesheet" href="/i_index/I_explore.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/I_index">Home</a></li>
+          <li><a href="/I_explore">Explore brands</a></li>
+          <li><a href="/I_profile2">My Profile</a></li>
+          <!-- <li><a href="logout">Logout</a></li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <!-- <a href="#">Influencers</a> -->
+    <a href="/I_collab">Collabs</a> 
+    <a href="/Lp_index">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div> 
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="intro">
+      <h1>Explore Brands</h1>
+      <p>Connect with top brands to elevate your collaboration opportunities.</p>
+    </div>
+    
+    <!-- Toggle Button -->
+    <div class="toggle-container">
+      <button class="toggle-button" onclick="toggleLayout()">Toggle Layout</button>
+    </div>
+    
+    <!-- Brand List -->
+    <div class="brand-list" id="brandList">
+      <!-- Brand Item -->
+      <div class="brand-item">
+        <img style="border-radius: 50%; width: 100px;" src="/i_index/american-tourister.png" alt="Brand 1">
+        <div class="brand-details">
+          <h2>American Tourister</h2>
+          <p>Fields of Operation: Travelling and exploration</p>
+        </div>
+        <button class="collab-button">Request Collab</button>
+      </div>
+      <!-- Brand Item -->
+      <div class="brand-item">
+        <img style="border-radius: 50%; width: 100px;" src="/i_index/boat.png" alt="Brand 2">
+        <div class="brand-details">
+          <h2>Boat</h2>
+          <p>Fields of Operation: Technology, Gadgets</p>
+        </div>
+        <button class="collab-button">Request Collab</button>
+      </div>
+      <!-- Brand Item -->
+      <div class="brand-item">
+        <img style="border-radius: 50%; width: 100px;" src="/i_index/garnier.jpg" alt="Brand 3">
+        <div class="brand-details">
+          <h2>Garnier</h2>
+          <p>Fields of Operation: Men's fasion, grooming</p>
+        </div>
+        <button class="collab-button">Request Collab</button>
+      </div>
+      <!-- Brand Item -->
+      <div class="brand-item">
+        <img style="border-radius: 50%; width: 100px;" src="/i_index/fair-and-lovely.png" alt="Brand 4">
+        <div class="brand-details">
+          <h2>Fair and Lovely</h2>
+          <p>Fields of Operation: Fashion, Lifestyle</p>
+        </div>
+        <button class="collab-button">Request Collab</button>
+      </div>
+      <!-- Brand Item -->
+      <div class="brand-item">
+        <img style="border-radius: 50%; width: 100px;" src="/i_index/canon.png" alt="Brand 5">
+        <div class="brand-details">
+          <h2>Canon</h2>
+          <p>Fields of Operation: Photography</p>
+        </div>
+        <button class="collab-button">Request Collab</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- This script handles the sidebar toggle. -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+  </script>
+  
+  <script>
+    function toggleLayout() {
+      const brandList = document.getElementById('brandList');
+      brandList.classList.toggle('grid');
+    }
+  </script>
+</body>
+</html>

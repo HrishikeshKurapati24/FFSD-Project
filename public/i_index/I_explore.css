@@ -142,6 +142,9 @@
   .grid .brand-item img {
     margin-bottom: 10px;
     margin-right: 0;
+    /* border-radius: 50%;
+    width:100px; */
+
   }
   /* Sidebar Navigation */
   .menu {
@@ -187,3 +190,9 @@
     cursor: pointer;
   }
   
+  .grid .brand-item img {
+
+    border-radius: 50%;
+    width:100px;
+
+  }

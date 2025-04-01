@@ -28,7 +28,7 @@ const UserManagementController = {
             };
 
             // Render the page with all data
-            res.render("user_management", {
+            res.render("admin/user_management", {
                 influencers: influencers || [],
                 brands: brands || [],
                 flaggedContent: mockData.flaggedContent,
@@ -43,7 +43,7 @@ const UserManagementController = {
         } catch (error) {
             console.error("Error in getUserManagementPage:", error);
             // Render with empty data in case of error
-            res.render("user_management", {
+            res.render("admin/user_management", {
                 influencers: [],
                 brands: [],
                 flaggedContent: [],

@@ -18,9 +18,6 @@ const adminAuth = (req, res, next) => {
     next();
 };
 
-// Apply adminAuth middleware to all admin routes
-router.use(adminAuth);
-
 // Dashboard route
 router.get('/dashboard', AdminController.getDashboard);
 
@@ -49,12 +46,12 @@ router.post('/feedback_and_moderation/update', FeedbackController.updateFeedback
 
 // Settings route
 router.get('/settings', (req, res) => {
-    res.render('admin_settings');
+    res.render('admin/settings');
 });
 
 // Logout route
 router.get('/logout', (req, res) => {
-    res.redirect('/admin/login');
+    res.redirect('admin/login');
 });
 
 module.exports = router;

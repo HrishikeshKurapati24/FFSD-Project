@@ -104,7 +104,7 @@ const AdminController = {
             ];
 
             // Render the dashboard with only required data
-            res.render("admin_dashboard", {
+            res.render("admin/admin_dashboard", {
                 user: { name: req.user ? req.user.name : "Admin" },
                 stats,
                 analytics,

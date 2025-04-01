@@ -11,13 +11,13 @@ const AdminAnalyticsController = {
                 throw new Error('No metrics data received');
             }
 
-            res.render('analytics/brand-analytics', {
+            res.render('admin/analytics/brand-analytics', {
                 metrics,
                 error: null
             });
         } catch (error) {
             console.error('Error in getBrandAnalytics:', error);
-            res.render('analytics/brand-analytics', {
+            res.render('admin/analytics/brand-analytics', {
                 metrics: null,
                 error: 'Failed to load brand analytics'
             });
@@ -34,13 +34,13 @@ const AdminAnalyticsController = {
                 throw new Error('No metrics data received');
             }
 
-            res.render('analytics/influencer-analytics', {
+            res.render('admin/analytics/influencer-analytics', {
                 metrics,
                 error: null
             });
         } catch (error) {
             console.error('Error in getInfluencerAnalytics:', error);
-            res.render('analytics/influencer-analytics', {
+            res.render('admin/analytics/influencer-analytics', {
                 metrics: null,
                 error: 'Failed to load influencer analytics'
             });
@@ -57,13 +57,13 @@ const AdminAnalyticsController = {
                 throw new Error('No metrics data received');
             }
 
-            res.render('analytics/customer-analytics', {
+            res.render('admin/analytics/customer-analytics', {
                 metrics,
                 error: null
             });
         } catch (error) {
             console.error('Error in getCustomerAnalytics:', error);
-            res.render('analytics/customer-analytics', {
+            res.render('admin/analytics/customer-analytics', {
                 metrics: null,
                 error: 'Failed to load customer analytics'
             });

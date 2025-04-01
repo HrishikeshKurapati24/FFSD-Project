@@ -30,106 +30,114 @@ app.use((req, res, next) => {
 
 // Route for the Landing_page
 app.get('/', (req, res) => {
-    res.render('Lp_index'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/Lp_index'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the about_page
 app.get('/about_page', (req, res) => {
-    res.render('about_page'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/about_page'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the sup_role
 app.get('/Sup_role', (req, res) => {
-    res.render('Sup_role'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/Sup_role'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the SignIn
 app.get('/SignIn', (req, res) => {
-    res.render('SignIn'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/SignIn'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the Home icon
 app.get('/Lp_index', (req, res) => {
-    res.render('Lp_index'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/Lp_index'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the Sup_i
 app.get('/Sup_i', (req, res) => {
-    res.render('Sup_i'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/Sup_i'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the Sup_b
 app.get('/Sup_b', (req, res) => {
-    res.render('Sup_b'); // This will render 'views/Lp_index.ejs'
+    res.render('home_page/Sup_b'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the I_index
 app.get('/I_index', (req, res) => {
-    res.render('I_index'); // This will render 'views/Lp_index.ejs'
+    res.render('influencer/I_index'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the I_explore
 app.get('/I_explore', (req, res) => {
-    res.render('I_explore'); // This will render 'views/Lp_index.ejs'
+    res.render('influencer/I_explore'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the I_profile2
 app.get('/I_profile2', (req, res) => {
-    res.render('I_profile2'); // This will render 'views/Lp_index.ejs'
+    res.render('influencer/I_profile2'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the I_collab
 app.get('/I_collab', (req, res) => {
-    res.render('I_collab'); // This will render 'views/Lp_index.ejs'
+    res.render('influencer/I_collab'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the /Collab_form_open
 app.get('/Collab_form_open', (req, res) => {
-    res.render('Collab_form_open'); // This will render 'views/Lp_index.ejs'
+    res.render('influencer/Collab_form_open'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the B2_index
 app.get('/B2_index', (req, res) => {
-    res.render('B2_index'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/B2_index'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the /B2_profile2
 app.get('/B2_profile2', (req, res) => {
-    res.render('B2_profile2'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/B2_profile2'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the /B2_collab
 app.get('/B2_collab', (req, res) => {
-    res.render('B2_collab'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/B2_collab'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the /B2_explore
 app.get('/B2_explore', (req, res) => {
-    res.render('B2_explore'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/B2_explore'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the Create_collab
 app.get('/Create_collab', (req, res) => {
-    res.render('Create_collab'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/Create_collab'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the B2_recievedRequests
 app.get('/B2_recievedRequests', (req, res) => {
-    res.render('B2_recievedRequests'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/B2_recievedRequests'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the B2_transation
 app.get('/B2_transationp', (req, res) => {
-    res.render('B2_transationp'); // This will render 'views/Lp_index.ejs'
+    res.render('brand/B2_transationp'); // This will render 'views/Lp_index.ejs'
 });
 
+app.get('/customer/customers_offers_page', (req, res) => {
+    res.render('customer/customers_offers_page');
+});
+
+
+app.get('/customer/customers_reviews_page', (req, res) => {
+    res.render('customer/customers_reviews_page');
+});
 //Admin Panel Routing
 // Mount all routes under /admin
 app.use("/admin", adminRoutes);
 
 // Root route redirect
 app.get("/admin", (req, res) => {
-    res.redirect("/admin/dashboard");
+    res.redirect("/dashboard");
 });
 
 // Error handling middleware
@@ -142,7 +150,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-const PORT = 4000;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });

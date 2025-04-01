@@ -4,7 +4,7 @@ const PaymentController = {
     async getAllPayments(req, res) {
         try {
             const payments = await PaymentModel.getAllPayments();
-            res.render("payment_verification", {
+            res.render("admin/payment_verification", {
                 payments: payments || [],
                 user: {
                     name: 'Admin User'
@@ -12,7 +12,7 @@ const PaymentController = {
             });
         } catch (error) {
             console.error("Error fetching payments:", error);
-            res.render("payment_verification", {
+            res.render("admin/payment_verification", {
                 payments: [],
                 user: {
                     name: 'Admin User'

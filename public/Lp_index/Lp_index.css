@@ -152,6 +152,7 @@
       display: flex;
       flex-direction: column;
       gap: 40px;
+
     }
     
     .block {
@@ -160,6 +161,7 @@
       gap: 20px;
   
       background-color: #8979e6;
+      padding: 10px;
     }
     
     .block.reverse {

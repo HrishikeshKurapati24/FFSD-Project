@@ -4,7 +4,7 @@ const CollaborationController = {
     async getAllCollaborations(req, res) {
         try {
             const collaborations = await CollaborationModel.getAllCollaborations();
-            res.render("collaboration_monitoring", {
+            res.render("admin/collaboration_monitoring", {
                 collaborations: collaborations || [],
                 user: {
                     name: 'Admin User'
@@ -12,7 +12,7 @@ const CollaborationController = {
             });
         } catch (error) {
             console.error("Error fetching collaborations:", error);
-            res.render("collaboration_monitoring", {
+            res.render("admin/collaboration_monitoring", {
                 collaborations: [],
                 user: {
                     name: 'Admin User'
