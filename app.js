@@ -3,6 +3,8 @@ const app = express();
 const session = require("express-session");
 const adminRoutes = require("./routes/adminRoutes");
 const influencerRoutes = require("./routes/influencerRoutes");
+const brandRoutes = require("./routes/brandRoutes");
+const customerRoutes = require("./routes/customerRoutes");
 const path = require('path');
 
 // Set EJS as the view engine
@@ -71,19 +73,11 @@ app.get('/influencer/home', (req, res) => {
 
 app.use("/influencer", influencerRoutes);
 
+app.use("/brand", brandRoutes);
+
 // Route for the I_profile2
 app.get('/influencer/profile', (req, res) => {
     res.render('influencer/I_profile2'); // This will render 'views/Lp_index.ejs'
-});
-
-// Route for the I_collab
-app.get('/influencer/collab', (req, res) => {
-    res.render('influencer/I_collab'); // This will render 'views/Lp_index.ejs'
-});
-
-// Route for the /Collab_form_open
-app.get('/influencer/Collab_form_open', (req, res) => {
-    res.render('influencer/Collab_form_open'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the B2_index
@@ -96,24 +90,9 @@ app.get('/brand/profile', (req, res) => {
     res.render('brand/B2_profile2'); // This will render 'views/Lp_index.ejs'
 });
 
-// Route for the /B2_collab
-app.get('/brand/collab', (req, res) => {
-    res.render('brand/B2_collab'); // This will render 'views/Lp_index.ejs'
-});
-
-// Route for the /B2_explore
-app.get('/brand/explore', (req, res) => {
-    res.render('brand/B2_explore'); // This will render 'views/Lp_index.ejs'
-});
-
 // Route for the Create_collab
 app.get('/brand/create_collab', (req, res) => {
     res.render('brand/Create_collab'); // This will render 'views/Lp_index.ejs'
-});
-
-// Route for the B2_recievedRequests
-app.get('/brand/recievedRequests', (req, res) => {
-    res.render('brand/B2_recievedRequests'); // This will render 'views/Lp_index.ejs'
 });
 
 // Route for the B2_transation
@@ -129,6 +108,7 @@ app.get('/customer/offers', (req, res) => {
 app.get('/customer/reviews', (req, res) => {
     res.render('customer/customers_reviews_page');
 });
+
 //Admin Panel Routing
 // Mount all routes under /admin
 app.use("/admin", adminRoutes);

@@ -52,55 +52,17 @@
 
     <!-- Influencer List -->
     <div class="influencer-list" id="influencerList">
-      <!-- Influencer Item -->
-      <div class="influencer-item">
-        <img style="border-radius: 50%; width: 100px" src="/B2_index/anushka-sen.jpg" alt="Influencer 1">
-        <div class="influencer-details">
-          <h2>Anushka Sen</h2>
-          <p>Fields of Influence: Fashion, Lifestyle</p>
+      <!-- Dynamically render influencers -->
+      <% influencers.forEach(influencer => { %>
+        <div class="influencer-item">
+          <img style="border-radius: 50%; width: 100px" src="<%= influencer.image_url %>" alt="<%= influencer.name %>">
+          <div class="influencer-details">
+            <h2><%= influencer.name %></h2>
+            <p>Fields of Influence: <%= influencer.field_of_influence %></p>
+          </div>
+          <button class="invite-button">Invite</button>
         </div>
-        <button class="invite-button">Invite</button>
-      </div>
-      <!-- Influencer Item -->
-      <div class="influencer-item">
-        <img src="/B2_index/simpleghar-telugu.jpeg" alt="Influencer 2">
-        <div class="influencer-details">
-          <h2>Simpleghar</h2>
-          <p>Fields of Influence: Technology, Gadgets</p>
-        </div>
-        <button class="invite-button">Invite</button>
-      </div>
-      <!-- Influencer Item -->
-      <div class="influencer-item">
-        <img style="border-radius: 50%; width: 100px" src="/B2_index/anvesh.jpeg" alt="Influencer 3">
-        <div class="influencer-details">
-          <h2>Anvesh</h2>
-          <p>Fields of Influence: Travel, Exploration</p>
-        </div>
-        <button class="invite-button">Invite</button>
-      </div>
-
-      <!-- Influencer Item -->
-      <div class="influencer-item">
-        <img src="/B2_index/aye-jude.jpeg" alt="Influencer 3">
-        <div class="influencer-details">
-          <h2>Aye Jude</h2>
-          <p>Fields of Influence: Men's fasion, grooming</p>
-        </div>
-        <button class="invite-button">Invite</button>
-      </div>
-
-      <!-- Influencer Item -->
-      <div class="influencer-item">
-        <img src="/B2_index/surbhi-kaushik.webp" alt="Influencer 3">
-        <div class="influencer-details">
-          <h2>Surbhi Kaushik</h2>
-          <p>Fields of Influence: Photography</p>
-        </div>
-        <button class="invite-button">Invite</button>
-      </div>
-
-
+      <% }); %>
     </div>
   </div>
 

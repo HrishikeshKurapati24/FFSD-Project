@@ -40,111 +40,43 @@
     <input type="text" class="search-bar" placeholder="Search for collabs...">
     <div class="collab-list">
 
-      <!-- Collab Box 1: 8 Billion Project -->
-      <div class="collab-box">
-        <div class="collab-title">
-          Calling All Pakistani and Indian Creators -- Wear Culture - Make Impact
-        </div>
-        <div class="bottom-row">
-          <!-- Left Column: Blue Box with Attributes + Extra Sentence -->
-          <div class="left-col">
-            <div class="blue-box">
-              <span class="attr">By:</span> <span class="value">8 Billion Project</span><br>
-              <span class="attr">Most influence in:</span> <span class="value">India 🇮🇳 Pakistan 🇵🇰 United Arab
-                Emirates 🇦🇪</span><br>
-              <span class="attr">Interests:</span> <span class="value">Streetwear Music Education</span><br>
-              <span class="attr">Pay-per-post:</span> <span class="value">None</span><br>
-              <span class="attr">Commission:</span> <span class="value">8%</span>
-            </div>
-            <div class="offer-sentence">
-              Every drop is limit ...
-            </div>
+      <!-- Dynamically render collabs -->
+  <!-- views/I_collab.ejs (partial update) -->
+<div class="collab-list">
+  <% collabs.forEach(collab => { %>
+    <div class="collab-box">
+      <div class="collab-title">
+        <%= collab.title %>
+      </div>
+      <div class="bottom-row">
+        <div class="left-col">
+          <div class="blue-box">
+            <span class="attr">By:</span> <span class="value"><%= collab.brand_name %></span><br>
+            <span class="attr">Most influence in:</span> <span class="value"><%= collab.influence_regions %></span><br>
+            <span class="attr">Interests:</span> <span class="value"><%= collab.interests %></span><br>
+            <span class="attr">Pay-per-post:</span> <span class="value"><%= collab.pay_per_post %></span><br>
+            <span class="attr">Commission:</span> <span class="value"><%= collab.commission %></span>
           </div>
-          <!-- Right Column: Red Box with Requirements and View Button -->
-          <div class="red-col">
-            <div class="collab-requirements">
-              <h3>Requirements:</h3>
-              <p>
-                <span class="attr">Channels:</span> <span class="value">Facebook, Instagram, Twitter</span><br>
-                <span class="attr">Minimum Followers:</span> <span class="value">Any</span><br>
-                <span class="attr">Age Group:</span> <span class="value">18-50</span><br>
-                <span class="attr">Genders:</span> <span class="value">Any</span>
-              </p>
-              <a href="Collab_form_open" class="view-btn">View Details</a>
-            </div>
+          <div class="offer-sentence">
+            <%= collab.offer_sentence %>
+          </div>
+        </div>
+        <div class="red-col">
+          <div class="collab-requirements">
+            <h3>Requirements:</h3>
+            <p>
+              <span class="attr">Channels:</span> <span class="value"><%= collab.channels %></span><br>
+              <span class="attr">Minimum Followers:</span> <span class="value"><%= collab.min_followers %></span><br>
+              <span class="attr">Age Group:</span> <span class="value"><%= collab.age_group %></span><br>
+              <span class="attr">Genders:</span> <span class="value"><%= collab.genders %></span>
+            </p>
+            <a href="/Collab_form_open?id=<%= collab.id %>" class="view-btn">View Details</a>
           </div>
         </div>
       </div>
-
-      <!-- Collab Box 2: A Cool Spring Treat for your Pup -->
-      <div class="collab-box">
-        <div class="collab-title">
-          A Cool Spring Treat for your Pup
-        </div>
-        <div class="bottom-row">
-          <div class="left-col">
-            <div class="blue-box">
-              <span class="attr">By:</span> <span class="value">The Bear &amp; The Rat</span><br>
-              <span class="attr">Most influence in:</span> <span class="value">United States 🇺🇸</span><br>
-              <span class="attr">Interests:</span> <span class="value">Pets, Nutrition</span><br>
-              <span class="attr">Pay-per-post:</span> <span class="value">$10 per post</span><br>
-              <span class="attr">Commission:</span> <span class="value">None</span>
-            </div>
-            <div class="offer-sentence">
-              Treat your pup with our frozen dog treats.
-            </div>
-          </div>
-          <div class="red-col">
-            <div class="collab-requirements">
-              <h3>Requirements:</h3>
-              <p>
-                <span class="attr">Channels:</span> <span class="value">Instagram, TikTok</span><br>
-                <span class="attr">Minimum Followers:</span> <span class="value">Any</span><br>
-                <span class="attr">Age Group:</span> <span class="value">Any</span><br>
-                <span class="attr">Genders:</span> <span class="value">Any</span>
-              </p>
-              <a href="Collab_form_open" class="view-btn">View Details</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Collab Box 3: Eco-Friendly Fashion Collaboration -->
-      <div class="collab-box">
-        <div class="collab-title">
-          Eco-Friendly Fashion Collaboration
-        </div>
-        <div class="bottom-row">
-          <div class="left-col">
-            <div class="blue-box">
-              <span class="attr">By:</span> <span class="value">GreenWear</span><br>
-              <span class="attr">Most influence in:</span> <span class="value">Europe</span><br>
-              <span class="attr">Interests:</span> <span class="value">Fashion, Sustainability</span><br>
-              <span class="attr">Pay-per-post:</span> <span class="value">$50 per post + Free eco-friendly
-                apparel</span><br>
-              <span class="attr">Commission:</span> <span class="value">N/A</span>
-            </div>
-            <div class="offer-sentence">
-              Support sustainability with our latest organic clothing line.
-            </div>
-          </div>
-          <div class="red-col">
-            <div class="collab-requirements">
-              <h3>Requirements:</h3>
-              <p>
-                <span class="attr">Channels:</span> <span class="value">Instagram</span><br>
-                <span class="attr">Minimum Followers:</span> <span class="value">10k+</span><br>
-                <span class="attr">Age Group:</span> <span class="value">18-35</span><br>
-                <span class="attr">Genders:</span> <span class="value">Any</span>
-              </p>
-              <a href="Collab_form_open" class="view-btn">View Details</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
-  </div>
+  <% }); %>
+</div>
 
   <!-- This script handles the sidebar toggle. -->
   <script>
