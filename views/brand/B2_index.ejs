@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <title>Brand Dashboard - CollabSync</title>
 
-  <link
-  rel="stylesheet"
-  href="/B2_index/B2_index.css" />
+  <link rel="stylesheet" href="/B2_index/B2_index.css" />
 
   <style>
     #myChart {
-        width: 80%;
-        height: 400px;
-        margin: 0 auto;
-        flex:left;
+      width: 80%;
+      height: 400px;
+      margin: 0 auto;
+      flex: left;
     }
   </style>
   <style>
     #myRadarChart {
-        width: 60%;
-        height: 400px;
-        margin: 0 auto;
-        flex:right;
+      width: 60%;
+      height: 400px;
+      margin: 0 auto;
+      flex: right;
     }
   </style>
-  
+
 </head>
+
 <body>
 
   <!-- Header -->
@@ -36,9 +36,9 @@
       <div class="logo">CollabSync</div>
       <nav>
         <ul>
-          <li><a href="/B2_index">Home</a></li>
-          <li><a href="/B2_explore">Explore Influencers</a></li>
-          <li><a href="/B2_profile2">My Brand Profile</a></li>
+          <li><a href="/brand/home">Home</a></li>
+          <li><a href="/brand/explore">Explore Influencers</a></li>
+          <li><a href="/brand/profile">My Brand Profile</a></li>
           <!-- <li><a href="logout">Logout</a></li> -->
         </ul>
       </nav>
@@ -50,24 +50,24 @@
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
     <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <a href="/B2_collab">Collabs</a>
-    <a href="/B2_recievedRequests">Collab requests</a>
-    <a href="/Create_collab">Create Collab</a>
-    <a href="/Lp_index">Sign Out</a>
+    <a href="/brand/collab">Collabs</a>
+    <a href="/brand/recievedRequests">Collab requests</a>
+    <a href="/brand/create_collab">Create Collab</a>
+    <a href="/">Sign Out</a>
     <!-- <a href="#">Settings</a> -->
-  </div> 
-  
+  </div>
+
   <!-- Main Content -->
   <div class="container">
     <!-- Intro Section -->
     <div class="intro">
       <h1>Welcome, [Brand Name]</h1>
       <p>
-        Discover how CollabSync empowers brands with powerful tools and real-time analytics to manage campaigns, 
+        Discover how CollabSync empowers brands with powerful tools and real-time analytics to manage campaigns,
         engage with top influencers, and grow your business.
       </p>
     </div>
-    
+
     <!-- Dashboard Overview -->
     <section class="dashboard">
       <h2>Dashboard Overview</h2>
@@ -86,7 +86,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Benefits Section for Brands -->
     <section class="benefits">
       <div class="benefit-item">
@@ -126,7 +126,7 @@
         </p>
       </div>
     </section>
-    
+
     <!-- Main Features Section -->
     <section class="features">
       <h2>Main Features</h2>
@@ -169,101 +169,95 @@
         </div>
       </div>
     </section>
-    
-    <!-- Quick Links Section -->
-    <div class="links">
-      <a href="explore-influencers">Explore Influencers</a>
-      <a href="my-brand">View My Brand Profile</a>
-    </div>
-  </div>
 
-  <!-- Chart Section -->
-  <div class="charts-container">
-    <div>
-  <canvas id="myRadarChart"></canvas>
-    <script>
-        var ctx = document.getElementById('myRadarChart').getContext('2d');
-        var myRadarChart = new Chart(ctx, {
-             type: 'radar', 
+    <!-- Chart Section -->
+    <div class="charts-container">
+      <div>
+        <canvas id="myRadarChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myRadarChart').getContext('2d');
+          var myRadarChart = new Chart(ctx, {
+            type: 'radar',
             data: {
-                labels: ['growth', 'age', 'reach', 'no of products', 'Flexibility'], // Labels for each axis
-                datasets: [{
-                    label: ' brand statistics',
-                    data: [80, 70, 90, 85, 75], // Data points for each axis
-                    fill: true,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
+              labels: ['growth', 'age', 'reach', 'no of products', 'Flexibility'], // Labels for each axis
+              datasets: [{
+                label: ' brand statistics',
+                data: [80, 70, 90, 85, 75], // Data points for each axis
+                fill: true,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+              }]
             },
             options: {
-                responsive: true,
-                scale: {
-                    ticks: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                return tooltipItem.label + ': ' + tooltipItem.raw;
-                            }
-                        }
-                    }
+              responsive: true,
+              scale: {
+                ticks: {
+                  beginAtZero: true,
+                  max: 100
                 }
+              },
+              plugins: {
+                legend: {
+                  position: 'top'
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (tooltipItem) {
+                      return tooltipItem.label + ': ' + tooltipItem.raw;
+                    }
+                  }
+                }
+              }
             }
-        });
-    </script>
-</div>
-<div>
-    <canvas id="myChart"></canvas>
-    <script>
-        var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
+          });
+        </script>
+      </div>
+      <div>
+        <canvas id="myChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myChart').getContext('2d');
+          var myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['January', 'February', 'March', 'April', 'May','June','July','August','September','october','Novemeber','December'],
-                datasets: [{
-                    label: 'no of products sold',
-                    data: [50, 20, 100, 90, 100,80,110,100,180,120,150,110], 
-                    backgroundColor: 'rgba(54, 162, 23, 0.5)',
-                    borderColor: 'rgba(54, 162, 35, 1)',
-                    borderWidth: 1
-                }]
+              labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'october', 'Novemeber', 'December'],
+              datasets: [{
+                label: 'no of products sold',
+                data: [50, 20, 100, 90, 100, 80, 110, 100, 180, 120, 150, 110],
+                backgroundColor: 'rgba(54, 162, 23, 0.5)',
+                borderColor: 'rgba(54, 162, 35, 1)',
+                borderWidth: 1
+              }]
             },
             options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true
                 }
+              }
             }
-        });
-    </script>
-  </div>
-  </div>
-  
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 CollabSync. All rights reserved.</p>
-  </footer>
+          });
+        </script>
+      </div>
+    </div>
 
-  <!-- This script handles the sidebar toggle. -->
-  <script>
-    function openMenu() {
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 CollabSync. All rights reserved.</p>
+    </footer>
+
+    <!-- This script handles the sidebar toggle. -->
+    <script>
+      function openMenu() {
         document.getElementById("navMenu").style.width = "250px";
-    }
-    function closeMenu() {
+      }
+      function closeMenu() {
         document.getElementById("navMenu").style.width = "0";
-    }
+      }
     </script>
 
 
 </body>
+
 </html>

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Received Requests - CollabSync</title>
   <link rel="stylesheet" href="/B2_index/B2_recievedRequests.css">
 </head>
+
 <body>
   <!-- Header -->
   <header>
@@ -13,9 +15,9 @@
       <div class="logo">CollabSync</div>
       <nav>
         <ul>
-          <li><a href="/B2_index">Home</a></li>
-          <li><a href="/B2_explore">Explore Influencers</a></li>
-          <li><a href="/B2_profi">My Brand Profile</a></li>
+          <li><a href="/brand/home">Home</a></li>
+          <li><a href="/brand/explore">Explore Influencers</a></li>
+          <li><a href="/brand/profile">My Brand Profile</a></li>
           <!-- <li><a href="logout">Logout</a></li> -->
         </ul>
       </nav>
@@ -26,17 +28,19 @@
   <button class="toggle-btn" onclick="openMenu()">☰</button>
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
-    <a href="/B2_collab">Collabs</a>
-    <a href="/B2_recievedRequests">Collab requests</a>
-    <a href="/Create_collab">Create Collab</a>
-    <a href="/Lp_index">Sign Out</a>
-  </div> 
+    <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <a href="/brand/collab">Collabs</a>
+    <a href="/brand/recievedRequests">Collab requests</a>
+    <a href="/brand/create_collab">Create Collab</a>
+    <a href="/">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div>
 
   <!-- Main Content -->
   <div class="container">
     <input type="text" class="search-bar" placeholder="Search for collabs...">
     <div class="collab-list">
-      
+
       <!-- Request Box 1 -->
       <div class="collab-box">
         <div class="collab-title">
@@ -70,7 +74,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Request Box 2 -->
       <div class="collab-box">
         <div class="collab-title">
@@ -102,7 +106,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Request Box 3 -->
       <div class="collab-box">
         <div class="collab-title">
@@ -134,7 +138,7 @@
           </div>
         </div>
       </div>
-      
+
     </div>
   </div>
 
@@ -148,4 +152,5 @@
     }
   </script>
 </body>
+
 </html>

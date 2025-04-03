@@ -1,428 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create collab</title>
-    <link rel="stylesheet" href="/i_index/I_index.css" />
-    <style>
-/* Base styles and variables */
-:root {
-  --primary-color: #3a7bd5;
-  --primary-hover: #2d62a3;
-  --secondary-color: #00d2ff;
-  --accent-color: #00b8d4;
-  --success-color: #4caf50;
-  --danger-color: #f44336;
-  --danger-hover: #d32f2f;
-  --background-color: #f8f9fa;
-  --card-bg: #ffffff;
-  --text-primary: #333333;
-  --text-secondary: #555555;
-  --text-muted: #6c757d;
-  --border-color: #e0e0e0;
-  --shadow: 0 5px 20px rgba(58, 123, 213, 0.1);
-  --border-radius: 8px;
-  --transition: all 0.3s ease;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create collab</title>
+  <link rel="stylesheet" href="/i_index/I_index.css" />
+  <style>
+    /* Base styles and variables */
+    :root {
+      --primary-color: #3a7bd5;
+      --primary-hover: #2d62a3;
+      --secondary-color: #00d2ff;
+      --accent-color: #00b8d4;
+      --success-color: #4caf50;
+      --danger-color: #f44336;
+      --danger-hover: #d32f2f;
+      --background-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-primary: #333333;
+      --text-secondary: #555555;
+      --text-muted: #6c757d;
+      --border-color: #e0e0e0;
+      --shadow: 0 5px 20px rgba(58, 123, 213, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
+    }
 
-body {
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: var(--background-color);
-  color: var(--text-primary);
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
-}
+    body {
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--background-color);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
 
-/* Header styles */
-.header {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+    /* Header styles */
+    .header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 5%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 5%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-.logo {
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-  letter-spacing: 0.5px;
-}
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 0.5px;
+    }
 
-nav ul {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+    nav ul {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
 
-nav ul li {
-  margin-left: 25px;
-}
+    nav ul li {
+      margin-left: 25px;
+    }
 
-nav ul li a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  transition: var(--transition);
-  position: relative;
-  padding-bottom: 5px;
-}
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+      position: relative;
+      padding-bottom: 5px;
+    }
 
-nav ul li a:after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  background: white;
-  bottom: 0;
-  left: 0;
-  transition: var(--transition);
-}
+    nav ul li a:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      background: white;
+      bottom: 0;
+      left: 0;
+      transition: var(--transition);
+    }
 
-nav ul li a:hover:after {
-  width: 100%;
-}
+    nav ul li a:hover:after {
+      width: 100%;
+    }
 
-/* Toggle menu styles */
-.toggle-btn {
-  display: none;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 18px;
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 101;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+    /* Toggle menu styles */
+    .toggle-btn {
+      display: none;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 101;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
 
-.menu {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 999;
-  top: 0;
-  left: 0;
-  background: var(--card-bg);
-  overflow-x: hidden;
-  transition: 0.5s;
-  padding-top: 60px;
-  box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
-}
+    .menu {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 999;
+      top: 0;
+      left: 0;
+      background: var(--card-bg);
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
+      box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
+    }
 
-.menu a {
-  padding: 15px 25px;
-  text-decoration: none;
-  font-size: 18px;
-  color: var(--text-primary);
-  display: block;
-  transition: 0.3s;
-  border-bottom: 1px solid var(--border-color);
-}
+    .menu a {
+      padding: 15px 25px;
+      text-decoration: none;
+      font-size: 18px;
+      color: var(--text-primary);
+      display: block;
+      transition: 0.3s;
+      border-bottom: 1px solid var(--border-color);
+    }
 
-.menu a:hover {
-  background-color: rgba(58, 123, 213, 0.1);
-  color: var(--primary-color);
-}
+    .menu a:hover {
+      background-color: rgba(58, 123, 213, 0.1);
+      color: var(--primary-color);
+    }
 
-.menu .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  font-size: 30px;
-  cursor: pointer;
-  color: var(--text-primary);
-}
+    .menu .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 30px;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
 
-/* Form container and elements */
-.form-container {
-  max-width: 800px;
-  margin: 40px auto;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  padding: 35px;
-  transition: var(--transition);
-}
+    /* Form container and elements */
+    .form-container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 35px;
+      transition: var(--transition);
+    }
 
-.form-container:hover {
-  box-shadow: 0 8px 25px rgba(58, 123, 213, 0.15);
-}
+    .form-container:hover {
+      box-shadow: 0 8px 25px rgba(58, 123, 213, 0.15);
+    }
 
-.form-title {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--primary-color);
-  font-size: 28px;
-  font-weight: 600;
-}
+    .form-title {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--primary-color);
+      font-size: 28px;
+      font-weight: 600;
+    }
 
-.form-section {
-  border-top: 1px solid var(--border-color);
-  padding-top: 25px;
-  margin-top: 30px;
-}
+    .form-section {
+      border-top: 1px solid var(--border-color);
+      padding-top: 25px;
+      margin-top: 30px;
+    }
 
-.form-section:first-of-type {
-  border-top: none;
-  padding-top: 0;
-  margin-top: 0;
-}
+    .form-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
 
-.form-section h3 {
-  margin-bottom: 25px;
-  color: var(--primary-color);
-  font-weight: 600;
-  position: relative;
-  padding-left: 15px;
-}
+    .form-section h3 {
+      margin-bottom: 25px;
+      color: var(--primary-color);
+      font-weight: 600;
+      position: relative;
+      padding-left: 15px;
+    }
 
-.form-section h3:before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 5px;
-  height: 20px;
-  background: var(--primary-color);
-  border-radius: 3px;
-}
+    .form-section h3:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 5px;
+      height: 20px;
+      background: var(--primary-color);
+      border-radius: 3px;
+    }
 
-.form-group {
-  margin-bottom: 25px;
-}
+    .form-group {
+      margin-bottom: 25px;
+    }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
 
-.form-control {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: 16px;
-  transition: var(--transition);
-  background-color: #f9f9f9;
-}
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      transition: var(--transition);
+      background-color: #f9f9f9;
+    }
 
-.form-control:focus {
-  border-color: var(--primary-color);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.15);
-  background-color: white;
-}
+    .form-control:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.15);
+      background-color: white;
+    }
 
-textarea.form-control {
-  min-height: 120px;
-  resize: vertical;
-}
+    textarea.form-control {
+      min-height: 120px;
+      resize: vertical;
+    }
 
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
 
-.form-row .form-group {
-  flex: 1 1 calc(50% - 10px);
-  min-width: 200px;
-}
+    .form-row .form-group {
+      flex: 1 1 calc(50% - 10px);
+      min-width: 200px;
+    }
 
-/* Checkbox styling */
-.checkbox-group {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-}
+    /* Checkbox styling */
+    .checkbox-group {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+    }
 
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  margin-right: 20px;
-  margin-bottom: 12px;
-  cursor: pointer;
-}
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
 
-input[type="checkbox"] {
-  margin-right: 8px;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--border-color);
-  border-radius: 4px;
-  outline: none;
-  transition: var(--transition);
-  position: relative;
-}
+    input[type="checkbox"] {
+      margin-right: 8px;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      outline: none;
+      transition: var(--transition);
+      position: relative;
+    }
 
-input[type="checkbox"]:checked {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
+    input[type="checkbox"]:checked {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
 
-input[type="checkbox"]:checked:after {
-  content: '\2713';
-  font-size: 14px;
-  color: white;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+    input[type="checkbox"]:checked:after {
+      content: '\2713';
+      font-size: 14px;
+      color: white;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
 
-/* Button styling */
-.btn-group {
-  display: flex;
-  gap: 15px;
-  margin-top: 30px;
-}
+    /* Button styling */
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
 
-.btn-group button {
-  flex: 1;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: var(--transition);
-  border: none;
-}
+    .btn-group button {
+      flex: 1;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
 
-.submit-btn {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
-}
+    .submit-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+    }
 
-.submit-btn:hover {
-  background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
-}
+    .submit-btn:hover {
+      background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
+    }
 
-.cancel-btn {
-  background-color: var(--danger-color);
-  color: white;
-}
+    .cancel-btn {
+      background-color: var(--danger-color);
+      color: white;
+    }
 
-.cancel-btn:hover {
-  background-color: var(--danger-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
-}
+    .cancel-btn:hover {
+      background-color: var(--danger-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+    }
 
-/* Footer styling */
-footer {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  text-align: center;
-  padding: 20px 0;
-  margin-top: 50px;
-}
+    /* Footer styling */
+    footer {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      text-align: center;
+      padding: 20px 0;
+      margin-top: 50px;
+    }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .header-container {
-    flex-direction: column;
-    padding: 10px 5%;
-  }
-  
-  nav ul {
-    margin-top: 15px;
-  }
-  
-  nav ul li {
-    margin-left: 15px;
-    margin-right: 15px;
-  }
-  
-  .form-container {
-    padding: 25px 20px;
-    margin: 20px 15px;
-  }
-  
-  .btn-group {
-    flex-direction: column;
-  }
-  
-  .toggle-btn {
-    display: block;
-  }
-  
-  .header nav {
-    display: none;
-  }
-}
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .header-container {
+        flex-direction: column;
+        padding: 10px 5%;
+      }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 10px;
-}
+      nav ul {
+        margin-top: 15px;
+      }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
+      nav ul li {
+        margin-left: 15px;
+        margin-right: 15px;
+      }
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 5px;
-}
+      .form-container {
+        padding: 25px 20px;
+        margin: 20px 15px;
+      }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-hover);
-}
+      .btn-group {
+        flex-direction: column;
+      }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+      .toggle-btn {
+        display: block;
+      }
 
-.form-section {
-  animation: fadeIn 0.5s ease-out forwards;
-}
+      .header nav {
+        display: none;
+      }
+    }
 
-.form-section:nth-child(2) { animation-delay: 0.1s; }
-.form-section:nth-child(3) { animation-delay: 0.2s; }
-.form-section:nth-child(4) { animation-delay: 0.3s; }
-    </style>
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-section {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    .form-section:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .form-section:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    .form-section:nth-child(4) {
+      animation-delay: 0.3s;
+    }
+  </style>
 </head>
+
 <body>
   <!-- Header -->
   <header>
-    <div class="header-container">
+    <<div class="header-container">
       <div class="logo">CollabSync</div>
       <nav>
         <ul>
-          <li><a href="/B2_index">Home</a></li>
-          <li><a href="/B2_explore">Explore Influencers</a></li>
-          <li><a href="/B2_profile2">My Brand Profile</a></li>
+          <li><a href="/brand/home">Home</a></li>
+          <li><a href="/brand/explore">Explore Influencers</a></li>
+          <li><a href="/brand/profile">My Brand Profile</a></li>
           <!-- <li><a href="logout">Logout</a></li> -->
         </ul>
       </nav>
-    </div>
+      </div>
   </header>
 
   <!-- Sidebar Navigation (Right Side) -->
@@ -430,155 +447,160 @@ footer {
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
     <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <a href="/B2_collab">Collabs</a>
-    <a href="/Create_collab">Create Collab</a>
-    <a href="/Lp_index">Sign Out</a>
+    <a href="/brand/collab">Collabs</a>
+    <a href="/brand/recievedRequests">Collab requests</a>
+    <a href="/brand/create_collab">Create Collab</a>
+    <a href="/">Sign Out</a>
     <!-- <a href="#">Settings</a> -->
-  </div> 
-  
+  </div>
+
 
   <div class="form-container">
     <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Collaboration</h2>
-    
+
     <form id="collaborationForm">
-        <div class="form-section">
-            <h3>Basic Information</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="campaignName">Campaign Name</label>
-                    <input type="text" id="campaignName" class="form-control" placeholder="Enter campaign name" required>
-                </div>
-                <div class="form-group">
-                    <label for="brand">Brand</label>
-                    <select id="brand" class="form-control" required>
-                        <option value="" disabled selected>Select your brand</option>
-                        <option value="naturecare">NatureCare Co.</option>
-                        <option value="fitlife">FitLife Athletic</option>
-                        <option value="techpro">TechPro Solutions</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="description">Campaign Description</label>
-                <textarea id="description" class="form-control" placeholder="Describe your campaign goals, target audience, and what you're looking for in collaborators" required></textarea>
-            </div>
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="campaignName">Campaign Name</label>
+            <input type="text" id="campaignName" class="form-control" placeholder="Enter campaign name" required>
+          </div>
+          <div class="form-group">
+            <label for="brand">Brand</label>
+            <select id="brand" class="form-control" required>
+              <option value="" disabled selected>Select your brand</option>
+              <option value="naturecare">NatureCare Co.</option>
+              <option value="fitlife">FitLife Athletic</option>
+              <option value="techpro">TechPro Solutions</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
         </div>
-        
-        <div class="form-section">
-            <h3>Collaboration Details</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="startDate">Start Date</label>
-                    <input type="date" id="startDate" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="endDate">End Date</label>
-                    <input type="date" id="endDate" class="form-control" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="budget">Budget Range</label>
-                    <select id="budget" class="form-control" required>
-                        <option value="" disabled selected>Select budget range</option>
-                        <option value="under500">Under $500</option>
-                        <option value="500-1000">$500 - $1,000</option>
-                        <option value="1000-5000">$1,000 - $5,000</option>
-                        <option value="5000-10000">$5,000 - $10,000</option>
-                        <option value="over10000">Over $10,000</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="collaborationType">Collaboration Type</label>
-                    <select id="collaborationType" class="form-control" required>
-                        <option value="" disabled selected>Select type</option>
-                        <option value="sponsored">Sponsored Content</option>
-                        <option value="affiliate">Affiliate Marketing</option>
-                        <option value="ambassador">Brand Ambassador</option>
-                        <option value="productReview">Product Review</option>
-                        <option value="giveaway">Giveaway/Contest</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-            </div>
+
+        <div class="form-group">
+          <label for="description">Campaign Description</label>
+          <textarea id="description" class="form-control"
+            placeholder="Describe your campaign goals, target audience, and what you're looking for in collaborators"
+            required></textarea>
         </div>
-        
-        <div class="form-section">
-            <h3>Targeting & Requirements</h3>
-            <div class="form-group">
-                <label>Social Media Platforms</label>
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="instagram" name="platforms">
-                        <label for="instagram">Instagram</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="tiktok" name="platforms">
-                        <label for="tiktok">TikTok</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="youtube" name="platforms">
-                        <label for="youtube">YouTube</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="facebook" name="platforms">
-                        <label for="facebook">Facebook</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="twitter" name="platforms">
-                        <label for="twitter">Twitter</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="minFollowers">Minimum Followers</label>
-                    <select id="minFollowers" class="form-control">
-                        <option value="" disabled selected>Select minimum</option>
-                        <option value="1000">1,000+</option>
-                        <option value="5000">5,000+</option>
-                        <option value="10000">10,000+</option>
-                        <option value="50000">50,000+</option>
-                        <option value="100000">100,000+</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="targetAudience">Target Audience</label>
-                    <input type="text" id="targetAudience" class="form-control" placeholder="Age range, interests, demographics">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="additionalRequirements">Additional Requirements</label>
-                <textarea id="additionalRequirements" class="form-control" placeholder="Specific requirements for influencers, content guidelines, etc."></textarea>
-            </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Collaboration Details</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" class="form-control" required>
+          </div>
         </div>
-        
-        <div class="form-section">
-            <h3>Contact Information</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="contactName">Contact Name</label>
-                    <input type="text" id="contactName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="contactEmail">Contact Email</label>
-                    <input type="email" id="contactEmail" class="form-control" required>
-                </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="budget">Budget Range</label>
+            <select id="budget" class="form-control" required>
+              <option value="" disabled selected>Select budget range</option>
+              <option value="under500">Under $500</option>
+              <option value="500-1000">$500 - $1,000</option>
+              <option value="1000-5000">$1,000 - $5,000</option>
+              <option value="5000-10000">$5,000 - $10,000</option>
+              <option value="over10000">Over $10,000</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="collaborationType">Collaboration Type</label>
+            <select id="collaborationType" class="form-control" required>
+              <option value="" disabled selected>Select type</option>
+              <option value="sponsored">Sponsored Content</option>
+              <option value="affiliate">Affiliate Marketing</option>
+              <option value="ambassador">Brand Ambassador</option>
+              <option value="productReview">Product Review</option>
+              <option value="giveaway">Giveaway/Contest</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Targeting & Requirements</h3>
+        <div class="form-group">
+          <label>Social Media Platforms</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="instagram" name="platforms">
+              <label for="instagram">Instagram</label>
             </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="tiktok" name="platforms">
+              <label for="tiktok">TikTok</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="youtube" name="platforms">
+              <label for="youtube">YouTube</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="facebook" name="platforms">
+              <label for="facebook">Facebook</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="twitter" name="platforms">
+              <label for="twitter">Twitter</label>
+            </div>
+          </div>
         </div>
-        
-        <div class="btn-group">
-            <button type="button" class="cancel-btn">Cancel</button>
-            <button type="submit" class="submit-btn">Submit Collaboration</button>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="minFollowers">Minimum Followers</label>
+            <select id="minFollowers" class="form-control">
+              <option value="" disabled selected>Select minimum</option>
+              <option value="1000">1,000+</option>
+              <option value="5000">5,000+</option>
+              <option value="10000">10,000+</option>
+              <option value="50000">50,000+</option>
+              <option value="100000">100,000+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="targetAudience">Target Audience</label>
+            <input type="text" id="targetAudience" class="form-control"
+              placeholder="Age range, interests, demographics">
+          </div>
         </div>
+
+        <div class="form-group">
+          <label for="additionalRequirements">Additional Requirements</label>
+          <textarea id="additionalRequirements" class="form-control"
+            placeholder="Specific requirements for influencers, content guidelines, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Contact Information</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contactName">Contact Name</label>
+            <input type="text" id="contactName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="contactEmail">Contact Email</label>
+            <input type="email" id="contactEmail" class="form-control" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button type="button" class="cancel-btn">Cancel</button>
+        <button type="submit" class="submit-btn">Submit Collaboration</button>
+      </div>
     </form>
-</div>
-</div>
+  </div>
+  </div>
 
   <footer>
     <p>&copy; 2025 CollabSync. All rights reserved.</p>
@@ -594,16 +616,17 @@ footer {
     }
   </script>
 
-      <!-- This script handles the sidebar toggle. -->
-      <script>
-        function openMenu() {
-            document.getElementById("navMenu").style.width = "250px";
-        }
-        function closeMenu() {
-            document.getElementById("navMenu").style.width = "0";
-        }
-        </script>
+  <!-- This script handles the sidebar toggle. -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+  </script>
 
 
 </body>
+
 </html>

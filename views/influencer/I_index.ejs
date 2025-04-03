@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,22 +11,23 @@
 
   <style>
     #myChart {
-        width: 80%;
-        height: 400px;
-        margin: 0 auto;
-        flex:left;
+      width: 80%;
+      height: 400px;
+      margin: 0 auto;
+      flex: left;
     }
   </style>
   <style>
     #myRadarChart {
-        width: 60%;
-        height: 400px;
-        margin: 0 auto;
-        flex:right;
+      width: 60%;
+      height: 400px;
+      margin: 0 auto;
+      flex: right;
     }
-</style>
+  </style>
 
 </head>
+
 <body>
   <!-- Header -->
   <header>
@@ -33,9 +35,9 @@
       <div class="logo">CollabSync</div>
       <nav>
         <ul>
-          <li><a href="/I_index">Home</a></li>
-          <li><a href="/I_explore">Explore brands</a></li>
-          <li><a href="/I_profile2">My Profile</a></li>
+          <li><a href="/influencer/home">Home</a></li>
+          <li><a href="/influencer/explore">Explore brands</a></li>
+          <li><a href="/influencer/profile">My Profile</a></li>
           <!-- <li><a href="logout">Logout</a></li> -->
         </ul>
       </nav>
@@ -47,10 +49,10 @@
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
     <!-- <a href="#">Influencers</a> -->
-    <a href="/I_collab">Collabs</a> 
-    <a href="/Lp_index">Sign Out</a>
+    <a href="/influencer/collab">Collabs</a>
+    <a href="/">Sign Out</a>
     <!-- <a href="#">Settings</a> -->
-  </div> 
+  </div>
   </div>
 
   <!-- Main Content -->
@@ -59,11 +61,11 @@
     <div class="intro">
       <h1>Welcome, [Influencer Name]</h1>
       <p>
-        Discover how CollabSync empowers influencers with seamless brand collaborations, exclusive opportunities, 
+        Discover how CollabSync empowers influencers with seamless brand collaborations, exclusive opportunities,
         and performance insights to elevate your influence.
       </p>
     </div>
-    
+
     <!-- Dashboard Overview -->
     <section class="dashboard">
       <h2>Dashboard Overview</h2>
@@ -82,7 +84,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Benefits Section for Influencers -->
     <section class="benefits">
       <div class="benefit-item">
@@ -122,7 +124,7 @@
         </p>
       </div>
     </section>
-    
+
     <!-- Main Features Section -->
     <section class="features">
       <h2>Main Features</h2>
@@ -165,99 +167,92 @@
         </div>
       </div>
     </section>
-    
-    <!-- Quick Links Section -->
-    <div class="links">
-      <a href="Influencer_explore">Explore Brands</a>
-      <a href="Influencer_profile">View My Profile</a>
-    </div>
-  </div>
 
-  
-<div class="charts-container">
-  <div>
-<canvas id="myRadarChart"></canvas>
-  <script>
-      var ctx = document.getElementById('myRadarChart').getContext('2d');
-      var myRadarChart = new Chart(ctx, {
-           type: 'radar', 
-          data: {
+    <div class="charts-container">
+      <div>
+        <canvas id="myRadarChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myRadarChart').getContext('2d');
+          var myRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
               labels: ['growth', 'age', 'reach', 'no of likes', 'Flexibility'], // Labels for each axis
               datasets: [{
-                  label: ' Performance of Influence',
-                  data: [80, 70, 90, 85, 75], // Data points for each axis
-                  fill: true,
-                  backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                  borderColor: 'rgba(75, 192, 192, 1)',
-                  borderWidth: 1
+                label: ' Performance of Influence',
+                data: [80, 70, 90, 85, 75], // Data points for each axis
+                fill: true,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
               }]
-          },
-          options: {
+            },
+            options: {
               responsive: true,
               scale: {
-                  ticks: {
-                      beginAtZero: true,
-                      max: 100
-                  }
+                ticks: {
+                  beginAtZero: true,
+                  max: 100
+                }
               },
               plugins: {
-                  legend: {
-                      position: 'top'
-                  },
-                  tooltip: {
-                      callbacks: {
-                          label: function(tooltipItem) {
-                              return tooltipItem.label + ': ' + tooltipItem.raw;
-                          }
-                      }
+                legend: {
+                  position: 'top'
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (tooltipItem) {
+                      return tooltipItem.label + ': ' + tooltipItem.raw;
+                    }
                   }
+                }
               }
-          }
-      });
-  </script>
-</div>
-<div>
-  <canvas id="myChart"></canvas>
-  <script>
-      var ctx = document.getElementById('myChart').getContext('2d');
-      var myChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-              labels: ['January', 'February', 'March', 'April', 'May','June','July','August','September','october','Novemeber','December'],
+            }
+          });
+        </script>
+      </div>
+      <div>
+        <canvas id="myChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myChart').getContext('2d');
+          var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'october', 'Novemeber', 'December'],
               datasets: [{
-                  label: 'increase in followers',
-                  data: [50, 20, 100, 90, 100,80,110,100,180,120,150,110], 
-                  backgroundColor: 'rgba(54, 162, 23, 0.5)',
-                  borderColor: 'rgba(54, 162, 35, 1)',
-                  borderWidth: 1
+                label: 'increase in followers',
+                data: [50, 20, 100, 90, 100, 80, 110, 100, 180, 120, 150, 110],
+                backgroundColor: 'rgba(54, 162, 23, 0.5)',
+                borderColor: 'rgba(54, 162, 35, 1)',
+                borderWidth: 1
               }]
-          },
-          options: {
+            },
+            options: {
               responsive: true,
               scales: {
-                  y: {
-                      beginAtZero: true
-                  }
+                y: {
+                  beginAtZero: true
+                }
               }
-          }
-      });
-  </script>
-</div>
-</div>
-  
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 CollabSync. All rights reserved.</p>
-  </footer>
+            }
+          });
+        </script>
+      </div>
+    </div>
 
-  <!-- This script handles the sidebar toggle. -->
-  <script>
-    function openMenu() {
-      document.getElementById("navMenu").style.width = "250px";
-    }
-    function closeMenu() {
-      document.getElementById("navMenu").style.width = "0";
-    }
-  </script>
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 CollabSync. All rights reserved.</p>
+    </footer>
+
+    <!-- This script handles the sidebar toggle. -->
+    <script>
+      function openMenu() {
+        document.getElementById("navMenu").style.width = "250px";
+      }
+      function closeMenu() {
+        document.getElementById("navMenu").style.width = "0";
+      }
+    </script>
 </body>
+
 </html>

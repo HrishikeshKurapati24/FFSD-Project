@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,34 +8,35 @@
     <link rel="stylesheet" href="/i_index/Collab_form_open.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
 
-      <!-- Header -->
-  <header>
-    <div class="header-container">
-      <div class="logo">CollabSync</div>
-      <nav>
-        <ul>
-          <li><a href="/I_index">Home</a></li>
-          <li><a href="/I_explore">Explore Brands</a></li>
-          <li><a href="I_profile2">My Profile</a></li>
-          <!-- <li><a href="logout">Logout</a></li> -->
-        </ul>
-      </nav>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/influencer/home">Home</a></li>
+                    <li><a href="/influencer/explore">Explore Brands</a></li>
+                    <li><a href="/influencer/explore">My Profile</a></li>
+                    <!-- <li><a href="logout">Logout</a></li> -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation (Right Side) -->
+    <button class="toggle-btn" onclick="openMenu()">☰</button>
+    <div class="menu" id="navMenu">
+        <span class="close-btn" onclick="closeMenu()">&times;</span>
+        <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+        <a href="/influencer/collab">Collabs</a>
+        <!-- <a href="/Create_collab">Create Collab</a> -->
+        <a href="/">Sign Out</a>
+        <!-- <a href="#">Settings</a> -->
+
     </div>
-  </header>
-
-      <!-- Sidebar Navigation (Right Side) -->
-  <button class="toggle-btn" onclick="openMenu()">☰</button>
-  <div class="menu" id="navMenu">
-    <span class="close-btn" onclick="closeMenu()">&times;</span>
-    <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <a href="/I_collab">Collabs</a>
-    <!-- <a href="/Create_collab">Create Collab</a> -->
-    <a href="/Lp_index">Sign Out</a>
-    <!-- <a href="#">Settings</a> -->
-
-  </div> 
     <div class="container">
 
         <div class="brand-detail-container">
@@ -44,10 +45,11 @@
                     <i class="fas fa-arrow-left"></i> Back to All Brands
                 </a>
             </div>
-            
+
             <div class="brand-detail-header">
                 <div class="brand-logo">
-                    <img src="https://static.vecteezy.com/system/resources/thumbnails/009/469/669/small_2x/nature-leaf-logo-ecology-logo-green-leaf-png.png" alt="NatureCare">
+                    <img src="https://static.vecteezy.com/system/resources/thumbnails/009/469/669/small_2x/nature-leaf-logo-ecology-logo-green-leaf-png.png"
+                        alt="NatureCare">
                 </div>
                 <div class="brand-header-info">
                     <h1>NatureCare Co.</h1>
@@ -57,7 +59,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="brand-detail-content">
                 <div class="detail-sidebar">
                     <div class="sidebar-section">
@@ -66,10 +68,10 @@
                         <p>Location: San Francisco, CA</p>
                         <p>Website: <a href="https://naturecareco.com" target="_blank">naturecareco.com</a></p>
                     </div>
-                    
+
                     <div class="sidebar-section">
                         <h3><i class="fas fa-bullseye"></i> Collaboration Criteria</h3>
-                        
+
                         <div class="criteria-item">
                             <h4><i class="fas fa-globe-americas"></i> Target Regions</h4>
                             <div class="tags-container">
@@ -78,7 +80,7 @@
                                 <span class="tag">United Kingdom 🇬🇧</span>
                             </div>
                         </div>
-                        
+
                         <div class="criteria-item">
                             <h4><i class="fas fa-users"></i> Audience Demographics</h4>
                             <div class="tags-container">
@@ -87,7 +89,7 @@
                                 <span class="tag">Male: 30%</span>
                             </div>
                         </div>
-                        
+
                         <div class="criteria-item">
                             <h4><i class="fas fa-hashtag"></i> Content Categories</h4>
                             <div class="tags-container">
@@ -98,7 +100,7 @@
                                 <span class="tag">Sustainability</span>
                             </div>
                         </div>
-                        
+
                         <div class="criteria-item">
                             <h4><i class="fas fa-heart"></i> Preferred Values</h4>
                             <div class="tags-container">
@@ -108,7 +110,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="sidebar-section compensation-info">
                         <h3><i class="fas fa-hand-holding-usd"></i> Compensation</h3>
                         <div class="compensation-item">
@@ -129,21 +131,28 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="detail-main">
                     <div class="main-section">
                         <h2>About NatureCare Co.</h2>
-                        <p>NatureCare Co. is a leading sustainable beauty and personal care brand committed to creating products that are good for you and the environment. Founded in 2010, we've grown from a small startup to a globally recognized name in eco-friendly beauty solutions.</p>
-                        
-                        <p>Our mission is to provide high-quality, ethically-sourced products that enhance natural beauty while minimizing environmental impact. We believe in transparency, sustainability, and creating positive change in the beauty industry.</p>
-                        
-                        <p>All our products are 100% vegan, cruelty-free, and made with organic ingredients. We're proud to be certified by Leaping Bunny, PETA, and the Organic Cosmetics Association.</p>
+                        <p>NatureCare Co. is a leading sustainable beauty and personal care brand committed to creating
+                            products that are good for you and the environment. Founded in 2010, we've grown from a
+                            small startup to a globally recognized name in eco-friendly beauty solutions.</p>
+
+                        <p>Our mission is to provide high-quality, ethically-sourced products that enhance natural
+                            beauty while minimizing environmental impact. We believe in transparency, sustainability,
+                            and creating positive change in the beauty industry.</p>
+
+                        <p>All our products are 100% vegan, cruelty-free, and made with organic ingredients. We're proud
+                            to be certified by Leaping Bunny, PETA, and the Organic Cosmetics Association.</p>
                     </div>
-                    
+
                     <div class="main-section">
                         <h2>Current Campaign: "Natural You"</h2>
-                        <p>We're currently looking for influencers to participate in our "Natural You" campaign, which focuses on authentic beauty and environmental consciousness. This campaign will run from June 1st to August 31st, 2023.</p>
-                        
+                        <p>We're currently looking for influencers to participate in our "Natural You" campaign, which
+                            focuses on authentic beauty and environmental consciousness. This campaign will run from
+                            June 1st to August 31st, 2023.</p>
+
                         <h3>Campaign Goals:</h3>
                         <ul>
                             <li>Promote our new line of sustainable skincare products</li>
@@ -151,7 +160,7 @@
                             <li>Highlight how our products can be incorporated into a natural beauty routine</li>
                             <li>Engage with environmentally-conscious audiences</li>
                         </ul>
-                        
+
                         <h3>What We're Looking For:</h3>
                         <ul>
                             <li>Authentic content that showcases your natural beauty journey</li>
@@ -160,7 +169,7 @@
                             <li>Honest reviews and testimonials</li>
                         </ul>
                     </div>
-                    
+
                     <div class="main-section">
                         <h2>Platform Requirements</h2>
                         <div class="platform-requirements">
@@ -184,7 +193,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="main-section">
                         <h2>Past Collaborations</h2>
                         <div class="past-collaborations">
@@ -214,7 +223,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="action-buttons">
                         <a href="Collabform" class="apply-btn">
                             <i class="fas fa-handshake"></i> Apply for Collaboration
@@ -233,32 +242,33 @@
 
     <script>
         // Menu toggle functionality
-        document.querySelector('.menu-toggle').addEventListener('click', function() {
+        document.querySelector('.menu-toggle').addEventListener('click', function () {
             document.querySelector('.main-nav').classList.toggle('active');
         });
-        
+
         // Save button functionality
-        document.querySelector('.save-btn').addEventListener('click', function() {
+        document.querySelector('.save-btn').addEventListener('click', function () {
             this.innerHTML = '<i class="fas fa-bookmark"></i> Saved';
             this.classList.add('saved');
         });
-        
+
         // Share button functionality
-        document.querySelector('.share-btn').addEventListener('click', function() {
+        document.querySelector('.share-btn').addEventListener('click', function () {
             alert('Share functionality would be implemented here.');
         });
     </script>
 
-        <!-- This script handles the sidebar toggle. -->
-        <script>
-            function openMenu() {
-                document.getElementById("navMenu").style.width = "250px";
-            }
-            function closeMenu() {
-                document.getElementById("navMenu").style.width = "0";
-            }
-        </script>
+    <!-- This script handles the sidebar toggle. -->
+    <script>
+        function openMenu() {
+            document.getElementById("navMenu").style.width = "250px";
+        }
+        function closeMenu() {
+            document.getElementById("navMenu").style.width = "0";
+        }
+    </script>
 
 
 </body>
+
 </html>

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Explore Influencers - CollabSync</title>
 
-  <link 
-  rel="stylesheet" 
-  href="/B2_index/B2_explore.css">
+  <link rel="stylesheet" href="/B2_index/B2_explore.css">
 
 </head>
+
 <body>
   <!-- Header -->
   <header>
@@ -17,9 +17,9 @@
       <div class="logo">CollabSync</div>
       <nav>
         <ul>
-          <li><a href="/B2_index">Home</a></li>
-          <li><a href="/B2_explore">Explore Influencers</a></li>
-          <li><a href="/B2_profile2">My Brand Profile</a></li>
+          <li><a href="/brand/home">Home</a></li>
+          <li><a href="/brand/explore">Explore Influencers</a></li>
+          <li><a href="/brand/profile">My Brand Profile</a></li>
           <!-- <li><a href="logout">Logout</a></li> -->
         </ul>
       </nav>
@@ -31,25 +31,25 @@
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
     <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <a href="/B2_collab">Collabs</a>
-    <a href="/B2_recievedRequests">Collab requests</a>
-    <a href="/Create_collab">Create Collab</a>
-    <a href="/Lp_index">Sign Out</a>
+    <a href="/brand/collab">Collabs</a>
+    <a href="/brand/recievedRequests">Collab requests</a>
+    <a href="/brand/create_collab">Create Collab</a>
+    <a href="/">Sign Out</a>
     <!-- <a href="#">Settings</a> -->
-  </div> 
-  
+  </div>
+
   <!-- Main Content -->
   <div class="container">
     <div class="intro">
       <h1>Explore Influencers</h1>
       <p>Connect with top influencers to elevate your brand's presence.</p>
     </div>
-    
+
     <!-- Toggle Button -->
     <div class="toggle-container">
       <button class="toggle-button" onclick="toggleLayout()">Toggle Layout</button>
     </div>
-    
+
     <!-- Influencer List -->
     <div class="influencer-list" id="influencerList">
       <!-- Influencer Item -->
@@ -104,16 +104,16 @@
     </div>
   </div>
 
-    <!-- This script handles the sidebar toggle. -->
-    <script>
-      function openMenu() {
-          document.getElementById("navMenu").style.width = "250px";
-      }
-      function closeMenu() {
-          document.getElementById("navMenu").style.width = "0";
-      }
-      </script>
-  
+  <!-- This script handles the sidebar toggle. -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+  </script>
+
   <script>
     function toggleLayout() {
       const influencerList = document.getElementById('influencerList');
@@ -121,4 +121,5 @@
     }
   </script>
 </body>
+
 </html>

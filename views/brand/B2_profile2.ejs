@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,34 +8,35 @@
     <link rel="stylesheet" href="/B2_index/B2_profile2.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
 
 
     <header>
         <div class="header-container">
-          <div class="logo">CollabSync</div>
-          <nav>
-            <ul>
-              <li><a href="B2_index">Home</a></li>
-              <li><a href="B2_explore">Explore Influencers</a></li>
-              <li><a href="B2_profile2">My Brand Profile</a></li>
-              <!-- <li><a href="logout">Logout</a></li> -->
-            </ul>
-          </nav>
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/brand/home">Home</a></li>
+                    <li><a href="/brand/explore">Explore Influencers</a></li>
+                    <li><a href="/brand/profile">My Brand Profile</a></li>
+                    <!-- <li><a href="logout">Logout</a></li> -->
+                </ul>
+            </nav>
         </div>
     </header>
-    
-  <!-- Sidebar Navigation (Right Side) -->
-  <button class="toggle-btn" onclick="openMenu()">☰</button>
-  <div class="menu" id="navMenu">
-    <span class="close-btn" onclick="closeMenu()">&times;</span>
-    <!-- <a href="I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
-    <a href="B2_collab">Collabs</a>
-    <a href="B2_recievedRequests">Collab requests</a>
-    <a href="Create_collab">Create Collab</a>
-    <a href="Lp_index">Sign Out</a>
-    <!-- <a href="#">Settings</a> -->
-  </div> 
+
+    <!-- Sidebar Navigation (Right Side) -->
+    <button class="toggle-btn" onclick="openMenu()">☰</button>
+    <div class="menu" id="navMenu">
+        <span class="close-btn" onclick="closeMenu()">&times;</span>
+        <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+        <a href="/brand/collab">Collabs</a>
+        <a href="/brand/recievedRequests">Collab requests</a>
+        <a href="/brand/create_collab">Create Collab</a>
+        <a href="/">Sign Out</a>
+        <!-- <a href="#">Settings</a> -->
+    </div>
 
     <div class="container">
 
@@ -74,10 +76,16 @@
                 </div>
                 <div class="profile-bio">
                     <h2>About NatureCare Co.</h2>
-                    <p>NatureCare Co. is a leading sustainable beauty and personal care brand committed to creating products that are good for you and the environment. Founded in 2010, we've grown from a small startup to a globally recognized name in eco-friendly beauty solutions.</p>
-                    <p>Our mission is to provide high-quality, ethically-sourced products that enhance natural beauty while minimizing environmental impact. We believe in transparency, sustainability, and creating positive change in the beauty industry.</p>
+                    <p>NatureCare Co. is a leading sustainable beauty and personal care brand committed to creating
+                        products that are good for you and the environment. Founded in 2010, we've grown from a small
+                        startup to a globally recognized name in eco-friendly beauty solutions.</p>
+                    <p>Our mission is to provide high-quality, ethically-sourced products that enhance natural beauty
+                        while minimizing environmental impact. We believe in transparency, sustainability, and creating
+                        positive change in the beauty industry.</p>
                     <h3>Current Campaign Goals</h3>
-                    <p>We're currently looking to collaborate with influencers who share our values of sustainability and natural beauty. Our upcoming "Natural You" campaign focuses on authentic beauty and environmental consciousness.</p>
+                    <p>We're currently looking to collaborate with influencers who share our values of sustainability
+                        and natural beauty. Our upcoming "Natural You" campaign focuses on authentic beauty and
+                        environmental consciousness.</p>
                 </div>
             </div>
 
@@ -147,21 +155,22 @@
         </div>
     </div>
 
-      <!-- Footer -->
-  <footer>
-    <p Id="foo"> &copy; 2025 CollabSync. All rights reserved.</p>
-  </footer>
+    <!-- Footer -->
+    <footer>
+        <p Id="foo"> &copy; 2025 CollabSync. All rights reserved.</p>
+    </footer>
 
-      <!-- This script handles the sidebar toggle. -->
-      <script>
+    <!-- This script handles the sidebar toggle. -->
+    <script>
         function openMenu() {
             document.getElementById("navMenu").style.width = "250px";
         }
         function closeMenu() {
             document.getElementById("navMenu").style.width = "0";
         }
-        </script>
+    </script>
 
     <script src="Influencer page.js"></script>
 </body>
+
 </html>
