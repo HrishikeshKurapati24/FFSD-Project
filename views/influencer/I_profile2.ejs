@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afluencer Profile</title>
+    <title>Influencer Profile</title>
     <link rel="stylesheet" href="/i_index/I_profile2.css">
 </head>
 
@@ -37,25 +37,29 @@
 
 
     <div class="container">
-
+        <!-- Profile Header with Edit Button -->
         <section class="profile-banner">
-            <div class="banner-image">
-
+            <div class="banner-image" style="background-image: url('<%= influencer.bannerUrl%>')">
+                <button class="edit-banner-btn"><i class="fas fa-camera"></i> Edit Banner</button>
             </div>
             <div class="profile-info">
                 <div class="profile-pic">
+                    <img src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>" alt="Profile Picture">
+                    <button class="edit-profile-pic-btn"><i class="fas fa-camera"></i></button>
                 </div>
                 <div class="profile-name">
-                    <h1>Anvesh</h1>
-                    <div class="profile-actions">
-                        <button class="invite-btn">Invite</button>
-                        <button class="message-btn">Messages</button>
-                    </div>
-                    <div class="profile-status">
-                        <span class="premium-badge">
-                            <i class="fa-solid fa-crown"></i> PREMIUM
-                        </span>
-                        <span class="influence-info">Most influence in: United States 🇺🇸</span>
+                    <h1>
+                        <%= influencer.displayName %>
+                    </h1>
+                    <p class="username">@<%= influencer.username %>
+                    </p>
+                    <button class="edit-profile-btn">Edit Profile</button>
+                    <div class="profile-verification">
+                        <% if (influencer.verified) { %>
+                            <span class="verified-badge"><i class="fas fa-check-circle"></i> Verified</span>
+                            <% } else { %>
+                                <button class="verify-account-btn">Verify Account</button>
+                                <% } %>
                     </div>
                 </div>
             </div>
@@ -66,106 +70,170 @@
                 <div class="profile-tabs">
                     <ul>
                         <li class="active"><a href="#">ABOUT</a></li>
-                        <li><a href="#"><i class="fa-brands fa-instagram"></i> INSTAGRAM</a></li>
-                        <li><a href="#"><i class="fa-brands fa-youtube"></i> YOUTUBE</a></li>
-                        <li><a href="#"><i class="fa-brands fa-tiktok"></i> TIKTOK</a></li>
+                        <% influencer.socials.forEach(function(platform) { %>
+                            <li><a href="<%= platform.link %>" target="_blank"><i
+                                        class="fa-brands fa-<%= platform.icon %>"></i>
+                                    <%= platform.name.toUpperCase() %>
+                                </a></li>
+                            <% }); %>
                     </ul>
                 </div>
+                <!-- Profile Details Section -->
                 <div class="profile-bio">
-                    <h2>Hey!!</h2>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut
-                        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-                        non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut
-                        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-                        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-                        non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    <div class="section-header">
+                        <h2><i class="fas fa-info-circle"></i> About Me</h2>
+                        <button class="edit-section-btn"><i class="fas fa-edit"></i></button>
+                    </div>
+                    <p>
+                        <%= influencer.bio || 'Add your bio to tell brands about yourself' %>
+                    </p>
+
+                    <div class="profile-details-grid">
+                        <div class="detail-item">
+                            <strong><i class="fas fa-map-marker-alt"></i> Location:</strong>
+                            <span>
+                                <%= influencer.location || 'Not specified' %>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-language"></i> Languages:</strong>
+                            <span>
+                                <%= influencer.languages && influencer.languages.length ? influencer.languages.join(", ") : 'Not specified' %></span>
+                    </div>
+                    <div class=" detail-item">
+                                    <strong><i class="fas fa-tags"></i> Categories:</strong>
+                                    <span>
+                                        <%= influencer.categories && influencer.categories.length ?
+                                            influencer.categories.join(", ") : 'Not specified' %></span>
+                    </div>
+                    <div class=" detail-item">
+                                            <strong><i class="fas fa-users"></i> Audience Age:</strong>
+                                            <span>
+                                                <%= influencer.audienceAgeRange || 'Not specified' %>
+                                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-venus-mars"></i> Audience Gender:</strong>
+                            <span>
+                                <%= influencer.audienceGender || 'Not specified' %>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-calendar-alt"></i> Member Since:</strong>
+                            <span>
+                                <%= new Date(influencer.createdAt).toLocaleDateString() %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-right">
+                    <div class="profile-card">
+                        <h3>Social Media Stats</h3>
+                        <div class="social-stats">
+                            <% influencer.socials.forEach(function(platform) { %>
+                                <div class="social-item">
+                                    <i class="fa-brands fa-<%= platform.icon %>"></i>
+                                    <span class="count">
+                                        <%= platform.followers %>
+                                    </span>
+                                    <span class="label">followers</span><br>
+                                    <span class="label">Avg Likes: <%= platform.avgLikes %></span><br>
+                                    <span class="label">Avg Comments: <%= platform.avgComments %></span><br>
+                                    <span class="label">Avg Views: <%= platform.avgViews %></span><br>
+                                    <span class="label">Category: <%= platform.category %></span>
+                                </div>
+                                <% }); %>
+                        </div>
+                    </div>
+                    <div class="profile-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-star"></i> Top Performing Content</h3>
+                            <a href="#" class="view-all">View All</a>
+                        </div>
+                        <div class="content-portfolio">
+                            <% if (influencer.bestPosts && influencer.bestPosts.length) { %>
+                                <% influencer.bestPosts.forEach(function(post) { %>
+                                    <div class="portfolio-item">
+                                        <a href="<%= post.url %>" target="_blank" class="portfolio-thumbnail">
+                                            <img src="<%= post.thumbnail %>" alt="Top Post">
+                                            <div class="portfolio-stats">
+                                                <span><i class="fas fa-heart"></i>
+                                                    <%= post.likes %>
+                                                </span>
+                                                <span><i class="fas fa-comment"></i>
+                                                    <%= post.comments %>
+                                                </span>
+                                            </div>
+                                        </a>
+                                        <div class="portfolio-info">
+                                            <span class="platform-badge"><i
+                                                    class="fab fa-<%= post.platform %>"></i></span>
+                                            <span class="post-date">
+                                                <%= new Date(post.date).toLocaleDateString() %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                                        <% } else { %>
+                                            <p class="empty-state">No top posts yet. Create great content to showcase
+                                                here!</p>
+                                            <% } %>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="profile-right">
-                <div class="profile-card">
-                    <h3>Social Media</h3>
-                    <div class="social-stats">
-                        <div class="social-item">
-                            <i class="fa-brands fa-facebook"></i>
-                            <span class="count">1077</span>
-                            <span class="label">followers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-instagram"></i>
-                            <span class="count">7970</span>
-                            <span class="label">followers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-twitter"></i>
-                            <span class="count">1834</span>
-                            <span class="label">followers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-youtube"></i>
-                            <span class="count">3</span>
-                            <span class="label">subscribers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-tiktok"></i>
-                            <span class="count">466</span>
-                            <span class="label">followers</span>
-                        </div>
-                    </div>
-                    <div class="social-item wide">
-                        <span class="count">1563</span>
-                        <span class="label">likes</span>
-                    </div>
-                    <div class="social-item wide">
-                        <span class="count">416</span>
-                        <span class="label">views</span>
-                    </div>
-                </div>
-
-                <div class="profile-card">
-                    <h3>Total Audience</h3>
-                    <div class="audience-count">10910</div>
-                </div>
-
-                <div class="profile-card">
-                    <h3>Website</h3>
-                    <a href="https://collabsync.com/" class="website-link">https://collabsync.com/</a>
-                </div>
-
-                <div class="profile-card">
-                    <h3>Age Group</h3>
-                    <p>35-44</p>
-                </div>
-
-                <div class="profile-card">
-                    <h3>Gender</h3>
-                    <p>Male</p>
+            <!-- Edit Profile Modal (Hidden by default) -->
+            <div class="modal" id="editProfileModal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h2>Edit Profile</h2>
+                    <!-- Form would go here -->
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 CollabSync. All rights reserved.</p>
-    </footer>
-
-    <!-- This script handles the sidebar toggle. -->
-    <script>
-        function openMenu() {
-            document.getElementById("navMenu").style.width = "250px";
-        }
-        function closeMenu() {
-            document.getElementById("navMenu").style.width = "0";
-        }
-    </script>
 
 
-    <script src="Influencer page.js"></script>
+            <!-- Footer -->
+            <footer>
+                <p>&copy; 2025 CollabSync. All rights reserved.</p>
+            </footer>
+
+            <!-- This script handles the sidebar toggle. -->
+            <script>
+                // Platform tabs functionality
+                document.querySelectorAll('.platform-tab').forEach(tab => {
+                    tab.addEventListener('click', function () {
+                        // Remove active class from all tabs
+                        document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+                        // Add active class to clicked tab
+                        this.classList.add('active');
+
+                        const platform = this.dataset.platform;
+                        // Show/hide platform stats
+                        document.querySelectorAll('.platform-stats').forEach(stats => {
+                            if (platform === 'all' || stats.dataset.platform === platform) {
+                                stats.style.display = 'block';
+                            } else {
+                                stats.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+
+                // Edit profile button functionality
+                document.querySelector('.edit-profile-btn').addEventListener('click', function () {
+                    document.getElementById('editProfileModal').style.display = 'block';
+                });
+
+                // Close modal
+                document.querySelector('.close-modal').addEventListener('click', function () {
+                    document.getElementById('editProfileModal').style.display = 'none';
+                });
+            </script>
+
+
+            <script src="Influencer page.js"></script>
 </body>
 
 </html>

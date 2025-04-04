@@ -1,5 +1,5 @@
 // controller/collabController.js
-const collabModel = require('../model/collabModel');
+const collabModel = require('../models/collabModel');
 
 // For I_collab
 const getCollabPage = (req, res) => {

@@ -1,5 +1,5 @@
 // controller/requestController.js
-const requestModel = require('../model/requestModel');
+const requestModel = require('../models/requestModel');
 
 const getReceivedRequestsPage = (req, res) => {
   requestModel.getAllRequests((err, requests) => {

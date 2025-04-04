@@ -1,5 +1,5 @@
 // controller/influencerController.js
-const influencerModel = require('../model/influencerModel');
+const influencerModel = require('../models/influencerModel');
 
 const getInfluencerExplorePage = (req, res) => {
   influencerModel.getAllInfluencers((err, influencers) => {
