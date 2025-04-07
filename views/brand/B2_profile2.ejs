@@ -4,14 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Profile</title>
-    <link rel="stylesheet" href="/B2_index/B2_profile2.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>
+        <%= brand.name %> Profile | CollabSync
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/brand/B2_profile2.css">
 </head>
 
 <body>
-
-
+    <!-- Header -->
     <header>
         <div class="header-container">
             <div class="logo">CollabSync</div>
@@ -20,45 +21,70 @@
                     <li><a href="/brand/home">Home</a></li>
                     <li><a href="/brand/explore">Explore Influencers</a></li>
                     <li><a href="/brand/profile">My Brand Profile</a></li>
-                    <!-- <li><a href="logout">Logout</a></li> -->
                 </ul>
             </nav>
         </div>
     </header>
 
-    <!-- Sidebar Navigation (Right Side) -->
+    <!-- Sidebar Navigation -->
     <button class="toggle-btn" onclick="openMenu()">☰</button>
     <div class="menu" id="navMenu">
         <span class="close-btn" onclick="closeMenu()">&times;</span>
-        <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
         <a href="/brand/collab">Collabs</a>
-        <a href="/brand/recievedRequests">Collab requests</a>
+        <a href="/brand/recievedRequests">Collab Requests</a>
         <a href="/brand/create_collab">Create Collab</a>
         <a href="/">Sign Out</a>
-        <!-- <a href="#">Settings</a> -->
     </div>
 
     <div class="container">
-
+        <!-- Profile Banner -->
         <section class="profile-banner">
             <div class="banner-image">
-                <!-- Brand banner image will be set in CSS -->
+                <button class="edit-banner-btn" onclick="openEditModal()">
+                    <i class="fas fa-camera"></i> Edit Banner
+                </button>
             </div>
             <div class="profile-info">
                 <div class="profile-pic">
-                    <!-- Brand logo will be set in CSS -->
+                    <img src="<%= brand.logoUrl || '/images/default-brand.png' %>" alt="<%= brand.name %>">
+                    <button class="edit-profile-pic-btn" onclick="openEditModal()">
+                        <i class="fas fa-camera"></i>
+                    </button>
                 </div>
                 <div class="profile-name">
-                    <h1>NatureCare Co.</h1>
+                    <h1>
+                        <%= brand.name %>
+                    </h1>
+                    <p class="username">@<%= brand.username %>
+                    </p>
                     <div class="profile-actions">
-                        <button class="invite-btn">Collaborate</button>
-                        <button class="message-btn">Messages</button>
+                        <button class="invite-btn" onclick="location.href='/brand/create_collab'">
+                            <i class="fas fa-plus"></i> Create Campaign
+                        </button>
+                        <button class="message-btn" onclick="location.href='/brand/messages'">
+                            <i class="fas fa-envelope"></i> Messages
+                        </button>
                     </div>
                     <div class="profile-status">
-                        <span class="premium-badge">
-                            <i class="fa-solid fa-crown"></i> VERIFIED
-                        </span>
-                        <span class="influence-info">Primary market: Global 🌎</span>
+                        <% if (brand.verified) { %>
+                            <span class="premium-badge">
+                                <i class="fas fa-check-circle"></i> VERIFIED
+                            </span>
+                            <% } else { %>
+                                <span class="premium-badge" style="background: #ccc;">
+                                    <i class="fas fa-clock"></i> PENDING VERIFICATION
+                                </span>
+                                <% } %>
+                                    <span class="influence-info">
+                                        Primary market: <%= brand.primaryMarket || 'Not specified' %>
+                                            <% if (brand.primaryMarket) { %>
+                                                <%= brand.primaryMarket.includes('Global') ? '🌎' : '' %>
+                                                    <%= brand.primaryMarket.includes('US') ? '🇺🇸' : '' %>
+                                                        <%= brand.primaryMarket.includes('UK') ? '🇬🇧' : '' %>
+                                                            <%= brand.primaryMarket.includes('Europe') ? '🇪🇺' : '' %>
+                                                                <%= brand.primaryMarket.includes('Asia') ? '🌏' : '' %>
+                                                                    <% } %>
+                                    </span>
                     </div>
                 </div>
             </div>
@@ -69,23 +95,46 @@
                 <div class="profile-tabs">
                     <ul>
                         <li class="active"><a href="#">ABOUT</a></li>
-                        <li><a href="#"><i class="fa-solid fa-briefcase"></i> CAMPAIGNS</a></li>
-                        <li><a href="#"><i class="fa-solid fa-chart-line"></i> ANALYTICS</a></li>
-                        <li><a href="#"><i class="fa-solid fa-handshake"></i> PARTNERSHIPS</a></li>
+                        <li><a href="/brand/campaigns"><i class="fas fa-briefcase"></i> CAMPAIGNS</a></li>
+                        <li><a href="/brand/analytics"><i class="fas fa-chart-line"></i> ANALYTICS</a></li>
+                        <li><a href="/brand/partnerships"><i class="fas fa-handshake"></i> PARTNERSHIPS</a></li>
                     </ul>
                 </div>
                 <div class="profile-bio">
-                    <h2>About NatureCare Co.</h2>
-                    <p>NatureCare Co. is a leading sustainable beauty and personal care brand committed to creating
-                        products that are good for you and the environment. Founded in 2010, we've grown from a small
-                        startup to a globally recognized name in eco-friendly beauty solutions.</p>
-                    <p>Our mission is to provide high-quality, ethically-sourced products that enhance natural beauty
-                        while minimizing environmental impact. We believe in transparency, sustainability, and creating
-                        positive change in the beauty industry.</p>
-                    <h3>Current Campaign Goals</h3>
-                    <p>We're currently looking to collaborate with influencers who share our values of sustainability
-                        and natural beauty. Our upcoming "Natural You" campaign focuses on authentic beauty and
-                        environmental consciousness.</p>
+                    <div class="section-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>About <%= brand.name %>
+                        </h2>
+                        <button class="btn-secondary" onclick="openEditModal()" style="padding: 8px 12px;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                    <p>
+                        <%= brand.description || 'No description provided.' %>
+                    </p>
+
+                    <% if (brand.mission) { %>
+                        <h3>Our Mission</h3>
+                        <p>
+                            <%= brand.mission %>
+                        </p>
+                        <% } %>
+
+                            <% if (brand.currentCampaign) { %>
+                                <h3>Current Campaign Goals</h3>
+                                <p>
+                                    <%= brand.currentCampaign %>
+                                </p>
+                                <% } %>
+
+                                    <h3>Brand Values</h3>
+                                    <ul>
+                                        <% brand.values.forEach(value=> { %>
+                                            <li>
+                                                <%= value %>
+                                            </li>
+                                            <% }); %>
+                                    </ul>
                 </div>
             </div>
 
@@ -93,84 +142,472 @@
                 <div class="profile-card">
                     <h3>Brand Categories</h3>
                     <div class="category-tags">
-                        <span class="tag">Traveling</span>
-                        <span class="tag">Bags</span>
+                        <% brand.categories.forEach(category=> { %>
+                            <span class="tag">
+                                <%= category %>
+                            </span>
+                            <% }); %>
                     </div>
                 </div>
 
                 <div class="profile-card">
                     <h3>Social Media</h3>
                     <div class="social-stats">
-                        <div class="social-item">
-                            <i class="fa-brands fa-facebook"></i>
-                            <span class="count">85.7K</span>
-                            <span class="label">followers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-instagram"></i>
-                            <span class="count">123K</span>
-                            <span class="label">followers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-twitter"></i>
-                            <span class="count">42.3K</span>
-                            <span class="label">followers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-youtube"></i>
-                            <span class="count">68.4K</span>
-                            <span class="label">subscribers</span>
-                        </div>
-                        <div class="social-item">
-                            <i class="fa-brands fa-tiktok"></i>
-                            <span class="count">91.2K</span>
-                            <span class="label">followers</span>
-                        </div>
+                        <% brand.socialLinks.forEach(platform=> { %>
+                            <div class="social-item">
+                                <i class="fab fa-<%= platform.platform %>"></i>
+                                <span class="count">
+                                    <%= platform.followers.toLocaleString() %>
+                                </span>
+                                <span class="label">followers</span>
+                            </div>
+                            <% }); %>
                     </div>
                 </div>
 
                 <div class="profile-card">
                     <h3>Total Audience</h3>
-                    <div class="audience-count">410.6K</div>
+                    <div class="audience-count">
+                        <%= brand.totalAudience.toLocaleString() %>
+                    </div>
+                    <div style="text-align: center; font-size: 14px; color: #666;">
+                        across all platforms
+                    </div>
                 </div>
 
                 <div class="profile-card">
                     <h3>Website</h3>
-                    <a href="https://naturecareco.com/" class="website-link">https://naturecareco.com/</a>
+                    <a href="<%= brand.website %>" class="website-link" target="_blank">
+                        <%= brand.website.replace(/^https?:\/\//, '' ) %>
+                    </a>
                 </div>
 
                 <div class="profile-card">
                     <h3>Target Audience</h3>
-                    <p>Ages: 18-35</p>
-                    <p>Primary: Female (70%)</p>
-                    <p>Interests: Travelling bags, exploration</p>
+                    <p><strong>Ages:</strong>
+                        <%= brand.targetAgeRange || 'Not specified' %>
+                    </p>
+                    <p><strong>Gender:</strong>
+                        <%= brand.targetGender || 'Not specified' %>
+                    </p>
+                    <p><strong>Interests:</strong>
+                        <%= brand.targetInterests.join(', ') || ' Not specified' %>
+                    </p>
                 </div>
 
                 <div class="profile-card">
                     <h3>Collaboration History</h3>
-                    <p>25+ successful campaigns</p>
-                    <p>150+ influencer partnerships</p>
+                    <p>
+                        <%= brand.completedCampaigns %>+ successful campaigns
+                    </p>
+                    <p>
+                        <%= brand.influencerPartnerships %>+ influencer partnerships
+                    </p>
+                    <p>
+                        <%= brand.avgCampaignRating %>/5 average rating
+                    </p>
+                </div>
+
+                <div class="profile-card">
+                    <button class="btn-primary" onclick="openEditModal()" style="width: 100%;">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <button class="btn-danger" onclick="openDeleteModal()" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-trash-alt"></i> Delete Account
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Brand Profile</h2>
+            <form id="profileForm" action="/brand/profile/update" method="POST" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="brandName">Brand Name</label>
+                        <input type="text" class="form-control" id="brandName" name="name" value="<%= brand.name %>"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="brandUsername">Username</label>
+                        <input type="text" class="form-control" id="brandUsername" name="username"
+                            value="<%= brand.username %>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="brandDescription">Brand Description</label>
+                    <textarea class="form-control" id="brandDescription" name="description"
+                        required><%= brand.description %></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="brandMission">Mission Statement</label>
+                    <textarea class="form-control" id="brandMission" name="mission"><%= brand.mission %></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="currentCampaign">Current Campaign Goals</label>
+                    <textarea class="form-control" id="currentCampaign"
+                        name="currentCampaign"><%= brand.currentCampaign %></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="primaryMarket">Primary Market</label>
+                        <select class="form-control" id="primaryMarket" name="primaryMarket">
+                            <option value="">Select market</option>
+                            <option value="Global" <%=brand.primaryMarket==='Global' ? 'selected' : '' %>>Global
+                            </option>
+                            <option value="US" <%=brand.primaryMarket==='US' ? 'selected' : '' %>>United States</option>
+                            <option value="UK" <%=brand.primaryMarket==='UK' ? 'selected' : '' %>>United Kingdom
+                            </option>
+                            <option value="Europe" <%=brand.primaryMarket==='Europe' ? 'selected' : '' %>>Europe
+                            </option>
+                            <option value="Asia" <%=brand.primaryMarket==='Asia' ? 'selected' : '' %>>Asia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="brandWebsite">Website</label>
+                        <input type="url" class="form-control" id="brandWebsite" name="website"
+                            value="<%= brand.website %>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Brand Values</label>
+                    <div id="valuesContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                        <% brand.values.forEach(value=> { %>
+                            <span class="tag">
+                                <%= value %>
+                                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                    <input type="hidden" name="values" value="<%= value %>">
+                            </span>
+                            <% }); %>
+                    </div>
+                    <div style="display: flex;">
+                        <input type="text" class="form-control" id="valueInput" placeholder="Add a value..."
+                            style="flex: 1;">
+                        <button type="button" class="btn-secondary" onclick="addValue()"
+                            style="margin-left: 10px;">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Categories</label>
+                    <div id="categoriesContainer"
+                        style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                        <% brand.categories.forEach(category=> { %>
+                            <span class="tag">
+                                <%= category %>
+                                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                    <input type="hidden" name="categories" value="<%= category %>">
+                            </span>
+                            <% }); %>
+                    </div>
+                    <div style="display: flex;">
+                        <input type="text" class="form-control" id="categoryInput" placeholder="Add a category..."
+                            style="flex: 1;">
+                        <button type="button" class="btn-secondary" onclick="addCategory()"
+                            style="margin-left: 10px;">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Target Audience</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetAgeRange">Age Range</label>
+                            <input type="text" class="form-control" id="targetAgeRange" name="targetAgeRange"
+                                value="<%= brand.targetAgeRange %>" placeholder="e.g. 18-35">
+                        </div>
+                        <div class="form-group">
+                            <label for="targetGender">Primary Gender</label>
+                            <select class="form-control" id="targetGender" name="targetGender">
+                                <option value="">Any</option>
+                                <option value="Female" <%=brand.targetGender==='Female' ? 'selected' : '' %>>Female
+                                </option>
+                                <option value="Male" <%=brand.targetGender==='Male' ? 'selected' : '' %>>Male</option>
+                                <option value="All" <%=brand.targetGender==='All' ? 'selected' : '' %>>All Genders
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <label for="targetInterests">Interests</label>
+                    <div id="interestsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                        <% brand.targetInterests.forEach(interest=> { %>
+                            <span class="tag">
+                                <%= interest %>
+                                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                    <input type="hidden" name="targetInterests" value="<%= interest %>">
+                            </span>
+                            <% }); %>
+                    </div>
+                    <div style="display: flex;">
+                        <input type="text" class="form-control" id="interestInput" placeholder="Add an interest..."
+                            style="flex: 1;">
+                        <button type="button" class="btn-secondary" onclick="addInterest()"
+                            style="margin-left: 10px;">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Brand Logo</label>
+                    <div class="file-upload">
+                        <label class="file-upload-label" for="logoUpload">
+                            <i class="fas fa-camera" style="margin-right: 8px;"></i>
+                            Click to upload new logo
+                            <input type="file" class="file-upload-input" id="logoUpload" name="logo" accept="image/*">
+                        </label>
+                        <img id="logoPreview" class="preview-image"
+                            src="<%= brand.logoUrl || '/images/default-brand.png' %>" alt="Logo Preview">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Banner Image</label>
+                    <div class="file-upload">
+                        <label class="file-upload-label" for="bannerUpload">
+                            <i class="fas fa-image" style="margin-right: 8px;"></i>
+                            Click to upload new banner
+                            <input type="file" class="file-upload-input" id="bannerUpload" name="banner"
+                                accept="image/*">
+                        </label>
+                        <img id="bannerPreview" class="preview-image"
+                            src="<%= brand.bannerUrl || '/images/default-banner.jpg' %>" alt="Banner Preview">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Social Media Links</label>
+                    <div id="socialLinks">
+                        <% brand.socialLinks.forEach((platform, index)=> { %>
+                            <div class="social-platform-row">
+                                <div class="form-group social-platform-select">
+                                    <select class="form-control" name="socialLinks[<%= index %>][platform]">
+                                        <option value="instagram" <%=platform.platform==='instagram' ? 'selected' : ''
+                                            %>>Instagram</option>
+                                        <option value="facebook" <%=platform.platform==='facebook' ? 'selected' : '' %>
+                                            >Facebook</option>
+                                        <option value="twitter" <%=platform.platform==='twitter' ? 'selected' : '' %>
+                                            >Twitter</option>
+                                        <option value="youtube" <%=platform.platform==='youtube' ? 'selected' : '' %>
+                                            >YouTube</option>
+                                        <option value="tiktok" <%=platform.platform==='tiktok' ? 'selected' : '' %>
+                                            >TikTok</option>
+                                        <option value="linkedin" <%=platform.platform==='linkedin' ? 'selected' : '' %>
+                                            >LinkedIn</option>
+                                    </select>
+                                </div>
+                                <div class="form-group social-platform-url">
+                                    <input type="url" class="form-control" name="socialLinks[<%= index %>][url]"
+                                        value="<%= platform.url %>" placeholder="Profile URL">
+                                </div>
+                                <div class="form-group social-platform-url">
+                                    <input type="text" class="form-control" name="socialLinks[<%= index %>][followers]"
+                                        value="<%= platform.followers %>" placeholder="Followers">
+                                </div>
+                                <div class="form-group social-platform-remove">
+                                    <button type="button" class="btn-secondary" onclick="removeSocialLink(this)"
+                                        style="padding: 8px 12px; width: 100%;">×</button>
+                                </div>
+                            </div>
+                            <% }); %>
+                    </div>
+                    <button type="button" class="btn-secondary" onclick="addSocialLink()" style="margin-top: 10px;">
+                        <i class="fas fa-plus"></i> Add Social Link
+                    </button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal" id="deleteAccountModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closeDeleteModal()">&times;</span>
+            <h2>Delete Your Account</h2>
+            <div style="margin-bottom: 20px;">
+                <p>Are you sure you want to delete your brand account? This action cannot be undone.</p>
+                <p>All your campaigns, collaborations, and data will be permanently removed.</p>
+            </div>
+            <div class="form-group">
+                <label for="confirmDelete">Type "DELETE" to confirm:</label>
+                <input type="text" class="form-control" id="confirmDelete" placeholder="DELETE">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn-danger" onclick="confirmDelete()" id="deleteBtn" disabled>Delete
+                    Account Permanently</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
-        <p Id="foo"> &copy; 2025 CollabSync. All rights reserved.</p>
+        <p>&copy; 2025 CollabSync. All rights reserved.</p>
     </footer>
 
-    <!-- This script handles the sidebar toggle. -->
     <script>
+        // Modal functions
+        function openEditModal() {
+            document.getElementById('editProfileModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+
+        function openDeleteModal() {
+            document.getElementById('deleteAccountModal').style.display = 'block';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteAccountModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function (event) {
+            if (event.target === document.getElementById('editProfileModal')) {
+                closeEditModal();
+            }
+            if (event.target === document.getElementById('deleteAccountModal')) {
+                closeDeleteModal();
+            }
+        });
+
+        // Image preview functionality
+        document.getElementById('logoUpload').addEventListener('change', function (e) {
+            const preview = document.getElementById('logoPreview');
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        document.getElementById('bannerUpload').addEventListener('change', function (e) {
+            const preview = document.getElementById('bannerPreview');
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Tag management functions
+        function addTag(containerId, inputId, name) {
+            const input = document.getElementById(inputId);
+            const container = document.getElementById(containerId);
+
+            if (input.value.trim() !== '') {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.innerHTML = `
+                    ${input.value.trim()}
+                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                    <input type="hidden" name="${name}" value="${input.value.trim()}">
+                `;
+                container.appendChild(tag);
+                input.value = '';
+            }
+        }
+
+        function addValue() {
+            addTag('valuesContainer', 'valueInput', 'values');
+        }
+
+        function addCategory() {
+            addTag('categoriesContainer', 'categoryInput', 'categories');
+        }
+
+        function addInterest() {
+            addTag('interestsContainer', 'interestInput', 'targetInterests');
+        }
+
+        function removeTag(element) {
+            element.parentElement.remove();
+        }
+
+        // Social links management
+        let socialLinkCount = <%= brand.socialLinks.length %>;
+
+        function addSocialLink() {
+            const container = document.getElementById('socialLinks');
+            const newLink = document.createElement('div');
+            newLink.className = 'social-platform-row';
+            newLink.innerHTML = `
+                <div class="form-group social-platform-select">
+                    <select class="form-control" name="socialLinks[${socialLinkCount}][platform]">
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="linkedin">LinkedIn</option>
+                    </select>
+                </div>
+                <div class="form-group social-platform-url">
+                    <input type="url" class="form-control" name="socialLinks[${socialLinkCount}][url]" placeholder="Profile URL">
+                </div>
+                <div class="form-group social-platform-url">
+                    <input type="text" class="form-control" name="socialLinks[${socialLinkCount}][followers]" placeholder="Followers">
+                </div>
+                <div class="form-group social-platform-remove">
+                    <button type="button" class="btn-secondary" onclick="removeSocialLink(this)" style="padding: 8px 12px; width: 100%;">×</button>
+                </div>
+            `;
+            container.appendChild(newLink);
+            socialLinkCount++;
+        }
+
+        function removeSocialLink(button) {
+            button.closest('.social-platform-row').remove();
+        }
+
+        // Delete account confirmation
+        document.getElementById('confirmDelete').addEventListener('input', function (e) {
+            document.getElementById('deleteBtn').disabled = this.value !== 'DELETE';
+        });
+
+        function confirmDelete() {
+            if (confirm('Are you absolutely sure you want to delete your account? This cannot be undone!')) {
+                fetch('/brand/profile/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.href = '/';
+                    }
+                });
+            }
+        }
+
+        // Sidebar toggle functions
         function openMenu() {
             document.getElementById("navMenu").style.width = "250px";
         }
+
         function closeMenu() {
             document.getElementById("navMenu").style.width = "0";
         }
     </script>
-
-    <script src="Influencer page.js"></script>
 </body>
 
 </html>

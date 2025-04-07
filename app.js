@@ -66,19 +66,9 @@ app.get('/brand/Sup_b', (req, res) => {
     res.render('home_page/Sup_b'); // This will render 'views/Lp_index.ejs'
 });
 
-// Route for the I_index
-app.get('/influencer/home', (req, res) => {
-    res.render('influencer/I_index'); // This will render 'views/Lp_index.ejs'
-});
-
 app.use("/influencer", influencerRoutes);
 
 app.use("/brand", brandRoutes);
-
-// Route for the I_profile2
-app.get('/influencer/profile', (req, res) => {
-    res.render('influencer/I_profile2'); // This will render 'views/Lp_index.ejs'
-});
 
 // Route for the B2_index
 app.get('/brand/home', (req, res) => {

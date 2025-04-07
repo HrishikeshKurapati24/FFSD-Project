@@ -184,12 +184,158 @@
                 </div>
             </div>
 
-            <!-- Edit Profile Modal (Hidden by default) -->
+            <!-- Edit Profile Modal -->
             <div class="modal" id="editProfileModal">
                 <div class="modal-content">
                     <span class="close-modal">&times;</span>
                     <h2>Edit Profile</h2>
-                    <!-- Form would go here -->
+                    <form id="profileForm" action="/influencer/profile/update" method="POST"
+                        enctype="multipart/form-data">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="displayName">Display Name</label>
+                                <input type="text" class="form-control" id="displayName" name="displayName"
+                                    value="<%= influencer.displayName %>">
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                    value="<%= influencer.username %>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio"><%= influencer.bio %></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="location">Location</label>
+                                <input type="text" class="form-control" id="location" name="location"
+                                    value="<%= influencer.location %>">
+                            </div>
+                            <div class="form-group select-dropdown">
+                                <label for="audienceGender">Primary Audience Gender</label>
+                                <select class="form-control" id="audienceGender" name="audienceGender">
+                                    <option value="Male" <%=influencer.audienceGender==='Male' ? 'selected' : '' %>>Male
+                                    </option>
+                                    <option value="Female" <%=influencer.audienceGender==='Female' ? 'selected' : '' %>
+                                        >Female</option>
+                                    <option value="Mixed" <%=influencer.audienceGender==='Mixed' ? 'selected' : '' %>
+                                        >Mixed</option>
+                                    <option value="Other" <%=influencer.audienceGender==='Other' ? 'selected' : '' %>
+                                        >Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="audienceAge">Audience Age Range</label>
+                            <input type="text" class="form-control" id="audienceAge" name="audienceAge"
+                                value="<%= influencer.audienceAgeRange %>" placeholder="e.g. 18-35">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Categories</label>
+                            <div class="tag-input" id="categoriesContainer">
+                                <% influencer.categories.forEach(category=> { %>
+                                    <span class="tag">
+                                        <%= category %>
+                                            <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                            <input type="hidden" name="categories" value="<%= category %>">
+                                    </span>
+                                    <% }); %>
+                                        <input type="text" id="categoryInput" placeholder="Add category...">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Languages</label>
+                            <div class="tag-input" id="languagesContainer">
+                                <% influencer.languages.forEach(language=> { %>
+                                    <span class="tag">
+                                        <%= language %>
+                                            <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                            <input type="hidden" name="languages" value="<%= language %>">
+                                    </span>
+                                    <% }); %>
+                                        <input type="text" id="languageInput" placeholder="Add language...">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Profile Picture</label>
+                            <div class="file-upload">
+                                <label class="file-upload-label" for="profilePic">
+                                    <i class="fas fa-camera" style="margin-right: 8px;"></i>
+                                    Click to upload new profile picture
+                                    <input type="file" class="file-upload-input" id="profilePic" name="profilePic"
+                                        accept="image/*">
+                                </label>
+                                <img id="profilePicPreview" class="preview-image"
+                                    src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>"
+                                    alt="Profile Preview">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Banner Image</label>
+                            <div class="file-upload">
+                                <label class="file-upload-label" for="bannerImage">
+                                    <i class="fas fa-image" style="margin-right: 8px;"></i>
+                                    Click to upload new banner image
+                                    <input type="file" class="file-upload-input" id="bannerImage" name="bannerImage"
+                                        accept="image/*">
+                                </label>
+                                <img id="bannerPreview" class="preview-image"
+                                    src="<%= influencer.bannerUrl || '/images/default-banner.jpg' %>"
+                                    alt="Banner Preview">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Social Media Links</label>
+                            <div id="socialLinks">
+                                <% influencer.socials.forEach((platform, index)=> { %>
+                                    <div class="form-row social-platform" style="margin-bottom: 15px;">
+                                        <div class="form-group" style="flex: 0.3;">
+                                            <select class="form-control" name="socials[<%= index %>][platform]">
+                                                <option value="instagram" <%=platform.platform==='instagram'
+                                                    ? 'selected' : '' %>>Instagram</option>
+                                                <option value="youtube" <%=platform.platform==='youtube' ? 'selected'
+                                                    : '' %>>YouTube</option>
+                                                <option value="tiktok" <%=platform.platform==='tiktok' ? 'selected' : ''
+                                                    %>>TikTok</option>
+                                                <option value="twitter" <%=platform.platform==='twitter' ? 'selected'
+                                                    : '' %>>Twitter</option>
+                                                <option value="facebook" <%=platform.platform==='facebook' ? 'selected'
+                                                    : '' %>>Facebook</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="flex: 0.6;">
+                                            <input type="text" class="form-control" name="socials[<%= index %>][url]"
+                                                value="<%= platform.url %>" placeholder="Profile URL">
+                                        </div>
+                                        <div class="form-group" style="flex: 0.1; display: flex; align-items: center;">
+                                            <button type="button" class="btn btn-secondary"
+                                                onclick="removeSocialLink(this)" style="padding: 8px 12px;">×</button>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <button type="button" class="btn btn-secondary" onclick="addSocialLink()"
+                                style="margin-top: 10px;">
+                                <i class="fas fa-plus"></i> Add Social Link
+                            </button>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="document.getElementById('editProfileModal').style.display='none'">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -221,14 +367,140 @@
                     });
                 });
 
-                // Edit profile button functionality
+                // Modal functionality
                 document.querySelector('.edit-profile-btn').addEventListener('click', function () {
                     document.getElementById('editProfileModal').style.display = 'block';
                 });
 
-                // Close modal
                 document.querySelector('.close-modal').addEventListener('click', function () {
                     document.getElementById('editProfileModal').style.display = 'none';
+                });
+
+                // Close modal when clicking outside
+                window.addEventListener('click', function (event) {
+                    if (event.target === document.getElementById('editProfileModal')) {
+                        document.getElementById('editProfileModal').style.display = 'none';
+                    }
+                });
+
+                // Image preview functionality
+                document.getElementById('profilePic').addEventListener('change', function (e) {
+                    const preview = document.getElementById('profilePicPreview');
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+
+                document.getElementById('bannerImage').addEventListener('change', function (e) {
+                    const preview = document.getElementById('bannerPreview');
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+
+                // Tag input functionality
+                function addTag(inputId, containerId) {
+                    const input = document.getElementById(inputId);
+                    const container = document.getElementById(containerId);
+
+                    if (input.value.trim() !== '') {
+                        const tag = document.createElement('span');
+                        tag.className = 'tag';
+                        tag.innerHTML = `
+                    ${input.value.trim()}
+                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                    <input type="hidden" name="${containerId.replace('Container', '')}" value="${input.value.trim()}">
+                `;
+                        container.insertBefore(tag, input);
+                        input.value = '';
+                    }
+                }
+
+                function removeTag(element) {
+                    element.parentElement.remove();
+                }
+
+                document.getElementById('categoryInput').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag('categoryInput', 'categoriesContainer');
+                    }
+                });
+
+                document.getElementById('languageInput').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag('languageInput', 'languagesContainer');
+                    }
+                });
+
+                // Social links functionality
+                let socialIndex = <%= influencer.socials.length %>;
+
+                function addSocialLink() {
+                    const container = document.getElementById('socialLinks');
+                    const newLink = document.createElement('div');
+                    newLink.className = 'form-row social-platform';
+                    newLink.style.marginBottom = '15px';
+                    newLink.innerHTML = `
+                <div class="form-group" style="flex: 0.3;">
+                    <select class="form-control" name="socials[${socialIndex}][platform]">
+                        <option value="instagram">Instagram</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 0.6;">
+                    <input type="text" class="form-control" name="socials[${socialIndex}][url]" placeholder="Profile URL">
+                </div>
+                <div class="form-group" style="flex: 0.1; display: flex; align-items: center;">
+                    <button type="button" class="btn btn-secondary" onclick="removeSocialLink(this)" style="padding: 8px 12px;">×</button>
+                </div>
+            `;
+                    container.appendChild(newLink);
+                    socialIndex++;
+                }
+
+                function removeSocialLink(button) {
+                    button.closest('.social-platform').remove();
+                }
+
+                // Form submission
+                document.getElementById('profileForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    // Here you would typically submit the form via AJAX or let it submit normally
+                    // For demonstration, we'll just close the modal
+                    document.getElementById('editProfileModal').style.display = 'none';
+
+                    // In a real implementation, you would:
+                    // 1. Collect all form data
+                    // 2. Send to server via fetch/axios
+                    // 3. Handle response and update UI accordingly
+                    // 4. Show success/error message
+
+                    // Example:
+                    // const formData = new FormData(this);
+                    // fetch(this.action, {
+                    //     method: 'POST',
+                    //     body: formData
+                    // }).then(response => {
+                    //     if (response.ok) {
+                    //         location.reload(); // or update specific elements
+                    //     }
+                    // });
                 });
             </script>
 

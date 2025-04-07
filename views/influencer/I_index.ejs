@@ -6,127 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Influencer Dashboard - CollabSync</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/i_index/I_index.css" />
+  <link rel="stylesheet" href="/i_index/I_index.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-
-
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Influencer Dashboard - CollabSync</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/influencer-dashboard.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-    <style>
-      .chart-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin: 20px 0;
-      }
-
-      .chart-box {
-        flex: 1;
-        min-width: 300px;
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .notification-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background-color: #ff4757;
-        color: white;
-        border-radius: 50%;
-        padding: 2px 6px;
-        font-size: 12px;
-      }
-
-      .dashboard-items {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-      }
-
-      .dashboard-item {
-        position: relative;
-        padding: 20px;
-        border-radius: 10px;
-        background: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s;
-      }
-
-      .dashboard-item:hover {
-        transform: translateY(-5px);
-      }
-
-      .collab-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .collab-card {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .progress-bar {
-        height: 8px;
-        background: #e0e0e0;
-        border-radius: 4px;
-        margin-top: 10px;
-        overflow: hidden;
-      }
-
-      .progress {
-        height: 100%;
-        background: #4CAF50;
-        border-radius: 4px;
-      }
-
-      .notification-dropdown {
-        position: absolute;
-        right: 0;
-        top: 100%;
-        background: white;
-        width: 350px;
-        max-height: 400px;
-        overflow-y: auto;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        z-index: 100;
-        display: none;
-      }
-
-      .notification-item {
-        padding: 12px 15px;
-        border-bottom: 1px solid #eee;
-      }
-
-      .notification-item.unread {
-        background: #f8f9fa;
-      }
-
-      .notification-time {
-        font-size: 12px;
-        color: #777;
-        margin-top: 5px;
-      }
-    </style>
-
-  </head>
+</head>
 
 <body>
   <!-- Header -->
@@ -138,7 +20,37 @@
           <li><a href="/influencer/home">Home</a></li>
           <li><a href="/influencer/explore">Explore brands</a></li>
           <li><a href="/influencer/profile">My Profile</a></li>
-          <!-- <li><a href="logout">Logout</a></li> -->
+          <li class="notification-icon">
+            <a href="#" id="notificationBtn">
+              <i class="fas fa-bell"></i>
+              <% if (notifications && notifications.filter(n=> !n.read).length > 0) { %>
+                <span class="notification-badge">
+                  <%= notifications.filter(n=> !n.read).length %>
+                </span>
+                <% } %>
+            </a>
+            <div class="notification-dropdown" id="notificationDropdown">
+              <% if (notifications && notifications.length> 0) { %>
+                <% notifications.forEach(notification=> { %>
+                  <div class="notification-item <%= !notification.read ? 'unread' : '' %>">
+                    <strong>
+                      <%= notification.title %>
+                    </strong>
+                    <p>
+                      <%= notification.message %>
+                    </p>
+                    <div class="notification-time">
+                      <%= new Date(notification.createdAt).toLocaleString() %>
+                    </div>
+                  </div>
+                  <% }); %>
+                    <% } else { %>
+                      <div class="notification-item">
+                        <p>No notifications</p>
+                      </div>
+                      <% } %>
+            </div>
+          </li>
         </ul>
       </nav>
     </div>
@@ -161,45 +73,28 @@
     <div class="intro">
       <h1>Welcome, <%= influencer.name %>
       </h1>
-      <p>
-        Discover how CollabSync empowers influencers with seamless brand collaborations, exclusive opportunities,
-        and performance insights to elevate your influence.
-      </p>
-    </div>
+      <p>Discover how CollabSync empowers influencers with seamless brand collaborations.</p>
 
-    <ul>
-      <li class="notification-icon">
-        <a href="#" id="notificationBtn">
-          <i class="fas fa-bell"></i>
-          <% if (notifications && notifications.filter(n=> !n.read).length > 0) { %>
-            <span class="notification-badge">
-              <%= notifications.filter(n=> !n.read).length %>
-            </span>
-            <% } %>
-        </a>
-        <div class="notification-dropdown" id="notificationDropdown">
-          <% if (notifications && notifications.length> 0) { %>
-            <% notifications.forEach(notification=> { %>
-              <div class="notification-item <%= !notification.read ? 'unread' : '' %>">
-                <strong>
-                  <%= notification.title %>
-                </strong>
-                <p>
-                  <%= notification.message %>
-                </p>
-                <div class="notification-time">
-                  <%= new Date(notification.createdAt).toLocaleString() %>
-                </div>
-              </div>
-              <% }); %>
-                <% } else { %>
-                  <div class="notification-item">
-                    <p>No notifications</p>
-                  </div>
-                  <% } %>
+      <div class="performance-metrics">
+        <div class="metric-item">
+          <div class="metric-value">
+            <%= influencer.avgEngagementRate %>%
+          </div>
+          <div class="metric-label">Avg Engagement</div>
         </div>
-      </li>
-    </ul>
+        <div class="metric-item">
+          <div class="metric-value">
+            <%= influencer.totalAudience.toLocaleString() %>
+          </div>
+          <div class="metric-label">Total Audience</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">$<%= influencer.monthlyEarnings.toLocaleString() %>
+          </div>
+          <div class="metric-label">Monthly Earnings</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Dashboard Overview -->
     <section class="dashboard">
@@ -242,280 +137,219 @@
       </div>
     </section>
 
-    <!-- Pending Collab Requests Section -->
-    <% if (pendingRequests && pendingRequests.length> 0) { %>
-      <section class="pending-collabs">
-        <div class="section-header">
-          <h2>Pending Collaboration Requests</h2>
-          <a href="/influencer/requests" class="view-all">View All</a>
-        </div>
-        <div class="collab-list">
-          <% pendingRequests.forEach(request=> { %>
-            <div class="collab-card">
-              <div class="brand-info">
-                <img src="<%= request.brand.logo || '/images/default-brand.png' %>" alt="<%= request.brand.name %>"
-                  class="brand-logo">
-                <div>
-                  <h4>
-                    <%= request.brand.name %>
-                  </h4>
-                  <p>Posted <%= new Date(request.createdAt).toLocaleDateString() %>
-                  </p>
+    <!-- New: Upcoming Deadlines Section -->
+    <section class="deadlines">
+      <h2>Upcoming Deadlines</h2>
+      <div class="deadline-list">
+        <% if (upcomingDeadlines && upcomingDeadlines.length> 0) { %>
+          <% upcomingDeadlines.forEach(deadline=> { %>
+            <div class="deadline-item">
+              <div class="deadline-content">
+                <h4>
+                  <%= deadline.campaignName %>
+                </h4>
+                <p><i class="far fa-clock"></i> Due in <%= deadline.daysRemaining %> days</p>
+                <div class="progress-bar">
+                  <div class="progress" style="width: <%= deadline.progress %>%"></div>
                 </div>
               </div>
-              <p>
-                <%= request.description %>
-              </p>
-              <div class="collab-actions">
-                <form action="/influencer/requests/<%= request._id %>/accept" method="POST">
-                  <button type="submit" class="accept-btn">Accept</button>
-                </form>
-                <form action="/influencer/requests/<%= request._id %>/decline" method="POST">
-                  <button type="submit" class="decline-btn">Decline</button>
-                </form>
-                <a href="/influencer/requests/<%= request._id %>" class="details-btn">Details</a>
-              </div>
+              <a href="/influencer/collab/<%= deadline._id %>" class="action-btn">View Details</a>
             </div>
             <% }); %>
+              <% } else { %>
+                <p>No upcoming deadlines</p>
+                <% } %>
+      </div>
+    </section>
+
+    <!-- Performance Analytics Section -->
+    <section class="analytics">
+      <h2>Performance Analytics</h2>
+      <div class="chart-container">
+        <div class="chart-box">
+          <h3>Engagement Growth</h3>
+          <canvas id="engagementChart"></canvas>
         </div>
-      </section>
-      <% } %>
+        <div class="chart-box">
+          <h3>Follower Growth</h3>
+          <canvas id="followerChart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Collaboration Performance</h3>
+          <canvas id="collabPerformanceChart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Earnings Overview</h3>
+          <canvas id="earningsChart"></canvas>
+        </div>
+      </div>
+    </section>
 
-        <!-- Active Collaborations Section -->
-        <% if (activeCollaborations && activeCollaborations.length> 0) { %>
-          <section class="active-collabs">
-            <div class="section-header">
-              <h2>Active Collaborations</h2>
-              <a href="/influencer/collab" class="view-all">View All</a>
-            </div>
-            <div class="collab-list">
-              <% activeCollaborations.forEach(collab=> { %>
-                <div class="collab-card">
-                  <div class="brand-info">
-                    <img src="<%= collab.brand.logo || '/images/default-brand.png' %>" alt="<%= collab.brand.name %>"
-                      class="brand-logo">
-                    <div>
-                      <h4>
-                        <%= collab.brand.name %>
-                      </h4>
-                      <p>Ends in <%= Math.ceil((new Date(collab.endDate) - new Date()) / (1000 * 60 * 60 * 24)) %> days
-                      </p>
-                    </div>
-                  </div>
-                  <p>
-                    <%= collab.description %>
-                  </p>
-                  <div class="progress-bar">
-                    <div class="progress" style="width: '<%= collab.progress %>%'';"></div>
-                  </div>
-                  <div class="collab-stats">
-                    <span><i class="fas fa-eye"></i>
-                      <%= collab.impressions.toLocaleString() %> impressions
-                    </span>
-                    <span><i class="fas fa-heart"></i>
-                      <%= collab.engagements.toLocaleString() %> engagements
-                    </span>
-                  </div>
-                </div>
-                <% }); %>
-            </div>
-          </section>
-          <% } %>
+    <!-- New: Recommended Brands Section -->
+    <section class="recommended-brands">
+      <h2>Brands You Might Like</h2>
+      <div class="brand-grid">
+        <% recommendedBrands.forEach(brand=> { %>
+          <div class="brand-card">
+            <img src="<%= brand.logo %>" alt="<%= brand.name %>">
+            <h4>
+              <%= brand.name %>
+            </h4>
+            <p>
+              <%= brand.industry %>
+            </p>
+            <a href="/brand/<%= brand._id %>" class="view-btn">View Profile</a>
+            <button class="collab-btn" data-brand="<%= brand._id %>">Start Collab</button>
+          </div>
+          <% }); %>
+      </div>
+    </section>
 
-            <!-- Performance Analytics Section -->
-            <section class="analytics">
-              <h2>Performance Analytics</h2>
-              <div class="chart-container">
-                <div class="chart-box">
-                  <h3>Engagement Growth</h3>
-                  <canvas id="engagementChart"></canvas>
-                </div>
-                <div class="chart-box">
-                  <h3>Follower Growth</h3>
-                  <canvas id="followerChart"></canvas>
-                </div>
-                <div class="chart-box">
-                  <h3>Collaboration Performance</h3>
-                  <canvas id="collabPerformanceChart"></canvas>
-                </div>
-                <div class="chart-box">
-                  <h3>Earnings Overview</h3>
-                  <canvas id="earningsChart"></canvas>
-                </div>
-              </div>
-            </section>
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 CollabSync. All rights reserved.</p>
+    </footer>
 
-            <!-- Quick Actions Section -->
-            <section class="quick-actions">
-              <h2>Quick Actions</h2>
-              <div class="action-buttons">
-                <a href="/influencer/profile/edit" class="action-btn">
-                  <i class="fas fa-edit"></i>
-                  <span>Update Profile</span>
-                </a>
-                <a href="/influencer/explore" class="action-btn">
-                  <i class="fas fa-search"></i>
-                  <span>Find Brands</span>
-                </a>
-                <a href="/influencer/analytics" class="action-btn">
-                  <i class="fas fa-chart-line"></i>
-                  <span>View Analytics</span>
-                </a>
-                <a href="/influencer/messages" class="action-btn">
-                  <i class="fas fa-envelope"></i>
-                  <span>Check Messages</span>
-                </a>
-              </div>
-            </section>
+    <!-- This script handles the sidebar toggle. -->
+    <script>
+      // Notification dropdown toggle
+      document.getElementById('notificationBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        const dropdown = document.getElementById('notificationDropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
 
-            <!-- Footer -->
-            <footer>
-              <p>&copy; 2025 CollabSync. All rights reserved.</p>
-            </footer>
+        // Mark notifications as read when dropdown is opened
+        if (dropdown.style.display === 'block') {
+          fetch('/influencer/notifications/mark-as-read', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(response => {
+            if (response.ok) {
+              // Update badge count
+              const badge = document.querySelector('.notification-badge');
+              if (badge) badge.style.display = 'none';
+            }
+          });
+        }
+      });
 
-            <!-- This script handles the sidebar toggle. -->
-            <script>
-              // Notification dropdown toggle
-              document.getElementById('notificationBtn').addEventListener('click', function (e) {
-                e.preventDefault();
-                const dropdown = document.getElementById('notificationDropdown');
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.notification-icon')) {
+          document.getElementById('notificationDropdown').style.display = 'none';
+        }
+      });
 
-                // Mark notifications as read when dropdown is opened
-                if (dropdown.style.display === 'block') {
-                  fetch('/influencer/notifications/mark-as-read', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json'
-                    }
-                  }).then(response => {
-                    if (response.ok) {
-                      // Update badge count
-                      const badge = document.querySelector('.notification-badge');
-                      if (badge) badge.style.display = 'none';
-                    }
-                  });
-                }
-              });
+      // Initialize charts with safe data handling
+      document.addEventListener('DOMContentLoaded', function () {
+        const initChart = (id, config) => {
+          const ctx = document.getElementById(id)?.getContext('2d');
+          return ctx ? new Chart(ctx, config) : null;
+        };
 
-              // Close dropdown when clicking outside
-              document.addEventListener('click', function (e) {
-                if (!e.target.closest('.notification-icon')) {
-                  document.getElementById('notificationDropdown').style.display = 'none';
-                }
-              });
+        // Engagement Chart
+        initChart('engagementChart', {
+          type: 'line',
+          data: {
+            labels: <% - JSON.stringify(analytics?.months || []) %>,
+            datasets: [{
+              label: 'Engagement Rate',
+              data: <% - JSON.stringify(analytics?.engagementRates || []) %>,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
 
-              // Charts initialization
-              document.addEventListener('DOMContentLoaded', function () {
-                // Engagement Chart
-                const engagementCtx = document.getElementById('engagementChart').getContext('2d');
-                new Chart(engagementCtx, {
-                  type: 'line',
-                  data: {
-                    labels: <%= JSON.stringify(analytics.months) %>,
-                    datasets: [{
-                      label: 'Engagement Rate',
-                      data: <%= JSON.stringify(analytics.engagementRates) %>,
-                      borderColor: 'rgba(75, 192, 192, 1)',
-                      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                      tension: 0.3,
-                      fill: true
-                    }]
-                  },
-                  options: {
-                    responsive: true,
-                    scales: {
-                      y: {
-                        beginAtZero: true
-                      }
-                    }
-                  }
-                });
-
-                // Follower Chart
-                const followerCtx = document.getElementById('followerChart').getContext('2d');
-                new Chart(followerCtx, {
-                  type: 'bar',
-                  data: {
-                    labels: <%= JSON.stringify(analytics.months) %>,
-                    datasets: [{
-                      label: 'New Followers',
-                      data: <%= JSON.stringify(analytics.newFollowers) %>,
-                      backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                      borderColor: 'rgba(54, 162, 235, 1)',
-                      borderWidth: 1
-                    }]
-                  },
-                  options: {
-                    responsive: true,
-                    scales: {
-                      y: {
-                        beginAtZero: true
-                      }
-                    }
-                  }
-                });
-
-                // Collaboration Performance Chart
-                const collabPerfCtx = document.getElementById('collabPerformanceChart').getContext('2d');
-                new Chart(collabPerfCtx, {
-                  type: 'radar',
-                  data: {
-                    labels: ['Engagement', 'Reach', 'Conversions', 'Content Quality', 'Timeliness'],
-                    datasets: [{
-                      label: 'Average Performance',
-                      data: <%= JSON.stringify(analytics.collabPerformance) %>,
-                      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                      borderColor: 'rgba(255, 99, 132, 1)',
-                      borderWidth: 1
-                    }]
-                  },
-                  options: {
-                    responsive: true,
-                    scales: {
-                      r: {
-                        angleLines: {
-                          display: true
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                      }
-                    }
-                  }
-                });
-
-                // Earnings Chart
-                const earningsCtx = document.getElementById('earningsChart').getContext('2d');
-                new Chart(earningsCtx, {
-                  type: 'doughnut',
-                  data: {
-                    labels: <%= JSON.stringify(analytics.earningsBySource.labels) %>,
-                    datasets: [{
-                      data: <%= JSON.stringify(analytics.earningsBySource.data) %>,
-                      backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(153, 102, 255, 0.7)'
-                      ],
-                      borderWidth: 1
-                    }]
-                  },
-                  options: {
-                    responsive: true
-                  }
-                });
-              });
-
-              // Sidebar toggle functions
-              function openMenu() {
-                document.getElementById("navMenu").style.width = "250px";
+        // Follower Chart
+        const followerCtx = document.getElementById('followerChart').getContext('2d');
+        new Chart(followerCtx, {
+          type: 'bar',
+          data: {
+            labels: <%= JSON.stringify(analytics.months) %>,
+            datasets: [{
+              label: 'New Followers',
+              data: <%= JSON.stringify(analytics.newFollowers) %>,
+              backgroundColor: 'rgba(54, 162, 235, 0.5)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
               }
-              function closeMenu() {
-                document.getElementById("navMenu").style.width = "0";
+            }
+          }
+        });
+
+        // Collaboration Performance Chart
+        const collabPerfCtx = document.getElementById('collabPerformanceChart').getContext('2d');
+        new Chart(collabPerfCtx, {
+          type: 'radar',
+          data: {
+            labels: ['Engagement', 'Reach', 'Conversions', 'Content Quality', 'Timeliness'],
+            datasets: [{
+              label: 'Average Performance',
+              data: <%= JSON.stringify(analytics.collabPerformance) %>,
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              r: {
+                angleLines: {
+                  display: true
+                },
+                suggestedMin: 0,
+                suggestedMax: 100
               }
-            </script>
+            }
+          }
+        });
+
+        // Earnings Chart
+        const earningsCtx = document.getElementById('earningsChart').getContext('2d');
+        new Chart(earningsCtx, {
+          type: 'doughnut',
+          data: {
+            labels: <%= JSON.stringify(analytics.earningsBySource.labels) %>,
+            datasets: [{
+              data: <%= JSON.stringify(analytics.earningsBySource.data) %>,
+              backgroundColor: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true
+          }
+        });
+      });
+
+      // Sidebar toggle functions
+      function openMenu() {
+        document.getElementById("navMenu").style.width = "250px";
+      }
+      function closeMenu() {
+        document.getElementById("navMenu").style.width = "0";
+      }
+    </script>
 </body>
 
 </html>
