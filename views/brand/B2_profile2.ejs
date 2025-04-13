@@ -8,7 +8,7 @@
         <%= brand.name %> Profile | CollabSync
     </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/brand/B2_profile2.css">
+    <link rel="stylesheet" href="/B2_index/B2_profile2.css">
 </head>
 
 <body>
@@ -57,14 +57,6 @@
                     </h1>
                     <p class="username">@<%= brand.username %>
                     </p>
-                    <div class="profile-actions">
-                        <button class="invite-btn" onclick="location.href='/brand/create_collab'">
-                            <i class="fas fa-plus"></i> Create Campaign
-                        </button>
-                        <button class="message-btn" onclick="location.href='/brand/messages'">
-                            <i class="fas fa-envelope"></i> Messages
-                        </button>
-                    </div>
                     <div class="profile-status">
                         <% if (brand.verified) { %>
                             <span class="premium-badge">
@@ -91,54 +83,127 @@
         </section>
 
         <div class="profile-content">
-            <div class="profile-left">
-                <div class="profile-tabs">
-                    <ul>
-                        <li class="active"><a href="#">ABOUT</a></li>
-                        <li><a href="/brand/campaigns"><i class="fas fa-briefcase"></i> CAMPAIGNS</a></li>
-                        <li><a href="/brand/analytics"><i class="fas fa-chart-line"></i> ANALYTICS</a></li>
-                        <li><a href="/brand/partnerships"><i class="fas fa-handshake"></i> PARTNERSHIPS</a></li>
-                    </ul>
-                </div>
-                <div class="profile-bio">
-                    <div class="section-header"
-                        style="display: flex; justify-content: space-between; align-items: center;">
-                        <h2>About <%= brand.name %>
-                        </h2>
-                        <button class="btn-secondary" onclick="openEditModal()" style="padding: 8px 12px;">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                    </div>
-                    <p>
-                        <%= brand.description || 'No description provided.' %>
-                    </p>
+            <div class="profile-main">
 
-                    <% if (brand.mission) { %>
-                        <h3>Our Mission</h3>
-                        <p>
-                            <%= brand.mission %>
+                <!-- About Tab -->
+                <div id="about-tab" class="tab-content active">
+                    <div class="profile-bio">
+                        <div class="section-header">
+                            <h2>About <%= brand.name %>
+                            </h2>
+                            <button class="btn-edit" onclick="openEditModal()">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                        <p class="bio-text">
+                            <%= brand.description || 'No description provided.' %>
                         </p>
-                        <% } %>
 
-                            <% if (brand.currentCampaign) { %>
-                                <h3>Current Campaign Goals</h3>
+                        <% if (brand.mission) { %>
+                            <div class="info-section mission-section">
+                                <h3><i class="fas fa-bullseye"></i> Our Mission</h3>
                                 <p>
-                                    <%= brand.currentCampaign %>
+                                    <%= brand.mission %>
                                 </p>
-                                <% } %>
+                            </div>
+                            <% } %>
 
-                                    <h3>Brand Values</h3>
-                                    <ul>
-                                        <% brand.values.forEach(value=> { %>
-                                            <li>
-                                                <%= value %>
-                                            </li>
-                                            <% }); %>
-                                    </ul>
+                                <% if (brand.currentCampaign) { %>
+                                    <div class="info-section campaign-section">
+                                        <h3><i class="fas fa-rocket"></i> Current Campaign Goals</h3>
+                                        <p>
+                                            <%= brand.currentCampaign %>
+                                        </p>
+                                    </div>
+                                    <% } %>
+
+                                        <div class="info-section values-section">
+                                            <h3><i class="fas fa-heart"></i> Brand Values</h3>
+                                            <div class="values-tags">
+                                                <% brand.values.forEach(value=> { %>
+                                                    <span class="value-tag">
+                                                        <%= value %>
+                                                    </span>
+                                                    <% }); %>
+                                            </div>
+                                        </div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <h2>Brand Performance</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.completedCampaigns %>
+                                </div>
+                                <div class="metric-label">Campaigns</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-users"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.influencerPartnerships %>
+                                </div>
+                                <div class="metric-label">Partnerships</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-star"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.avgCampaignRating %>
+                                </div>
+                                <div class="metric-label">Avg. Rating</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-bullhorn"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.totalAudience.toLocaleString() %>
+                                </div>
+                                <div class="metric-label">Total Audience</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="campaigns-section">
+                        <h2>Top Campaigns</h2>
+                        <% if (brand.topCampaigns && brand.topCampaigns.length> 0) { %>
+                            <div class="campaigns-grid">
+                                <% brand.topCampaigns.forEach(campaign=> { %>
+                                    <div class="campaign-card">
+                                        <div class="campaign-status <%= campaign.status.toLowerCase() %>">
+                                            <i class="fas fa-circle"></i>
+                                            <%= campaign.status %>
+                                        </div>
+                                        <h3 class="campaign-title">
+                                            <%= campaign.title %>
+                                        </h3>
+                                        <div class="campaign-stats">
+                                            <div class="stat">
+                                                <i class="fas fa-chart-line"></i>
+                                                <span>
+                                                    <%= campaign.performance_score ?
+                                                        campaign.performance_score.toFixed(1) : '0.0' %>
+                                                </span>
+                                                <label>Performance</label>
+                                            </div>
+                                            <div class="stat">
+                                                <i class="fas fa-eye"></i>
+                                                <span>
+                                                    <%= campaign.reach ? campaign.reach.toLocaleString() : '0' %>
+                                                </span>
+                                                <label>Reach</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <% } else { %>
+                                <p class="no-data-message">No campaigns available to display.</p>
+                                <% } %>
+                    </div>
                 </div>
             </div>
 
-            <div class="profile-right">
+            <div class="profile-sidebar">
                 <div class="profile-card">
                     <h3>Brand Categories</h3>
                     <div class="category-tags">
@@ -150,7 +215,7 @@
                     </div>
                 </div>
 
-                <div class="profile-card">
+                <div class="profile-card social-card">
                     <h3>Social Media</h3>
                     <div class="social-stats">
                         <% brand.socialLinks.forEach(platform=> { %>
@@ -166,53 +231,48 @@
                 </div>
 
                 <div class="profile-card">
-                    <h3>Total Audience</h3>
-                    <div class="audience-count">
-                        <%= brand.totalAudience.toLocaleString() %>
-                    </div>
-                    <div style="text-align: center; font-size: 14px; color: #666;">
-                        across all platforms
-                    </div>
-                </div>
-
-                <div class="profile-card">
                     <h3>Website</h3>
                     <a href="<%= brand.website %>" class="website-link" target="_blank">
+                        <i class="fas fa-globe"></i>
                         <%= brand.website.replace(/^https?:\/\//, '' ) %>
                     </a>
                 </div>
 
-                <div class="profile-card">
+                <div class="profile-card audience-card">
                     <h3>Target Audience</h3>
-                    <p><strong>Ages:</strong>
-                        <%= brand.targetAgeRange || 'Not specified' %>
-                    </p>
-                    <p><strong>Gender:</strong>
-                        <%= brand.targetGender || 'Not specified' %>
-                    </p>
-                    <p><strong>Interests:</strong>
-                        <%= brand.targetInterests.join(', ') || ' Not specified' %>
-                    </p>
+                    <div class="audience-info">
+                        <div class="audience-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span><strong>Ages:</strong>
+                                <%= brand.targetAgeRange || 'Not specified' %>
+                            </span>
+                        </div>
+                        <div class="audience-item">
+                            <i class="fas fa-venus-mars"></i>
+                            <span><strong>Gender:</strong>
+                                <%= brand.targetGender || 'Not specified' %>
+                            </span>
+                        </div>
+                        <div class="audience-item interests">
+                            <i class="fas fa-hashtag"></i>
+                            <span><strong>Interests:</strong></span>
+                            <div class="interests-tags">
+                                <% if (brand.targetInterests && brand.targetInterests.length> 0) { %>
+                                    <% brand.targetInterests.forEach(interest=> { %>
+                                        <span class="interest-tag">
+                                            <%= interest %>
+                                        </span>
+                                        <% }); %>
+                                            <% } else { %>
+                                                Not specified
+                                                <% } %>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="profile-card">
-                    <h3>Collaboration History</h3>
-                    <p>
-                        <%= brand.completedCampaigns %>+ successful campaigns
-                    </p>
-                    <p>
-                        <%= brand.influencerPartnerships %>+ influencer partnerships
-                    </p>
-                    <p>
-                        <%= brand.avgCampaignRating %>/5 average rating
-                    </p>
-                </div>
-
-                <div class="profile-card">
-                    <button class="btn-primary" onclick="openEditModal()" style="width: 100%;">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </button>
-                    <button class="btn-danger" onclick="openDeleteModal()" style="width: 100%; margin-top: 10px;">
+                <div class="profile-card actions-card">
+                    <button class="btn-danger" onclick="openDeleteModal()">
                         <i class="fas fa-trash-alt"></i> Delete Account
                     </button>
                 </div>
@@ -225,41 +285,42 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closeEditModal()">&times;</span>
             <h2>Edit Brand Profile</h2>
-            <form id="profileForm" action="/brand/profile/update" method="POST" enctype="multipart/form-data">
+            <form id="profileForm" action="/brand/profile/update" method="POST">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="brandName">Brand Name</label>
                         <input type="text" class="form-control" id="brandName" name="name" value="<%= brand.name %>"
-                            required>
+                            required autocomplete="organization">
                     </div>
                     <div class="form-group">
                         <label for="brandUsername">Username</label>
                         <input type="text" class="form-control" id="brandUsername" name="username"
-                            value="<%= brand.username %>" required>
+                            value="<%= brand.username %>" required autocomplete="username">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="brandDescription">Brand Description</label>
-                    <textarea class="form-control" id="brandDescription" name="description"
-                        required><%= brand.description %></textarea>
+                    <textarea class="form-control" id="brandDescription" name="description" required
+                        autocomplete="off"><%= brand.description %></textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="brandMission">Mission Statement</label>
-                    <textarea class="form-control" id="brandMission" name="mission"><%= brand.mission %></textarea>
+                    <textarea class="form-control" id="brandMission" name="mission"
+                        autocomplete="off"><%= brand.mission %></textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="currentCampaign">Current Campaign Goals</label>
-                    <textarea class="form-control" id="currentCampaign"
-                        name="currentCampaign"><%= brand.currentCampaign %></textarea>
+                    <textarea class="form-control" id="currentCampaign" name="currentCampaign"
+                        autocomplete="off"><%= brand.currentCampaign %></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="primaryMarket">Primary Market</label>
-                        <select class="form-control" id="primaryMarket" name="primaryMarket">
+                        <select class="form-control" id="primaryMarket" name="primaryMarket" autocomplete="country">
                             <option value="">Select market</option>
                             <option value="Global" <%=brand.primaryMarket==='Global' ? 'selected' : '' %>>Global
                             </option>
@@ -274,44 +335,44 @@
                     <div class="form-group">
                         <label for="brandWebsite">Website</label>
                         <input type="url" class="form-control" id="brandWebsite" name="website"
-                            value="<%= brand.website %>" required>
+                            value="<%= brand.website %>" required autocomplete="url">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Brand Values</label>
+                    <label for="valueInput">Brand Values</label>
                     <div id="valuesContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                         <% brand.values.forEach(value=> { %>
                             <span class="tag">
                                 <%= value %>
                                     <span class="tag-remove" onclick="removeTag(this)">×</span>
-                                    <input type="hidden" name="values" value="<%= value %>">
+                                    <input type="hidden" name="values[]" value="<%= value %>">
                             </span>
                             <% }); %>
                     </div>
                     <div style="display: flex;">
                         <input type="text" class="form-control" id="valueInput" placeholder="Add a value..."
-                            style="flex: 1;">
+                            style="flex: 1;" autocomplete="off">
                         <button type="button" class="btn-secondary" onclick="addValue()"
                             style="margin-left: 10px;">Add</button>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Categories</label>
+                    <label for="categoryInput">Categories</label>
                     <div id="categoriesContainer"
                         style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                         <% brand.categories.forEach(category=> { %>
                             <span class="tag">
                                 <%= category %>
                                     <span class="tag-remove" onclick="removeTag(this)">×</span>
-                                    <input type="hidden" name="categories" value="<%= category %>">
+                                    <input type="hidden" name="categories[]" value="<%= category %>">
                             </span>
                             <% }); %>
                     </div>
                     <div style="display: flex;">
                         <input type="text" class="form-control" id="categoryInput" placeholder="Add a category..."
-                            style="flex: 1;">
+                            style="flex: 1;" autocomplete="off">
                         <button type="button" class="btn-secondary" onclick="addCategory()"
                             style="margin-left: 10px;">Add</button>
                     </div>
@@ -323,11 +384,11 @@
                         <div class="form-group">
                             <label for="targetAgeRange">Age Range</label>
                             <input type="text" class="form-control" id="targetAgeRange" name="targetAgeRange"
-                                value="<%= brand.targetAgeRange %>" placeholder="e.g. 18-35">
+                                value="<%= brand.targetAgeRange %>" placeholder="e.g. 18-35" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="targetGender">Primary Gender</label>
-                            <select class="form-control" id="targetGender" name="targetGender">
+                            <select class="form-control" id="targetGender" name="targetGender" autocomplete="sex">
                                 <option value="">Any</option>
                                 <option value="Female" <%=brand.targetGender==='Female' ? 'selected' : '' %>>Female
                                 </option>
@@ -337,26 +398,26 @@
                             </select>
                         </div>
                     </div>
-                    <label for="targetInterests">Interests</label>
+                    <label for="interestInput">Interests</label>
                     <div id="interestsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
                         <% brand.targetInterests.forEach(interest=> { %>
                             <span class="tag">
                                 <%= interest %>
                                     <span class="tag-remove" onclick="removeTag(this)">×</span>
-                                    <input type="hidden" name="targetInterests" value="<%= interest %>">
+                                    <input type="hidden" name="targetInterests[]" value="<%= interest %>">
                             </span>
                             <% }); %>
                     </div>
                     <div style="display: flex;">
                         <input type="text" class="form-control" id="interestInput" placeholder="Add an interest..."
-                            style="flex: 1;">
+                            style="flex: 1;" autocomplete="off">
                         <button type="button" class="btn-secondary" onclick="addInterest()"
                             style="margin-left: 10px;">Add</button>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Brand Logo</label>
+                <!-- <div class="form-group">
+                    <label for="logoUpload">Brand Logo</label>
                     <div class="file-upload">
                         <label class="file-upload-label" for="logoUpload">
                             <i class="fas fa-camera" style="margin-right: 8px;"></i>
@@ -369,7 +430,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Banner Image</label>
+                    <label for="bannerUpload">Banner Image</label>
                     <div class="file-upload">
                         <label class="file-upload-label" for="bannerUpload">
                             <i class="fas fa-image" style="margin-right: 8px;"></i>
@@ -380,15 +441,17 @@
                         <img id="bannerPreview" class="preview-image"
                             src="<%= brand.bannerUrl || '/images/default-banner.jpg' %>" alt="Banner Preview">
                     </div>
-                </div>
+                </div> -->
 
                 <div class="form-group">
                     <label>Social Media Links</label>
-                    <div id="socialLinks">
+                    <div id="socialLinks" data-count="<%= brand.socialLinks.length %>">
                         <% brand.socialLinks.forEach((platform, index)=> { %>
                             <div class="social-platform-row">
                                 <div class="form-group social-platform-select">
-                                    <select class="form-control" name="socialLinks[<%= index %>][platform]">
+                                    <label for="socialPlatform<%= index %>">Platform</label>
+                                    <select class="form-control" id="socialPlatform<%= index %>"
+                                        name="socialLinks[<%= index %>][platform]">
                                         <option value="instagram" <%=platform.platform==='instagram' ? 'selected' : ''
                                             %>>Instagram</option>
                                         <option value="facebook" <%=platform.platform==='facebook' ? 'selected' : '' %>
@@ -404,12 +467,16 @@
                                     </select>
                                 </div>
                                 <div class="form-group social-platform-url">
-                                    <input type="url" class="form-control" name="socialLinks[<%= index %>][url]"
-                                        value="<%= platform.url %>" placeholder="Profile URL">
+                                    <label for="socialUrl<%= index %>">Profile URL</label>
+                                    <input type="url" class="form-control" id="socialUrl<%= index %>"
+                                        name="socialLinks[<%= index %>][url]" value="<%= platform.url %>"
+                                        placeholder="Profile URL" autocomplete="url">
                                 </div>
                                 <div class="form-group social-platform-url">
-                                    <input type="text" class="form-control" name="socialLinks[<%= index %>][followers]"
-                                        value="<%= platform.followers %>" placeholder="Followers">
+                                    <label for="socialFollowers<%= index %>">Followers</label>
+                                    <input type="text" class="form-control" id="socialFollowers<%= index %>"
+                                        name="socialLinks[<%= index %>][followers]" value="<%= platform.followers %>"
+                                        placeholder="Followers" autocomplete="off">
                                 </div>
                                 <div class="form-group social-platform-remove">
                                     <button type="button" class="btn-secondary" onclick="removeSocialLink(this)"
@@ -452,107 +519,669 @@
         </div>
     </div>
 
-    <footer>
-        <p>&copy; 2025 CollabSync. All rights reserved.</p>
-    </footer>
+    <style>
+        /* Tab Navigation */
+        .profile-tabs ul {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab-link {
+            padding: 15px 20px;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-link:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Modern Layout Styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .profile-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        /* Card styles */
+        .profile-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .profile-card h3 {
+            color: #333;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Bio section */
+        .profile-bio {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #333;
+        }
+
+        .btn-edit {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 6px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .btn-edit i {
+            margin-right: 5px;
+        }
+
+        .btn-edit:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .bio-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        /* Info sections */
+        .info-section {
+            margin-bottom: 25px;
+            padding-top: 15px;
+        }
+
+        .info-section h3 {
+            font-size: 18px;
+            color: #444;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-section h3 i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .info-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Values tags */
+        .values-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .value-tag {
+            background: #f0f8ff;
+            color: #0077cc;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        /* Metrics section */
+        .metrics-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .metrics-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+            color: #333;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-icon {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        /* Campaigns section */
+        .campaigns-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+        }
+
+        .campaigns-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+            color: #333;
+        }
+
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .campaign-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .campaign-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .campaign-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .campaign-status i {
+            margin-right: 5px;
+            font-size: 10px;
+        }
+
+        .campaign-status.active {
+            color: #28a745;
+        }
+
+        .campaign-status.upcoming {
+            color: #007bff;
+        }
+
+        .campaign-status.completed {
+            color: #6c757d;
+        }
+
+        .campaign-status.draft {
+            color: #6c757d;
+        }
+
+        .campaign-title {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-right: 80px;
+            color: #333;
+        }
+
+        .campaign-stats {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .campaign-stats .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .campaign-stats .stat i {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .campaign-stats .stat span {
+            font-size: 18px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .campaign-stats .stat label {
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* Sidebar styles */
+        .social-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .social-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .social-item i {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .social-item .count {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .social-item .label {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .website-link {
+            display: flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .website-link i {
+            margin-right: 8px;
+        }
+
+        .website-link:hover {
+            text-decoration: underline;
+        }
+
+        .audience-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .audience-item {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .audience-item i {
+            width: 25px;
+            color: var(--primary-color);
+            margin-right: 10px;
+            margin-top: 3px;
+        }
+
+        .audience-item.interests {
+            flex-direction: column;
+        }
+
+        .interests-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+            margin-left: 35px;
+        }
+
+        .interest-tag {
+            background: #f0f0f0;
+            color: #555;
+            border-radius: 15px;
+            padding: 3px 10px;
+            font-size: 12px;
+        }
+
+        .actions-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary,
+        .btn-danger {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-primary i,
+        .btn-danger i {
+            margin-right: 8px;
+        }
+
+        .no-data-message {
+            color: #777;
+            font-style: italic;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .campaigns-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 
     <script>
-        // Modal functions
-        function openEditModal() {
-            document.getElementById('editProfileModal').style.display = 'block';
-        }
+        // Initialize all event listeners when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            // Modal functions
+            const editModal = document.getElementById('editProfileModal');
+            const deleteModal = document.getElementById('deleteAccountModal');
 
-        function closeEditModal() {
-            document.getElementById('editProfileModal').style.display = 'none';
-        }
-
-        function openDeleteModal() {
-            document.getElementById('deleteAccountModal').style.display = 'block';
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteAccountModal').style.display = 'none';
-        }
-
-        // Close modals when clicking outside
-        window.addEventListener('click', function (event) {
-            if (event.target === document.getElementById('editProfileModal')) {
-                closeEditModal();
+            if (editModal) {
+                window.openEditModal = function () {
+                    editModal.style.display = 'block';
+                };
+                window.closeEditModal = function () {
+                    editModal.style.display = 'none';
+                };
             }
-            if (event.target === document.getElementById('deleteAccountModal')) {
-                closeDeleteModal();
-            }
-        });
 
-        // Image preview functionality
-        document.getElementById('logoUpload').addEventListener('change', function (e) {
-            const preview = document.getElementById('logoPreview');
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
+            if (deleteModal) {
+                window.openDeleteModal = function () {
+                    deleteModal.style.display = 'block';
+                };
+                window.closeDeleteModal = function () {
+                    deleteModal.style.display = 'none';
+                };
+            }
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function (event) {
+                if (event.target === editModal) {
+                    closeEditModal();
                 }
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-
-        document.getElementById('bannerUpload').addEventListener('change', function (e) {
-            const preview = document.getElementById('bannerPreview');
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
+                if (event.target === deleteModal) {
+                    closeDeleteModal();
                 }
-                reader.readAsDataURL(this.files[0]);
+            });
+
+            // Form submission handling
+            const profileForm = document.getElementById('profileForm');
+            if (profileForm) {
+                profileForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const form = e.target;
+                    const formData = new FormData(form);
+
+                    // Create a structured data object
+                    const data = {
+                        name: formData.get('name'),
+                        username: formData.get('username'),
+                        description: formData.get('description'),
+                        mission: formData.get('mission'),
+                        currentCampaign: formData.get('currentCampaign'),
+                        primaryMarket: formData.get('primaryMarket'),
+                        website: formData.get('website'),
+                        targetAgeRange: formData.get('targetAgeRange'),
+                        targetGender: formData.get('targetGender'),
+                        values: [],
+                        categories: [],
+                        targetInterests: [],
+                        socialLinks: []
+                    };
+
+                    // Collect values, categories, and interests
+                    formData.getAll('values[]').forEach(value => {
+                        if (value.trim()) data.values.push(value.trim());
+                    });
+                    formData.getAll('categories[]').forEach(category => {
+                        if (category.trim()) data.categories.push(category.trim());
+                    });
+                    formData.getAll('targetInterests[]').forEach(interest => {
+                        if (interest.trim()) data.targetInterests.push(interest.trim());
+                    });
+
+                    // Collect social links
+                    const socialLinksContainer = document.getElementById('socialLinks');
+                    if (socialLinksContainer) {
+                        const socialLinkRows = socialLinksContainer.querySelectorAll('.social-platform-row');
+
+                        socialLinkRows.forEach(row => {
+                            const platform = row.querySelector('select[name$="[platform]"]')?.value;
+                            const url = row.querySelector('input[name$="[url]"]')?.value;
+                            const followers = row.querySelector('input[name$="[followers]"]')?.value;
+
+                            if (platform && url) {
+                                data.socialLinks.push({
+                                    platform,
+                                    url,
+                                    followers: parseInt(followers) || 0
+                                });
+                            }
+                        });
+                    }
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            alert('Profile updated successfully!');
+                            window.location.reload();
+                        } else {
+                            alert(result.message || 'Error updating profile');
+                            if (result.errors) {
+                                console.error('Validation errors:', result.errors);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating the profile');
+                    }
+                });
             }
-        });
 
-        // Tag management functions
-        function addTag(containerId, inputId, name) {
-            const input = document.getElementById(inputId);
-            const container = document.getElementById(containerId);
+            // Delete account confirmation
+            const confirmDeleteInput = document.getElementById('confirmDelete');
+            const deleteBtn = document.getElementById('deleteBtn');
 
-            if (input.value.trim() !== '') {
-                const tag = document.createElement('span');
-                tag.className = 'tag';
-                tag.innerHTML = `
+            if (confirmDeleteInput && deleteBtn) {
+                confirmDeleteInput.addEventListener('input', function (e) {
+                    deleteBtn.disabled = this.value !== 'DELETE';
+                });
+            }
+
+            // Sidebar toggle functions
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu) {
+                window.openMenu = function () {
+                    navMenu.style.width = "250px";
+                };
+                window.closeMenu = function () {
+                    navMenu.style.width = "0";
+                };
+            }
+
+            // Tag management functions
+            window.addTag = function (containerId, inputId, name) {
+                const input = document.getElementById(inputId);
+                const container = document.getElementById(containerId);
+
+                if (input && container && input.value.trim() !== '') {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.innerHTML = `
                     ${input.value.trim()}
                     <span class="tag-remove" onclick="removeTag(this)">×</span>
-                    <input type="hidden" name="${name}" value="${input.value.trim()}">
+                        <input type="hidden" name="${name}[]" value="${input.value.trim()}">
                 `;
-                container.appendChild(tag);
-                input.value = '';
-            }
-        }
+                    container.appendChild(tag);
+                    input.value = '';
+                }
+            };
 
-        function addValue() {
-            addTag('valuesContainer', 'valueInput', 'values');
-        }
+            window.addValue = function () {
+                addTag('valuesContainer', 'valueInput', 'values');
+            };
 
-        function addCategory() {
-            addTag('categoriesContainer', 'categoryInput', 'categories');
-        }
+            window.addCategory = function () {
+                addTag('categoriesContainer', 'categoryInput', 'categories');
+            };
 
-        function addInterest() {
-            addTag('interestsContainer', 'interestInput', 'targetInterests');
-        }
+            window.addInterest = function () {
+                addTag('interestsContainer', 'interestInput', 'targetInterests');
+            };
 
-        function removeTag(element) {
-            element.parentElement.remove();
-        }
+            window.removeTag = function (element) {
+                if (element && element.parentElement) {
+                    element.parentElement.remove();
+                }
+            };
 
-        // Social links management
-        let socialLinkCount = <%= brand.socialLinks.length %>;
+            // Social links management
+            window.addSocialLink = function () {
+                const container = document.getElementById('socialLinks');
+                if (!container) return;
 
-        function addSocialLink() {
-            const container = document.getElementById('socialLinks');
-            const newLink = document.createElement('div');
-            newLink.className = 'social-platform-row';
-            newLink.innerHTML = `
+                const newLink = document.createElement('div');
+                newLink.className = 'social-platform-row';
+                newLink.innerHTML = `
                 <div class="form-group social-platform-select">
-                    <select class="form-control" name="socialLinks[${socialLinkCount}][platform]">
+                        <select class="form-control" name="socialLinks[${container.children.length}][platform]">
                         <option value="instagram">Instagram</option>
                         <option value="facebook">Facebook</option>
                         <option value="twitter">Twitter</option>
@@ -562,51 +1191,24 @@
                     </select>
                 </div>
                 <div class="form-group social-platform-url">
-                    <input type="url" class="form-control" name="socialLinks[${socialLinkCount}][url]" placeholder="Profile URL">
+                        <input type="url" class="form-control" name="socialLinks[${container.children.length}][url]" placeholder="Profile URL">
                 </div>
                 <div class="form-group social-platform-url">
-                    <input type="text" class="form-control" name="socialLinks[${socialLinkCount}][followers]" placeholder="Followers">
+                        <input type="text" class="form-control" name="socialLinks[${container.children.length}][followers]" placeholder="Followers">
                 </div>
                 <div class="form-group social-platform-remove">
                     <button type="button" class="btn-secondary" onclick="removeSocialLink(this)" style="padding: 8px 12px; width: 100%;">×</button>
                 </div>
             `;
-            container.appendChild(newLink);
-            socialLinkCount++;
-        }
+                container.appendChild(newLink);
+            };
 
-        function removeSocialLink(button) {
-            button.closest('.social-platform-row').remove();
-        }
-
-        // Delete account confirmation
-        document.getElementById('confirmDelete').addEventListener('input', function (e) {
-            document.getElementById('deleteBtn').disabled = this.value !== 'DELETE';
+            window.removeSocialLink = function (button) {
+                if (button && button.closest('.social-platform-row')) {
+                    button.closest('.social-platform-row').remove();
+                }
+            };
         });
-
-        function confirmDelete() {
-            if (confirm('Are you absolutely sure you want to delete your account? This cannot be undone!')) {
-                fetch('/brand/profile/delete', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.href = '/';
-                    }
-                });
-            }
-        }
-
-        // Sidebar toggle functions
-        function openMenu() {
-            document.getElementById("navMenu").style.width = "250px";
-        }
-
-        function closeMenu() {
-            document.getElementById("navMenu").style.width = "0";
-        }
     </script>
 </body>
 

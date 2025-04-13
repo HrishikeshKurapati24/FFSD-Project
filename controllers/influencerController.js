@@ -9,10 +9,16 @@ const fs = require('fs');
 // Get influencer dashboard data
 const getInfluencerDashboard = async (req, res) => {
   try {
-    const influencerId = req.user._id; // Assuming user is authenticated and ID is available
+    const influencerId = 1; // Assuming user is authenticated and ID is available
 
     // Get influencer profile data
     const influencer = await influencerModel.getInfluencerById(influencerId);
+    if (!influencer) {
+      return res.status(404).render('error', {
+        message: 'Influencer not found',
+        error: { status: 404 }
+      });
+    }
 
     // Get notifications
     const notifications = await notificationModel.getNotificationsByUserId(influencerId);
@@ -26,6 +32,9 @@ const getInfluencerDashboard = async (req, res) => {
       monthlyEarnings: await collaborationModel.getMonthlyEarnings(influencerId),
       earningsChange: await collaborationModel.getEarningsChange(influencerId)
     };
+
+    // Get collaboration requests
+    const requests = await collaborationModel.getCollaborationRequests(influencerId);
 
     // Get upcoming deadlines
     const upcomingDeadlines = await collaborationModel.getUpcomingDeadlines(influencerId);
@@ -42,14 +51,23 @@ const getInfluencerDashboard = async (req, res) => {
     // Get recommended brands
     const recommendedBrands = await brandModel.getRecommendedBrands(influencerId);
 
+    // Transform the influencer data
+    const transformedInfluencer = {
+      ...influencer,
+      totalAudience: influencer.total_followers,
+      avgEngagementRate: influencer.avg_engagement_rate,
+      monthlyEarnings: influencer.monthly_earnings
+    };
+
     // Render the dashboard with all data
     res.render('influencer/I_index', {
-      influencer,
-      notifications,
+      influencer: transformedInfluencer,
+      notifications: notifications || [],
       stats,
-      upcomingDeadlines,
+      requests: requests || [],
+      upcomingDeadlines: upcomingDeadlines || [],
       analytics,
-      recommendedBrands
+      recommendedBrands: recommendedBrands || []
     });
   } catch (error) {
     console.error('Error in getInfluencerDashboard:', error);
@@ -63,7 +81,7 @@ const getInfluencerDashboard = async (req, res) => {
 // Mark notifications as read
 const markNotificationsAsRead = async (req, res) => {
   try {
-    const influencerId = req.user._id;
+    const influencerId = 1;
     await notificationModel.markAllAsRead(influencerId);
     res.status(200).json({ success: true });
   } catch (error) {
@@ -88,7 +106,7 @@ const getInfluencerExplorePage = (req, res) => {
 // Get influencer profile page
 const getInfluencerProfile = async (req, res) => {
   try {
-    const influencerId = req.user._id; // Assuming user is authenticated and ID is available
+    const influencerId = 1; // Assuming user is authenticated and ID is available
 
     // Get influencer profile data
     const influencer = await influencerModel.getInfluencerProfileDetails(influencerId);
@@ -140,7 +158,7 @@ const getInfluencerProfile = async (req, res) => {
 // Update influencer profile
 const updateInfluencerProfile = async (req, res) => {
   try {
-    const influencerId = req.user._id;
+    const influencerId = 1;
 
     // Extract profile data from request body
     const {

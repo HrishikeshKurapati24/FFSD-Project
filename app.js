@@ -6,6 +6,19 @@ const influencerRoutes = require("./routes/influencerRoutes");
 const brandRoutes = require("./routes/brandRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const path = require('path');
+const { initializeDatabase: initializeDb1 } = require('./models/db1');
+const { initializeDatabase: initializeDb2 } = require('./models/db2');
+
+// Initialize databases
+Promise.all([
+    initializeDb1(),
+    initializeDb2()
+]).then(() => {
+    console.log('Both databases initialized successfully');
+}).catch(err => {
+    console.error('Error initializing databases:', err);
+    process.exit(1);
+});
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
@@ -69,11 +82,6 @@ app.get('/brand/Sup_b', (req, res) => {
 app.use("/influencer", influencerRoutes);
 
 app.use("/brand", brandRoutes);
-
-// Route for the B2_index
-app.get('/brand/home', (req, res) => {
-    res.render('brand/B2_index'); // This will render 'views/Lp_index.ejs'
-});
 
 // Route for the /B2_profile2
 app.get('/brand/profile', (req, res) => {

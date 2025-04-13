@@ -21,6 +21,10 @@ const initializeDatabase = () => {
                 languages TEXT,
                 social_media_links TEXT,
                 verified INTEGER DEFAULT 0,
+                total_followers INTEGER DEFAULT 0,
+                avg_engagement_rate REAL DEFAULT 0,
+                monthly_earnings DECIMAL(10,2) DEFAULT 0,
+                earnings_change DECIMAL(5,2) DEFAULT 0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`, (err) => {
                 if (err) console.error('Error creating influencers table:', err);
@@ -94,6 +98,19 @@ const initializeDatabase = () => {
                 if (err) console.error('Error creating brand_categories table:', err);
             });
 
+            db.run(`CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                title TEXT,
+                message TEXT,
+                type TEXT,
+                read INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES influencers(id)
+            )`, (err) => {
+                if (err) console.error('Error creating notifications table:', err);
+            });
+
             // Check if we need to insert sample data
             db.get('SELECT COUNT(*) as count FROM influencers', (err, row) => {
                 if (err) {
@@ -104,53 +121,39 @@ const initializeDatabase = () => {
 
                 if (row.count === 0) {
                     console.log('Inserting sample data...');
-                    // Insert sample data
+                    // Insert sample influencer
                     const influencerStmt = db.prepare(`
                         INSERT INTO influencers (
                             name, username, email, bio, location,
                             audience_gender, audience_age_range,
                             profile_pic_url, banner_url,
                             categories, languages, social_media_links,
-                            verified
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            verified, total_followers, avg_engagement_rate, 
+                            monthly_earnings, earnings_change
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     `);
 
-                    const sampleInfluencer = {
-                        name: "Sarah Johnson",
-                        username: "sarahj",
-                        email: "sarah@example.com",
-                        bio: "Lifestyle influencer and content creator",
-                        location: "New York, USA",
-                        audience_gender: "Female",
-                        audience_age_range: "18-35",
-                        profile_pic_url: "/images/profiles/sarah.jpg",
-                        banner_url: "/images/banners/sarah-banner.jpg",
-                        categories: JSON.stringify(["Lifestyle", "Fashion", "Beauty"]),
-                        languages: JSON.stringify(["English", "Spanish"]),
-                        social_media_links: JSON.stringify([
-                            { platform: "instagram", url: "https://instagram.com/sarahj" },
-                            { platform: "youtube", url: "https://youtube.com/sarahj" }
-                        ]),
-                        verified: 1
-                    };
-
                     influencerStmt.run(
-                        sampleInfluencer.name,
-                        sampleInfluencer.username,
-                        sampleInfluencer.email,
-                        sampleInfluencer.bio,
-                        sampleInfluencer.location,
-                        sampleInfluencer.audience_gender,
-                        sampleInfluencer.audience_age_range,
-                        sampleInfluencer.profile_pic_url,
-                        sampleInfluencer.banner_url,
-                        sampleInfluencer.categories,
-                        sampleInfluencer.languages,
-                        sampleInfluencer.social_media_links,
-                        sampleInfluencer.verified
+                        'Sarah Johnson',
+                        'sarahjohnson',
+                        'sarah@example.com',
+                        'Fashion and lifestyle content creator',
+                        'New York, USA',
+                        'female',
+                        '18-34',
+                        '/images/influencers/sarah.jpg',
+                        '/images/influencers/sarah-banner.jpg',
+                        JSON.stringify(['fashion', 'lifestyle', 'beauty']),
+                        JSON.stringify(['English', 'Spanish']),
+                        JSON.stringify({ instagram: 'https://instagram.com/sarahjohnson', youtube: 'https://youtube.com/sarahjohnson' }),
+                        1,
+                        50000,
+                        4.5,
+                        2500.00,
+                        15.5
                     );
 
-                    // Insert social media stats
+                    // Insert social stats
                     const socialStatsStmt = db.prepare(`
                         INSERT INTO influencer_social_stats (
                             influencer_id, platform, followers_count,
@@ -158,38 +161,11 @@ const initializeDatabase = () => {
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)
                     `);
 
-                    const sampleSocialStats = [
-                        {
-                            platform: "instagram",
-                            followers_count: 50000,
-                            avg_likes: 2500,
-                            avg_comments: 150,
-                            avg_views: 0,
-                            category: "Lifestyle"
-                        },
-                        {
-                            platform: "youtube",
-                            followers_count: 100000,
-                            avg_likes: 5000,
-                            avg_comments: 300,
-                            avg_views: 10000,
-                            category: "Lifestyle"
-                        }
-                    ];
+                    socialStatsStmt.run(1, 'instagram', 150000, 5000, 300, 0, 'Fashion');
+                    socialStatsStmt.run(1, 'youtube', 50000, 0, 0, 10000, 'Lifestyle');
+                    socialStatsStmt.run(1, 'tiktok', 200000, 0, 0, 50000, 'Beauty');
 
-                    sampleSocialStats.forEach(stat => {
-                        socialStatsStmt.run(
-                            1, // influencer_id
-                            stat.platform,
-                            stat.followers_count,
-                            stat.avg_likes,
-                            stat.avg_comments,
-                            stat.avg_views,
-                            stat.category
-                        );
-                    });
-
-                    // Insert sample content
+                    // Insert content
                     const contentStmt = db.prepare(`
                         INSERT INTO influencer_content (
                             influencer_id, platform, post_url,
@@ -197,142 +173,100 @@ const initializeDatabase = () => {
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)
                     `);
 
-                    const sampleContent = [
-                        {
-                            platform: "instagram",
-                            post_url: "https://instagram.com/p/123",
-                            thumbnail_url: "/images/posts/insta1.jpg",
-                            likes_count: 3000,
-                            comments_count: 200,
-                            post_date: "2024-03-15"
-                        },
-                        {
-                            platform: "youtube",
-                            post_url: "https://youtube.com/watch?v=123",
-                            thumbnail_url: "/images/posts/yt1.jpg",
-                            likes_count: 6000,
-                            comments_count: 400,
-                            post_date: "2024-03-10"
-                        }
-                    ];
+                    contentStmt.run(
+                        1,
+                        'instagram',
+                        'https://instagram.com/p/abc123',
+                        '/images/content/insta-post1.jpg',
+                        5500,
+                        320,
+                        '2024-03-15'
+                    );
 
-                    sampleContent.forEach(content => {
-                        contentStmt.run(
-                            1, // influencer_id
-                            content.platform,
-                            content.post_url,
-                            content.thumbnail_url,
-                            content.likes_count,
-                            content.comments_count,
-                            content.post_date
-                        );
-                    });
-
-                    // Insert sample engagement data
+                    // Insert engagement data
                     const engagementStmt = db.prepare(`
                         INSERT INTO influencer_engagement (
                             influencer_id, month, engagement_rate
                         ) VALUES (?, ?, ?)
                     `);
 
-                    const sampleEngagement = [
-                        { month: "2024-03", engagement_rate: 4.5 },
-                        { month: "2024-02", engagement_rate: 4.2 },
-                        { month: "2024-01", engagement_rate: 4.0 }
-                    ];
+                    engagementStmt.run(1, 'Jan', 4.5);
+                    engagementStmt.run(1, 'Feb', 4.8);
+                    engagementStmt.run(1, 'Mar', 5.2);
 
-                    sampleEngagement.forEach(engagement => {
-                        engagementStmt.run(
-                            1, // influencer_id
-                            engagement.month,
-                            engagement.engagement_rate
-                        );
-                    });
-
-                    // Insert sample follower growth data
+                    // Insert follower growth
                     const followersStmt = db.prepare(`
                         INSERT INTO influencer_followers (
                             influencer_id, month, new_followers
                         ) VALUES (?, ?, ?)
                     `);
 
-                    const sampleFollowers = [
-                        { month: "2024-03", new_followers: 1000 },
-                        { month: "2024-02", new_followers: 800 },
-                        { month: "2024-01", new_followers: 600 }
-                    ];
+                    followersStmt.run(1, 'Jan', 5000);
+                    followersStmt.run(1, 'Feb', 4500);
+                    followersStmt.run(1, 'Mar', 6000);
 
-                    sampleFollowers.forEach(followers => {
-                        followersStmt.run(
-                            1, // influencer_id
-                            followers.month,
-                            followers.new_followers
-                        );
-                    });
-
-                    // Insert sample brand data
+                    // Insert sample brands
                     const brandStmt = db.prepare(`
-                        INSERT INTO brands (
-                            name, industry, logo_url, status, rating
-                        ) VALUES (?, ?, ?, ?, ?)
+                        INSERT INTO brands (name, industry, logo_url, status, rating)
+                        VALUES (?, ?, ?, ?, ?)
                     `);
 
-                    const sampleBrands = [
-                        {
-                            name: "Fashion Forward",
-                            industry: "Fashion",
-                            logo_url: "/images/brands/fashion-forward.png",
-                            status: "active",
-                            rating: 4.8
-                        },
-                        {
-                            name: "Beauty Bliss",
-                            industry: "Beauty",
-                            logo_url: "/images/brands/beauty-bliss.png",
-                            status: "active",
-                            rating: 4.6
-                        },
-                        {
-                            name: "Lifestyle Luxe",
-                            industry: "Lifestyle",
-                            logo_url: "/images/brands/lifestyle-luxe.png",
-                            status: "active",
-                            rating: 4.7
-                        }
-                    ];
-
-                    sampleBrands.forEach(brand => {
-                        brandStmt.run(
-                            brand.name,
-                            brand.industry,
-                            brand.logo_url,
-                            brand.status,
-                            brand.rating
-                        );
-                    });
+                    brandStmt.run('Nike', 'Sportswear', '/images/brands/nike-logo.png', 'active', 4.8);
+                    brandStmt.run('Sephora', 'Beauty', '/images/brands/sephora-logo.png', 'active', 4.6);
+                    brandStmt.run('Zara', 'Fashion', '/images/brands/zara-logo.png', 'active', 4.5);
 
                     // Insert brand categories
                     const brandCategoryStmt = db.prepare(`
-                        INSERT INTO brand_categories (
-                            brand_id, category
-                        ) VALUES (?, ?)
+                        INSERT INTO brand_categories (brand_id, category)
+                        VALUES (?, ?)
                     `);
 
-                    const sampleBrandCategories = [
-                        { brand_id: 1, category: "Fashion" },
-                        { brand_id: 1, category: "Lifestyle" },
-                        { brand_id: 2, category: "Beauty" },
-                        { brand_id: 2, category: "Lifestyle" },
-                        { brand_id: 3, category: "Lifestyle" },
-                        { brand_id: 3, category: "Fashion" }
-                    ];
+                    brandCategoryStmt.run(1, 'Fashion');
+                    brandCategoryStmt.run(1, 'Sportswear');
+                    brandCategoryStmt.run(2, 'Beauty');
+                    brandCategoryStmt.run(3, 'Fashion');
 
-                    sampleBrandCategories.forEach(category => {
-                        brandCategoryStmt.run(
-                            category.brand_id,
-                            category.category
-                        );
-                    });
+                    // Insert sample notifications
+                    const notificationStmt = db.prepare(`
+                        INSERT INTO notifications (user_id, title, message, type, read)
+                        VALUES (?, ?, ?, ?, ?)
+                    `);
+
+                    notificationStmt.run(
+                        1,
+                        'New Collaboration Request',
+                        'Nike has sent you a collaboration request',
+                        'collaboration',
+                        0
+                    );
+
+                    notificationStmt.run(
+                        1,
+                        'Payment Received',
+                        'Your payment of $500 has been processed',
+                        'payment',
+                        0
+                    );
+
+                    notificationStmt.run(
+                        1,
+                        'Profile Update',
+                        'Your profile has been successfully updated',
+                        'system',
+                        1
+                    );
+
+                    // Finalize all prepared statements
+                    influencerStmt.finalize();
+                    socialStatsStmt.finalize();
+                    contentStmt.finalize();
+                    engagementStmt.finalize();
+                    followersStmt.finalize();
+                    brandStmt.finalize();
+                    brandCategoryStmt.finalize();
+                    notificationStmt.finalize();
+
+                    console.log('Sample data inserted successfully');
                 } else {
                     console.log('Sample data already exists, skipping insertion');
                 }

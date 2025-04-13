@@ -339,12 +339,6 @@
                 </div>
             </div>
 
-
-            <!-- Footer -->
-            <footer>
-                <p>&copy; 2025 CollabSync. All rights reserved.</p>
-            </footer>
-
             <!-- This script handles the sidebar toggle. -->
             <script>
                 // Platform tabs functionality
@@ -502,6 +496,14 @@
                     //     }
                     // });
                 });
+
+                // Sidebar toggle functions
+                function openMenu() {
+                    document.getElementById("navMenu").style.width = "250px";
+                }
+                function closeMenu() {
+                    document.getElementById("navMenu").style.width = "0";
+                }
             </script>
 
 

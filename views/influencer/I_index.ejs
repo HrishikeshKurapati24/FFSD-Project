@@ -20,7 +20,7 @@
           <li><a href="/influencer/home">Home</a></li>
           <li><a href="/influencer/explore">Explore brands</a></li>
           <li><a href="/influencer/profile">My Profile</a></li>
-          <li class="notification-icon">
+          <!-- <li class="notification-icon">
             <a href="#" id="notificationBtn">
               <i class="fas fa-bell"></i>
               <% if (notifications && notifications.filter(n=> !n.read).length > 0) { %>
@@ -50,7 +50,7 @@
                       </div>
                       <% } %>
             </div>
-          </li>
+          </li> -->
         </ul>
       </nav>
     </div>
@@ -117,7 +117,7 @@
           <p class="pending-requests-count">
             <%= stats.pendingRequests %>
           </p>
-          <a href="/influencer/requests" class="view-requests">View Requests</a>
+          <button class="view-requests-btn" onclick="toggleRequests()">View Requests</button>
         </div>
         <div class="dashboard-item">
           <h3>Notifications</h3>
@@ -134,6 +134,70 @@
             <%= stats.earningsChange>= 0 ? '+' : '' %><%= stats.earningsChange %>% from last month
           </small>
         </div>
+      </div>
+    </section>
+
+    <!-- Collaboration Requests Section -->
+    <section class="collaboration-requests" id="collaborationRequests" style="display: none;">
+      <h2>Collaboration Requests</h2>
+      <div class="requests-grid">
+        <% if (requests && requests.length> 0) { %>
+          <% requests.forEach(request=> { %>
+            <div class="request-card">
+              <div class="request-header">
+                <h3>
+                  <%= request.collab_title %>
+                </h3>
+                <span class="request-date">
+                  <%= new Date(request.created_at).toLocaleDateString() %>
+                </span>
+              </div>
+              <div class="request-details">
+                <div class="brand-info">
+                  <img src="<%= request.brand_logo %>" alt="<%= request.brand_name %>" class="brand-logo">
+                  <h4>
+                    <%= request.brand_name %>
+                  </h4>
+                </div>
+                <div class="request-metrics">
+                  <div class="metric">
+                    <span class="label">Budget:</span>
+                    <span class="value">$<%= request.budget %></span>
+                  </div>
+                  <div class="metric">
+                    <span class="label">Duration:</span>
+                    <span class="value">
+                      <%= request.duration %> days
+                    </span>
+                  </div>
+                </div>
+                <div class="request-requirements">
+                  <h4>Requirements:</h4>
+                  <ul>
+                    <li><strong>Channels:</strong>
+                      <%= request.required_channels %>
+                    </li>
+                    <li><strong>Min Followers:</strong>
+                      <%= request.min_followers %>
+                    </li>
+                    <li><strong>Target Audience:</strong>
+                      <%= request.target_audience %>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="request-actions">
+                <button class="accept-btn" onclick="acceptRequest(<%= request.id %>)">Accept</button>
+                <button class="decline-btn" onclick="declineRequest(<%= request.id %>)">Decline</button>
+                <button class="view-details-btn" onclick="viewRequestDetails(<%= request.id %>)">View Details</button>
+              </div>
+            </div>
+            <% }); %>
+              <% } else { %>
+                <div class="no-requests">
+                  <p>No pending collaboration requests</p>
+                </div>
+                <% } %>
       </div>
     </section>
 
@@ -205,10 +269,8 @@
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer>
-      <p>&copy; 2025 CollabSync. All rights reserved.</p>
-    </footer>
+    <div>Check out your completed campaigns!</div>
+    <button class="campaign-btn">View Campaigns</button>
 
     <!-- This script handles the sidebar toggle. -->
     <script>
@@ -349,7 +411,189 @@
       function closeMenu() {
         document.getElementById("navMenu").style.width = "0";
       }
+
+      // Add new functions for handling requests
+      function toggleRequests() {
+        const requestsSection = document.getElementById('collaborationRequests');
+        requestsSection.style.display = requestsSection.style.display === 'none' ? 'block' : 'none';
+      }
+
+      function acceptRequest(requestId) {
+        // Implement accept request functionality
+        fetch(`/influencer/requests/${requestId}/accept`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Refresh the page or update the UI
+              location.reload();
+            } else {
+              alert('Failed to accept request: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while accepting the request');
+          });
+      }
+
+      function declineRequest(requestId) {
+        // Implement decline request functionality
+        fetch(`/influencer/requests/${requestId}/decline`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Refresh the page or update the UI
+              location.reload();
+            } else {
+              alert('Failed to decline request: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while declining the request');
+          });
+      }
+
+      function viewRequestDetails(requestId) {
+        // Implement view details functionality
+        window.location.href = `/influencer/requests/${requestId}`;
+      }
     </script>
+
+    <style>
+      /* Add new styles for collaboration requests */
+      .collaboration-requests {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .requests-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .request-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .request-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .request-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      .brand-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .brand-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .request-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .metric {
+        background: #fff;
+        padding: 0.5rem;
+        border-radius: 4px;
+        text-align: center;
+      }
+
+      .request-requirements {
+        margin-bottom: 1rem;
+      }
+
+      .request-requirements ul {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+      }
+
+      .request-requirements li {
+        margin-bottom: 0.5rem;
+        color: #495057;
+      }
+
+      .request-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      .accept-btn,
+      .decline-btn,
+      .view-details-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .accept-btn {
+        background: #28a745;
+        color: white;
+      }
+
+      .decline-btn {
+        background: #dc3545;
+        color: white;
+      }
+
+      .view-details-btn {
+        background: #007bff;
+        color: white;
+      }
+
+      .accept-btn:hover,
+      .decline-btn:hover,
+      .view-details-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .no-requests {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+      }
+    </style>
 </body>
 
 </html>
