@@ -4,25 +4,29 @@ const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploa
 const { validationResult } = require('express-validator');
 
 const brandController = {
+  // Get explore page
   async getExplorePage(req, res) {
-    brandModel.getAllBrands((err, brands) => {
-      if (err) {
-        res.status(500).send('Error fetching brands');
-      } else {
-        res.render('influencer/I_explore', { brands });
-      }
-    });
+    try {
+      const brands = await brandModel.getAllBrands();
+      res.render('influencer/explore', { brands });
+    } catch (err) {
+      console.error('Error fetching brands:', err);
+      res.status(500).render('error', {
+        message: 'Error fetching brands',
+        error: { status: 500 }
+      });
+    }
   },
 
   // Get brand profile
   async getBrandProfile(req, res) {
     try {
-      const brandId = 1; // Get from params or authenticated user
+      const brandId = req.session.user.id;
       const brand = await brandModel.getBrandById(brandId);
 
       if (!brand) {
         return res.status(404).render('error', {
-          status: 404,
+          error: { status: 404 },
           message: 'Brand not found'
         });
       }
@@ -32,18 +36,32 @@ const brandController = {
       const topCampaigns = await brandModel.getTopCampaigns(brandId);
       const verificationStatus = await brandModel.getVerificationStatus(brandId);
 
+      // Helper function to safely parse categories
+      const parseCategories = (categories) => {
+        if (!categories) return [];
+        if (Array.isArray(categories)) return categories;
+        if (typeof categories === 'string') {
+          try {
+            return JSON.parse(categories);
+          } catch (e) {
+            // If JSON parsing fails, try splitting by comma
+            return categories.split(',').map(cat => cat.trim()).filter(Boolean);
+          }
+        }
+        return [];
+      };
+
       // Transform brand data for the template
       const transformedBrand = {
         ...brand,
         name: brand.displayName || brand.name,
         username: brand.username,
         description: brand.bio,
-        logoUrl: brand.profilePicUrl || brand.logo_url,
+        logoUrl: brand.logoUrl,
         bannerUrl: brand.bannerUrl,
         verified: brand.verified,
         primaryMarket: brand.location,
-        values: JSON.parse(brand.categories || '[]'),
-        categories: JSON.parse(brand.categories || '[]'),
+        values: parseCategories(brand.categories),
         mission: brand.bio,
         currentCampaign: 'Increase brand awareness and engagement',
         socialLinks: socialStats.map(stat => ({
@@ -53,9 +71,8 @@ const brandController = {
         })),
         totalAudience: socialStats.reduce((sum, stat) => sum + stat.followers, 0),
         website: `https://${brand.username}.com`,
-        targetAgeRange: brand.audienceAgeRange,
-        targetGender: brand.audienceGender,
-        targetInterests: JSON.parse(brand.categories || '[]'),
+        targetAgeRange: brand.targetAgeRange,
+        targetGender: brand.targetGender,
         completedCampaigns: topCampaigns.length,
         influencerPartnerships: Math.round(topCampaigns.length * 2.5),
         avgCampaignRating: brand.rating || 4.5,
@@ -68,13 +85,13 @@ const brandController = {
         }))
       };
 
-      res.render('brand/B2_profile2', {
+      res.render('brand/profile', {
         brand: transformedBrand
       });
     } catch (error) {
       console.error('Error fetching brand profile:', error);
       res.status(500).render('error', {
-        status: 500,
+        error: { status: 500 },
         message: 'Error loading brand profile'
       });
     }
@@ -83,7 +100,7 @@ const brandController = {
   // Update brand profile
   async updateBrandProfile(req, res) {
     try {
-      // Get the data directly from req.body since it's already parsed by express.json()
+      const brandId = req.session.user.id;
       const data = req.body;
 
       // Validate required fields
@@ -97,8 +114,6 @@ const brandController = {
           fields: missingFields
         });
       }
-
-      const brandId = req.session.brandId || 1; // Get from session or fallback to 1 for testing
 
       // Prepare update data from request body
       const updateData = {
@@ -158,7 +173,7 @@ const brandController = {
   // Request verification
   async requestVerification(req, res) {
     try {
-      const brandId = 1;
+      const brandId = req.session.user.id;
       const verificationRequest = await brandModel.requestVerification(brandId, req.body);
 
       res.json({
@@ -178,7 +193,7 @@ const brandController = {
   // Get verification status
   async getVerificationStatus(req, res) {
     try {
-      const brandId = 1;
+      const brandId = req.session.user.id;
       const status = await brandModel.getVerificationStatus(brandId);
 
       res.json({
@@ -197,7 +212,7 @@ const brandController = {
   // Update social media links
   async updateSocialLinks(req, res) {
     try {
-      const brandId = 1;
+      const brandId = req.session.user.id;
       const { socials } = req.body;
 
       const updatedBrand = await brandModel.updateSocialLinks(brandId, socials);
@@ -219,7 +234,7 @@ const brandController = {
   // Get brand statistics
   async getBrandStats(req, res) {
     try {
-      const brandId = 1;
+      const brandId = req.session.user.id;
       const stats = await brandModel.getBrandStats(brandId);
 
       res.json({
@@ -238,7 +253,7 @@ const brandController = {
   // Get top performing campaigns
   async getTopCampaigns(req, res) {
     try {
-      const brandId = 1;
+      const brandId = req.session.user.id;
       const campaigns = await brandModel.getTopCampaigns(brandId);
 
       res.json({
@@ -257,7 +272,7 @@ const brandController = {
   // Get brand analytics
   async getBrandAnalytics(req, res) {
     try {
-      const brandId = 1;
+      const brandId = req.session.user.id;
       const analytics = await brandModel.getBrandAnalytics(brandId);
 
       res.json({
@@ -276,17 +291,22 @@ const brandController = {
   // Get brand dashboard
   async getBrandDashboard(req, res) {
     try {
-      // Get brand ID from session or params
-      const brandId = req.session.brandId || 1; // Fallback to 1 for testing
+      // Get brand ID from session
+      const brandId = req.session.user.id;
+
+      // Get success message if exists
+      const successMessage = req.session.successMessage;
+      // Clear the message after getting it
+      delete req.session.successMessage;
 
       // Fetch all required data concurrently
-      const [brand, stats, activeCampaigns, topInfluencers, analytics, notifications] = await Promise.all([
+      const [brand, stats, activeCampaigns, topInfluencers, analytics, campaignRequests] = await Promise.all([
         brandModel.getBrandById(brandId),
         brandModel.getBrandStats(brandId),
         brandModel.getActiveCampaigns(brandId),
         brandModel.getTopInfluencers(brandId),
         brandModel.getBrandAnalytics(brandId),
-        brandModel.getNotifications(brandId)
+        brandModel.getCampaignRequests(brandId)
       ]);
 
       if (!brand) {
@@ -295,6 +315,22 @@ const brandController = {
           message: 'Brand not found'
         });
       }
+
+      // Helper function to safely parse categories
+      const parseCategories = (categories) => {
+        if (!categories) return [];
+        if (Array.isArray(categories)) return categories;
+        if (typeof categories === 'string') {
+          try {
+            // First try parsing as JSON
+            return JSON.parse(categories);
+          } catch (e) {
+            // If JSON parsing fails, try splitting by comma
+            return categories.split(',').map(cat => cat.trim()).filter(Boolean);
+          }
+        }
+        return [];
+      };
 
       // Transform data for the template
       const transformedData = {
@@ -307,8 +343,8 @@ const brandController = {
           bannerUrl: brand.bannerUrl,
           verified: brand.verified,
           primaryMarket: brand.location,
-          values: JSON.parse(brand.categories || '[]'),
-          categories: JSON.parse(brand.categories || '[]'),
+          values: parseCategories(brand.categories),
+          categories: parseCategories(brand.categories),
           mission: brand.bio
         },
         stats: {
@@ -333,36 +369,95 @@ const brandController = {
           daysRemaining: Math.max(0, Math.ceil((new Date(campaign.end_date) - new Date()) / (1000 * 60 * 60 * 24))),
           influencersCount: campaign.influencers_count || 0
         })),
+        campaignRequests: campaignRequests.map(request => ({
+          _id: request._id,
+          title: request.title,
+          description: request.description,
+          status: request.status,
+          start_date: request.start_date,
+          duration: request.duration,
+          budget: request.budget,
+          target_audience: request.target_audience,
+          required_channels: request.required_channels,
+          min_followers: request.min_followers,
+          objectives: request.objectives,
+          influencers_count: request.influencers_count || 0
+        })),
         topInfluencers: topInfluencers.map(influencer => ({
-          ...influencer,
-          profilePicUrl: influencer.profile_pic_url || '/images/default-avatar.jpg',
+          _id: influencer._id,
+          name: influencer.fullName || 'Unknown',
+          username: influencer.username || 'unknown',
+          profilePicUrl: influencer.profilePicUrl || '/images/default-avatar.jpg',
           avgEngagement: influencer.avgEngagement || 0,
-          followers: influencer.followers || 0
+          followers: influencer.followers || 0,
+          categories: influencer.categories || [],
+          categoryMatchPercentage: influencer.categoryMatchPercentage || 0,
+          matchingCategories: influencer.matchingCategories || 0,
+          campaignCount: influencer.campaignCount || 0
         })),
         analytics: {
-          months: analytics?.map(a => a.month) || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          engagementRates: analytics?.map(a => a.avg_engagement || 0) || [5, 6, 7, 8, 9, 10],
-          clickThroughRates: analytics?.map(a => {
-            const clicks = a.total_clicks || 0;
-            const impressions = a.total_impressions || 1;
-            return (clicks / impressions) * 100;
-          }) || [2, 3, 4, 5, 6, 7],
-          productsSold: analytics?.map(a => a.total_conversions || 0) || [100, 150, 200, 250, 300, 350],
-          conversionRates: analytics?.map(a => a.avg_conversion_rate || 0) || [1, 2, 3, 4, 5, 6],
-          demographics: {
+          months: analytics.months || [],
+          engagementRates: analytics.engagementRates || [],
+          clickThroughRates: analytics.clickThroughRates || [],
+          productsSold: analytics.productsSold || [],
+          conversionRates: analytics.conversionRates || [],
+          demographics: analytics.demographics || {
             labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
             data: [25, 35, 20, 15, 5]
           }
         },
-        notifications: notifications || []
+        successMessage // Add success message to the template data
       };
 
-      res.render('brand/B2_index', transformedData);
+      res.render('brand/dashboard', transformedData);
     } catch (error) {
       console.error('Error in getBrandDashboard:', error);
       res.status(500).render('error', {
         status: 500,
-        message: 'Error loading brand dashboard'
+        message: 'Error loading dashboard'
+      });
+    }
+  },
+
+  // Get campaign history
+  async getCampaignHistory(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      console.log('Getting campaign history for brand:', brandId);
+
+      if (!brandId) {
+        console.error('No brand ID found in session');
+        return res.status(401).render('error', {
+          error: { status: 401 },
+          message: 'Please log in to view campaign history'
+        });
+      }
+
+      // Fetch all completed and cancelled campaigns
+      const campaigns = await brandModel.getCampaignHistory(brandId);
+      console.log('Retrieved campaigns:', campaigns.length);
+
+      res.render('brand/campaigns', {
+        campaigns: campaigns.map(campaign => ({
+          ...campaign,
+          performance_score: campaign.performance_score || 0,
+          engagement_rate: campaign.engagement_rate || 0,
+          reach: campaign.reach || 0,
+          conversion_rate: campaign.conversion_rate || 0,
+          influencers_count: campaign.influencers?.length || 0,
+          budget: campaign.budget || 0,
+          end_date: campaign.end_date,
+          status: campaign.status,
+          title: campaign.title,
+          description: campaign.description,
+          influencers: campaign.influencers || []
+        }))
+      });
+    } catch (error) {
+      console.error('Error in getCampaignHistory controller:', error);
+      res.status(500).render('error', {
+        error: { status: 500 },
+        message: 'Error loading campaign history'
       });
     }
   }

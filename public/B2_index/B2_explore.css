@@ -4,18 +4,21 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
   color: #333;
   line-height: 1.6;
 }
+
 /* Header */
 header {
   background-color: #333;
   color: #fff;
   padding: 20px 0;
 }
+
 .header-container {
   width: 80%;
   margin: auto;
@@ -23,49 +26,60 @@ header {
   justify-content: space-between;
   align-items: center;
 }
+
 .logo {
   font-size: 1.8rem;
   font-weight: bold;
 }
+
 nav ul {
   list-style: none;
   display: flex;
 }
+
 nav ul li {
   margin-left: 20px;
 }
+
 nav ul li a {
   color: #fff;
   text-decoration: none;
   font-size: 1rem;
   transition: color 0.3s ease;
 }
+
 nav ul li a:hover {
   color: #007BFF;
 }
+
 /* Main Container */
 .container {
   width: 80%;
   margin: 40px auto;
 }
+
 .intro {
   text-align: center;
   padding: 20px;
 }
+
 .intro h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
   color: #007BFF;
 }
+
 .intro p {
   font-size: 1.2rem;
   color: #555;
 }
+
 /* Toggle Button */
 .toggle-container {
   text-align: right;
   margin-bottom: 20px;
 }
+
 .toggle-button {
   padding: 10px 20px;
   background-color: #007BFF;
@@ -75,14 +89,17 @@ nav ul li a:hover {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 .toggle-button:hover {
   background-color: #0056b3;
 }
+
 /* Influencer List */
 .influencer-list {
   display: flex;
   flex-direction: column;
 }
+
 .influencer-item {
   display: flex;
   align-items: center;
@@ -91,30 +108,36 @@ nav ul li a:hover {
   margin-bottom: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
+
 .influencer-item:hover {
   transform: scale(1.02);
 }
+
 .influencer-item img {
   border-radius: 50%;
   margin-right: 20px;
-  width:100px;
+  width: 100px;
   background-color: #28a745;
 }
+
 .influencer-details {
   flex-grow: 1;
 }
+
 .influencer-details h2 {
   font-size: 1.4rem;
   margin-bottom: 5px;
   color: #007BFF;
 }
+
 .influencer-details p {
   font-size: 1rem;
   color: #555;
 }
+
 .invite-button {
   padding: 10px 20px;
   background-color: #28a745;
@@ -124,73 +147,122 @@ nav ul li a:hover {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 .invite-button:hover {
   background-color: #218838;
 }
+
 /* Grid Layout */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
+
 .grid .influencer-item {
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
+
 .grid .influencer-item img {
   margin-bottom: 10px;
 }
-/* Responsive Styles
+
+/* Responsive Styles */
 @media (max-width: 768px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, min
-::contentReference[oaicite:0]{index=0}
-  */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 
+  .header-container {
+    width: 95%;
+  }
 
+  .container {
+    width: 95%;
+  }
 
-  
-  .menu {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    top: 0;
-    right: 0; /* Sidebar on the right */
-    background-color: #333;
-    overflow-x: hidden;
-    transition: 0.3s;
-    padding-top: 60px;
+  .influencer-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .influencer-item img {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .button-group {
+    margin-top: 10px;
+  }
 }
+
+.menu {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  top: 0;
+  right: 0;
+  /* Sidebar on the right */
+  background-color: #333;
+  overflow-x: hidden;
+  transition: 0.3s;
+  padding-top: 60px;
+}
+
 .menu a {
-    padding: 10px 15px;
-    text-decoration: none;
-    font-size: 20px;
-    color: white;
-    display: block;
-    transition: 0.2s;
+  padding: 10px 15px;
+  text-decoration: none;
+  font-size: 20px;
+  color: white;
+  display: block;
+  transition: 0.2s;
 }
+
 .menu a:hover {
-    background-color: #575757;
+  background-color: #575757;
 }
 
 /* toggle navbar */
 .toggle-btn {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    font-size: 20px;
-    background-color: #007BFF;
-    color: white;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  background-color: #007BFF;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
 }
+
 .close-btn {
-    position: absolute;
-    top: 10px;
-    left: 15px;
-    font-size: 25px;
-    color: white;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  font-size: 25px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Button group */
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-button {
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+}
+
+.profile-button:hover {
+  background-color: #0056b3;
 }

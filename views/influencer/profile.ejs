@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= influencer.displayName %> Profile | CollabSync
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/i_index/I_profile2.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/influencer/home">Home</a></li>
+                    <li><a href="/influencer/explore">Explore Brands</a></li>
+                    <li><a href="/influencer/profile">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation (Right Side) -->
+    <button class="toggle-btn" onclick="openMenu()">☰</button>
+    <div class="menu" id="navMenu">
+        <span class="close-btn" onclick="closeMenu()">&times;</span>
+        <a href="/influencer/collab">Collabs</a>
+        <a href="/influencer/signout">Sign Out</a>
+        <!-- <a href="#">Settings</a> -->
+    </div>
+
+    <div class="container">
+        <!-- Profile Banner -->
+        <section class="profile-banner">
+            <div class="banner-image"
+                style="background-image: url('<%= influencer.bannerUrl || '/images/default-banner.jpg' %>');">
+                <button class="edit-banner-btn" onclick="openEditImagesModal()">
+                    <i class="fas fa-camera"></i>
+                    <span>Edit Profile or Banner</span>
+                </button>
+            </div>
+            <div class="profile-info">
+                <div class="profile-pic">
+                    <img src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>"
+                        alt="<%= influencer.displayName %>">
+                </div>
+                <div class="profile-name">
+                    <h1>
+                        <%= influencer.displayName %>
+                    </h1>
+                    <p class="username">@<%= influencer.username %>
+                    </p>
+                    <div class="profile-status">
+                        <% if (influencer.verified) { %>
+                            <span class="premium-badge">
+                                <i class="fas fa-check-circle"></i> VERIFIED
+                            </span>
+                            <% } else { %>
+                                <span class="premium-badge pending-badge">
+                                    <i class="fas fa-clock"></i> PENDING VERIFICATION
+                                </span>
+                                <% } %>
+                                    <span class="influence-info">
+                                        Primary market: <%= influencer.primaryMarket || 'Not specified' %>
+                                            <% if (influencer.primaryMarket) { %>
+                                                <%= influencer.primaryMarket.includes('Global') ? '🌎' : '' %>
+                                                    <%= influencer.primaryMarket.includes('US') ? '🇺🇸' : '' %>
+                                                        <%= influencer.primaryMarket.includes('UK') ? '🇬🇧' : '' %>
+                                                            <%= influencer.primaryMarket.includes('Europe') ? '🇪🇺'
+                                                                : '' %>
+                                                                <%= influencer.primaryMarket.includes('Asia') ? '🌏'
+                                                                    : '' %>
+                                                                    <% } %>
+                                    </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="profile-content">
+            <div class="profile-main">
+                <!-- About Tab -->
+                <div id="about-tab" class="tab-content active">
+                    <div class="profile-bio">
+                        <div class="section-header">
+                            <h2>About</h2>
+                            <button class="btn-edit" onclick="openEditModal()">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                        <p class="bio-text">
+                            <%= influencer.bio || 'No description provided.' %>
+                        </p>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-users"></i> Audience Demographics</h3>
+                            <div class="audience-details">
+                                <div class="detail-item">
+                                    <strong>Age Range:</strong>
+                                    <span>
+                                        <%= influencer.audienceAgeRange || 'Not specified' %>
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Primary Gender:</strong>
+                                    <span>
+                                        <%= influencer.audienceGender || 'Not specified' %>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-language"></i> Languages</h3>
+                            <div class="languages-tags">
+                                <% influencer.languages.forEach(language=> { %>
+                                    <span class="language-tag">
+                                        <%= language %>
+                                    </span>
+                                    <% }); %>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-tags"></i> Content Categories</h3>
+                            <div class="categories-tags">
+                                <% influencer.categories.forEach(category=> { %>
+                                    <span class="category-tag">
+                                        <%= category %>
+                                    </span>
+                                    <% }); %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <h2>Performance Metrics</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-users"></i></div>
+                                <div class="metric-value">
+                                    <%= influencer.totalFollowers.toLocaleString() %>
+                                </div>
+                                <div class="metric-label">Total Followers</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-heart"></i></div>
+                                <div class="metric-value">
+                                    <%= influencer.avgEngagementRate %>%
+                                </div>
+                                <div class="metric-label">Avg. Engagement</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-star"></i></div>
+                                <div class="metric-value">
+                                    <%= influencer.avgRating %>
+                                </div>
+                                <div class="metric-label">Avg. Rating</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-handshake"></i></div>
+                                <div class="metric-value">
+                                    <%= influencer.completedCollabs %>
+                                </div>
+                                <div class="metric-label">Completed Collabs</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card social-card">
+                        <h3>Social Media</h3>
+                        <div class="social-stats">
+                            <% influencer.socials.forEach(platform=> { %>
+                                <div class="social-item">
+                                    <i class="fab fa-<%= platform.platform %>"></i>
+                                    <span class="count">
+                                        <%= platform.followers.toLocaleString() %>
+                                    </span>
+                                    <span class="label">followers</span>
+                                    <div class="platform-stats">
+                                        <span>Avg Likes: <%= platform.avgLikes.toLocaleString() %></span>
+                                        <span>Avg Comments: <%= platform.avgComments.toLocaleString() %></span>
+                                        <span>Avg Views: <%= platform.avgViews.toLocaleString() %></span>
+                                    </div>
+                                </div>
+                                <% }); %>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="profile-sidebar">
+                <div class="content-section">
+                    <h2>Top Performing Content</h2>
+                    <% if (influencer.bestPosts && influencer.bestPosts.length> 0) { %>
+                        <div class="content-grid">
+                            <% influencer.bestPosts.forEach(post=> { %>
+                                <div class="content-card">
+                                    <div class="content-platform <%= post.platform.toLowerCase() %>">
+                                        <i class="fab fa-<%= post.platform.toLowerCase() %>"></i>
+                                        <%= post.platform %>
+                                    </div>
+                                    <div class="content-stats">
+                                        <div class="stat">
+                                            <i class="fas fa-heart"></i>
+                                            <span>
+                                                <%= post.likes.toLocaleString() %>
+                                            </span>
+                                        </div>
+                                        <div class="stat">
+                                            <i class="fas fa-comment"></i>
+                                            <span>
+                                                <%= post.comments.toLocaleString() %>
+                                            </span>
+                                        </div>
+                                        <div class="stat">
+                                            <i class="fas fa-eye"></i>
+                                            <span>
+                                                <%= post.views.toLocaleString() %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% }); %>
+                        </div>
+                        <% } else { %>
+                            <p class="no-data-message">No content available to display.</p>
+                            <% } %>
+                </div>
+
+                <div class="profile-card">
+                    <h3>Member Since</h3>
+                    <div class="member-since">
+                        <i class="fas fa-calendar-alt"></i>
+                        <%= new Date(influencer.createdAt).toLocaleDateString() %>
+                    </div>
+                </div>
+
+                <div class="profile-card actions-card">
+                    <button class="btn-danger" onclick="openDeleteModal()">
+                        <i class="fas fa-trash-alt"></i> Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Influencer Profile</h2>
+            <form id="profileForm" action="/influencer/profile/update" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="displayName">Display Name</label>
+                        <input type="text" class="form-control" id="displayName" name="displayName"
+                            value="<%= influencer.displayName %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                            value="<%= influencer.username %>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea class="form-control" id="bio" name="bio" required><%= influencer.bio %></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" class="form-control" id="location" name="location"
+                            value="<%= influencer.location %>">
+                    </div>
+                    <div class="form-group">
+                        <label for="audienceGender">Primary Audience Gender</label>
+                        <select class="form-control" id="audienceGender" name="audienceGender">
+                            <option value="Male" <%=influencer.audienceGender==='Male' ? 'selected' : '' %>>Male
+                            </option>
+                            <option value="Female" <%=influencer.audienceGender==='Female' ? 'selected' : '' %>>Female
+                            </option>
+                            <option value="Mixed" <%=influencer.audienceGender==='Mixed' ? 'selected' : '' %>>Mixed
+                            </option>
+                            <option value="Other" <%=influencer.audienceGender==='Other' ? 'selected' : '' %>>Other
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="audienceAge">Audience Age Range</label>
+                    <input type="text" class="form-control" id="audienceAge" name="audienceAge"
+                        value="<%= influencer.audienceAgeRange %>" placeholder="e.g. 18-35">
+                </div>
+
+                <div class="form-group">
+                    <label for="categories">Content Categories</label>
+                    <div id="categoriesContainer">
+                        <% influencer.categories.forEach(function(category) { %>
+                            <span class="tag">
+                                <%= category %>
+                                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                    <input type="hidden" name="categories[]" value="<%= category %>">
+                            </span>
+                            <% }); %>
+                    </div>
+                    <div class="tag-input-container">
+                        <input type="text" id="categoryInput" class="form-control" placeholder="Add a category">
+                        <button type="button" class="btn-secondary" onclick="addCategory()">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="languages">Languages</label>
+                    <div id="languagesContainer">
+                        <% influencer.languages.forEach(function(language) { %>
+                            <span class="tag">
+                                <%= language %>
+                                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                                    <input type="hidden" name="languages[]" value="<%= language %>">
+                            </span>
+                            <% }); %>
+                    </div>
+                    <div class="tag-input-container">
+                        <input type="text" id="languageInput" class="form-control" placeholder="Add a language">
+                        <button type="button" class="btn-secondary" onclick="addLanguage()">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Social Media Links</label>
+                    <div id="socialLinks" data-count="<%= influencer.socials.length %>">
+                        <% influencer.socials.forEach((platform, index)=> { %>
+                            <div class="social-platform-row">
+                                <div class="form-group social-platform-select">
+                                    <label for="socialPlatform<%= index %>">Platform</label>
+                                    <select class="form-control" id="socialPlatform<%= index %>"
+                                        name="socials[<%= index %>][platform]">
+                                        <option value="instagram" <%=platform.platform==='instagram' ? 'selected' : ''
+                                            %>>Instagram</option>
+                                        <option value="youtube" <%=platform.platform==='youtube' ? 'selected' : '' %>
+                                            >YouTube</option>
+                                        <option value="tiktok" <%=platform.platform==='tiktok' ? 'selected' : '' %>
+                                            >TikTok</option>
+                                        <option value="twitter" <%=platform.platform==='twitter' ? 'selected' : '' %>
+                                            >Twitter</option>
+                                        <option value="facebook" <%=platform.platform==='facebook' ? 'selected' : '' %>
+                                            >Facebook</option>
+                                    </select>
+                                </div>
+                                <div class="form-group social-platform-url">
+                                    <label for="socialUrl<%= index %>">Profile URL</label>
+                                    <input type="url" class="form-control" id="socialUrl<%= index %>"
+                                        name="socials[<%= index %>][url]" value="<%= platform.url %>"
+                                        placeholder="Profile URL">
+                                </div>
+                                <div class="form-group social-platform-followers">
+                                    <label for="socialFollowers<%= index %>">Followers</label>
+                                    <input type="text" class="form-control" id="socialFollowers<%= index %>"
+                                        name="socials[<%= index %>][followers]" value="<%= platform.followers %>"
+                                        placeholder="Followers">
+                                </div>
+                                <div class="form-group social-platform-remove">
+                                    <button type="button" class="btn-secondary"
+                                        onclick="removeSocialLink(this)">×</button>
+                                </div>
+                            </div>
+                            <% }); %>
+                    </div>
+                    <button type="button" class="btn-secondary btn-add-social" onclick="addSocialLink()">
+                        <i class="fas fa-plus"></i> Add Social Link
+                    </button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Images Modal -->
+    <div class="modal" id="editImagesModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditImagesModal()">&times;</span>
+            <h2>Edit Profile Images</h2>
+            <form id="imagesForm" action="/influencer/profile/update" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="profilePic">Profile Picture</label>
+                    <div class="file-upload">
+                        <label class="file-upload-label" for="profilePic">
+                            <i class="fas fa-camera"></i>
+                            Click to upload new profile picture
+                            <input type="file" class="file-upload-input" id="profilePic" name="profilePic"
+                                accept="image/*">
+                        </label>
+                        <img id="profilePicPreview" class="preview-image"
+                            src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>" alt="Profile Preview">
+                    </div>
+                    <small class="form-text text-muted">Max size: 5MB. Allowed formats: JPG, PNG, GIF</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="bannerImage">Banner Image</label>
+                    <div class="file-upload">
+                        <label class="file-upload-label" for="bannerImage">
+                            <i class="fas fa-image"></i>
+                            Click to upload new banner image
+                            <input type="file" class="file-upload-input" id="bannerImage" name="bannerImage"
+                                accept="image/*">
+                        </label>
+                        <img id="bannerPreview" class="preview-image"
+                            src="<%= influencer.bannerUrl || '/images/default-banner.jpg' %>" alt="Banner Preview">
+                    </div>
+                    <small class="form-text text-muted">Max size: 10MB. Allowed formats: JPG, PNG, GIF</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEditImagesModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal" id="deleteAccountModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeDeleteModal()">&times;</span>
+            <h2>Delete Your Account</h2>
+            <div class="margin-bottom-20">
+                <p>Are you sure you want to delete your influencer account? This action cannot be undone.</p>
+                <p>All your campaigns, collaborations, and data will be permanently removed.</p>
+            </div>
+            <div class="form-group">
+                <label for="confirmDelete">Type "DELETE" to confirm:</label>
+                <input type="text" class="form-control" id="confirmDelete" placeholder="DELETE">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="confirmDelete()" id="deleteBtn" disabled>Delete
+                    Account Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize all event listeners when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            // Modal functions
+            const editModal = document.getElementById('editProfileModal');
+            const deleteModal = document.getElementById('deleteAccountModal');
+            const editImagesModal = document.getElementById('editImagesModal');
+
+            if (editModal) {
+                window.openEditModal = function () {
+                    editModal.style.display = 'block';
+                };
+                window.closeEditModal = function () {
+                    editModal.style.display = 'none';
+                };
+            }
+
+            if (deleteModal) {
+                window.openDeleteModal = function () {
+                    deleteModal.style.display = 'block';
+                };
+                window.closeDeleteModal = function () {
+                    deleteModal.style.display = 'none';
+                };
+            }
+
+            if (editImagesModal) {
+                window.openEditImagesModal = function () {
+                    editImagesModal.style.display = 'block';
+                };
+                window.closeEditImagesModal = function () {
+                    editImagesModal.style.display = 'none';
+                };
+            }
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function (event) {
+                if (event.target === editModal) {
+                    closeEditModal();
+                }
+                if (event.target === deleteModal) {
+                    closeDeleteModal();
+                }
+                if (event.target === editImagesModal) {
+                    closeEditImagesModal();
+                }
+            });
+
+            // Form submission handling
+            const profileForm = document.getElementById('profileForm');
+            if (profileForm) {
+                profileForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    // Get all form data
+                    const formData = new FormData(this);
+
+                    // Collect categories
+                    const categories = [];
+                    const categoryInputs = document.querySelectorAll('input[name="categories[]"]');
+                    console.log('Found category inputs:', categoryInputs.length);
+                    categoryInputs.forEach(input => {
+                        console.log('Category input:', input.value);
+                        if (input.value.trim()) {
+                            categories.push(input.value.trim());
+                        }
+                    });
+
+                    // Collect languages
+                    const languages = [];
+                    const languageInputs = document.querySelectorAll('input[name="languages[]"]');
+                    console.log('Found language inputs:', languageInputs.length);
+                    languageInputs.forEach(input => {
+                        console.log('Language input:', input.value);
+                        if (input.value.trim()) {
+                            languages.push(input.value.trim());
+                        }
+                    });
+
+                    // Collect social links
+                    const socialLinks = [];
+                    const socialLinkRows = document.querySelectorAll('.social-platform-row');
+                    console.log('Found social link rows:', socialLinkRows.length);
+
+                    socialLinkRows.forEach(row => {
+                        const platform = row.querySelector('select[name$="[platform]"]')?.value?.trim();
+                        const url = row.querySelector('input[name$="[url]"]')?.value?.trim();
+                        const followers = row.querySelector('input[name$="[followers]"]')?.value?.trim();
+
+                        console.log('Social link:', { platform, url, followers });
+
+                        // Only require platform and followers, URL can be empty for new links
+                        if (platform && followers) {
+                            socialLinks.push({
+                                platform,
+                                url: url || '', // Allow empty URL
+                                followers: parseInt(followers) || 0
+                            });
+                        }
+                    });
+
+                    // Get target audience fields directly from the form
+                    const audienceAgeRange = document.getElementById('audienceAge')?.value?.trim();
+                    const audienceGender = document.getElementById('audienceGender')?.value?.trim();
+
+                    console.log('Target Audience:', { audienceAgeRange, audienceGender });
+
+                    // Get all form fields
+                    const data = {
+                        displayName: formData.get('displayName')?.trim(),
+                        username: formData.get('username')?.trim(),
+                        bio: formData.get('bio')?.trim(),
+                        location: formData.get('location')?.trim(),
+                        audienceAgeRange: audienceAgeRange,
+                        audienceGender: audienceGender,
+                        categories: categories,
+                        languages: languages,
+                        socials: socialLinks
+                    };
+
+                    // Debug logging
+                    console.log('Form fields:', {
+                        displayName: formData.get('displayName'),
+                        username: formData.get('username'),
+                        bio: formData.get('bio'),
+                        location: formData.get('location'),
+                        audienceAgeRange: audienceAgeRange,
+                        audienceGender: audienceGender
+                    });
+                    console.log('Categories array:', categories);
+                    console.log('Languages array:', languages);
+                    console.log('Social links:', socialLinks);
+                    console.log('Complete data object:', data);
+
+                    // Validate required fields
+                    const requiredFields = ['displayName', 'username', 'bio'];
+                    const missingFields = requiredFields.filter(field => !data[field]);
+
+                    if (missingFields.length > 0) {
+                        alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                        return;
+                    }
+
+                    // Validate social links
+                    for (const link of socialLinks) {
+                        // Only validate URL if it's not empty
+                        if (link.url) {
+                            try {
+                                new URL(link.url);
+                            } catch {
+                                alert(`Please enter a valid URL for ${link.platform}`);
+                                return;
+                            }
+                        }
+
+                        if (isNaN(link.followers) || link.followers < 0) {
+                            alert(`Please enter a valid followers count for ${link.platform}`);
+                            return;
+                        }
+                    }
+
+                    try {
+                        const response = await fetch('/influencer/profile/update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Failed to update profile');
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            alert('Profile updated successfully!');
+                            window.location.reload();
+                        } else {
+                            alert(result.message || 'Error updating profile');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(error.message || 'An error occurred while updating the profile');
+                    }
+                });
+            }
+
+            // Delete account confirmation
+            const confirmDeleteInput = document.getElementById('confirmDelete');
+            const deleteBtn = document.getElementById('deleteBtn');
+
+            if (confirmDeleteInput && deleteBtn) {
+                confirmDeleteInput.addEventListener('input', function (e) {
+                    deleteBtn.disabled = this.value !== 'DELETE';
+                });
+            }
+
+            // Sidebar toggle functions
+            const navMenu = document.getElementById('navMenu');
+            if (navMenu) {
+                window.openMenu = function () {
+                    navMenu.style.width = "250px";
+                };
+                window.closeMenu = function () {
+                    navMenu.style.width = "0";
+                };
+            }
+
+            // Tag management functions
+            window.addTag = function (containerId, inputId, name) {
+                const input = document.getElementById(inputId);
+                const container = document.getElementById(containerId);
+
+                if (input && container && input.value.trim() !== '') {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.innerHTML = `
+                    ${input.value.trim()}
+                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                        <input type="hidden" name="${name}[]" value="${input.value.trim()}">
+                `;
+                    container.appendChild(tag);
+                    input.value = '';
+                }
+            };
+
+            window.addCategory = function () {
+                addTag('categoriesContainer', 'categoryInput', 'categories');
+            };
+
+            window.addLanguage = function () {
+                addTag('languagesContainer', 'languageInput', 'languages');
+            };
+
+            window.removeTag = function (element) {
+                if (element && element.parentElement) {
+                    element.parentElement.remove();
+                }
+            };
+
+            // Social links management
+            window.addSocialLink = function () {
+                const container = document.getElementById('socialLinks');
+                if (!container) return;
+
+                const newLink = document.createElement('div');
+                newLink.className = 'social-platform-row';
+                newLink.innerHTML = `
+                    <div class="form-group social-platform-select">
+                        <select class="form-control" name="socials[${container.children.length}][platform]">
+                        <option value="instagram">Instagram</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+                    <div class="form-group social-platform-url">
+                        <input type="url" class="form-control" name="socials[${container.children.length}][url]" placeholder="Profile URL">
+                    </div>
+                    <div class="form-group social-platform-followers">
+                        <input type="text" class="form-control" name="socials[${container.children.length}][followers]" placeholder="Followers">
+                </div>
+                    <div class="form-group social-platform-remove">
+                        <button type="button" class="btn-secondary" onclick="removeSocialLink(this)">×</button>
+                </div>
+            `;
+                container.appendChild(newLink);
+            };
+
+            window.removeSocialLink = function (button) {
+                if (button && button.closest('.social-platform-row')) {
+                    button.closest('.social-platform-row').remove();
+                }
+            };
+
+            // Images form handling
+            const imagesForm = document.getElementById('imagesForm');
+            if (imagesForm) {
+                imagesForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    const originalButtonText = submitButton.innerHTML;
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+                    const formData = new FormData();
+
+                    // Only add files if they exist
+                    const profilePic = document.getElementById('profilePic').files[0];
+                    const bannerImage = document.getElementById('bannerImage').files[0];
+
+                    if (profilePic) {
+                        formData.append('profilePic', profilePic);
+                    }
+                    if (bannerImage) {
+                        formData.append('bannerImage', bannerImage);
+                    }
+
+                    try {
+                        const response = await fetch('/influencer/profile/update-images', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            alert('Images updated successfully!');
+                            window.location.reload();
+                        } else {
+                            alert(result.message || 'Error updating images');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating images. Please try again later.');
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalButtonText;
+                    }
+                });
+            }
+
+            // Delete account function
+            window.confirmDelete = async function () {
+                if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/influencer/profile/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include' // This ensures cookies are sent with the request
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Failed to delete account');
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Account deleted successfully');
+                        window.location.href = '/';
+                    } else {
+                        alert(result.message || 'Error deleting account');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the account. Please try again later.');
+                }
+            };
+
+            // Image preview functionality
+            document.getElementById('profilePic').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file type
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Please select a valid image file (JPG, PNG, or GIF)');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file size (5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Profile picture must be less than 5MB');
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById('profilePicPreview').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('bannerImage').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file type
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Please select a valid image file (JPG, PNG, or GIF)');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file size (10MB)
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert('Banner image must be less than 10MB');
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById('bannerPreview').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

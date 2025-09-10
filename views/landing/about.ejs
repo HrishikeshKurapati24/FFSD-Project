@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CollabSync - Your Collaboration Hub</title>
+  <link rel="stylesheet" href="/Lp_index/Lp_index.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    /* Header */
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px 0;
+    }
+
+    .header-container {
+      width: 80%;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+    }
+
+    nav ul li {
+      margin-left: 20px;
+    }
+
+    nav ul li a {
+      color: #fff;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+    }
+
+    nav ul li a:hover {
+      color: #007BFF;
+    }
+
+    /* Hero Section */
+    .about-hero {
+      background-color: #f8f9fa;
+      padding: 80px 20px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .hero-content h1 {
+      color: #333;
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      animation: fadeInDown 1s ease;
+    }
+
+    .hero-content p {
+      color: #666;
+      font-size: 1.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+      animation: fadeInUp 1s ease;
+    }
+
+    /* Main Content */
+    .about-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .about-section {
+      margin-bottom: 60px;
+      animation: fadeIn 1s ease;
+    }
+
+    .about-section h2 {
+      color: #333;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-card i {
+      font-size: 2.5rem;
+      color: #007BFF;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .feature-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-card ul li {
+      margin-bottom: 10px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .feature-card ul li:before {
+      content: "•";
+      color: #007BFF;
+      position: absolute;
+      left: 0;
+    }
+
+    /* Benefits Section */
+    .benefits-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .benefit {
+      text-align: center;
+      padding: 30px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .benefit i {
+      font-size: 2.5rem;
+      color: #007BFF;
+      margin-bottom: 20px;
+    }
+
+    .benefit h3 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    /* Pricing Section */
+    .pricing-info {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .pricing-info ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .pricing-info ul li {
+      margin-bottom: 15px;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .pricing-info ul li:before {
+      content: "✓";
+      color: #28a745;
+      position: absolute;
+      left: 0;
+    }
+
+    /* Footer Styles */
+    footer {
+      background-color: #000000;
+      color: #fff;
+      padding: 20px 0;
+      margin-top: 30px;
+    }
+
+    .footer-content {
+      width: 80%;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .footer-logo {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-left: 20px;
+    }
+
+    footer p {
+      flex: 1;
+      text-align: center;
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .social-media {
+      margin-right: 20px;
+    }
+
+    .social-media a {
+      display: inline-block;
+      margin: 0 10px;
+      transition: transform 0.3s ease;
+    }
+
+    .social-media img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .social-media a:hover {
+      transform: scale(1.1);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero-content p {
+        font-size: 1.2rem;
+      }
+
+      .about-section h2 {
+        font-size: 2rem;
+      }
+
+      .features-grid,
+      .benefits-container {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .footer-logo {
+        margin: 0;
+      }
+
+      .social-media {
+        margin: 20px 0 0 0;
+      }
+    }
+
+    /* Active Navigation Link */
+    nav ul li a.active {
+      color: #007BFF;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/Sup_role">Sign Up</a></li>
+          <li><a href="/SignIn">Sign In</a></li>
+          <li><a href="/about" class="active">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="about-hero">
+    <div class="hero-content">
+      <h1>About CollabSync</h1>
+      <p>Connecting Brands and Influencers for Successful Collaborations</p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="about-content">
+    <section class="about-section">
+      <h2>Our Mission</h2>
+      <p>
+        <strong>CollabSync</strong> is revolutionizing the way brands and influencers collaborate. Our platform bridges
+        the gap between these two dynamic forces, creating a seamless ecosystem for meaningful partnerships that drive
+        growth and engagement.
+      </p>
+    </section>
+
+    <section class="about-section">
+      <h2>What We Offer</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <i class="fas fa-building"></i>
+          <h3>For Brands</h3>
+          <ul>
+            <li>Create and manage collaborations</li>
+            <li>Browse influencer profiles</li>
+            <li>Track campaign analytics</li>
+            <li>Handle influencer requests</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <i class="fas fa-user-circle"></i>
+          <h3>For Influencers</h3>
+          <ul>
+            <li>Discover relevant collaborations</li>
+            <li>Showcase your portfolio</li>
+            <li>Track performance metrics</li>
+            <li>Manage campaign progress</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <i class="fas fa-chart-line"></i>
+          <h3>Analytics & Insights</h3>
+          <ul>
+            <li>Real-time performance tracking</li>
+            <li>Engagement metrics</li>
+            <li>ROI analysis</li>
+            <li>Audience insights</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <h2>Why Choose CollabSync?</h2>
+      <div class="benefits-container">
+        <div class="benefit">
+          <i class="fas fa-bolt"></i>
+          <h3>Efficiency</h3>
+          <p>Streamline your collaboration process with our intuitive platform</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-shield-alt"></i>
+          <h3>Trust</h3>
+          <p>Verified profiles and secure transactions for peace of mind</p>
+        </div>
+        <div class="benefit">
+          <i class="fas fa-chart-pie"></i>
+          <h3>Growth</h3>
+          <p>Data-driven insights to maximize your campaign success</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <h2>Our Pricing</h2>
+      <div class="pricing-info">
+        <p>We believe in fair and transparent pricing:</p>
+        <ul>
+          <li><strong>5%</strong> commission on transactions below $1000</li>
+          <li><strong>1%</strong> commission on transactions above $1000</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">CollabSync</div>
+      <p>&copy; 2025 CollabSync. All rights reserved.</p>
+      <div class="social-media">
+        <a href="https://www.instagram.com/yourprofile" target="_blank" aria-label="Instagram">
+          <img src="/Lp_index/SocialMedia_logo_i.png" alt="Instagram" />
+        </a>
+        <a href="https://www.youtube.com/channel/yourchannel" target="_blank" aria-label="YouTube">
+          <img src="/Lp_index/SocialMedia_logo_y2.png" alt="YouTube" />
+        </a>
+        <a href="https://www.linkedin.com/in/yourprofile" target="_blank" aria-label="LinkedIn">
+          <img src="/Lp_index/SocialMedia_logo_l.png" alt="LinkedIn" />
+        </a>
+        <a href="https://www.facebook.com/yourprofile" target="_blank" aria-label="Facebook">
+          <img src="/Lp_index/SocialMedia_logo_f3.jpg" alt="Facebook" />
+        </a>
+        <a href="https://twitter.com/yourprofile" target="_blank" aria-label="Twitter">
+          <img src="/Lp_index/SocialMedia_logo_t.png" alt="Twitter" />
+        </a>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>

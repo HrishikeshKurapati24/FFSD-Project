@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Offers</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">CollabSync</a>
+            <div class="d-flex align-items-center">
+                <div class="input-group me-3">
+                    <input type="text" id="search" class="form-control" placeholder="Search offers...">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Current Offers</h2>
+
+        <div class="row" id="offers-container">
+            <% if (offers && offers.length> 0) { %>
+                <% offers.forEach(offer=> { %>
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 offer-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="<%= offer.brand_logo %>" alt="<%= offer.brand %>" class="brand-logo me-3">
+                                    <h5 class="card-title mb-0">
+                                        <%= offer.brand %>
+                                    </h5>
+                                </div>
+                                <h6 class="offer-percentage mb-3">
+                                    <%= offer.offer_percentage %>% OFF
+                                </h6>
+                                <p class="card-text">
+                                    <%= offer.description %>
+                                </p>
+                                <div class="offer-dates mb-3">
+                                    <small class="text-muted">
+                                        Valid until: <%= new Date(offer.end_date).toLocaleDateString() %>
+                                    </small>
+                                </div>
+                                <button class="btn btn-primary w-100" onclick="viewOfferDetails('<%= offer.id %>')">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No active offers available at the moment.
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Offer Details Modal -->
+    <div class="modal fade" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="offerDetailsModalLabel">Offer Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="offerDetailsContent">
+                    <!-- Content will be dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .offer-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .offer-percentage {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .offer-dates {
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .offer-details-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .offer-details-header img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-right: 1rem;
+        }
+
+        .offer-details-content {
+            margin-top: 1rem;
+        }
+
+        .offer-details-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .offer-details-section h6 {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .eligibility-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .eligibility-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .eligibility-list li:before {
+            content: "✓";
+            color: #28a745;
+            position: absolute;
+            left: 0;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function viewOfferDetails(offerId) {
+            try {
+                console.log('Fetching details for offer:', offerId);
+                const response = await fetch(`/customer/offers/${offerId}`);
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load offer details');
+                }
+
+                const offer = data.offer;
+                if (!offer) {
+                    throw new Error('No offer data received');
+                }
+
+                // Ensure eligibility is an array
+                const eligibility = Array.isArray(offer.eligibility) ? offer.eligibility : [];
+                const eligibilityHtml = eligibility.length > 0
+                    ? eligibility.map(item => `<li>${item}</li>`).join('')
+                    : '<li>No specific eligibility criteria</li>';
+
+                const modalContent = document.getElementById('offerDetailsContent');
+
+                modalContent.innerHTML = `
+                    <div class="offer-details-header">
+                        <img src="${offer.brand_logo || 'https://via.placeholder.com/80'}" 
+                             alt="${offer.brand}" 
+                             class="brand-logo"
+                             onerror="this.src='https://via.placeholder.com/80'">
+                        <div>
+                            <h4>${offer.brand || 'Brand Name'}</h4>
+                            <h5 class="text-success">${offer.offer_percentage || 0}% OFF</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="offer-details-content">
+                        <div class="offer-details-section">
+                            <h6>Description</h6>
+                            <p>${offer.description || 'No description available'}</p>
+                        </div>
+                        
+                        <div class="offer-details-section">
+                            <h6>Offer Details</h6>
+                            <p>${offer.offer_details || 'No additional details available'}</p>
+                        </div>
+                        
+                        <div class="offer-details-section">
+                            <h6>Eligibility</h6>
+                            <ul class="eligibility-list">
+                                ${eligibilityHtml}
+                            </ul>
+                        </div>
+                        
+                        <div class="offer-details-section">
+                            <h6>Validity</h6>
+                            <p>From ${new Date(offer.start_date).toLocaleDateString()} to ${new Date(offer.end_date).toLocaleDateString()}</p>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="${offer.brand_website || '#'}" 
+                               target="_blank" 
+                               class="btn btn-primary"
+                               ${!offer.brand_website ? 'disabled' : ''}>
+                                Visit Brand Website
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                const modal = new bootstrap.Modal(document.getElementById('offerDetailsModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Error loading offer details:', error);
+                alert('Error loading offer details: ' + error.message);
+            }
+        }
+
+        // Search functionality
+        // Search functionality
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("search");
+    const offersContainer = document.getElementById("offers-container");
+
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const offerCards = document.querySelectorAll('.offer-card');
+                let hasVisibleCards = false;
+
+                offerCards.forEach(card => {
+                    const brandName = card.querySelector('.card-title').textContent.toLowerCase();
+                    const description = card.querySelector('.card-text').textContent.toLowerCase();
+                    const cardColumn = card.closest('.col-md-6');
+
+                    if (brandName.includes(searchTerm) || description.includes(searchTerm)) {
+                        cardColumn.style.display = '';
+                        hasVisibleCards = true;
+                    } else {
+                        cardColumn.style.display = 'none';
+                    }
+                });
+
+                // Remove any existing no-results message
+                const existingNoResults = offersContainer.querySelector('.no-results');
+                if (existingNoResults) {
+                    existingNoResults.remove();
+                }
+
+                // Add no results message if needed
+                if (!hasVisibleCards) {
+                    const div = document.createElement('div');
+                    div.className = 'col-12 no-results';
+                    div.innerHTML = '<div class="alert alert-info">No offers found matching your search.</div>';
+                    offersContainer.appendChild(div);
+                }
+            }, 300);
+        });
+    }
+});
+    </script>
+</body>
+
+</html>

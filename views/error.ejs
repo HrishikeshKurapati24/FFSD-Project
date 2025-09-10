@@ -9,21 +9,32 @@
         .error-container {
             text-align: center;
             padding: 50px;
+            font-family: Arial, sans-serif;
         }
 
         .error-code {
             font-size: 72px;
-            color: #dc3545;
+            color: #e74c3c;
+            margin-bottom: 20px;
         }
 
         .error-message {
             font-size: 24px;
-            margin: 20px 0;
+            color: #2c3e50;
+            margin-bottom: 30px;
         }
 
         .back-link {
-            color: #007bff;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
             text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .back-link:hover {
+            background-color: #2980b9;
         }
     </style>
 </head>
@@ -31,10 +42,10 @@
 <body>
     <div class="error-container">
         <div class="error-code">
-            <%= error.status %>
+            <%= locals.error && error.status ? error.status : 500 %>
         </div>
         <div class="error-message">
-            <%= message %>
+            <%= locals.error && error.message ? error.message : (locals.message ? message : 'An error occurred' ) %>
         </div>
         <a href="/" class="back-link">Back to Home</a>
     </div>

@@ -58,14 +58,10 @@ function toggleDarkMode() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Simulated user data (Replace with actual user data retrieval)
-    const user = {
-        name: "John Doe", // Change dynamically
-        gender: "male" // Change dynamically to "female" if needed
-    };
-
+    // Retrieve the currently logged-in user's name from the session
+    const username = req.session.username; // Assuming you have a req object available
     // Set user name
-    document.getElementById("user-name").textContent = user.name;
+    document.getElementById("user-name").textContent = username;
 
     // Set appropriate icon based on gender
     const profileIcon = document.getElementById("profile-icon");
@@ -203,10 +199,9 @@ function markAllAsRead() {
     document.getElementById('notification-count').style.display = 'none';
 }
 
-// Handle logout
-function handleLogout() {
-    // Add your logout logic here
-    window.location.href = '/logout';
+async function handleLogout() {
+    await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
+    window.location.href = '/admin/login';
 }
 
 // Initialize all charts when the DOM is loaded

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Campaign Analytics - Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin/admin_dashboard.css" />
+    <link rel="stylesheet" href="/admin/analytics.css" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="analytics-wrapper">
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-alert"><%= error %></div>
+        <% } %>
+
+        <div class="analytics-header">
+            <h1>Campaign Analytics</h1>
+            <div class="date-filter">
+                <select id="timeRange">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                </select>
+            </div>
+        </div>
+
+        <% if (metrics) { %>
+        <div class="metrics-overview">
+            <div class="metric-card">
+                <h3>Total Campaigns</h3>
+                <div class="metric-value"><%= metrics.totalCampaigns != null ? metrics.totalCampaigns.toLocaleString() : 'N/A' %></div>
+            </div>
+            <div class="metric-card">
+                <h3>Active Campaigns</h3>
+                <div class="metric-value"><%= metrics.activeCampaigns != null ? metrics.activeCampaigns.toLocaleString() : 'N/A' %></div>
+                <div
+                    class="metric-change <%= metrics.campaignGrowth >= 0 ? 'positive' : 'negative' %>"
+                >
+                    <i
+                        class="fas fa-<%= metrics.campaignGrowth >= 0 ? 'arrow-up' : 'arrow-down' %>"
+                    ></i>
+                    <%= Math.abs(metrics.campaignGrowth) %>% from last month
+                </div>
+            </div>
+            <div class="metric-card">
+                <h3>Campaign Success Rate</h3>
+                <div class="metric-value"><%= metrics.successRate != null ? metrics.successRate + '%' : 'N/A' %></div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>Campaign Types Distribution</h3>
+                <canvas id="campaignTypesChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3>Engagement Trends</h3>
+                <canvas id="engagementTrendsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="campaigns-table-container">
+            <h3>Top Performing Campaigns</h3>
+            <table class="campaigns-table">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Brand</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Engagement Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (metrics.topCampaigns && metrics.topCampaigns.length > 0) { %>
+                    <% metrics.topCampaigns.forEach((campaign) => { %>
+                    <tr>
+                        <td><%= campaign.name || 'N/A' %></td>
+                        <td><%= campaign.brand || 'N/A' %></td>
+                        <td><%= campaign.startDate || 'N/A' %></td>
+                        <td><%= campaign.endDate || 'N/A' %></td>
+                        <td>
+                            <span class="status-badge <%= campaign.status ? campaign.status.toLowerCase() : '' %>">
+                                <%= campaign.status || 'N/A' %>
+                            </span>
+                        </td>
+                        <td><%= campaign.engagementRate != null ? campaign.engagementRate + '%' : 'N/A' %></td>
+                    </tr>
+                    <% }); %>
+                    <% } else { %>
+                    <tr>
+                        <td colspan="6">No top campaigns data available</td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+        <% } else { %>
+        <div class="no-data-message">
+            <p>No campaign analytics data available</p>
+        </div>
+        <% } %>
+    </div>
+
+    <script id="metricsData" type="application/json">
+        <%- JSON.stringify(metrics || {}) %>
+    </script>
+    <!-- <script src="/admin/campaign-analytics.js"></script> -->
+
+
+    // Campaign Types Distribution Chart
+  <script>
+    const campaignLabels = <%- JSON.stringify(camp.campaignTypesData.labels) %>;
+    const campaignCounts = <%- JSON.stringify(camp.campaignTypesData.counts) %>;
+    const engagementLabels = <%- JSON.stringify(camp.engagementTrendsData.labels) %>;
+    const engagementRates = <%- JSON.stringify(camp.engagementTrendsData.engagementRates) %>;
+    const reachData = <%- JSON.stringify(camp.engagementTrendsData.reach) %>;
+
+    // Campaign Types Pie Chart
+    const ctx1 = document.getElementById('campaignTypesChart');
+    if (ctx1) {
+        new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: campaignLabels,
+                datasets: [{
+                    data: campaignCounts,
+                    backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#F44336', '#9C27B0'],
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Engagement Trends Line Chart
+    const ctx2 = document.getElementById('engagementTrendsChart');
+    if (ctx2) {
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: engagementLabels,
+                datasets: [
+                    {
+                        label: 'Engagement Rate (%)',
+                        data: engagementRates,
+                        borderColor: '#3e95cd',
+                        backgroundColor: '#3e95cd',
+                        tension: 0.4,
+                        fill: false
+                    },
+                    {
+                        label: 'Reach',
+                        data: reachData,
+                        borderColor: '#8e5ea2',
+                        backgroundColor: '#8e5ea2',
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+
+
+
+</html>

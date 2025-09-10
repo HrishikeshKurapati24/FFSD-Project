@@ -7,203 +7,130 @@
   <title>Create collab</title>
   <link rel="stylesheet" href="/i_index/I_index.css" />
   <style>
-    /* Base styles and variables */
-    :root {
-      --primary-color: #3a7bd5;
-      --primary-hover: #2d62a3;
-      --secondary-color: #00d2ff;
-      --accent-color: #00b8d4;
-      --success-color: #4caf50;
-      --danger-color: #f44336;
-      --danger-hover: #d32f2f;
-      --background-color: #f8f9fa;
-      --card-bg: #ffffff;
-      --text-primary: #333333;
-      --text-secondary: #555555;
-      --text-muted: #6c757d;
-      --border-color: #e0e0e0;
-      --shadow: 0 5px 20px rgba(58, 123, 213, 0.1);
-      --border-radius: 8px;
-      --transition: all 0.3s ease;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     body {
-      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--background-color);
-      color: var(--text-primary);
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
       line-height: 1.6;
     }
 
-    /* Header styles */
-    .header {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    a {
+      text-decoration: none;
+    }
+
+    /* Header */
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px 0;
     }
 
     .header-container {
+      width: 80%;
+      margin: auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 5%;
-      max-width: 1200px;
-      margin: 0 auto;
     }
 
     .logo {
-      font-size: 24px;
-      font-weight: 700;
-      color: white;
-      letter-spacing: 0.5px;
+      font-size: 1.8rem;
+      font-weight: bold;
     }
 
     nav ul {
-      display: flex;
       list-style: none;
-      margin: 0;
-      padding: 0;
+      display: flex;
     }
 
     nav ul li {
-      margin-left: 25px;
+      margin-left: 20px;
     }
 
     nav ul li a {
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-      transition: var(--transition);
-      position: relative;
-      padding-bottom: 5px;
+      color: #fff;
+      font-size: 1rem;
+      transition: color 0.3s ease;
     }
 
-    nav ul li a:after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      background: white;
-      bottom: 0;
-      left: 0;
-      transition: var(--transition);
+    nav ul li a:hover {
+      color: #007BFF;
     }
 
-    nav ul li a:hover:after {
-      width: 100%;
-    }
-
-    /* Toggle menu styles */
-    .toggle-btn {
-      display: none;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 18px;
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 101;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
+    /* Menu styles */
     .menu {
       height: 100%;
       width: 0;
       position: fixed;
-      z-index: 999;
       top: 0;
-      left: 0;
-      background: var(--card-bg);
+      right: 0;
+      background-color: #333;
       overflow-x: hidden;
-      transition: 0.5s;
+      transition: 0.3s;
       padding-top: 60px;
-      box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
     }
 
     .menu a {
-      padding: 15px 25px;
+      padding: 10px 15px;
       text-decoration: none;
-      font-size: 18px;
-      color: var(--text-primary);
+      font-size: 20px;
+      color: white;
       display: block;
-      transition: 0.3s;
-      border-bottom: 1px solid var(--border-color);
+      transition: 0.2s;
     }
 
     .menu a:hover {
-      background-color: rgba(58, 123, 213, 0.1);
-      color: var(--primary-color);
+      background-color: #575757;
     }
 
-    .menu .close-btn {
+    .toggle-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      background-color: #007BFF;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .close-btn {
       position: absolute;
       top: 10px;
-      right: 20px;
-      font-size: 30px;
+      left: 15px;
+      font-size: 25px;
+      color: white;
       cursor: pointer;
-      color: var(--text-primary);
     }
 
     /* Form container and elements */
     .form-container {
       max-width: 800px;
       margin: 40px auto;
-      background: var(--card-bg);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
+      background: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       padding: 35px;
-      transition: var(--transition);
+      transition: all 0.3s ease;
     }
 
     .form-container:hover {
-      box-shadow: 0 8px 25px rgba(58, 123, 213, 0.15);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     .form-title {
       text-align: center;
       margin-bottom: 30px;
-      color: var(--primary-color);
+      color: #007BFF;
       font-size: 28px;
       font-weight: 600;
-    }
-
-    .form-section {
-      border-top: 1px solid var(--border-color);
-      padding-top: 25px;
-      margin-top: 30px;
-    }
-
-    .form-section:first-of-type {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 0;
-    }
-
-    .form-section h3 {
-      margin-bottom: 25px;
-      color: var(--primary-color);
-      font-weight: 600;
-      position: relative;
-      padding-left: 15px;
-    }
-
-    .form-section h3:before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 5px;
-      height: 20px;
-      background: var(--primary-color);
-      border-radius: 3px;
     }
 
     .form-group {
@@ -214,23 +141,23 @@
       display: block;
       margin-bottom: 8px;
       font-weight: 500;
-      color: var(--text-secondary);
+      color: #555;
     }
 
     .form-control {
       width: 100%;
       padding: 12px 15px;
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
+      border: 1px solid #ddd;
+      border-radius: 5px;
       font-size: 16px;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       background-color: #f9f9f9;
     }
 
     .form-control:focus {
-      border-color: var(--primary-color);
+      border-color: #007BFF;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.15);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
       background-color: white;
     }
 
@@ -255,6 +182,7 @@
       margin-top: 10px;
       display: flex;
       flex-wrap: wrap;
+      gap: 15px;
     }
 
     .checkbox-item {
@@ -272,16 +200,16 @@
       appearance: none;
       width: 18px;
       height: 18px;
-      border: 2px solid var(--border-color);
+      border: 2px solid #ddd;
       border-radius: 4px;
       outline: none;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       position: relative;
     }
 
     input[type="checkbox"]:checked {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
+      background-color: #007BFF;
+      border-color: #007BFF;
     }
 
     input[type="checkbox"]:checked:after {
@@ -306,41 +234,41 @@
       padding: 12px 24px;
       font-size: 16px;
       font-weight: 500;
-      border-radius: var(--border-radius);
+      border-radius: 5px;
       cursor: pointer;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       border: none;
     }
 
     .submit-btn {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      background-color: #007BFF;
       color: white;
     }
 
     .submit-btn:hover {
-      background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+      background-color: #0056b3;
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
     }
 
     .cancel-btn {
-      background-color: var(--danger-color);
+      background-color: #dc3545;
       color: white;
     }
 
     .cancel-btn:hover {
-      background-color: var(--danger-hover);
+      background-color: #c82333;
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+      box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
     }
 
-    /* Footer styling */
+    /* Footer */
     footer {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
+      background-color: #333;
+      color: #fff;
       text-align: center;
       padding: 20px 0;
-      margin-top: 50px;
+      margin-top: 30px;
     }
 
     /* Responsive design */
@@ -376,237 +304,137 @@
         display: none;
       }
     }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary-color);
-      border-radius: 5px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-hover);
-    }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .form-section {
-      animation: fadeIn 0.5s ease-out forwards;
-    }
-
-    .form-section:nth-child(2) {
-      animation-delay: 0.1s;
-    }
-
-    .form-section:nth-child(3) {
-      animation-delay: 0.2s;
-    }
-
-    .form-section:nth-child(4) {
-      animation-delay: 0.3s;
-    }
   </style>
 </head>
 
 <body>
   <!-- Header -->
-  <header>
-    <<div class="header-container">
+  <header class="header">
+    <div class="header-container">
       <div class="logo">CollabSync</div>
       <nav>
         <ul>
           <li><a href="/brand/home">Home</a></li>
           <li><a href="/brand/explore">Explore Influencers</a></li>
           <li><a href="/brand/profile">My Brand Profile</a></li>
-          <!-- <li><a href="logout">Logout</a></li> -->
         </ul>
       </nav>
-      </div>
+    </div>
   </header>
 
-  <!-- Sidebar Navigation (Right Side) -->
+  <!-- Sidebar Navigation -->
   <button class="toggle-btn" onclick="openMenu()">☰</button>
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
-    <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
     <a href="/brand/collab">Collabs</a>
     <a href="/brand/recievedRequests">Collab requests</a>
     <a href="/brand/create_collab">Create Collab</a>
-    <a href="/">Sign Out</a>
-    <!-- <a href="#">Settings</a> -->
+    <a href="/brand/create_offer">Create Offer</a>
+    <a href="/brand/signout">Sign Out</a>
   </div>
-
 
   <div class="form-container">
     <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Collaboration</h2>
 
-    <form id="collaborationForm">
-      <div class="form-section">
-        <h3>Basic Information</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="campaignName">Campaign Name</label>
-            <input type="text" id="campaignName" class="form-control" placeholder="Enter campaign name" required>
-          </div>
-          <div class="form-group">
-            <label for="brand">Brand</label>
-            <select id="brand" class="form-control" required>
-              <option value="" disabled selected>Select your brand</option>
-              <option value="naturecare">NatureCare Co.</option>
-              <option value="fitlife">FitLife Athletic</option>
-              <option value="techpro">TechPro Solutions</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+    <form method="POST" action="/brand/campaigns/create">
+      <div class="form-group">
+        <label for="title">Campaign Title</label>
+        <input type="text" class="form-control" id="title" name="title" required maxlength="100"
+          placeholder="Enter campaign title (max 100 characters)">
+      </div>
+
+      <div class="form-group">
+        <label for="description">Campaign Description</label>
+        <textarea class="form-control" id="description" name="description" required maxlength="1000"
+          placeholder="Describe your campaign (max 1000 characters)"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="start_date">Start Date</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" required>
         </div>
 
         <div class="form-group">
-          <label for="description">Campaign Description</label>
-          <textarea id="description" class="form-control"
-            placeholder="Describe your campaign goals, target audience, and what you're looking for in collaborators"
-            required></textarea>
+          <label for="end_date">End Date</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" required>
         </div>
       </div>
 
-      <div class="form-section">
-        <h3>Collaboration Details</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="startDate">Start Date</label>
-            <input type="date" id="startDate" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label for="endDate">End Date</label>
-            <input type="date" id="endDate" class="form-control" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="budget">Budget Range</label>
-            <select id="budget" class="form-control" required>
-              <option value="" disabled selected>Select budget range</option>
-              <option value="under500">Under $500</option>
-              <option value="500-1000">$500 - $1,000</option>
-              <option value="1000-5000">$1,000 - $5,000</option>
-              <option value="5000-10000">$5,000 - $10,000</option>
-              <option value="over10000">Over $10,000</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="collaborationType">Collaboration Type</label>
-            <select id="collaborationType" class="form-control" required>
-              <option value="" disabled selected>Select type</option>
-              <option value="sponsored">Sponsored Content</option>
-              <option value="affiliate">Affiliate Marketing</option>
-              <option value="ambassador">Brand Ambassador</option>
-              <option value="productReview">Product Review</option>
-              <option value="giveaway">Giveaway/Contest</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3>Targeting & Requirements</h3>
+      <div class="form-row">
         <div class="form-group">
-          <label>Social Media Platforms</label>
-          <div class="checkbox-group">
-            <div class="checkbox-item">
-              <input type="checkbox" id="instagram" name="platforms">
-              <label for="instagram">Instagram</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="tiktok" name="platforms">
-              <label for="tiktok">TikTok</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="youtube" name="platforms">
-              <label for="youtube">YouTube</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="facebook" name="platforms">
-              <label for="facebook">Facebook</label>
-            </div>
-            <div class="checkbox-item">
-              <input type="checkbox" id="twitter" name="platforms">
-              <label for="twitter">Twitter</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="minFollowers">Minimum Followers</label>
-            <select id="minFollowers" class="form-control">
-              <option value="" disabled selected>Select minimum</option>
-              <option value="1000">1,000+</option>
-              <option value="5000">5,000+</option>
-              <option value="10000">10,000+</option>
-              <option value="50000">50,000+</option>
-              <option value="100000">100,000+</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="targetAudience">Target Audience</label>
-            <input type="text" id="targetAudience" class="form-control"
-              placeholder="Age range, interests, demographics">
-          </div>
+          <label for="duration">Duration (days)</label>
+          <input type="number" class="form-control" id="duration" name="duration" required min="1"
+            placeholder="Enter duration in days (min 1)">
         </div>
 
         <div class="form-group">
-          <label for="additionalRequirements">Additional Requirements</label>
-          <textarea id="additionalRequirements" class="form-control"
-            placeholder="Specific requirements for influencers, content guidelines, etc."></textarea>
+          <label for="budget">Budget</label>
+          <input type="number" class="form-control" id="budget" name="budget" required min="0" step="0.01"
+            placeholder="Enter budget (min 0)">
         </div>
       </div>
 
-      <div class="form-section">
-        <h3>Contact Information</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="contactName">Contact Name</label>
-            <input type="text" id="contactName" class="form-control" required>
+      <div class="form-group">
+        <label for="target_audience">Target Audience</label>
+        <input type="text" class="form-control" id="target_audience" name="target_audience" required
+          placeholder="Describe your target audience">
+      </div>
+
+      <div class="form-group">
+        <label>Required Social Media Channels <span style="color: var(--danger-color);">*</span></label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram" required>
+            <label for="channel-instagram">Instagram</label>
           </div>
-          <div class="form-group">
-            <label for="contactEmail">Contact Email</label>
-            <input type="email" id="contactEmail" class="form-control" required>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="YouTube" id="channel-youtube">
+            <label for="channel-youtube">YouTube</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="TikTok" id="channel-tiktok">
+            <label for="channel-tiktok">TikTok</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="Facebook" id="channel-facebook">
+            <label for="channel-facebook">Facebook</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="Twitter" id="channel-twitter">
+            <label for="channel-twitter">Twitter</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="LinkedIn" id="channel-linkedin">
+            <label for="channel-linkedin">LinkedIn</label>
           </div>
         </div>
+        <small style="color: var(--text-muted);">Select at least one channel.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="min_followers">Minimum Followers Required</label>
+        <input type="number" class="form-control" id="min_followers" name="min_followers" required min="0"
+          placeholder="Enter minimum followers (min 0)">
+      </div>
+
+      <div class="form-group">
+        <label for="objectives">Campaign Objectives</label>
+        <textarea class="form-control" id="objectives" name="objectives" required maxlength="500"
+          placeholder="State your campaign objectives (max 500 characters)"></textarea>
       </div>
 
       <div class="btn-group">
-        <button type="button" class="cancel-btn">Cancel</button>
-        <button type="submit" class="submit-btn">Submit Collaboration</button>
+        <button type="submit" class="submit-btn">Create Campaign</button>
+        <button type="button" class="cancel-btn" onclick="window.location.href='/brand/home'">Cancel</button>
       </div>
     </form>
-  </div>
   </div>
 
   <footer>
     <p>&copy; 2025 CollabSync. All rights reserved.</p>
   </footer>
 
-  <!-- This script handles the sidebar toggle. -->
   <script>
     function openMenu() {
       document.getElementById("navMenu").style.width = "250px";
@@ -615,18 +443,6 @@
       document.getElementById("navMenu").style.width = "0";
     }
   </script>
-
-  <!-- This script handles the sidebar toggle. -->
-  <script>
-    function openMenu() {
-      document.getElementById("navMenu").style.width = "250px";
-    }
-    function closeMenu() {
-      document.getElementById("navMenu").style.width = "0";
-    }
-  </script>
-
-
 </body>
 
 </html>

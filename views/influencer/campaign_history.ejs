@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign History - Influencer Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-gray: #f5f6fa;
+            --dark-gray: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-gray);
+            margin: 0;
+            padding-top: 60px;
+        }
+
+        .header {
+            background-color: var(--dark-gray);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--primary-color);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .campaign-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .campaign-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .campaign-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            margin: 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-card {
+            background: var(--light-gray);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+        }
+
+        .metric-label {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .campaign-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-label {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--dark-gray);
+        }
+
+        .channel-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin: 0.25rem;
+        }
+
+        .performance-score {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .no-campaigns {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-campaigns i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .no-campaigns h3 {
+            color: var(--dark-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-campaigns p {
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/influencer/home">Home</a></li>
+                    <li><a href="/influencer/explore">Explore Brands</a></li>
+                    <li><a href="/influencer/profile">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation (Right Side) -->
+    <button class="toggle-btn" onclick="openMenu()">☰</button>
+    <div class="menu" id="navMenu">
+        <span class="close-btn" onclick="closeMenu()">&times;</span>
+        <!-- <a href="#">Influencers</a> -->
+        <a href="/influencer/collab">Collabs</a>
+        <a href="/influencer/signout">Sign Out</a>
+        <!-- <a href="#">Settings</a> -->
+    </div>
+
+    <main class="main-content">
+        <h1 class="mb-4">Campaign History</h1>
+
+        <% if (campaigns && campaigns.length> 0) { %>
+            <% campaigns.forEach(campaign=> { %>
+                <div class="campaign-card">
+                    <div class="campaign-header">
+                        <div class="brand-info">
+                            <img src="<%= campaign.brand_logo %>" alt="<%= campaign.brand_name %>" class="brand-logo">
+                            <div>
+                                <h2 class="campaign-title">
+                                    <%= campaign.campaign_name %>
+                                </h2>
+                                <p class="text-muted mb-0">
+                                    <%= campaign.brand_name %>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="performance-score">
+                            Score: <%= campaign.performance_score.toFixed(1) %>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <%= campaign.engagement_rate.toFixed(2) %>%
+                            </div>
+                            <div class="metric-label">Engagement Rate</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <%= campaign.reach.toLocaleString() %>
+                            </div>
+                            <div class="metric-label">Reach</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <%= campaign.clicks.toLocaleString() %>
+                            </div>
+                            <div class="metric-label">Clicks</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <%= campaign.conversions.toFixed(2) %>%
+                            </div>
+                            <div class="metric-label">Conversion Rate</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <%= campaign.impressions.toLocaleString() %>
+                            </div>
+                            <div class="metric-label">Impressions</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">$<%= campaign.revenue.toLocaleString() %>
+                            </div>
+                            <div class="metric-label">Revenue</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">
+                                <%= campaign.roi.toFixed(2) %>%
+                            </div>
+                            <div class="metric-label">ROI</div>
+                        </div>
+                    </div>
+
+                    <div class="campaign-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Duration:</span>
+                            <span class="detail-value">
+                                <%= campaign.duration %> days
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Budget:</span>
+                            <span class="detail-value">$<%= campaign.budget.toLocaleString() %></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Start Date:</span>
+                            <span class="detail-value">
+                                <%= new Date(campaign.start_date).toLocaleDateString() %>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">End Date:</span>
+                            <span class="detail-value">
+                                <%= new Date(campaign.end_date).toLocaleDateString() %>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Target Audience:</span>
+                            <span class="detail-value">
+                                <%= campaign.target_audience %>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Channels:</span>
+                            <span class="detail-value">
+                                <% campaign.required_channels.forEach(channel=> { %>
+                                    <span class="channel-badge">
+                                        <%= channel %>
+                                    </span>
+                                    <% }); %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                    <% } else { %>
+                        <div class="no-campaigns">
+                            <i class="fas fa-history"></i>
+                            <h3>No Campaign History</h3>
+                            <p>You haven't completed any campaigns yet.</p>
+                        </div>
+                        <% } %>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle functions
+        function openMenu() {
+            document.getElementById("navMenu").style.width = "250px";
+        }
+
+        function closeMenu() {
+            document.getElementById("navMenu").style.width = "0";
+        }
+    </script>
+</body>
+
+</html>

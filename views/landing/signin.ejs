@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - CollabSync</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Helvetica, sans-serif;
+      background-color: #f4f4f4;
+      color: aquamarine;
+    }
+
+    /* Container for the form and image */
+    .signin-container {
+      display: flex;
+      max-width: 1000px;
+      margin: 100px auto;
+      border: 5px solid red;
+      background-color: black;
+      color: aquamarine;
+      min-height: 500px;
+    }
+
+    /* Form container on the left */
+    .form-container {
+      flex: 1;
+      background-color: purple;
+      /* Changed inner background to purple */
+      padding: 30px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* Vertically center content */
+    }
+
+    .form-container h1,
+    .form-container h2 {
+      text-align: center;
+      color: aquamarine;
+      margin-bottom: 20px;
+      /* Gap between headings and the rest */
+    }
+
+    .form-container p {
+      font-size: 20px;
+      font-family: monospace;
+      color: blue;
+      margin: 10px 0;
+    }
+
+    .form-container label {
+      display: inline-block;
+      width: 150px;
+      text-align: right;
+      margin-right: 10px;
+    }
+
+    .form-container input[type="email"],
+    .form-container input[type="password"] {
+      padding: 5px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      /* Added gap between fields */
+    }
+
+    .form-container button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: red;
+      color: aquamarine;
+      border: none;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+    }
+
+    .checkbox-container {
+      margin: 20px 0;
+      text-align: left;
+      margin-left: 160px;
+    }
+
+    .form-container a {
+      color: blue;
+      text-decoration: none;
+      font-size: 18px;
+    }
+
+    /* Image container on the right */
+    .image-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .image-container img {
+      /* changing here */
+      max-width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="signin-container">
+    <div class="form-container">
+      <h1>Sign In</h1>
+      <form id="signinForm" action="/auth/signin" method="post">
+        <h2>Enter your Credentials</h2>
+        <div id="messageBox" class="message"></div>
+        <p>
+          <label for="email">Email ID:</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </p>
+        <p>
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </p>
+        <!-- <div class="checkbox-container">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember" style="display:inline;">Remember me</label>
+        </div> -->
+        <p>
+          <button type="submit">Sign In</button>
+        </p>
+        <!-- <p style="text-align: center;">
+          <a href="/forgot-password" id="forgotPasswordLink">Forgot Password?</a>
+        </p> -->
+      </form>
+    </div>
+    <div class="image-container">
+      <img src="/Sign/SignUp_picture3.jpg" height="600px" width="700px" alt="Sign In Illustration">
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('signinForm');
+      const messageBox = document.getElementById('messageBox');
+      const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+
+      function showMessage(message, type) {
+        messageBox.textContent = message;
+        messageBox.className = `message ${type}`;
+        messageBox.style.display = 'block';
+
+        if (type === 'success') {
+          setTimeout(() => {
+            messageBox.style.display = 'none';
+          }, 3000);
+        }
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = {
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+          // remember: document.getElementById('remember').checked
+        };
+
+        try {
+          const response = await fetch('/auth/signin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showMessage(data.message, 'success');
+            setTimeout(() => {
+              window.location.href = data.redirectUrl;
+            }, 1500);
+          } else {
+            showMessage(data.message, 'error');
+          }
+        } catch (error) {
+          showMessage('An error occurred. Please try again.', 'error');
+        }
+      });
+
+      // forgotPasswordLink.addEventListener('click', async function (e) {
+      // e.preventDefault();
+      //   const email = document.getElementById('email').value.trim();
+
+      //   if (!email) {
+      //     showMessage('Please enter your email address first.', 'error');
+      //     return;
+      //   }
+
+      //   try {
+      //     const response = await fetch('/auth/forgot-password', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Content-Type': 'application/json'
+      //       },
+      //       body: JSON.stringify({ email })
+      //     });
+
+      //     const data = await response.json();
+
+      //     if (response.ok) {
+      //       showMessage(data.message, 'success');
+      //     } else {
+      //       showMessage(data.message, 'error');
+      //     }
+      //   } catch (error) {
+      //     showMessage('An error occurred. Please try again.', 'error');
+      //   }
+      // });
+    });
+  </script>
+</body>
+
+</html>

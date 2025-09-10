@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Influencers - CollabSync</title>
+  <link rel="stylesheet" href="/B2_index/B2_explore.css">
+  <style>
+    .influencer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .influencer-list.grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .toggle-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .toggle-button {
+      padding: 10px 20px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .toggle-button:hover {
+      background-color: #3367d6;
+    }
+
+    .influencer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .influencer-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .influencer-content {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .influencer-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e0e0e0;
+    }
+
+    .influencer-info {
+      flex: 1;
+    }
+
+    .influencer-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .influencer-name h2 {
+      margin: 0;
+      font-size: 1.2em;
+      color: #333;
+    }
+
+    .verified-badge {
+      color: #4285f4;
+      font-size: 1.1em;
+    }
+
+    .influencer-details {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-left: 20px;
+    }
+
+    .invite-button, .profile-button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      font-size: 0.9em;
+      transition: all 0.2s;
+    }
+
+    .invite-button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      min-width: 80px;
+    }
+
+    .invite-button:hover {
+      background: #3367d6;
+    }
+
+    .profile-button {
+      background: white;
+      color: #4285f4;
+      border: 1px solid #4285f4;
+      min-width: 100px;
+    }
+
+    .profile-button:hover {
+      background: #f8f9fa;
+    }
+
+    @media (max-width: 768px) {
+      .influencer-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .influencer-content {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+
+      .button-group {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .invite-button, .profile-button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/brand/home">Home</a></li>
+          <li><a href="/brand/explore">Explore Influencers</a></li>
+          <li><a href="/brand/profile">My Brand Profile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <a href="/brand/collab">Collabs</a>
+    <a href="/brand/recievedRequests">Collab requests</a>
+    <a href="/brand/create_collab">Create Collab</a>
+    <a href="/brand/create_offer">Create Offer</a>
+    <a href="/brand/signout">Sign Out</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="intro">
+      <h1>Explore Influencers</h1>
+      <p>Connect with top influencers to elevate your brand's presence.</p>
+    </div>
+
+    <!-- Toggle Button -->
+    <div class="toggle-container">
+      <button class="toggle-button" onclick="toggleLayout()">Toggle Layout</button>
+    </div>
+
+    <!-- Influencer List -->
+    <div class="influencer-list" id="influencerList">
+      <% if (influencers && influencers.length > 0) { %>
+        <% influencers.forEach(function(influencer) { %>
+          <div class="influencer-item">
+            <div class="influencer-content">
+              <img class="influencer-image" 
+                src="<%= influencer.profilePicUrl || '/images/default-profile.jpg' %>" 
+                alt="<%= influencer.displayName %>">
+              <div class="influencer-info">
+                <div class="influencer-name">
+                  <h2><%= influencer.displayName %></h2>
+                  <% if (influencer.verified) { %>
+                    <span class="verified-badge">✓</span>
+                  <% } %>
+                </div>
+                <div class="influencer-details">
+                  <p><strong>Niche:</strong> <%= influencer.niche || 'Not specified' %></p>
+                  <p><strong>Followers:</strong> <%= influencer.totalFollowers.toLocaleString() %></p>
+                  <p><strong>Engagement Rate:</strong> <%= influencer.avgEngagementRate.toFixed(2) %>%</p>
+                  <% if (influencer.categories && influencer.categories.length > 0) { %>
+                    <p><strong>Categories:</strong> <%= influencer.categories.join(', ') %></p>
+                  <% } %>
+                  <% if (influencer.audienceDemographics) { %>
+                    <p><strong>Audience:</strong> <%= influencer.audienceDemographics.gender %>, <%= influencer.audienceDemographics.ageRange %></p>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="invite-button">Invite</button>
+              <a href="/brand/influencer_profile/<%= influencer._id %>" class="profile-button">View Profile</a>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="no-influencers-message" style="text-align: center; padding: 20px;">
+          <h2>No influencers found</h2>
+          <p>There are currently no influencers available for collaboration.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+
+    function toggleLayout() {
+      const influencerList = document.getElementById('influencerList');
+      influencerList.classList.toggle('grid');
+      const button = document.querySelector('.toggle-button');
+      button.textContent = influencerList.classList.contains('grid') ? 'Switch to List View' : 'Switch to Grid View';
+    }
+  </script>
+</body>
+
+</html>

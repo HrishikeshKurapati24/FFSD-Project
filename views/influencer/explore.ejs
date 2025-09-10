@@ -1,0 +1,158 @@
+<!-- location: views/influencer/I_explore -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Brands - CollabSync</title>
+  <link rel="stylesheet" href="/i_index/I_explore.css">
+  <style>
+    .brand-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .brand-list.grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .toggle-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .toggle-button {
+      padding: 10px 20px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .toggle-button:hover {
+      background-color: #3367d6;
+    }
+
+    .brand-details h2 {
+      color: #007BFF;
+      font-size: 1.4rem;
+      margin-bottom: 5px;
+    }
+
+    .profile-button {
+      display: inline-block;
+      padding: 10px 16px;
+      background-color: #ffffff;
+      color: #007BFF;
+      border: 2px solid #007BFF;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .profile-button:hover {
+      background-color: #007BFF;
+      color: #ffffff;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .collab-button,
+    .profile-button {
+      flex: 1;
+      /* Optional: makes both buttons equal width */
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/influencer/home">Home</a></li>
+          <li><a href="/influencer/explore">Explore Brands</a></li>
+          <li><a href="/influencer/profile">My Profile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <a href="/influencer/collab">Collabs</a>
+    <a href="/influencer/signout">Sign Out</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="intro">
+      <h1>Explore Brands</h1>
+      <p>Connect with top brands to elevate your collaboration opportunities.</p>
+    </div>
+
+    <!-- Toggle Button -->
+    <div class="toggle-container">
+      <button class="toggle-button" onclick="toggleLayout()">Toggle Grid/List View</button>
+    </div>
+
+    <!-- Brand List -->
+    <div class="brand-list" id="brandList">
+      <% if (brands && brands.length> 0) { %>
+        <% brands.forEach(function(brand) { %>
+          <div class="brand-item">
+            <img src="<%= brand.logoUrl || '/images/default-brand.png' %>" alt="<%= brand.name %>">
+            <div class="brand-details">
+              <h2 class="brand-name">
+                <%= brand.name %>
+              </h2>
+              <p>Fields of Operation: <%= brand.categories ? brand.categories.join(', ') : ' Not specified' %>
+              </p>
+            </div>
+          </div>
+          <% }); %>
+            <% } else { %>
+              <div class="no-brands-message">
+                <h2>No brands found</h2>
+                <p>There are currently no brands available for collaboration.</p>
+              </div>
+              <% } %>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+
+    function toggleLayout() {
+      const brandList = document.getElementById('brandList');
+      brandList.classList.toggle('grid');
+      const button = document.querySelector('.toggle-button');
+      button.textContent = brandList.classList.contains('grid') ? 'Switch to List View' : 'Switch to Grid View';
+    }
+  </script>
+</body>
+
+</html>

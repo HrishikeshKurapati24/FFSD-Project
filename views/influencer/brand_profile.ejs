@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+        <%= brand.name %> Profile | CollabSync
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/i_index/I_profile2.css" />
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/influencer/home">Home</a></li>
+                    <li><a href="/influencer/explore">Explore Brands</a></li>
+                    <li><a href="/influencer/profile">My Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <button class="toggle-btn" onclick="openMenu()">☰</button>
+    <div class="menu" id="navMenu">
+        <span class="close-btn" onclick="closeMenu()">&times;</span>
+        <a href="/influencer/collab">Collabs</a>
+        <a href="/influencer/signout">Sign Out</a>
+    </div>
+
+    <div class="container">
+        <!-- Profile Banner -->
+        <section class="profile-banner">
+            <div class="banner-image"
+                style="background-image: url('<%= brand.bannerUrl || \'/images/default-banner.jpg\' %>');">
+            </div>
+            <div class="profile-info">
+                <div class="profile-pic">
+                    <img src="<%= brand.logoUrl %>" alt="<%= brand.name %>" />
+                </div>
+                <div class="profile-name">
+                    <h1>
+                        <%= brand.username %>
+                    </h1>
+                    <p class="username">@<%= brand.username %>
+                    </p>
+                    <div class="profile-status">
+                        <% if (brand.verified) { %>
+                            <span class="premium-badge">
+                                <i class="fas fa-check-circle"></i> VERIFIED
+                            </span>
+                            <% } else { %>
+                                <span class="premium-badge pending-badge">
+                                    <i class="fas fa-clock"></i> PENDING VERIFICATION
+                                </span>
+                                <% } %>
+                                    <span class="influence-info">
+                                        Primary market: <%= brand.primaryMarket || 'Not specified' %>
+                                            <% if (brand.primaryMarket) { %>
+                                                <%= brand.primaryMarket.includes('Global') ? '🌎' : '' %>
+                                                    <%= brand.primaryMarket.includes('US') ? '🇺🇸' : '' %>
+                                                        <%= brand.primaryMarket.includes('UK') ? '🇬🇧' : '' %>
+                                                            <%= brand.primaryMarket.includes('Europe') ? '🇪🇺' : '' %>
+                                                                <%= brand.primaryMarket.includes('Asia') ? '🌏' : '' %>
+                                                                    <% } %>
+                                    </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="profile-content">
+            <div class="profile-main">
+                <!-- About Tab -->
+                <div id="about-tab" class="tab-content active">
+                    <div class="profile-bio">
+                        <div class="section-header">
+                            <h2>About <%= brand.name %>
+                            </h2>
+                        </div>
+                        <p class="bio-text">
+                            <%= brand.description || 'No description provided.' %>
+                        </p>
+
+                        <% if (brand.mission) { %>
+                            <div class="info-section mission-section">
+                                <h3><i class="fas fa-bullseye"></i> Our Mission</h3>
+                                <p>
+                                    <%= brand.mission %>
+                                </p>
+                            </div>
+                            <% } %>
+
+                                <% if (brand.currentCampaign) { %>
+                                    <div class="info-section campaign-section">
+                                        <h3><i class="fas fa-rocket"></i> Current Campaign Goals</h3>
+                                        <p>
+                                            <%= brand.currentCampaign %>
+                                        </p>
+                                    </div>
+                                    <% } %>
+
+                                        <div class="info-section values-section">
+                                            <h3><i class="fas fa-heart"></i> Brand Values</h3>
+                                            <div class="values-tags">
+                                                <% brand.values.forEach(value=> { %>
+                                                    <span class="value-tag">
+                                                        <%= value %>
+                                                    </span>
+                                                    <% }); %>
+                                            </div>
+                                        </div>
+                    </div>
+
+                    <div class="metrics-section">
+                        <h2>Brand Performance</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.completedCampaigns %>
+                                </div>
+                                <div class="metric-label">Campaigns</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-users"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.influencerPartnerships %>
+                                </div>
+                                <div class="metric-label">Partnerships</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-star"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.avgCampaignRating %>
+                                </div>
+                                <div class="metric-label">Avg. Rating</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-icon"><i class="fas fa-bullhorn"></i></div>
+                                <div class="metric-value">
+                                    <%= brand.totalAudience.toLocaleString() %>
+                                </div>
+                                <div class="metric-label">Total Audience</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="campaigns-section">
+                        <h2>Top Campaigns</h2>
+                        <% if (brand.topCampaigns && brand.topCampaigns.length> 0) { %>
+                            <div class="campaigns-grid">
+                                <% brand.topCampaigns.forEach(campaign=> { %>
+                                    <div class="campaign-card">
+                                        <div class="campaign-status <%= campaign.status.toLowerCase() %>">
+                                            <i class="fas fa-circle"></i>
+                                            <%= campaign.status %>
+                                        </div>
+                                        <h3 class="campaign-title">
+                                            <%= campaign.title %>
+                                        </h3>
+                                        <div class="campaign-stats">
+                                            <div class="stat">
+                                                <i class="fas fa-chart-line"></i>
+                                                <span>
+                                                    <%= campaign.performance_score ?
+                                                        campaign.performance_score.toFixed(1) : '0.0' %>
+                                                </span>
+                                                <label>Performance</label>
+                                            </div>
+                                            <div class="stat">
+                                                <i class="fas fa-eye"></i>
+                                                <span>
+                                                    <%= campaign.reach ? campaign.reach.toLocaleString() : '0' %>
+                                                </span>
+                                                <label>Reach</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <% } else { %>
+                                <p class="no-data-message">No campaigns available to display.</p>
+                                <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-sidebar">
+                <div class="profile-card">
+                    <h3>Brand Categories</h3>
+                    <div class="category-tags">
+                        <% brand.categories.forEach(category=> { %>
+                            <span class="tag">
+                                <%= category %>
+                            </span>
+                            <% }); %>
+                    </div>
+                </div>
+
+                <div class="profile-card social-card">
+                    <h3>Social Media</h3>
+                    <div class="social-stats">
+                        <% brand.socialLinks.forEach(platform=> { %>
+                            <div class="social-item">
+                                <i class="fab fa-<%= platform.platform %>"></i>
+                                <span class="count">
+                                    <%= platform.followers.toLocaleString() %>
+                                </span>
+                                <span class="label">followers</span>
+                            </div>
+                            <% }); %>
+                    </div>
+                </div>
+
+                <div class="profile-card">
+                    <h3>Website</h3>
+                    <a href="<%= brand.website %>" class="website-link" target="_blank">
+                        <i class="fas fa-globe"></i>
+                        <%= brand.website.replace(/^https?:\/\//, '' ) %>
+                    </a>
+                </div>
+
+                <div class="profile-card audience-card">
+                    <h3>Target Audience</h3>
+                    <div class="audience-info">
+                        <div class="audience-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span><strong>Ages:</strong>
+                                <%= brand.targetAgeRange || 'Not specified' %>
+                            </span>
+                        </div>
+                        <div class="audience-item">
+                            <i class="fas fa-venus-mars"></i>
+                            <span><strong>Gender:</strong>
+                                <%= brand.targetGender || 'Not specified' %>
+                            </span>
+                        </div>
+                        <div class="audience-item interests">
+                            <i class="fas fa-hashtag"></i>
+                            <span><strong>Interests:</strong></span>
+                            <div class="interests-tags">
+                                <% if (brand.targetInterests && brand.targetInterests.length> 0) { %>
+                                    <% brand.targetInterests.forEach(interest=> { %>
+                                        <span class="interest-tag">
+                                            <%= interest %>
+                                        </span>
+                                        <% }); %>
+                                            <% } else { %>
+                                                Not specified
+                                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Removed Delete Account Button and Edit Profile Modals for Influencer View -->
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle functions
+        const navMenu = document.getElementById('navMenu');
+        if (navMenu) {
+            window.openMenu = function () {
+                navMenu.style.width = "250px";
+            };
+            window.closeMenu = function () {
+                navMenu.style.width = "0";
+            };
+        }
+    </script>
+</body>
+
+</html>

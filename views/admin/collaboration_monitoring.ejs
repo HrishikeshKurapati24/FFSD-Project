@@ -2,12 +2,15 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Collaboration Monitoring</title>
-    <link rel="stylesheet" href="/admin/admin_dashboard.css">
-    <link rel="stylesheet" href="/admin/collaboration_monitoring.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/admin/admin_dashboard.css" />
+    <link rel="stylesheet" href="/admin/collaboration_monitoring.css" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 </head>
 
 <body>
@@ -43,12 +46,6 @@
                                 <span>Payment Verification</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="/admin/feedback_and_moderation">
-                                <i class="fas fa-comments"></i>
-                                <span>Feedback & Moderation</span>
-                            </a>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -81,10 +78,8 @@
 
             <div class="profile">
                 <div class="profile-icon" onclick="toggleProfileDropdown()">
-                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image">
-                    <span id="user-name">
-                        <%= user.name %>
-                    </span>
+                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image" />
+                    <span id="user-name"><%= user && user.name ? user.name : 'Admin' %></span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="profile-dropdown" id="profile-dropdown">
@@ -106,73 +101,72 @@
 
             <!-- Filters -->
             <div class="filters">
-                <input type="text" id="search-collabs" placeholder="Search collaborations...">
+                <input type="text" id="search-collabs" placeholder="Search collaborations..." />
                 <select id="status-filter">
                     <option value="all">All Statuses</option>
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
                     <option value="completed">Completed</option>
                 </select>
-                <input type="date" id="start-date-filter" placeholder="Start Date">
-                <input type="date" id="end-date-filter" placeholder="End Date">
+                <input type="date" id="start-date-filter" placeholder="Start Date" />
+                <input type="date" id="end-date-filter" placeholder="End Date" />
                 <button id="reset-filters"><i class="fas fa-sync"></i> Reset Filters</button>
             </div>
 
             <!-- Collaboration Cards -->
             <div class="collab-grid">
-                <% if (collaborations && collaborations.length> 0) { %>
-                    <% collaborations.forEach(collab=> { %>
-                        <div class="collab-card" onclick="openCollabModal('<%= collab.id %>')">
-                            <h3>
-                                <%= collab.brand %> & <%= collab.influencer %>
-                            </h3>
-                            <p><strong>Status:</strong>
-                                <%= collab.status %>
-                            </p>
-                            <p><strong>Engagement Rate:</strong>
-                                <%= collab.engagementRate %>%
-                            </p>
-                            <p><strong>Reach:</strong>
-                                <%= collab.reach %>
-                            </p>
-                        </div>
-                        <% }); %>
-                            <% } else { %>
-                                <div class="no-data-message">
-                                    <p>No collaborations found</p>
-                                </div>
-                                <% } %>
-            </div>
-
-            <% if (typeof error !=='undefined' && error) { %>
-                <div class="error-message">
-                    <%= error %>
+                <% if (collaborations && collaborations.length > 0) { %>
+                <% collaborations.forEach((collab) => { %>
+                <% if (collab.influencers && collab.influencers.length > 0) { %>
+                <% collab.influencers.forEach((inf) => { %>
+                <div class="collab-card" onclick="openCollabModal('<%= collab.id %>')">
+                    <h3><%= collab.brand %> & <%= inf.influencer %></h3>
+                    <p><strong>Status:</strong> <%= collab.status || 'N/A' %></p>
+                    <p><strong>Engagement Rate:</strong> <%= inf.engagementRate != null ? inf.engagementRate : 'N/A' %>%</p>
+                    <p><strong>Reach:</strong> <%= inf.reach != null ? inf.reach : 'N/A' %></p>
+                </div>
+                <% }); %>
+                <% } else { %>
+                <div class="collab-card" onclick="openCollabModal('<%= collab.id %>')">
+                    <h3><%= collab.brand || 'Unknown Brand' %></h3>
+                    <p><strong>Status:</strong> <%= collab.status || 'N/A' %></p>
+                    <p>No influencer data available</p>
                 </div>
                 <% } %>
+                <% }); %>
+                <% } else { %>
+                <div class="no-data-message">
+                    <p>No collaborations found</p>
+                </div>
+                <% } %>
+            </div>
 
-                    <!-- Collaboration Details Modal -->
-                    <div id="collab-modal" class="modal">
-                        <div class="modal-content">
-                            <span class="close" onclick="closeCollabModal()">&times;</span>
-                            <h2 id="modal-collab-id">Collaboration Details</h2>
-                            <div class="modal-details">
-                                <p><strong>Brand:</strong> <span id="modal-brand"></span></p>
-                                <p><strong>Influencer:</strong> <span id="modal-influencer"></span></p>
-                                <p><strong>Status:</strong> <span id="modal-status"></span></p>
-                                <p><strong>Engagement Rate:</strong> <span id="modal-engagement"></span></p>
-                                <p><strong>Reach:</strong> <span id="modal-reach"></span></p>
-                            </div>
-                            <h3>Performance Analytics</h3>
-                            <canvas id="performanceChart"></canvas>
-                            <h3>Posts/Content</h3>
-                            <ul id="modal-posts"></ul>
-                        </div>
+            <% if (typeof error !== "undefined" && error) { %>
+            <div class="error-message"><%= error %></div>
+            <% } %>
+
+            <!-- Collaboration Details Modal -->
+            <div id="collab-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeCollabModal()">&times;</span>
+                    <h2 id="modal-collab-id">Collaboration Details</h2>
+                    <div class="modal-details">
+                        <p><strong>Brand:</strong> <span id="modal-brand"></span></p>
+                        <p><strong>Influencer:</strong> <span id="modal-influencer"></span></p>
+                        <p><strong>Status:</strong> <span id="modal-status"></span></p>
+                        <p><strong>Engagement Rate:</strong> <span id="modal-engagement"></span></p>
+                        <p><strong>Reach:</strong> <span id="modal-reach"></span></p>
                     </div>
+                    <h3>Performance Analytics</h3>
+                    <canvas id="performanceChart"></canvas>
+                    <h3>Posts/Content</h3>
+                    <ul id="modal-posts"></ul>
+                </div>
+            </div>
         </section>
     </div>
 
     <script src="/admin/admin_dashboard.js"></script>
-    <script src="/admin/collaboration_monitoring.js"></script>
 </body>
 
 </html>

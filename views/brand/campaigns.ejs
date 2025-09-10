@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign History - CollabSync</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/B2_index/B2_index.css">
+
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --accent-color: #ea4335;
+            --light-gray: #f8f9fa;
+            --dark-gray: #333;
+        }
+
+        .campaigns-header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .campaigns-header h1 {
+            color: var(--dark-gray);
+            margin-bottom: 10px;
+        }
+
+        .campaigns-header p {
+            color: #666;
+            margin: 0;
+        }
+
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 20px 0;
+        }
+
+        .campaign-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .campaign-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #e6f4ea;
+            color: var(--secondary-color);
+        }
+
+        .campaign-card h3 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--dark-gray);
+        }
+
+        .campaign-card p {
+            margin: 0;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .campaign-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .campaign-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .detail-item i {
+            color: var(--primary-color);
+        }
+
+        .campaign-influencers {
+            margin-top: 15px;
+        }
+
+        .influencer-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .influencer-tag {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: var(--light-gray);
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .influencer-tag img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--dark-gray);
+            background: white;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 35px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .no-campaigns {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-campaigns i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .no-campaigns h3 {
+            color: var(--dark-gray);
+            margin-bottom: 10px;
+        }
+
+        .no-campaigns p {
+            color: #666;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/brand/home">Home</a></li>
+                    <li><a href="/brand/explore">Explore Influencers</a></li>
+                    <li><a href="/brand/profile">My Brand Profile</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <button class="toggle-btn" onclick="openMenu()">☰</button>
+    <div class="menu" id="navMenu">
+        <span class="close-btn" onclick="closeMenu()">&times;</span>
+        <a href="/brand/collab">Collabs</a>
+        <a href="/brand/recievedRequests">Collab Requests</a>
+        <a href="/brand/create_collab">Create Collab</a>
+        <a href="/brand/create_offer">Create Offer</a>
+        <a href="/brand/signout">Sign Out</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="campaigns-header">
+            <h1>Campaign History</h1>
+            <p>View and analyze your past campaign performances</p>
+        </div>
+
+        <!-- Campaigns Grid -->
+        <div class="campaigns-grid">
+            <% if (campaigns && campaigns.length> 0) { %>
+                <% campaigns.forEach(campaign=> { %>
+                    <div class="campaign-card">
+                        <span class="campaign-status status-completed">
+                            <%= campaign.status %>
+                        </span>
+                        <h3>
+                            <%= campaign.title %>
+                        </h3>
+                        <p>
+                            <%= campaign.description %>
+                        </p>
+
+                        <div class="campaign-metrics">
+                            <div class="metric">
+                                <span class="metric-value">
+                                    <%= campaign.performance_score.toFixed(1) %>
+                                </span>
+                                <span class="metric-label">Performance</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-value">
+                                    <%= campaign.engagement_rate.toFixed(1) %>%
+                                </span>
+                                <span class="metric-label">Engagement</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-value">
+                                    <%= campaign.reach.toLocaleString() %>
+                                </span>
+                                <span class="metric-label">Reach</span>
+                            </div>
+                        </div>
+
+                        <div class="campaign-details">
+                            <div class="detail-item">
+                                <i class="far fa-calendar"></i>
+                                <span>Ended <%= new Date(campaign.end_date).toLocaleDateString() %></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-users"></i>
+                                <span>
+                                    <%= campaign.influencers_count %> influencers
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-tag"></i>
+                                <span>
+                                    <%= campaign.budget.toLocaleString() %> budget
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>
+                                    <%= campaign.conversion_rate %>% conversion
+                                </span>
+                            </div>
+                        </div>
+
+                        <% if (campaign.influencers && campaign.influencers.length> 0) { %>
+                            <div class="campaign-influencers">
+                                <h4>Influencers</h4>
+                                <div class="influencer-list">
+                                    <% campaign.influencers.forEach(influencer=> { %>
+                                        <div class="influencer-tag">
+                                            <img src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>"
+                                                alt="<%= influencer.name %>">
+                                            <span>
+                                                <%= influencer.name %>
+                                            </span>
+                                        </div>
+                                        <% }); %>
+                                </div>
+                            </div>
+                            <% } %>
+                    </div>
+                    <% }); %>
+                        <% } else { %>
+                            <div class="no-campaigns">
+                                <i class="fas fa-history"></i>
+                                <h3>No Campaign History</h3>
+                                <p>You haven't completed any campaigns yet.</p>
+                            </div>
+                            <% } %>
+        </div>
+    </div>
+
+    <script>
+        // Initialize all event listeners when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            // Menu toggle functions
+            window.openMenu = function () {
+                const menu = document.getElementById("navMenu");
+                if (menu) {
+                    menu.style.width = "250px";
+                }
+            };
+
+            window.closeMenu = function () {
+                const menu = document.getElementById("navMenu");
+                if (menu) {
+                    menu.style.width = "0";
+                }
+            };
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function (e) {
+                const menu = document.getElementById('navMenu');
+                const toggleBtn = document.querySelector('.toggle-btn');
+                if (menu && toggleBtn && !menu.contains(e.target) && !toggleBtn.contains(e.target)) {
+                    menu.style.width = "0";
+                }
+            });
+    </script>
+</body>
+
+</html>

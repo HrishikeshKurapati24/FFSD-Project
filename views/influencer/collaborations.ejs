@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collabs - CollabSync</title>
+  <link rel="stylesheet" href="/i_index/I_collab.css">
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/influencer/home">Home</a></li>
+          <li><a href="/influencer/explore">Explore Brands</a></li>
+          <li><a href="/influencer/profile">My Profile</a></li>
+          <!-- <li><a href="logout">Logout</a></li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <a href="/influencer/collab">Collabs</a>
+    <a href="/influencer/signout">Sign Out</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <input type="text" class="search-bar" id="searchBar" placeholder="Search for collabs..." onkeyup="searchCollabs()">
+    <div class="collab-list" id="collabList">
+      <% collabs.forEach(collab=> { %>
+        <div class="collab-box" data-title="<%= collab.title.toLowerCase() %>">
+          <div class="collab-title">
+            <%= collab.title %>
+          </div>
+          <div class="bottom-row">
+            <div class="left-col">
+              <div class="blue-box">
+                <span class="attr">By:</span> <span class="value">
+                  <%= collab.brand_name %>
+                </span><br>
+                <span class="attr">Target Audience:</span> <span class="value">
+                  <%= collab.influence_regions %>
+                </span><br>
+                <span class="attr">Duration:</span><span class="value">
+                  <%= collab.duration %>
+                </span>
+                <span class="attr">Required Platforms:</span> <span class="value">
+                  <%= collab.interests %>
+                </span><br>
+                <span class="attr">Budget:</span> <span class="value">
+                  <%= collab.budget %>
+                </span><br>
+                <span class="attr">Commission(Profit share):</span> <span class="value">
+                  <%= collab.commission %>
+                </span>
+              </div>
+              <div class="offer-sentence">
+                <%= collab.offer_sentence %>
+              </div>
+            </div>
+            <div class="red-col">
+              <div class="collab-requirements">
+                <h3>Requirements:</h3>
+                <p>
+                  <span class="attr">Channels:</span> <span class="value">
+                    <%= collab.channels %>
+                  </span><br>
+                  <span class="attr">Minimum Followers:</span> <span class="value">
+                    <%= collab.min_followers %>
+                  </span><br>
+                  <span class="attr">Age Group:</span> <span class="value">
+                    <%= collab.age_group %>
+                  </span><br>
+                  <span class="attr">Genders:</span> <span class="value">
+                    <%= collab.genders %>
+                  </span>
+                </p>
+                <a href="/influencer/collab/<%= collab.id %>" class="view-btn">View Details</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+    </div>
+
+    <!-- This script handles the sidebar toggle and search functionality. -->
+    <script>
+      function openMenu() {
+        document.getElementById("navMenu").style.width = "250px";
+      }
+      function closeMenu() {
+        document.getElementById("navMenu").style.width = "0";
+      }
+
+      function searchCollabs() {
+        const searchInput = document.getElementById('searchBar');
+        const searchTerm = searchInput.value.toLowerCase();
+        const collabBoxes = document.querySelectorAll('.collab-box');
+
+        collabBoxes.forEach(box => {
+          const title = box.getAttribute('data-title');
+          if (title.startsWith(searchTerm)) {
+            box.style.display = 'block';
+          } else {
+            box.style.display = 'none';
+          }
+        });
+      }
+    </script>
+
+</body>
+
+</html>

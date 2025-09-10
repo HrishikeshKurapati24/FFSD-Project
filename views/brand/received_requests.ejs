@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Received Requests - CollabSync</title>
+  <link rel="stylesheet" href="/B2_index/B2_recievedRequests.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/brand/home">Home</a></li>
+          <li><a href="/brand/explore">Explore Influencers</a></li>
+          <li><a href="/brand/profile">My Brand Profile</a></li>
+          <!-- <li><a href="logout">Logout</a></li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <!-- <a href="/I_explore">Brands</a> //////////////////////////////////////////////////////////////////////////////////////////////////////-->
+    <a href="/brand/collab">Collabs</a>
+    <a href="/brand/recievedRequests">Collab requests</a>
+    <a href="/brand/create_collab">Create Collab</a>
+    <a href="/brand/create_offer">Create Offer</a>
+    <a href="/brand/signout">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <input type="text" class="search-bar" placeholder="Search for collabs..." onkeyup="searchCollabs(this.value)">
+    <div class="collab-list">
+      <!-- Dynamically render requests -->
+      <% requests.forEach(request=> { %>
+        <div class="collab-box" data-title="<%= request.collab_title.toLowerCase() %>">
+          <div class="collab-header">
+            <h2 class="collab-title">
+              <%= request.collab_title %>
+            </h2>
+            <p class="collab-description">
+              <%= request.collab_description %>
+            </p>
+          </div>
+          <div class="bottom-row">
+            <!-- Left Column: Influencer Details -->
+            <div class="left-col">
+              <div class="blue-box">
+                <h3><i class="fas fa-user-circle"></i> Influencer Details</h3>
+                <div class="influencer-profile">
+                  <img src="<%= request.influencer_profile_pic || '/images/default-avatar.jpg' %>"
+                    alt="<%= request.influencer_name %>" class="influencer-avatar">
+                  <div class="influencer-info">
+                    <h4>
+                      <%= request.influencer_name %>
+                    </h4>
+                    <p class="influencer-username">@<%= request.influencer_username %>
+                    </p>
+                  </div>
+                </div>
+                <div class="influencer-stats">
+                  <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span class="attr">Total Followers:</span>
+                    <span class="value">
+                      <%= request.followers.toLocaleString() %>
+                    </span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="attr">Engagement Rate:</span>
+                    <span class="value">
+                      <%= request.engagement_rate %>%
+                    </span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="attr">Location:</span>
+                    <span class="value">
+                      <%= request.influencer_location || 'Not specified' %>
+                    </span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-tags"></i>
+                    <span class="attr">Categories:</span>
+                    <span class="value">
+                      <%= request.influencer_categories?.join(', ') || ' Not specified' %>
+                    </span>
+                  </div>
+                </div>
+                <div class="social-channels">
+                  <h4><i class="fas fa-share-alt"></i> Social Channels</h4>
+                  <div class="channels-grid">
+                    <% if (request.influencer_channels && request.influencer_channels.length> 0) { %>
+                      <% request.influencer_channels.forEach(channel=> { %>
+                        <div class="channel-item">
+                          <i class="fab fa-<%= channel.toLowerCase() %>"></i>
+                          <span>
+                            <%= channel %>
+                          </span>
+                        </div>
+                        <% }); %>
+                          <% } else { %>
+                            <p class="no-channels">No channels specified</p>
+                            <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Right Column: Collab Requirements -->
+            <div class="red-col">
+              <div class="collab-requirements">
+                <h3><i class="fas fa-clipboard-list"></i> Campaign Requirements</h3>
+                <div class="requirements-grid">
+                  <div class="requirement-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="attr">Duration:</span>
+                    <span class="value">
+                      <%= request.duration %> days
+                    </span>
+                  </div>
+                  <div class="requirement-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span class="attr">Budget:</span>
+                    <span class="value">$<%= request.budget.toLocaleString() %></span>
+                  </div>
+                  <div class="requirement-item">
+                    <i class="fas fa-users"></i>
+                    <span class="attr">Min Followers:</span>
+                    <span class="value">
+                      <%= request.min_followers.toLocaleString() %>
+                    </span>
+                  </div>
+                  <div class="requirement-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span class="attr">Target Audience:</span>
+                    <span class="value">
+                      <%= request.target_audience %>
+                    </span>
+                  </div>
+                </div>
+                <div class="channels-section">
+                  <h4><i class="fas fa-share-alt"></i> Required Channels</h4>
+                  <div class="channels-list">
+                    <% if (request.required_channels && request.required_channels.length> 0) { %>
+                      <% request.required_channels.forEach(channel=> { %>
+                        <span class="channel-badge">
+                          <%= channel %>
+                        </span>
+                        <% }); %>
+                          <% } else { %>
+                            <p class="no-channels">No channels required</p>
+                            <% } %>
+                  </div>
+                </div>
+                <div class="action-buttons">
+                  <a href="/brand/<%= request._cid %>/<%= request._iid %>/transaction" class="accept-btn">
+                    <i class="fas fa-check"></i> Accept and Proceed
+                  </a>
+                  <button class="decline-btn" onclick="declineRequest('<%= request._cid %>','<%= request._iid %>')">
+                    <i class="fas fa-times"></i> Decline
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+    </div>
+  </div>
+
+  <!-- Sidebar Toggle Script -->
+  <script>
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+
+    function searchCollabs(query) {
+      query = query.toLowerCase();
+      const collabBoxes = document.querySelectorAll('.collab-box');
+
+      collabBoxes.forEach(box => {
+        const title = box.getAttribute('data-title');
+        if (title.startsWith(query)) {
+          box.style.display = 'block';
+        } else {
+          box.style.display = 'none';
+        }
+      });
+    }
+
+    async function declineRequest(requestId1, requestId2) {
+      if (confirm('Are you sure you want to decline this request?')) {
+        try {
+          const response = await fetch(`/brand/requests/${requestId1}/${requestId2}/decline`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.textContent = data.message;
+            document.body.appendChild(successMessage);
+
+            // Remove message after 3 seconds
+            setTimeout(() => {
+              successMessage.remove();
+              location.reload();
+            }, 3000);
+          } else {
+            throw new Error(data.message || 'Failed to decline request');
+          }
+        } catch (error) {
+          console.error('Error declining request:', error);
+          alert(error.message || 'An error occurred while declining the request');
+        }
+      }
+    }
+
+    // Add styles for success message
+    const style = document.createElement('style');
+    style.textContent = `
+      .success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.5s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+
+  <style>
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .accept-btn,
+    .decline-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .accept-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .accept-btn:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
+    }
+
+    .decline-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .decline-btn:hover {
+      background-color: #da190b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(244, 67, 54, 0.2);
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .search-bar:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .search-bar::placeholder {
+      color: #999;
+    }
+  </style>
+</body>
+
+</html>

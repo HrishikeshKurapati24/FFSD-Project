@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Influencer Dashboard - CollabSync</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Bootstrap CSS and JS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="/i_index/I_index.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Add menu functions before the body -->
+  <script>
+    // Sidebar toggle functions
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
+
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
+
+    // Update the toggleRequests function
+    function toggleRequests() {
+      const requestsSection = document.getElementById('collaborationRequests');
+      const viewRequestsBtn = document.querySelector('.view-requests-btn');
+
+      if (requestsSection.style.display === 'none') {
+        requestsSection.style.display = 'block';
+        viewRequestsBtn.textContent = 'Hide Requests';
+      } else {
+        requestsSection.style.display = 'none';
+        viewRequestsBtn.textContent = 'View Requests';
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">CollabSync</div>
+      <nav>
+        <ul>
+          <li><a href="/influencer/home">Home</a></li>
+          <li><a href="/influencer/explore">Explore Brands</a></li>
+          <li><a href="/influencer/profile">My Profile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation (Right Side) -->
+  <button class="toggle-btn" onclick="openMenu()">☰</button>
+  <div class="menu" id="navMenu">
+    <span class="close-btn" onclick="closeMenu()">&times;</span>
+    <!-- <a href="#">Influencers</a> -->
+    <a href="/influencer/collab">Collabs</a>
+    <a href="/influencer/signout">Sign Out</a>
+    <!-- <a href="#">Settings</a> -->
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Intro Section -->
+    <div class="intro">
+      <h1>Welcome, <%= influencer.name %>
+      </h1>
+      <p>Discover how CollabSync empowers influencers with seamless brand collaborations.</p>
+
+      <div class="performance-metrics">
+        <div class="metric-item">
+          <div class="metric-value">
+            <%= influencer.avgEngagementRate %>%
+          </div>
+          <div class="metric-label">Avg Engagement Rate</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">
+            <%= influencer.totalAudience.toLocaleString() %>
+          </div>
+          <div class="metric-label">Total Audience</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">$<%= influencer.monthlyEarnings.toLocaleString() %>
+          </div>
+          <div class="metric-label">Monthly Earnings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Overview -->
+    <section class="dashboard">
+      <h2>Dashboard Overview</h2>
+      <div class="dashboard-items">
+        <div class="dashboard-item">
+          <h3>Active Collaborations</h3>
+          <p class="active-collabs-count">
+            <%= stats.activeCollaborations %>
+          </p>
+          <div class="progress-bar">
+            <div class="progress" style="width: <%= stats.completionPercentage %>%;"></div>
+          </div>
+          <small>
+            <%= stats.nearingCompletion %> nearing completion
+          </small>
+        </div>
+        <div class="dashboard-item">
+          <h3>Performance Score</h3>
+          <p class="performance-score">
+            <%= stats.performanceScore ? stats.performanceScore.toFixed(1) : '0.0' %>
+          </p>
+          <div class="rating-stars">
+            <% for(let i=0; i < 5; i++) { %>
+              <i class="fas fa-star <%= i < Math.floor(stats.avgRating || 0) ? 'active' : '' %>"></i>
+              <% } %>
+          </div>
+          <small>Average Rating: <%= stats.avgRating ? stats.avgRating.toFixed(1) : '0.0' %></small>
+        </div>
+        <div class="dashboard-item">
+          <h3>Earnings Overview</h3>
+          <p class="earnings-amount">$<%= stats.monthlyEarnings.toLocaleString() %>
+          </p>
+          <small class="<%= stats.earningsChange >= 0 ? 'positive' : 'negative' %>">
+            <%= stats.earningsChange>= 0 ? '+' : '' %><%= stats.earningsChange %>% from last month
+          </small>
+          <div class="total-earnings">
+            <span>Total Earnings:</span>
+            <span>$<%= stats.totalEarnings.toLocaleString() %></span>
+          </div>
+        </div>
+        <div class="dashboard-item">
+          <h3>Audience & Engagement</h3>
+          <p class="audience-count">
+            <%= stats.totalFollowers.toLocaleString() %>
+          </p>
+          <small>Total Followers</small>
+          <div class="engagement-rate">
+            <span>Avg. Engagement:</span>
+            <span>
+              <%= stats.avgEngagementRate %>%
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Collaborations Section -->
+    <section class="active-collaborations">
+      <h2>Active Collaborations</h2>
+      <div class="collaborations-grid">
+        <% if (activeCollaborations && activeCollaborations.length> 0) { %>
+          <% activeCollaborations.forEach(collab=> { %>
+            <div class="collab-card" data-collab-id="<%= collab.id %>">
+              <div class="collab-header">
+                <img src="<%= collab.brand_logo %>" alt="<%= collab.brand_name %>" class="brand-logo">
+                <div class="collab-title">
+                  <h3>
+                    <%= collab.campaign_name %>
+                  </h3>
+                  <p class="brand-name">
+                    <%= collab.brand_name %>
+                  </p>
+                </div>
+              </div>
+
+              <div class="collab-progress">
+                <div class="progress-info">
+                  <span>Progress</span>
+                  <span>
+                    <%= collab.progress %>%
+                  </span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress" style="width: <%= collab.progress %>%;"></div>
+                </div>
+              </div>
+
+              <div class="collab-metrics">
+                <div class="metric">
+                  <span class="label">Duration</span>
+                  <span class="value">
+                    <%= collab.duration %> days
+                  </span>
+                </div>
+                <div class="metric">
+                  <span class="label">Budget</span>
+                  <span class="value">$<%= collab.budget.toLocaleString() %></span>
+                </div>
+                <div class="metric">
+                  <span class="label">Engagement</span>
+                  <span class="value">
+                    <%= collab.engagement_rate %>%
+                  </span>
+                </div>
+              </div>
+
+              <div class="collab-analytics">
+                <h4>Performance Analytics</h4>
+                <div class="analytics-grid">
+                  <div class="analytics-item">
+                    <span class="label">Reach</span>
+                    <span class="value">
+                      <%= collab.reach.toLocaleString() %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Clicks</span>
+                    <span class="value">
+                      <%= collab.clicks.toLocaleString() %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Conversions</span>
+                    <span class="value">
+                      <%= collab.conversions.toLocaleString() %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Performance Score</span>
+                    <span class="value">
+                      <%= collab.performance_score %>%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="collab-actions">
+                <button class="update-progress-btn" onclick="updateCollabProgress('<%= collab.id %>')">
+                  <i class="fas fa-chart-line"></i>
+                  Update Progress
+                </button>
+              </div>
+            </div>
+            <% }); %>
+              <% } else { %>
+                <div class="no-collaborations">
+                  <p>No active collaborations at the moment</p>
+                  <a href="/influencer/<%= influencer%>/explore" class="explore-btn">Explore Opportunities</a>
+                </div>
+                <% } %>
+      </div>
+    </section>
+
+    <!-- Pending Requests Section -->
+    <section class="pending-requests">
+      <h2>Pending Requests</h2>
+      <div class="requests-grid">
+        <% if (pendingRequests && pendingRequests.length> 0) { %>
+          <% pendingRequests.forEach(request=> { %>
+            <div class="request-card">
+              <div class="request-header">
+                <img src="<%= request.brand_logo %>" alt="<%= request.brand_name %>" class="brand-logo">
+                <div class="request-info">
+                  <h3>
+                    <%= request.campaign_name %>
+                  </h3>
+                  <p class="brand-name">
+                    <%= request.brand_name %>
+                  </p>
+                </div>
+                <span class="request-date">
+                  <%= new Date(request.created_at).toLocaleDateString() %>
+                </span>
+              </div>
+              <div class="request-details">
+                <div class="detail-item">
+                  <span class="label">Budget:</span>
+                  <span class="value">$<%= (request.budget || 0).toLocaleString() %></span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Duration:</span>
+                  <span class="value">
+                    <%= request.duration %> days
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Required Channels:</span>
+                  <div class="channel-badges">
+                    <% if (request.required_channels && Array.isArray(request.required_channels)) { %>
+                      <% request.required_channels.forEach(channel=> { %>
+                        <span class="channel-badge">
+                          <%= channel %>
+                        </span>
+                        <% }); %>
+                          <% } else { %>
+                            <span class="channel-badge">No channels specified</span>
+                            <% } %>
+                  </div>
+                </div>
+              </div>
+              <div class="request-status">
+                <span class="status-badge pending">Pending Brand Approval</span>
+              </div>
+            </div>
+            <% }); %>
+              <% } else { %>
+                <div class="no-requests">
+                  <i class="fas fa-inbox"></i>
+                  <h3>No Pending Requests</h3>
+                  <p>You don't have any pending collaboration requests at the moment.</p>
+                </div>
+                <% } %>
+      </div>
+    </section>
+
+    <!-- <div>Check out all your completed campaigns!</div>
+    <a href="/influencer/campaign-history" class="view-campaigns-btn">View Completed Campaigns</a> -->
+  </div>
+
+  <!-- Add these modals before the closing body tag -->
+  <!-- View Details Modal -->
+  <div id="viewDetailsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Campaign Details</h2>
+      <div id="campaignDetails" class="campaign-details">
+        <!-- Content will be populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Progress Modal -->
+  <div id="updateProgressModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Update Progress</h2>
+      <div class="progress-input">
+        <input type="range" id="progressSlider" min="0" max="100" value="0">
+        <span id="progressValue">0%</span>
+      </div>
+      <button id="saveProgress" class="save-btn">Save Progress</button>
+    </div>
+  </div>
+
+  <style>
+    .dashboard-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-item {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-item h3 {
+      color: var(--dark-gray);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .performance-score {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0.5rem 0;
+    }
+
+    .rating-stars {
+      color: #ddd;
+      margin: 0.5rem 0;
+    }
+
+    .rating-stars .active {
+      color: #ffd700;
+    }
+
+    .earnings-amount {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0.5rem 0;
+    }
+
+    .positive {
+      color: #28a745;
+    }
+
+    .negative {
+      color: #dc3545;
+    }
+
+    .total-earnings {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      color: var(--secondary-color);
+    }
+
+    .audience-count {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0.5rem 0;
+    }
+
+    .engagement-rate {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      color: var(--secondary-color);
+    }
+
+    .pending-requests {
+      margin-top: 2rem;
+    }
+
+    .requests-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .request-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .request-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .brand-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .request-info {
+      flex: 1;
+    }
+
+    .request-info h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--dark-gray);
+    }
+
+    .brand-name {
+      color: var(--secondary-color);
+      margin: 0;
+    }
+
+    .request-date {
+      color: var(--secondary-color);
+      font-size: 0.9rem;
+    }
+
+    .request-details {
+      margin: 1rem 0;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .channel-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .channel-badge {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+    }
+
+    .status-badge.pending {
+      background: #ffd700;
+      color: #856404;
+    }
+
+    .no-requests {
+      text-align: center;
+      padding: 3rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .no-requests i {
+      font-size: 3rem;
+      color: var(--secondary-color);
+      margin-bottom: 1rem;
+    }
+
+    .no-requests h3 {
+      color: var(--dark-gray);
+      margin-bottom: 0.5rem;
+    }
+
+    .no-requests p {
+      color: var(--secondary-color);
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: black;
+    }
+
+    .campaign-details {
+      margin-top: 20px;
+    }
+
+    .progress-input {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    #progressSlider {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      background: #e0e0e0;
+      border-radius: 4px;
+      outline: none;
+      margin: 15px 0;
+    }
+
+    #progressSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #progressSlider::-webkit-slider-thumb:hover {
+      background: var(--secondary-color);
+      transform: scale(1.1);
+    }
+
+    #progressValue {
+      display: block;
+      font-size: 1.2em;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-top: 10px;
+    }
+
+    .save-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      width: 100%;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .save-btn:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .save-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .campaign-info {
+      padding: 20px;
+    }
+
+    .campaign-info h3 {
+      margin: 0 0 10px 0;
+      color: var(--dark-gray);
+      font-size: 1.5rem;
+    }
+
+    .brand-name {
+      color: var(--secondary-color);
+      margin-bottom: 20px;
+    }
+
+    .campaign-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 5px;
+    }
+
+    .metric .label {
+      color: var(--secondary-color);
+      font-size: 0.9rem;
+    }
+
+    .metric .value {
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .campaign-description {
+      margin-bottom: 20px;
+    }
+
+    .campaign-description h4 {
+      color: var(--dark-gray);
+      margin-bottom: 10px;
+    }
+
+    .campaign-dates {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .date {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 5px;
+    }
+
+    .campaign-performance {
+      margin-bottom: 20px;
+    }
+
+    .campaign-performance h4 {
+      color: var(--dark-gray);
+      margin-bottom: 10px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .campaign-deliverables {
+      margin-top: 20px;
+    }
+
+    .campaign-deliverables h4 {
+      color: var(--dark-gray);
+      margin-bottom: 10px;
+    }
+
+    .deliverables-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .deliverable-item {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+    }
+
+    .deliverable-item h5 {
+      margin: 0 0 10px 0;
+      color: var(--dark-gray);
+    }
+
+    .deliverable-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      text-transform: capitalize;
+    }
+
+    .status-badge.pending {
+      background: #ffd700;
+      color: #856404;
+    }
+
+    .status-badge.active {
+      background: #28a745;
+      color: white;
+    }
+
+    .status-badge.completed {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .status-badge.cancelled {
+      background: #dc3545;
+      color: white;
+    }
+
+    .due-date {
+      color: var(--secondary-color);
+      font-size: 0.9rem;
+    }
+
+    .campaign-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .campaign-header .brand-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .campaign-header h3 {
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .campaign-header .brand-name {
+      margin: 0;
+    }
+
+    .update-progress-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .update-progress-btn:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .update-progress-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .update-progress-btn i {
+      font-size: 0.9rem;
+    }
+  </style>
+
+  <script>
+    function acceptRequest(requestId) {
+      // Implement accept request functionality
+      fetch(`/influencer/requests/${requestId}/accept`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Refresh the page or update the UI
+            location.reload();
+          } else {
+            alert('Failed to accept request: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while accepting the request');
+        });
+    }
+
+    let currentCollabId = null;
+    const viewDetailsModal = document.getElementById('viewDetailsModal');
+    const updateProgressModal = document.getElementById('updateProgressModal');
+    const closeButtons = document.getElementsByClassName('close');
+    const progressSlider = document.getElementById('progressSlider');
+    const progressValue = document.getElementById('progressValue');
+    const saveProgressBtn = document.getElementById('saveProgress');
+
+    // Close modals when clicking X
+    Array.from(closeButtons).forEach(button => {
+      button.onclick = function () {
+        viewDetailsModal.style.display = 'none';
+        updateProgressModal.style.display = 'none';
+      }
+    });
+
+    // Close modals when clicking outside
+    window.onclick = function (event) {
+      if (event.target == viewDetailsModal) {
+        viewDetailsModal.style.display = 'none';
+      }
+      if (event.target == updateProgressModal) {
+        updateProgressModal.style.display = 'none';
+      }
+    }
+
+    // View Details function
+    function viewCollabDetails(collabId) {
+      currentCollabId = collabId;
+      fetch(`/influencer/collab/${collabId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            const details = data.collab;
+            const detailsHtml = `
+              <div class="campaign-info">
+                <div class="campaign-header">
+                  <img src="${details.brand_logo}" alt="${details.brand_name}" class="brand-logo">
+                  <h3>${details.campaign_name}</h3>
+                  <p class="brand-name">${details.brand_name}</p>
+                </div>
+                <div class="campaign-metrics">
+                  <div class="metric">
+                    <span class="label">Progress:</span>
+                    <span class="value">${details.progress}%</span>
+                  </div>
+                  <div class="metric">
+                    <span class="label">Duration:</span>
+                    <span class="value">${details.duration} days</span>
+                  </div>
+                  <div class="metric">
+                    <span class="label">Budget:</span>
+                    <span class="value">$${details.budget.toLocaleString()}</span>
+                  </div>
+                  <div class="metric">
+                    <span class="label">Engagement Rate:</span>
+                    <span class="value">${details.engagement_rate}%</span>
+                  </div>
+                </div>
+                <div class="campaign-description">
+                  <h4>Description</h4>
+                  <p>${details.description}</p>
+                </div>
+                <div class="campaign-dates">
+                  <div class="date">
+                    <span class="label">Start Date:</span>
+                    <span class="value">${new Date(details.start_date).toLocaleDateString()}</span>
+                  </div>
+                  <div class="date">
+                    <span class="label">End Date:</span>
+                    <span class="value">${new Date(details.end_date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div class="campaign-performance">
+                  <h4>Performance Metrics</h4>
+                  <div class="metrics-grid">
+                    <div class="metric">
+                      <span class="label">Performance Score:</span>
+                      <span class="value">${details.performance_score || 0}%</span>
+                    </div>
+                    <div class="metric">
+                      <span class="label">Reach:</span>
+                      <span class="value">${details.reach.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                      <span class="label">Clicks:</span>
+                      <span class="value">${details.clicks.toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                      <span class="label">Conversions:</span>
+                      <span class="value">${details.conversions.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+                ${details.deliverables && details.deliverables.length > 0 ? `
+                  <div class="campaign-deliverables">
+                    <h4>Deliverables</h4>
+                    <div class="deliverables-list">
+                      ${details.deliverables.map(deliverable => `
+                        <div class="deliverable-item">
+                          <h5>${deliverable.title || 'Untitled Deliverable'}</h5>
+                          <p>${deliverable.description || 'No description available'}</p>
+                          <div class="deliverable-status">
+                            <span class="status-badge ${deliverable.status || 'pending'}">${deliverable.status || 'pending'}</span>
+                            <span class="due-date">Due: ${new Date(deliverable.due_date).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+            document.getElementById('campaignDetails').innerHTML = detailsHtml;
+            viewDetailsModal.style.display = 'block';
+          } else {
+            throw new Error(data.message || 'Failed to load campaign details');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error loading campaign details: ' + error.message);
+        });
+    }
+
+    // Update Progress function
+    function updateCollabProgress(collabId) {
+      currentCollabId = collabId;
+      const collabCard = document.querySelector(`[data-collab-id="${collabId}"]`);
+      if (!collabCard) {
+        console.error('Collaboration card not found');
+        return;
+      }
+
+      const progressText = collabCard.querySelector('.progress-info span:last-child');
+      const currentProgress = parseInt(progressText.textContent) || 0;
+
+      progressSlider.value = currentProgress;
+      progressValue.textContent = `${currentProgress}%`;
+      updateProgressModal.style.display = 'block';
+    }
+
+    // Save progress
+    saveProgressBtn.onclick = async function () {
+      if (!currentCollabId) {
+        console.error('No collaboration ID selected');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/influencer/collab/${currentCollabId}/update-progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            progress: parseInt(progressSlider.value)
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Update the progress bar in the UI
+          const collabCard = document.querySelector(`[data-collab-id="${currentCollabId}"]`);
+          if (collabCard) {
+            const progressBar = collabCard.querySelector('.progress');
+            const progressText = collabCard.querySelector('.progress-info span:last-child');
+
+            if (progressBar && progressText) {
+              progressBar.style.width = `${data.progress}%`;
+              progressText.textContent = `${data.progress}%`;
+            }
+          }
+
+          // Close the modal
+          updateProgressModal.style.display = 'none';
+
+          // Show success message
+          alert('Progress updated successfully!');
+        } else {
+          alert('Failed to update progress: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error updating progress:', error);
+        alert('An error occurred while updating progress');
+      }
+    }
+
+    // Update progress value display
+    progressSlider.oninput = function () {
+      progressValue.textContent = `${this.value}%`;
+    }
+
+    function cancelRequest(requestId) {
+      if (confirm('Are you sure you want to cancel this request?')) {
+        fetch(`/influencer/requests/${requestId}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              location.reload();
+            } else {
+              alert('Failed to cancel request: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while cancelling the request');
+          });
+      }
+    }
+  </script>
+</body>
+
+</html>

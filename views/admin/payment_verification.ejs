@@ -2,12 +2,15 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Payment Verification</title>
-    <link rel="stylesheet" href="/admin/admin_dashboard.css">
-    <link rel="stylesheet" href="/admin/payment_verification.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/admin/admin_dashboard.css" />
+    <link rel="stylesheet" href="/admin/payment_verification.css" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 </head>
 
 <body>
@@ -25,7 +28,7 @@
                                 <span>Dashboard</span>
                             </a>
                         </li>
-                        <li class="active">
+                        <li>
                             <a href="/admin/user_management">
                                 <i class="fas fa-users"></i>
                                 <span>User Management</span>
@@ -37,16 +40,10 @@
                                 <span>Collaboration Monitoring</span>
                             </a>
                         </li>
-                        <li>
+                        <li class="active">
                             <a href="/admin/payment_verification">
                                 <i class="fas fa-money-check"></i>
                                 <span>Payment Verification</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/admin/feedback_and_moderation">
-                                <i class="fas fa-comments"></i>
-                                <span>Feedback & Moderation</span>
                             </a>
                         </li>
                     </ul>
@@ -81,10 +78,8 @@
 
             <div class="profile">
                 <div class="profile-icon" onclick="toggleProfileDropdown()">
-                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image">
-                    <span id="user-name">
-                        <%= user.name %>
-                    </span>
+                    <img src="/images/default-avatar.png" alt="Profile" id="profile-image" />
+                    <span id="user-name"><%= user.name %></span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="profile-dropdown" id="profile-dropdown">
@@ -105,7 +100,7 @@
 
             <!-- Filters -->
             <div class="filters">
-                <input type="text" id="search-payments" placeholder="Search transactions...">
+                <input type="text" id="search-payments" placeholder="Search transactions..." />
                 <select id="status-filter">
                     <option value="all">All Statuses</option>
                     <option value="pending">Pending</option>
@@ -130,68 +125,54 @@
                     <option value="fitness">Fitness</option>
                     <option value="travel">Travel</option>
                 </select>
-                <input type="date" id="start-date-filter" placeholder="Start Date">
-                <input type="date" id="end-date-filter" placeholder="End Date">
+                <input type="date" id="start-date-filter" placeholder="Start Date" />
+                <input type="date" id="end-date-filter" placeholder="End Date" />
                 <button id="reset-filters"><i class="fas fa-sync"></i> Reset Filters</button>
             </div>
 
             <!-- Add error message handling -->
             <div class="main-content">
-                <% if (typeof error !=='undefined' && error) { %>
-                    <div class="error-alert">
-                        <%= error %>
+                <% if (typeof error !== "undefined" && error) { %>
+                <div class="error-alert"><%= error %></div>
+                <% } %>
+
+                <!-- Payment table -->
+                <div class="payment-table">
+                    <% if (payments && payments.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Date</th>
+                                <th>Brand</th>
+                                <th>Influencer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% payments.forEach((payment) => { %>
+                            <tr>
+                                <td><%= payment.transactionId %></td>
+                                <td><%= payment.date %></td>
+                                <td><%= payment.brand ? payment.brand : 'Unknown Brand' %></td>
+                                <td><%= payment.influencer ? payment.influencer : 'Unknown Influencer' %></td>
+                                <td>$<%= payment.amount ? payment.amount.toLocaleString() : '' %></td>
+                                <td><%= payment.status %></td>
+                                <td>
+                                    <button onclick="viewPayment('<%= payment.transactionId %>')">View</button>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                    <% } else { %>
+                    <div class="no-data-message">
+                        <p>No payments found</p>
                     </div>
                     <% } %>
-
-                        <!-- Payment table -->
-                        <div class="payment-table">
-                            <% if (payments && payments.length> 0) { %>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Transaction ID</th>
-                                            <th>Date</th>
-                                            <th>Brand</th>
-                                            <th>Influencer</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% payments.forEach(payment=> { %>
-                                            <tr>
-                                                <td>
-                                                    <%= payment.transactionId %>
-                                                </td>
-                                                <td>
-                                                    <%= payment.date %>
-                                                </td>
-                                                <td>
-                                                    <%= payment.brand %>
-                                                </td>
-                                                <td>
-                                                    <%= payment.influencer %>
-                                                </td>
-                                                <td>$<%= payment.amount.toLocaleString() %>
-                                                </td>
-                                                <td>
-                                                    <%= payment.status %>
-                                                </td>
-                                                <td>
-                                                    <button
-                                                        onclick="viewPayment('<%= payment.transactionId %>')">View</button>
-                                                </td>
-                                            </tr>
-                                            <% }); %>
-                                    </tbody>
-                                </table>
-                                <% } else { %>
-                                    <div class="no-data-message">
-                                        <p>No payments found</p>
-                                    </div>
-                                    <% } %>
-                        </div>
+                </div>
             </div>
         </section>
     </main>
