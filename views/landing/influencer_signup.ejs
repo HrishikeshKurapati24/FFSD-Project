@@ -52,13 +52,24 @@
     input[type="text"],
     input[type="email"],
     input[type="password"],
-    input[type="number"] {
+    input[type="number"],
+    select {
       width: 100%;
       padding: 10px;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 5px;
       margin-bottom: 15px;
+    }
+
+    select {
+      background-color: white;
+      cursor: pointer;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #007BFF;
     }
 
     button {
@@ -84,34 +95,121 @@
       text-decoration: none;
       font-size: 1rem;
     }
+
+    .message {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .error-text {
+      display: block;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #ff6b6b;
+      min-height: 16px;
+    }
+
+    .invalid {
+      outline: 2px solid #ff6b6b;
+    }
+
+    input.touched:invalid,
+    select.touched:invalid {
+      border-color: #ff6b6b;
+    }
+
+    .field-group {
+      margin-bottom: 20px;
+    }
+
+    .character-count {
+      font-size: 12px;
+      color: #666;
+      text-align: right;
+      margin-top: 2px;
+    }
   </style>
 </head>
 
 <body>
   <div class="signup-container">
     <h1>Influencer Sign Up</h1>
-    <form id="influencerSignupForm" action="/signup-form-influencer" method="post">
+    <form id="influencerSignupForm" action="/signup-form-influencer" method="post" novalidate>
       <div id="messageBox" class="message"></div>
-      <label for="fullName">Full Name:</label>
-      <input type="text" id="fullName" name="fullName" placeholder="Your Full Name" required>
+      <div class="field-group">
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="fullName" name="fullName" placeholder="Your Full Name">
+        <small id="fullNameError" class="error-text" style="display: none;"></small>
+        <div id="fullNameCount" class="character-count"></div>
+      </div>
 
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" placeholder="Your Email" required>
+      <div class="field-group">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" placeholder="Your Email">
+        <small id="emailError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" placeholder="Choose a Password" required>
+      <div class="field-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"
+          placeholder="Choose a Password(At least 8 characters, one digit, and one special character)">
+        <small id="passwordError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="socialHandle">Social Media Handle:</label>
-      <input type="text" id="socialHandle" name="socialHandle" placeholder="@yourhandle" required>
+      <div class="field-group">
+        <label for="platform">Social Media Platform:</label>
+        <select id="platform" name="platform">
+          <option value="">Select Platform</option>
+          <option value="instagram">Instagram</option>
+          <option value="youtube">YouTube</option>
+          <option value="tiktok">TikTok</option>
+          <option value="facebook">Facebook</option>
+          <option value="twitter">Twitter</option>
+          <option value="linkedin">LinkedIn</option>
+        </select>
+        <small id="platformError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="audience">Audience Size:</label>
-      <input type="number" id="audience" name="audience" placeholder="e.g. 10000" required>
+      <div class="field-group">
+        <label for="socialHandle">Social Media Handle:</label>
+        <input type="text" id="socialHandle" name="socialHandle" placeholder="yourhandle">
+        <small id="socialHandleError" class="error-text" style="display: none;"></small>
+        <div id="socialHandleCount" class="character-count"></div>
+      </div>
 
-      <label for="niche">Niche/Category:</label>
-      <input type="text" id="niche" name="niche" placeholder="Your niche e.g. fashion, tech" required>
+      <div class="field-group">
+        <label for="audience">Audience Size:</label>
+        <input type="number" id="audience" name="audience" placeholder="e.g. 10000">
+        <small id="audienceError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="phone">Contact Number:</label>
-      <input type="text" id="phone" name="phone" placeholder="Your Phone Number" required>
+      <div class="field-group">
+        <label for="niche">Niche/Category:</label>
+        <input type="text" id="niche" name="niche" placeholder="Your niche e.g. fashion, tech">
+        <small id="nicheError" class="error-text" style="display: none;"></small>
+        <div id="nicheCount" class="character-count"></div>
+      </div>
+
+      <div class="field-group">
+        <label for="phone">Contact Number:</label>
+        <input type="number" id="phone" name="phone" placeholder="+1234567890 or 1234567890">
+        <small id="phoneError" class="error-text" style="display: none;"></small>
+      </div>
 
       <button type="submit">Sign Up as Influencer</button>
     </form>
@@ -123,6 +221,31 @@
       const form = document.getElementById('influencerSignupForm');
       const messageBox = document.getElementById('messageBox');
       const submitBtn = form.querySelector('button');
+
+      // Get all form elements
+      const fullNameInput = document.getElementById('fullName');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const platformSelect = document.getElementById('platform');
+      const socialHandleInput = document.getElementById('socialHandle');
+      const audienceInput = document.getElementById('audience');
+      const nicheInput = document.getElementById('niche');
+      const phoneInput = document.getElementById('phone');
+
+      // Get error elements
+      const fullNameError = document.getElementById('fullNameError');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const platformError = document.getElementById('platformError');
+      const socialHandleError = document.getElementById('socialHandleError');
+      const audienceError = document.getElementById('audienceError');
+      const nicheError = document.getElementById('nicheError');
+      const phoneError = document.getElementById('phoneError');
+
+      // Get character count elements
+      const fullNameCount = document.getElementById('fullNameCount');
+      const socialHandleCount = document.getElementById('socialHandleCount');
+      const nicheCount = document.getElementById('nicheCount');
 
       function showMessage(message, type) {
         messageBox.textContent = message;
@@ -136,26 +259,355 @@
         }
       }
 
+      // Validation functions
+      function validateFullName(value) {
+        if (!value) return 'Full name is required';
+        if (value.length < 2) return 'Full name must be at least 2 characters';
+        if (value.length > 50) return 'Full name cannot exceed 50 characters';
+        if (!/^[a-zA-Z\s]+$/.test(value)) return 'Full name can only contain letters and spaces';
+
+        // Check for vague inputs
+        const vaguePatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+          /^(user|admin|guest|temp|temporary)$/i,
+          /^(name|firstname|lastname|fullname)$/i,
+          /^[a-z]{1,3}$/i, // Single letters or very short strings
+          /^[0-9]+$/, // Only numbers
+          /^(.)\1+$/ // Repeated characters like "aaaa", "bbbb"
+        ];
+
+        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a real name';
+        }
+
+        return '';
+      }
+
+      function validateEmail(value) {
+        const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/;
+        if (!value) return 'Email is required';
+        if (!emailRegex.test(value)) return 'Enter a valid email address';
+
+        // Check for vague/test email patterns
+        const vagueEmailPatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)@/i,
+          /^(user|admin|guest|temp|temporary)@/i,
+          /^(email|mail|contact)@/i,
+          /@(test|testing|demo|sample|example|localhost|temp|temporary)\./i,
+          /@(test|testing|demo|sample|example)\.(com|org|net)$/i,
+          /^(.)\1+@/i, // Repeated characters before @
+          /@(.)\1+\./i // Repeated characters in domain
+        ];
+
+        if (vagueEmailPatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a real email address';
+        }
+
+        return '';
+      }
+
+      function validatePassword(value) {
+        if (!value) return 'Password is required';
+        if (value.length < 8) return 'Password must be at least 8 characters';
+        if (!/[0-9]/.test(value)) return 'Password must include at least one digit';
+        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must include at least one special character';
+        return '';
+      }
+
+      function validatePlatform(value) {
+        if (!value) return 'Please select a social media platform';
+        return '';
+      }
+
+      function validateSocialHandle(value) {
+        if (!value) return 'Social media handle is required';
+        if (value.length < 2) return 'Handle must be at least 2 characters';
+        if (value.length > 30) return 'Handle cannot exceed 30 characters';
+        if (!/^[a-zA-Z0-9_.@]+$/.test(value)) return 'Handle can only contain letters, numbers, dots, underscores, and @';
+
+        // Check for vague inputs
+        const vaguePatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+          /^(user|admin|guest|temp|temporary)$/i,
+          /^(handle|username|social|media)$/i,
+          /^[a-z]{1,2}$/i, // Very short strings
+          /^[0-9]+$/, // Only numbers
+          /^(.)\1+$/, // Repeated characters
+          /^@?$/, // Just @ symbol or empty after @
+          /^@[a-z]{1,2}$/i // @ followed by very short string
+        ];
+
+        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a real social media handle';
+        }
+
+        return '';
+      }
+
+      function validateAudience(value) {
+        if (!value) return 'Audience size is required';
+        const num = parseInt(value, 10);
+        if (isNaN(num)) return 'Audience size must be a valid number';
+        if (num < 100) return 'Audience size should be at least 100 followers';
+        if (num > 1000000000) return 'Audience size cannot exceed 1 billion';
+        return '';
+      }
+
+      function validateNiche(value) {
+        if (!value) return 'Niche/Category is required';
+        if (value.length < 2) return 'Niche must be at least 2 characters';
+        if (value.length > 50) return 'Niche cannot exceed 50 characters';
+
+        // Check for vague inputs
+        const vaguePatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+          /^(niche|category|type|kind|sort)$/i,
+          /^(general|other|misc|miscellaneous)$/i,
+          /^[a-z]{1,2}$/i, // Very short strings
+          /^[0-9]+$/, // Only numbers
+          /^(.)\1+$/, // Repeated characters
+          /^(stuff|things|random|whatever)$/i
+        ];
+
+        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a specific or valid niche';
+        }
+
+        return '';
+      }
+
+      function validatePhone(value) {
+        if (!value) return 'Contact number is required';
+
+        // Remove all non-digit characters for length check
+        const digitsOnly = value.replace(/\D/g, '');
+
+        // Check if it has at least 10 digits
+        if (digitsOnly.length < 10) return 'Phone number must have at least 10 digits';
+        if (digitsOnly.length > 15) return 'Phone number cannot exceed 15 digits';
+
+        // Check format (allows + at start, then digits)
+        const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+        if (!phoneRegex.test(value)) return 'Please enter a valid phone number format';
+
+        // Check for vague/test phone patterns
+        const vaguePhonePatterns = [
+          /^(\d)\1{9,}$/, // All same digits like 1111111111, 2222222222
+          /^123456789\d*$/, // Starting with 123456789
+          /^000000000\d*$/, // Starting with 000000000
+          /^111111111\d*$/, // Starting with 111111111
+          /^(\d{3})\1{2,}$/, // Repeated 3-digit patterns
+          /^(\d{2})\1{4,}$/ // Repeated 2-digit patterns
+        ];
+
+        if (vaguePhonePatterns.some(pattern => pattern.test(digitsOnly))) {
+          return 'Please enter a real phone number, not a test or placeholder number';
+        }
+
+        return '';
+      }
+
+      function setFieldState(inputEl, errorEl, errorMsg) {
+        errorEl.textContent = errorMsg || '';
+        if (errorMsg) {
+          inputEl.classList.add('invalid');
+          inputEl.setAttribute('aria-invalid', 'true');
+          errorEl.style.display = 'block';
+        } else {
+          inputEl.classList.remove('invalid');
+          inputEl.removeAttribute('aria-invalid');
+          errorEl.style.display = 'none';
+        }
+      }
+
+      function markAsTouched(inputEl) {
+        inputEl.classList.add('touched');
+      }
+
+      function updateSubmitState() {
+        const fullNameMsg = validateFullName(fullNameInput.value.trim());
+        const emailMsg = validateEmail(emailInput.value.trim());
+        const passwordMsg = validatePassword(passwordInput.value);
+        const platformMsg = validatePlatform(platformSelect.value);
+        const socialHandleMsg = validateSocialHandle(socialHandleInput.value.trim());
+        const audienceMsg = validateAudience(audienceInput.value);
+        const nicheMsg = validateNiche(nicheInput.value.trim());
+        const phoneMsg = validatePhone(phoneInput.value.trim());
+
+        const hasErrors = Boolean(fullNameMsg || emailMsg || passwordMsg || platformMsg ||
+          socialHandleMsg || audienceMsg || nicheMsg || phoneMsg);
+
+        submitBtn.disabled = hasErrors;
+        return hasErrors;
+      }
+
+      // Live validation for all fields
+      fullNameInput.addEventListener('input', (e) => {
+        // Enforce character limit
+        if (e.target.value.length > 50) {
+          e.target.value = e.target.value.slice(0, 50);
+        }
+
+        markAsTouched(fullNameInput);
+        const msg = validateFullName(fullNameInput.value.trim());
+        setFieldState(fullNameInput, fullNameError, msg);
+        updateSubmitState();
+
+        // Update character count
+        const charCount = fullNameInput.value.length;
+        fullNameCount.textContent = `${charCount}/50 characters`;
+      });
+
+      emailInput.addEventListener('input', () => {
+        markAsTouched(emailInput);
+        const msg = validateEmail(emailInput.value.trim());
+        setFieldState(emailInput, emailError, msg);
+        updateSubmitState();
+      });
+
+      passwordInput.addEventListener('input', () => {
+        markAsTouched(passwordInput);
+        const msg = validatePassword(passwordInput.value);
+        setFieldState(passwordInput, passwordError, msg);
+        updateSubmitState();
+      });
+
+      platformSelect.addEventListener('change', () => {
+        markAsTouched(platformSelect);
+        const msg = validatePlatform(platformSelect.value);
+        setFieldState(platformSelect, platformError, msg);
+        updateSubmitState();
+      });
+
+      socialHandleInput.addEventListener('input', (e) => {
+        // Enforce character limit
+        if (e.target.value.length > 30) {
+          e.target.value = e.target.value.slice(0, 30);
+        }
+
+        markAsTouched(socialHandleInput);
+        const msg = validateSocialHandle(socialHandleInput.value.trim());
+        setFieldState(socialHandleInput, socialHandleError, msg);
+        updateSubmitState();
+
+        // Update character count
+        const charCount = socialHandleInput.value.length;
+        socialHandleCount.textContent = `${charCount}/30 characters`;
+      });
+
+      audienceInput.addEventListener('input', (e) => {
+        // Enforce numeric constraints
+        let value = e.target.value;
+        if (value && !isNaN(value)) {
+          const numValue = parseInt(value, 10);
+          if (numValue < 0) {
+            e.target.value = '0';
+          } else if (numValue > 1000000000) {
+            e.target.value = '1000000000';
+          }
+        }
+
+        markAsTouched(audienceInput);
+        const msg = validateAudience(audienceInput.value);
+        setFieldState(audienceInput, audienceError, msg);
+        updateSubmitState();
+      });
+
+      nicheInput.addEventListener('input', (e) => {
+        // Enforce character limit
+        if (e.target.value.length > 50) {
+          e.target.value = e.target.value.slice(0, 50);
+        }
+
+        markAsTouched(nicheInput);
+        const msg = validateNiche(nicheInput.value.trim());
+        setFieldState(nicheInput, nicheError, msg);
+        updateSubmitState();
+
+        // Update character count
+        const charCount = nicheInput.value.length;
+        nicheCount.textContent = `${charCount}/50 characters`;
+      });
+
+      phoneInput.addEventListener('input', () => {
+        markAsTouched(phoneInput);
+        const msg = validatePhone(phoneInput.value.trim());
+        setFieldState(phoneInput, phoneError, msg);
+        updateSubmitState();
+      });
+
+      // Add blur event listeners to mark fields as touched
+      [fullNameInput, emailInput, passwordInput, socialHandleInput, audienceInput, nicheInput, phoneInput].forEach(input => {
+        input.addEventListener('blur', () => {
+          markAsTouched(input);
+        });
+      });
+
+      platformSelect.addEventListener('blur', () => {
+        markAsTouched(platformSelect);
+      });
+
+      // Initial state
+      updateSubmitState();
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Final validation before submit
+        const fullNameMsg = validateFullName(fullNameInput.value.trim());
+        const emailMsg = validateEmail(emailInput.value.trim());
+        const passwordMsg = validatePassword(passwordInput.value);
+        const platformMsg = validatePlatform(platformSelect.value);
+        const socialHandleMsg = validateSocialHandle(socialHandleInput.value.trim());
+        const audienceMsg = validateAudience(audienceInput.value);
+        const nicheMsg = validateNiche(nicheInput.value.trim());
+        const phoneMsg = validatePhone(phoneInput.value.trim());
+
+        // Set all field states
+        setFieldState(fullNameInput, fullNameError, fullNameMsg);
+        setFieldState(emailInput, emailError, emailMsg);
+        setFieldState(passwordInput, passwordError, passwordMsg);
+        setFieldState(platformSelect, platformError, platformMsg);
+        setFieldState(socialHandleInput, socialHandleError, socialHandleMsg);
+        setFieldState(audienceInput, audienceError, audienceMsg);
+        setFieldState(nicheInput, nicheError, nicheMsg);
+        setFieldState(phoneInput, phoneError, phoneMsg);
+
+        const hasErrors = Boolean(fullNameMsg || emailMsg || passwordMsg || platformMsg ||
+          socialHandleMsg || audienceMsg || nicheMsg || phoneMsg);
+
+        if (hasErrors) {
+          showMessage('Please fix all errors before submitting', 'error');
+          return;
+        }
 
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating Account...';
 
+        // ========================================
+        // FUNCTIONALITY 1: USER AUTHENTICATION - INFLUENCER SIGNUP
+        // ========================================
+        // Asynchronous user registration for influencers
+        // - Collects comprehensive user data including social media platform
+        // - Validates all form fields before submission
+        // - Sends registration data to server via POST request
+        // - Handles success/error responses asynchronously
+        // - Provides user feedback and redirects on success
         try {
-          const formData = new FormData(form);
           const data = {
-            fullName: formData.get('fullName').trim(),
-            email: formData.get('email').trim(),
-            password: formData.get('password'),
-            socialHandle: formData.get('socialHandle').trim(),
-            audience: parseInt(formData.get('audience'), 10),
-            niche: formData.get('niche').trim(),
-            phone: formData.get('phone').trim(),
+            fullName: fullNameInput.value.trim(),
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+            platform: platformSelect.value,
+            socialHandle: socialHandleInput.value.trim(),
+            audience: parseInt(audienceInput.value, 10),
+            niche: nicheInput.value.trim(),
+            phone: phoneInput.value.trim(),
           };
 
           console.log('Sending data to server:', data);
 
+          // Asynchronous registration request
           const response = await fetch('/signup-form-influencer', {
             method: 'POST',
             headers: {
@@ -175,6 +627,7 @@
           console.log('Response data:', result);
 
           showMessage('Account created successfully! Redirecting to sign-in...', 'success');
+          // Redirect after successful registration
           setTimeout(() => {
             window.location.href = '/signin';
           }, 2000);

@@ -1,5 +1,14 @@
 let modalFeedbackId = null; // Track the currently viewed feedback ID
 
+// ========================================
+// FUNCTIONALITY 5: ADMIN DATA MANAGEMENT - FEEDBACK RETRIEVAL
+// ========================================
+// Asynchronous feedback data retrieval for admin panel
+// - Fetches feedback data from server via GET request
+// - Handles error responses and data validation
+// - Renders feedback into dynamic HTML table
+// - Provides error handling for failed requests
+// - Manages data display and UI updates
 async function fetchFeedback() {
     try {
         const response = await fetch("/feedback_and_moderation");

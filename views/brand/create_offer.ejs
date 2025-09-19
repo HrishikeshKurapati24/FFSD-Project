@@ -164,15 +164,6 @@
       background-color: #0056b3;
     }
 
-    .cancel-btn {
-      background-color: #dc3545;
-      color: #fff;
-    }
-
-    .cancel-btn:hover {
-      background-color: #c82333;
-    }
-
     /* Footer */
     footer {
       background-color: #333;
@@ -294,44 +285,43 @@
   <div class="form-container">
     <h2 class="form-title"><i class="fa-solid fa-gift"></i> Create New Offer</h2>
 
-    <form id="createOfferForm" method="POST" action="/brand/create_offer">
+    <form id="createOfferForm" method="POST" action="/brand/create_offer" novalidate>
       <div class="form-section">
         <h3>Offer Details</h3>
         <div class="form-group">
           <label for="description">Offer Description</label>
-          <textarea id="description" name="description" class="form-control" placeholder="Describe the offer" required
+          <textarea id="description" name="description" class="form-control" placeholder="Describe the offer"
             maxlength="500"></textarea>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="start_date">Start Date</label>
-            <input type="date" class="form-control" id="start_date" name="start_date" required>
+            <input type="date" class="form-control" id="start_date" name="start_date">
           </div>
 
           <div class="form-group">
             <label for="end_date">End Date</label>
-            <input type="date" class="form-control" id="end_date" name="end_date" required>
+            <input type="date" class="form-control" id="end_date" name="end_date">
           </div>
         </div>
         <div class="form-group">
           <label for="eligibility">Eligibility Criteria</label>
           <textarea id="eligibility" name="eligibility" class="form-control"
-            placeholder="Who is eligible for this offer?" required maxlength="200"></textarea>
+            placeholder="Who is eligible for this offer?" maxlength="200"></textarea>
         </div>
         <div class="form-group">
           <label for="offer_percentage">Offer Percentage</label>
-          <input type="number" class="form-control" id="offer_percentage" name="offer_percentage" required min="0"
-            max="100" placeholder="Enter offer percentage (0-100)">
+          <input type="number" class="form-control" id="offer_percentage" name="offer_percentage" min="0" max="100"
+            placeholder="Enter offer percentage (0-100)">
         </div>
         <div class="form-group">
           <label for="offer_details">Offer Details</label>
           <textarea id="offer_details" name="offer_details" class="form-control"
-            placeholder="Where and how can this offer be availed?" required maxlength="500"></textarea>
+            placeholder="Where and how can this offer be availed?" maxlength="500"></textarea>
         </div>
       </div>
 
       <div class="btn-group">
-        <button type="reset" class="cancel-btn">Cancel</button>
         <button type="submit" class="submit-btn">Create Offer</button>
       </div>
     </form>
@@ -350,15 +340,194 @@
       document.getElementById("navMenu").style.width = "0";
     }
 
-    // Form validation
-    document.querySelector('form').addEventListener('submit', function (e) {
-      const startDate = new Date(document.getElementById('start_date').value);
-      const endDate = new Date(document.getElementById('end_date').value);
+    // Form validation with same styling as create collaboration page
+    document.getElementById('createOfferForm').addEventListener('submit', function (e) {
+      e.preventDefault();
 
-      if (endDate <= startDate) {
-        e.preventDefault();
-        alert('End date must be after start date');
+      // --- Validation helpers (same styling as profile modal) ---
+      function getOrCreateErrorEl(targetEl, idSuffix) {
+        const id = targetEl.id ? `${targetEl.id}-${idSuffix}` : `${idSuffix}`;
+        let el = document.getElementById(id);
+        if (!el) {
+          el = document.createElement('small');
+          el.id = id;
+          el.className = 'form-text error-inline';
+          el.setAttribute('aria-live', 'polite');
+          if (targetEl.parentElement) {
+            targetEl.parentElement.appendChild(el);
+          } else if (targetEl.appendChild) {
+            targetEl.appendChild(el);
+          }
+        }
+        return el;
       }
+
+      function setError(targetEl, message, idSuffix = 'error') {
+        const el = getOrCreateErrorEl(targetEl, idSuffix);
+        el.textContent = message || '';
+        if (message) {
+          targetEl.setAttribute('aria-invalid', 'true');
+          el.style.display = 'block';
+          el.style.marginTop = '6px';
+          el.style.padding = '6px 8px';
+          el.style.borderRadius = '4px';
+          el.style.background = 'rgba(255, 77, 79, 0.12)';
+          el.style.border = '1px solid #ff4d4f';
+          el.style.color = '#b00020';
+          if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
+            targetEl.style.outline = '2px solid #ff4d4f';
+            targetEl.style.outlineOffset = '1px';
+          }
+        } else {
+          targetEl.removeAttribute('aria-invalid');
+          el.style.display = '';
+          el.style.padding = '';
+          el.style.border = '';
+          el.style.background = '';
+          el.style.color = '';
+          el.style.borderRadius = '';
+          if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
+            targetEl.style.outline = '';
+            targetEl.style.outlineOffset = '';
+          }
+        }
+        return Boolean(message);
+      }
+
+      function clearAllErrors() {
+        const inputs = document.querySelectorAll('#createOfferForm input, #createOfferForm textarea, #createOfferForm select');
+        inputs.forEach(el => setError(el, ''));
+      }
+
+      // --- Content validation helpers ---
+      function containsVulgarContent(text) {
+        const vulgarWords = [
+          'fuck', 'shit', 'damn', 'bitch', 'ass', 'hell', 'crap', 'piss', 'dick', 'pussy',
+          'fucking', 'shitty', 'damned', 'bitchy', 'asshole', 'hellish', 'crappy', 'pissy',
+          'fucker', 'shitter', 'damner', 'bitchy', 'asshole', 'heller', 'crapper', 'pisser'
+        ];
+        const lowerText = text.toLowerCase();
+        return vulgarWords.some(word => lowerText.includes(word));
+      }
+
+      function isVagueContent(text, fieldName) {
+        const vaguePatterns = [
+          /^(www|http|https|\.com|\.org|\.net)/i, // URLs
+          /^(test|testing|sample|example|demo|dummy|placeholder)/i, // Test content
+          /^(asdf|qwerty|123|abc|xyz)/i, // Keyboard patterns
+          /^(lorem|ipsum|dolor|sit|amet)/i, // Lorem ipsum
+          /^[0-9\s\-_\.]+$/, // Only numbers and separators
+          /^[a-z\s\-_\.]+$/i, // Only letters and separators (too simple)
+          /^(.)\1{4,}/, // Repeated characters (aaaaa, 11111)
+          /^.{1,3}$/ // Too short for meaningful content
+        ];
+
+        return vaguePatterns.some(pattern => pattern.test(text.trim()));
+      }
+
+      function hasMinimumMeaningfulContent(text, minWords = 2) {
+        const words = text.trim().split(/\s+/).filter(word => word.length > 2);
+        return words.length >= minWords;
+      }
+
+      clearAllErrors();
+      let hasErrors = false;
+
+      // Get form elements
+      const description = document.getElementById('description');
+      const startDate = document.getElementById('start_date');
+      const endDate = document.getElementById('end_date');
+      const eligibility = document.getElementById('eligibility');
+      const offerPercentage = document.getElementById('offer_percentage');
+      const offerDetails = document.getElementById('offer_details');
+
+      // --- Validation rules ---
+
+      // Offer Description: required, max 500 characters, meaningful content
+      if (!description.value.trim()) {
+        hasErrors = setError(description, 'Offer description is required') || hasErrors;
+      } else if (description.value.length > 500) {
+        hasErrors = setError(description, 'Offer description must be 500 characters or less') || hasErrors;
+      } else if (containsVulgarContent(description.value)) {
+        hasErrors = setError(description, 'Offer description contains inappropriate content') || hasErrors;
+      } else if (isVagueContent(description.value, 'description')) {
+        hasErrors = setError(description, 'Please provide a meaningful offer description (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(description.value, 3)) {
+        hasErrors = setError(description, 'Offer description must contain at least 3 meaningful words') || hasErrors;
+      } else {
+        setError(description, '');
+      }
+
+      // Start Date: required
+      if (!startDate.value) {
+        hasErrors = setError(startDate, 'Start date is required') || hasErrors;
+      } else {
+        setError(startDate, '');
+      }
+
+      // End Date: required
+      if (!endDate.value) {
+        hasErrors = setError(endDate, 'End date is required') || hasErrors;
+      } else {
+        setError(endDate, '');
+      }
+
+      // Date validation: end date should be after start date
+      if (startDate.value && endDate.value) {
+        const start = new Date(startDate.value);
+        const end = new Date(endDate.value);
+        if (end <= start) {
+          hasErrors = setError(endDate, 'End date must be after start date') || hasErrors;
+        }
+      }
+
+      // Eligibility Criteria: required, max 200 characters, meaningful content
+      if (!eligibility.value.trim()) {
+        hasErrors = setError(eligibility, 'Eligibility criteria is required') || hasErrors;
+      } else if (eligibility.value.length > 200) {
+        hasErrors = setError(eligibility, 'Eligibility criteria must be 200 characters or less') || hasErrors;
+      } else if (containsVulgarContent(eligibility.value)) {
+        hasErrors = setError(eligibility, 'Eligibility criteria contains inappropriate content') || hasErrors;
+      } else if (isVagueContent(eligibility.value, 'eligibility')) {
+        hasErrors = setError(eligibility, 'Please provide meaningful eligibility criteria (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(eligibility.value, 3)) {
+        hasErrors = setError(eligibility, 'Eligibility criteria must contain at least 3 meaningful words') || hasErrors;
+      } else {
+        setError(eligibility, '');
+      }
+
+      // Offer Percentage: required, 0-100 range
+      if (!offerPercentage.value) {
+        hasErrors = setError(offerPercentage, 'Offer percentage is required') || hasErrors;
+      } else if (parseFloat(offerPercentage.value) < 0 || parseFloat(offerPercentage.value) > 100) {
+        hasErrors = setError(offerPercentage, 'Offer percentage must be between 0 and 100') || hasErrors;
+      } else {
+        setError(offerPercentage, '');
+      }
+
+      // Offer Details: required, max 500 characters, meaningful content
+      if (!offerDetails.value.trim()) {
+        hasErrors = setError(offerDetails, 'Offer details are required') || hasErrors;
+      } else if (offerDetails.value.length > 500) {
+        hasErrors = setError(offerDetails, 'Offer details must be 500 characters or less') || hasErrors;
+      } else if (containsVulgarContent(offerDetails.value)) {
+        hasErrors = setError(offerDetails, 'Offer details contain inappropriate content') || hasErrors;
+      } else if (isVagueContent(offerDetails.value, 'offer details')) {
+        hasErrors = setError(offerDetails, 'Please provide meaningful offer details (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(offerDetails.value, 4)) {
+        hasErrors = setError(offerDetails, 'Offer details must contain at least 4 meaningful words') || hasErrors;
+      } else {
+        setError(offerDetails, '');
+      }
+
+      if (hasErrors) {
+        const firstInvalid = document.querySelector('[aria-invalid="true"]');
+        if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+        return;
+      }
+
+      // If validation passes, submit the form
+      this.submit();
     });
   </script>
 </body>

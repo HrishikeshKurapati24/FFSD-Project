@@ -5,8 +5,62 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('rememberMe').checked = true;
     }
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    // ==== LIVE VALIDATION UTILS ====
+    function showError(input, message) {
+        let error = input.parentElement.querySelector('.error-message');
+        if (!error) {
+            error = document.createElement('small');
+            error.className = 'error-message';
+            error.style.color = 'red';
+            input.parentElement.appendChild(error);
+        }
+        error.innerText = message;
+        input.style.borderColor = "red";
+    }
+
+    function clearError(input) {
+        let error = input.parentElement.querySelector('.error-message');
+        if (error) error.remove();
+        input.style.borderColor = "";
+    }
+
+    function validateUsername(input) {
+        const value = input.value.trim();
+        if (value.length < 3) {
+            showError(input, "Username must be at least 3 characters");
+            return false;
+        }
+        clearError(input);
+        return true;
+    }
+
+    function validatePassword(input) {
+        const value = input.value.trim();
+        if (value.length < 6) {
+            showError(input, "Password must be at least 6 characters");
+            return false;
+        }
+        clearError(input);
+        return true;
+    }
+
+    // ==== LOGIN FORM VALIDATION ====
+    const loginForm = document.getElementById('loginForm');
+    const usernameField = document.getElementById('username');
+    const passwordField = document.getElementById('password');
+
+    usernameField.addEventListener('input', () => validateUsername(usernameField));
+    passwordField.addEventListener('input', () => validatePassword(passwordField));
+
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const isUsernameValid = validateUsername(usernameField);
+        const isPasswordValid = validatePassword(passwordField);
+
+        if (!isUsernameValid || !isPasswordValid) {
+            return; // block submission
+        }
 
         const formData = new FormData(e.target);
         const data = {
@@ -18,9 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/admin/login/verify', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
@@ -37,51 +89,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Forgot Password Modal Handling
+    // ==== FORGOT PASSWORD MODAL HANDLING ====
     const modal = document.getElementById('forgotPasswordModal');
     const btn = document.getElementById('forgotPasswordLink');
     const span = document.getElementsByClassName('close')[0];
     const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 
-    // Open modal
-    btn.onclick = function () {
-        modal.style.display = "block";
-    }
+    btn.onclick = () => modal.style.display = "block";
+    span.onclick = () => modal.style.display = "none";
+    window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
-    // Close modal
-    span.onclick = function () {
-        modal.style.display = "none";
-    }
+    // ==== RESET FORM VALIDATION ====
+    const resetUsernameField = document.getElementById('resetUsername');
+    const newPasswordField = document.getElementById('newPassword');
+    const confirmPasswordField = document.getElementById('confirmPassword');
 
-    // Close modal when clicking outside
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
+    resetUsernameField.addEventListener('input', () => validateUsername(resetUsernameField));
+    newPasswordField.addEventListener('input', () => validatePassword(newPasswordField));
+    confirmPasswordField.addEventListener('input', () => {
+        if (confirmPasswordField.value !== newPasswordField.value) {
+            showError(confirmPasswordField, "Passwords do not match");
+        } else {
+            clearError(confirmPasswordField);
         }
-    }
+    });
 
-    // Handle forgot password form submission
     forgotPasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const username = document.getElementById('resetUsername').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+        const isResetUserValid = validateUsername(resetUsernameField);
+        const isNewPassValid = validatePassword(newPasswordField);
+        const isConfirmPassValid = newPasswordField.value === confirmPasswordField.value;
 
-        if (newPassword !== confirmPassword) {
-            alert('Passwords do not match!');
+        if (!isResetUserValid || !isNewPassValid || !isConfirmPassValid) {
+            if (!isConfirmPassValid) {
+                showError(confirmPasswordField, "Passwords do not match");
+            }
             return;
         }
 
         try {
             const response = await fetch('/admin/reset-password', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username,
-                    newPassword
+                    username: resetUsernameField.value,
+                    newPassword: newPasswordField.value
                 })
             });
 

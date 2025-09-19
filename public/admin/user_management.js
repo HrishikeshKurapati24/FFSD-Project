@@ -10,7 +10,15 @@ function showTab(tabId) {
     document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
 }
 
-// Fetch and display user data
+// ========================================
+// FUNCTIONALITY 5: ADMIN DATA MANAGEMENT - USER DATA RETRIEVAL
+// ========================================
+// Asynchronous user data retrieval for admin panel
+// - Fetches user data from server via GET request
+// - Handles both influencers and brands data
+// - Renders data into dynamic HTML tables
+// - Provides error handling for failed requests
+// - Manages data refresh and UI updates
 async function fetchUserData() {
     try {
         const response = await fetch("/user_management");
@@ -57,6 +65,15 @@ function renderUserTables(data) {
     });
 }
 
+// ========================================
+// FUNCTIONALITY 5: ADMIN DATA MANAGEMENT - USER APPROVAL
+// ========================================
+// Asynchronous user approval with data refresh
+// - Sends approval request to server via POST
+// - Handles success/error responses asynchronously
+// - Refreshes user data after successful approval
+// - Provides user feedback for approval status
+// - Manages UI updates and data synchronization
 async function approveUser(id, userType) {
     try {
         await fetch("/user_management/approve", {

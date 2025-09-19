@@ -251,17 +251,6 @@
       box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
     }
 
-    .cancel-btn {
-      background-color: #dc3545;
-      color: white;
-    }
-
-    .cancel-btn:hover {
-      background-color: #c82333;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-    }
-
     /* Footer */
     footer {
       background-color: #333;
@@ -336,48 +325,48 @@
   <div class="form-container">
     <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Collaboration</h2>
 
-    <form method="POST" action="/brand/campaigns/create">
+    <form id="createCollabForm" method="POST" action="/brand/campaigns/create" novalidate>
       <div class="form-group">
         <label for="title">Campaign Title</label>
-        <input type="text" class="form-control" id="title" name="title" required maxlength="100"
+        <input type="text" class="form-control" id="title" name="title"
           placeholder="Enter campaign title (max 100 characters)">
       </div>
 
       <div class="form-group">
         <label for="description">Campaign Description</label>
-        <textarea class="form-control" id="description" name="description" required maxlength="1000"
+        <textarea class="form-control" id="description" name="description"
           placeholder="Describe your campaign (max 1000 characters)"></textarea>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="start_date">Start Date</label>
-          <input type="date" class="form-control" id="start_date" name="start_date" required>
+          <input type="date" class="form-control" id="start_date" name="start_date">
         </div>
 
         <div class="form-group">
           <label for="end_date">End Date</label>
-          <input type="date" class="form-control" id="end_date" name="end_date" required>
+          <input type="date" class="form-control" id="end_date" name="end_date">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="duration">Duration (days)</label>
-          <input type="number" class="form-control" id="duration" name="duration" required min="1"
+          <input type="number" class="form-control" id="duration" name="duration"
             placeholder="Enter duration in days (min 1)">
         </div>
 
         <div class="form-group">
           <label for="budget">Budget</label>
-          <input type="number" class="form-control" id="budget" name="budget" required min="0" step="0.01"
+          <input type="number" class="form-control" id="budget" name="budget" min="0"
             placeholder="Enter budget (min 0)">
         </div>
       </div>
 
       <div class="form-group">
         <label for="target_audience">Target Audience</label>
-        <input type="text" class="form-control" id="target_audience" name="target_audience" required
+        <input type="text" class="form-control" id="target_audience" name="target_audience"
           placeholder="Describe your target audience">
       </div>
 
@@ -385,7 +374,7 @@
         <label>Required Social Media Channels <span style="color: var(--danger-color);">*</span></label>
         <div class="checkbox-group">
           <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram" required>
+            <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram">
             <label for="channel-instagram">Instagram</label>
           </div>
           <div class="checkbox-item">
@@ -409,24 +398,22 @@
             <label for="channel-linkedin">LinkedIn</label>
           </div>
         </div>
-        <small style="color: var(--text-muted);">Select at least one channel.</small>
       </div>
 
       <div class="form-group">
         <label for="min_followers">Minimum Followers Required</label>
-        <input type="number" class="form-control" id="min_followers" name="min_followers" required min="0"
+        <input type="number" class="form-control" id="min_followers" name="min_followers" min="0"
           placeholder="Enter minimum followers (min 0)">
       </div>
 
       <div class="form-group">
         <label for="objectives">Campaign Objectives</label>
-        <textarea class="form-control" id="objectives" name="objectives" required maxlength="500"
+        <textarea class="form-control" id="objectives" name="objectives"
           placeholder="State your campaign objectives (max 500 characters)"></textarea>
       </div>
 
       <div class="btn-group">
         <button type="submit" class="submit-btn">Create Campaign</button>
-        <button type="button" class="cancel-btn" onclick="window.location.href='/brand/home'">Cancel</button>
       </div>
     </form>
   </div>
@@ -442,6 +429,241 @@
     function closeMenu() {
       document.getElementById("navMenu").style.width = "0";
     }
+
+    // Form validation with same styling as influencer profile modal
+    document.getElementById('createCollabForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // --- Validation helpers (same styling as profile modal) ---
+      function getOrCreateErrorEl(targetEl, idSuffix) {
+        const id = targetEl.id ? `${targetEl.id}-${idSuffix}` : `${idSuffix}`;
+        let el = document.getElementById(id);
+        if (!el) {
+          el = document.createElement('small');
+          el.id = id;
+          el.className = 'form-text error-inline';
+          el.setAttribute('aria-live', 'polite');
+          if (targetEl.parentElement) {
+            targetEl.parentElement.appendChild(el);
+          } else if (targetEl.appendChild) {
+            targetEl.appendChild(el);
+          }
+        }
+        return el;
+      }
+
+      function setError(targetEl, message, idSuffix = 'error') {
+        const el = getOrCreateErrorEl(targetEl, idSuffix);
+        el.textContent = message || '';
+        if (message) {
+          targetEl.setAttribute('aria-invalid', 'true');
+          el.style.display = 'block';
+          el.style.marginTop = '6px';
+          el.style.padding = '6px 8px';
+          el.style.borderRadius = '4px';
+          el.style.background = 'rgba(255, 77, 79, 0.12)';
+          el.style.border = '1px solid #ff4d4f';
+          el.style.color = '#b00020';
+          if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
+            targetEl.style.outline = '2px solid #ff4d4f';
+            targetEl.style.outlineOffset = '1px';
+          }
+        } else {
+          targetEl.removeAttribute('aria-invalid');
+          el.style.display = '';
+          el.style.padding = '';
+          el.style.border = '';
+          el.style.background = '';
+          el.style.color = '';
+          el.style.borderRadius = '';
+          if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
+            targetEl.style.outline = '';
+            targetEl.style.outlineOffset = '';
+          }
+        }
+        return Boolean(message);
+      }
+
+      function clearAllErrors() {
+        const inputs = document.querySelectorAll('#createCollabForm input, #createCollabForm textarea, #createCollabForm select');
+        inputs.forEach(el => setError(el, ''));
+      }
+
+      clearAllErrors();
+      let hasErrors = false;
+
+      // Get form elements
+      const title = document.getElementById('title');
+      const description = document.getElementById('description');
+      const startDate = document.getElementById('start_date');
+      const endDate = document.getElementById('end_date');
+      const duration = document.getElementById('duration');
+      const budget = document.getElementById('budget');
+      const targetAudience = document.getElementById('target_audience');
+      const minFollowers = document.getElementById('min_followers');
+      const objectives = document.getElementById('objectives');
+      const channels = document.querySelectorAll('input[name="required_channels"]');
+
+      // --- Content validation helpers ---
+      function containsVulgarContent(text) {
+        const vulgarWords = [
+          'fuck', 'shit', 'damn', 'bitch', 'ass', 'hell', 'crap', 'piss', 'dick', 'pussy',
+          'fucking', 'shitty', 'damned', 'bitchy', 'asshole', 'hellish', 'crappy', 'pissy',
+          'fucker', 'shitter', 'damner', 'bitchy', 'asshole', 'heller', 'crapper', 'pisser'
+        ];
+        const lowerText = text.toLowerCase();
+        return vulgarWords.some(word => lowerText.includes(word));
+      }
+
+      function isVagueContent(text, fieldName) {
+        const vaguePatterns = [
+          /^(www|http|https|\.com|\.org|\.net)/i, // URLs
+          /^(test|testing|sample|example|demo|dummy|placeholder)/i, // Test content
+          /^(asdf|qwerty|123|abc|xyz)/i, // Keyboard patterns
+          /^(lorem|ipsum|dolor|sit|amet)/i, // Lorem ipsum
+          /^[0-9\s\-_\.]+$/, // Only numbers and separators
+          /^[a-z\s\-_\.]+$/i, // Only letters and separators (too simple)
+          /^(.)\1{4,}/, // Repeated characters (aaaaa, 11111)
+          /^.{1,3}$/ // Too short for meaningful content
+        ];
+
+        return vaguePatterns.some(pattern => pattern.test(text.trim()));
+      }
+
+      function hasMinimumMeaningfulContent(text, minWords = 2) {
+        const words = text.trim().split(/\s+/).filter(word => word.length > 2);
+        return words.length >= minWords;
+      }
+
+      // --- Validation rules ---
+
+      // Campaign Title: required, max 100 characters, meaningful content
+      if (!title.value.trim()) {
+        hasErrors = setError(title, 'Campaign title is required') || hasErrors;
+      } else if (title.value.length > 100) {
+        hasErrors = setError(title, 'Campaign title must be 100 characters or less') || hasErrors;
+      } else if (containsVulgarContent(title.value)) {
+        hasErrors = setError(title, 'Campaign title contains inappropriate content') || hasErrors;
+      } else if (isVagueContent(title.value, 'title')) {
+        hasErrors = setError(title, 'Please provide a meaningful campaign title (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(title.value, 2)) {
+        hasErrors = setError(title, 'Campaign title must contain at least 2 meaningful words') || hasErrors;
+      } else {
+        setError(title, '');
+      }
+
+      // Campaign Description: required, max 1000 characters, meaningful content
+      if (!description.value.trim()) {
+        hasErrors = setError(description, 'Campaign description is required') || hasErrors;
+      } else if (description.value.length > 1000) {
+        hasErrors = setError(description, 'Campaign description must be 1000 characters or less') || hasErrors;
+      } else if (containsVulgarContent(description.value)) {
+        hasErrors = setError(description, 'Campaign description contains inappropriate content') || hasErrors;
+      } else if (isVagueContent(description.value, 'description')) {
+        hasErrors = setError(description, 'Please provide a meaningful campaign description (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(description.value, 5)) {
+        hasErrors = setError(description, 'Campaign description must contain at least 5 meaningful words') || hasErrors;
+      } else {
+        setError(description, '');
+      }
+
+      // Start Date: required
+      if (!startDate.value) {
+        hasErrors = setError(startDate, 'Start date is required') || hasErrors;
+      } else {
+        setError(startDate, '');
+      }
+
+      // End Date: required
+      if (!endDate.value) {
+        hasErrors = setError(endDate, 'End date is required') || hasErrors;
+      } else {
+        setError(endDate, '');
+      }
+
+      // Date validation: end date should be after start date
+      if (startDate.value && endDate.value) {
+        const start = new Date(startDate.value);
+        const end = new Date(endDate.value);
+        if (end <= start) {
+          hasErrors = setError(endDate, 'End date must be after start date') || hasErrors;
+        }
+      }
+
+      // Duration: required, min 1
+      if (!duration.value) {
+        hasErrors = setError(duration, 'Duration is required') || hasErrors;
+      } else if (parseInt(duration.value) < 1) {
+        hasErrors = setError(duration, 'Duration must be at least 1 day') || hasErrors;
+      } else {
+        setError(duration, '');
+      }
+
+      // Budget: required, min 0
+      if (!budget.value) {
+        hasErrors = setError(budget, 'Budget is required') || hasErrors;
+      } else if (parseFloat(budget.value) < 0) {
+        hasErrors = setError(budget, 'Budget must be 0 or greater') || hasErrors;
+      } else {
+        setError(budget, '');
+      }
+
+      // Target Audience: required, meaningful content
+      if (!targetAudience.value.trim()) {
+        hasErrors = setError(targetAudience, 'Target audience is required') || hasErrors;
+      } else if (containsVulgarContent(targetAudience.value)) {
+        hasErrors = setError(targetAudience, 'Target audience description contains inappropriate content') || hasErrors;
+      } else if (isVagueContent(targetAudience.value, 'target audience')) {
+        hasErrors = setError(targetAudience, 'Please provide a meaningful target audience description (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(targetAudience.value, 3)) {
+        hasErrors = setError(targetAudience, 'Target audience description must contain at least 3 meaningful words') || hasErrors;
+      } else {
+        setError(targetAudience, '');
+      }
+
+      // Required Social Media Channels: at least one required
+      const checkedChannels = Array.from(channels).filter(ch => ch.checked);
+      if (checkedChannels.length === 0) {
+        const channelGroup = document.querySelector('.checkbox-group');
+        hasErrors = setError(channelGroup, 'Please select at least one social media channel') || hasErrors;
+      } else {
+        const channelGroup = document.querySelector('.checkbox-group');
+        setError(channelGroup, '');
+      }
+
+      // Minimum Followers: required, min 0
+      if (!minFollowers.value) {
+        hasErrors = setError(minFollowers, 'Minimum followers is required') || hasErrors;
+      } else if (parseInt(minFollowers.value) < 0) {
+        hasErrors = setError(minFollowers, 'Minimum followers must be 0 or greater') || hasErrors;
+      } else {
+        setError(minFollowers, '');
+      }
+
+      // Campaign Objectives: required, max 500 characters, meaningful content
+      if (!objectives.value.trim()) {
+        hasErrors = setError(objectives, 'Campaign objectives are required') || hasErrors;
+      } else if (objectives.value.length > 500) {
+        hasErrors = setError(objectives, 'Campaign objectives must be 500 characters or less') || hasErrors;
+      } else if (containsVulgarContent(objectives.value)) {
+        hasErrors = setError(objectives, 'Campaign objectives contain inappropriate content') || hasErrors;
+      } else if (isVagueContent(objectives.value, 'objectives')) {
+        hasErrors = setError(objectives, 'Please provide meaningful campaign objectives (avoid URLs, test content, or placeholder text)') || hasErrors;
+      } else if (!hasMinimumMeaningfulContent(objectives.value, 4)) {
+        hasErrors = setError(objectives, 'Campaign objectives must contain at least 4 meaningful words') || hasErrors;
+      } else {
+        setError(objectives, '');
+      }
+
+      if (hasErrors) {
+        const firstInvalid = document.querySelector('[aria-invalid="true"]');
+        if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+        return;
+      }
+
+      // If validation passes, submit the form
+      this.submit();
+    });
   </script>
 </body>
 

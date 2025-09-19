@@ -52,6 +52,7 @@
     input[type="text"],
     input[type="email"],
     input[type="password"],
+    input[type="number"],
     textarea {
       width: 100%;
       padding: 10px;
@@ -89,31 +90,100 @@
       text-decoration: none;
       font-size: 1rem;
     }
+
+    .message {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .error-text {
+      display: block;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #ff6b6b;
+      min-height: 16px;
+    }
+
+    .invalid {
+      outline: 2px solid #ff6b6b;
+    }
+
+    input.touched:invalid,
+    textarea.touched:invalid {
+      border-color: #ff6b6b;
+    }
+
+    .field-group {
+      margin-bottom: 20px;
+    }
+
+    .character-count {
+      font-size: 12px;
+      color: #666;
+      text-align: right;
+      margin-top: 2px;
+    }
   </style>
 </head>
 
 <body>
   <div class="signup-container">
     <h1>Brand Sign Up</h1>
-    <form id="brandSignupForm" action="/signup-form-brand" method="post">
+    <form id="brandSignupForm" action="/signup-form-brand" method="post" novalidate>
       <div id="messageBox" class="message"></div>
-      <label for="brandName">Brand Name:</label>
-      <input type="text" id="brandName" name="brandName" placeholder="Your Brand Name" required>
+      <div class="field-group">
+        <label for="brandName">Brand Name:</label>
+        <input type="text" id="brandName" name="brandName" placeholder="Your Brand Name">
+        <small id="brandNameError" class="error-text" style="display: none;"></small>
+        <div id="brandNameCount" class="character-count"></div>
+      </div>
 
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" placeholder="Your Email" required>
+      <div class="field-group">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" placeholder="Your Email">
+        <small id="emailError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" placeholder="Choose a Password" required>
+      <div class="field-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"
+          placeholder="Choose a Password(At least 8 characters, one digit, and one special character)">
+        <small id="passwordError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="industry">Industry:</label>
-      <input type="text" id="industry" name="industry" placeholder="Your Industry" required>
+      <div class="field-group">
+        <label for="industry">Industry:</label>
+        <input type="text" id="industry" name="industry" placeholder="Your Industry">
+        <small id="industryError" class="error-text" style="display: none;"></small>
+        <div id="industryCount" class="character-count"></div>
+      </div>
 
-      <label for="budget">Marketing Budget:</label>
-      <input type="number" id="budget" name="budget" placeholder="Your Budget" required>
+      <div class="field-group">
+        <label for="budget">Marketing Budget:</label>
+        <input type="number" id="budget" name="budget" placeholder="Your Budget">
+        <small id="budgetError" class="error-text" style="display: none;"></small>
+      </div>
 
-      <label for="phone">Contact Number:</label>
-      <input type="text" id="phone" name="phone" placeholder="Your Phone Number" required>
+      <div class="field-group">
+        <label for="phone">Contact Number:</label>
+        <input type="number" id="phone" name="phone" placeholder="+1234567890 or 1234567890">
+        <small id="phoneError" class="error-text" style="display: none;"></small>
+      </div>
 
       <button type="submit">Sign Up as Brand</button>
     </form>
@@ -125,6 +195,26 @@
       const form = document.getElementById('brandSignupForm');
       const messageBox = document.getElementById('messageBox');
       const submitBtn = form.querySelector('button');
+
+      // Get all form elements
+      const brandNameInput = document.getElementById('brandName');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const industryInput = document.getElementById('industry');
+      const budgetInput = document.getElementById('budget');
+      const phoneInput = document.getElementById('phone');
+
+      // Get error elements
+      const brandNameError = document.getElementById('brandNameError');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const industryError = document.getElementById('industryError');
+      const budgetError = document.getElementById('budgetError');
+      const phoneError = document.getElementById('phoneError');
+
+      // Get character count elements
+      const brandNameCount = document.getElementById('brandNameCount');
+      const industryCount = document.getElementById('industryCount');
 
       function showMessage(message, type) {
         messageBox.textContent = message;
@@ -138,25 +228,291 @@
         }
       }
 
-      form.addEventListener('submit', async function (e) {
+      // Validation functions
+      function validateBrandName(value) {
+        if (!value) return 'Brand name is required';
+        if (value.length < 2) return 'Brand name must be at least 2 characters';
+        if (value.length > 50) return 'Brand name cannot exceed 50 characters';
+        if (!/^[a-zA-Z0-9\s&.-]+$/.test(value)) return 'Brand name can only contain letters, numbers, spaces, &, dots, and hyphens';
+
+        // Check for vague inputs
+        const vaguePatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+          /^(brand|company|business|corp|corporation)$/i,
+          /^(user|admin|guest|temp|temporary)$/i,
+          /^(name|brandname|companyname)$/i,
+          /^[a-z]{1,3}$/i, // Single letters or very short strings
+          /^[0-9]+$/, // Only numbers
+          /^(.)\1+$/, // Repeated characters like "aaaa", "bbbb"
+          /^(my|the|a|an)\s+(brand|company|business)$/i // "my brand", "the company", etc.
+        ];
+
+        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a real brand name';
+        }
+
+        return '';
+      }
+
+      function validateEmail(value) {
+        const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/;
+        if (!value) return 'Email is required';
+        if (!emailRegex.test(value)) return 'Enter a valid email address';
+
+        // Check for vague/test email patterns
+        const vagueEmailPatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)@/i,
+          /^(user|admin|guest|temp|temporary)@/i,
+          /^(email|mail|contact)@/i,
+          /@(test|testing|demo|sample|example|localhost|temp|temporary)\./i,
+          /@(test|testing|demo|sample|example)\.(com|org|net)$/i,
+          /^(.)\1+@/i, // Repeated characters before @
+          /@(.)\1+\./i // Repeated characters in domain
+        ];
+
+        if (vagueEmailPatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a real email address';
+        }
+
+        return '';
+      }
+
+      function validatePassword(value) {
+        if (!value) return 'Password is required';
+        if (value.length < 8) return 'Password must be at least 8 characters';
+        if (!/[0-9]/.test(value)) return 'Password must include at least one digit';
+        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must include at least one special character';
+        return '';
+      }
+
+      function validateIndustry(value) {
+        if (!value) return 'Industry is required';
+        if (value.length < 2) return 'Industry must be at least 2 characters';
+        if (value.length > 50) return 'Industry cannot exceed 50 characters';
+
+        // Check for vague inputs
+        const vaguePatterns = [
+          /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+          /^(industry|sector|field|area|domain)$/i,
+          /^(general|other|misc|miscellaneous)$/i,
+          /^[a-z]{1,2}$/i, // Very short strings
+          /^[0-9]+$/, // Only numbers
+          /^(.)\1+$/, // Repeated characters
+          /^(stuff|things|random|whatever|business)$/i,
+          /^(my|the|a|an)\s+(industry|business|field)$/i // "my industry", "the business", etc.
+        ];
+
+        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+          return 'Please enter a specific industry';
+        }
+
+        return '';
+      }
+
+      function validateBudget(value) {
+        if (!value) return 'Marketing budget is required';
+        const num = parseInt(value, 10);
+        if (isNaN(num)) return 'Budget must be a valid number';
+        if (num < 100) return 'Budget should be at least $100';
+        if (num > 10000000) return 'Budget cannot exceed $10,000,000';
+        return '';
+      }
+
+      function validatePhone(value) {
+        if (!value) return 'Contact number is required';
+
+        // Remove all non-digit characters for length check
+        const digitsOnly = value.replace(/\D/g, '');
+
+        // Check if it has at least 10 digits
+        if (digitsOnly.length < 10) return 'Phone number must have at least 10 digits';
+        if (digitsOnly.length > 15) return 'Phone number cannot exceed 15 digits';
+
+        // Check format (allows + at start, then digits)
+        const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+        if (!phoneRegex.test(value)) return 'Please enter a valid phone number format';
+
+        // Check for vague/test phone patterns
+        const vaguePhonePatterns = [
+          /^(\d)\1{9,}$/, // All same digits like 1111111111, 2222222222
+          /^123456789\d*$/, // Starting with 123456789
+          /^000000000\d*$/, // Starting with 000000000
+          /^111111111\d*$/, // Starting with 111111111
+          /^(\d{3})\1{2,}$/, // Repeated 3-digit patterns
+          /^(\d{2})\1{4,}$/ // Repeated 2-digit patterns
+        ];
+
+        if (vaguePhonePatterns.some(pattern => pattern.test(digitsOnly))) {
+          return 'Please enter a real phone number';
+        }
+
+        return '';
+      }
+
+      function setFieldState(inputEl, errorEl, errorMsg) {
+        errorEl.textContent = errorMsg || '';
+        if (errorMsg) {
+          inputEl.classList.add('invalid');
+          inputEl.setAttribute('aria-invalid', 'true');
+          errorEl.style.display = 'block';
+        } else {
+          inputEl.classList.remove('invalid');
+          inputEl.removeAttribute('aria-invalid');
+          errorEl.style.display = 'none';
+        }
+      }
+
+      function markAsTouched(inputEl) {
+        inputEl.classList.add('touched');
+      }
+
+      function updateSubmitState() {
+        const brandNameMsg = validateBrandName(brandNameInput.value.trim());
+        const emailMsg = validateEmail(emailInput.value.trim());
+        const passwordMsg = validatePassword(passwordInput.value);
+        const industryMsg = validateIndustry(industryInput.value.trim());
+        const budgetMsg = validateBudget(budgetInput.value);
+        const phoneMsg = validatePhone(phoneInput.value.trim());
+
+        const hasErrors = Boolean(brandNameMsg || emailMsg || passwordMsg || industryMsg || budgetMsg || phoneMsg);
+
+        submitBtn.disabled = hasErrors;
+        return hasErrors;
+      }
+
+      // Live validation for all fields
+      brandNameInput.addEventListener('input', (e) => {
+        // Enforce character limit
+        if (e.target.value.length > 50) {
+          e.target.value = e.target.value.slice(0, 50);
+        }
+
+        markAsTouched(brandNameInput);
+        const msg = validateBrandName(brandNameInput.value.trim());
+        setFieldState(brandNameInput, brandNameError, msg);
+        updateSubmitState();
+
+        // Update character count
+        const charCount = brandNameInput.value.length;
+        brandNameCount.textContent = `${charCount}/50 characters`;
+      });
+
+      emailInput.addEventListener('input', () => {
+        markAsTouched(emailInput);
+        const msg = validateEmail(emailInput.value.trim());
+        setFieldState(emailInput, emailError, msg);
+        updateSubmitState();
+      });
+
+      passwordInput.addEventListener('input', () => {
+        markAsTouched(passwordInput);
+        const msg = validatePassword(passwordInput.value);
+        setFieldState(passwordInput, passwordError, msg);
+        updateSubmitState();
+      });
+
+      industryInput.addEventListener('input', (e) => {
+        // Enforce character limit
+        if (e.target.value.length > 50) {
+          e.target.value = e.target.value.slice(0, 50);
+        }
+
+        markAsTouched(industryInput);
+        const msg = validateIndustry(industryInput.value.trim());
+        setFieldState(industryInput, industryError, msg);
+        updateSubmitState();
+
+        // Update character count
+        const charCount = industryInput.value.length;
+        industryCount.textContent = `${charCount}/50 characters`;
+      });
+
+      budgetInput.addEventListener('input', (e) => {
+        // Enforce numeric constraints
+        let value = e.target.value;
+        if (value && !isNaN(value)) {
+          const numValue = parseInt(value, 10);
+          if (numValue < 0) {
+            e.target.value = '0';
+          } else if (numValue > 10000000) {
+            e.target.value = '10000000';
+          }
+        }
+
+        markAsTouched(budgetInput);
+        const msg = validateBudget(budgetInput.value);
+        setFieldState(budgetInput, budgetError, msg);
+        updateSubmitState();
+      });
+
+      phoneInput.addEventListener('input', () => {
+        markAsTouched(phoneInput);
+        const msg = validatePhone(phoneInput.value.trim());
+        setFieldState(phoneInput, phoneError, msg);
+        updateSubmitState();
+      });
+
+      // Add blur event listeners to mark fields as touched
+      [brandNameInput, emailInput, passwordInput, industryInput, budgetInput, phoneInput].forEach(input => {
+        input.addEventListener('blur', () => {
+          markAsTouched(input);
+        });
+      });
+
+      // Initial state
+      updateSubmitState();
+
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Final validation before submit
+        const brandNameMsg = validateBrandName(brandNameInput.value.trim());
+        const emailMsg = validateEmail(emailInput.value.trim());
+        const passwordMsg = validatePassword(passwordInput.value);
+        const industryMsg = validateIndustry(industryInput.value.trim());
+        const budgetMsg = validateBudget(budgetInput.value);
+        const phoneMsg = validatePhone(phoneInput.value.trim());
+
+        // Set all field states
+        setFieldState(brandNameInput, brandNameError, brandNameMsg);
+        setFieldState(emailInput, emailError, emailMsg);
+        setFieldState(passwordInput, passwordError, passwordMsg);
+        setFieldState(industryInput, industryError, industryMsg);
+        setFieldState(budgetInput, budgetError, budgetMsg);
+        setFieldState(phoneInput, phoneError, phoneMsg);
+
+        const hasErrors = Boolean(brandNameMsg || emailMsg || passwordMsg || industryMsg || budgetMsg || phoneMsg);
+
+        if (hasErrors) {
+          showMessage('Please fix all errors before submitting', 'error');
+          return;
+        }
 
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating Account...';
 
+        // ========================================
+        // FUNCTIONALITY 1: USER AUTHENTICATION - BRAND SIGNUP
+        // ========================================
+        // Asynchronous user registration for brands
+        // - Collects brand-specific data including industry and budget
+        // - Validates all form fields before submission
+        // - Sends registration data to server via POST request
+        // - Handles success/error responses asynchronously
+        // - Provides user feedback and redirects on success
         try {
-          const formData = new FormData(form);
           const data = {
-            brandName: formData.get('brandName').trim(),
-            email: formData.get('email').trim(),
-            password: formData.get('password'),
-            industry: formData.get('industry').trim(),
-            budget: parseInt(formData.get('budget'), 10),
-            phone: formData.get('phone').trim(),
+            brandName: brandNameInput.value.trim(),
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+            industry: industryInput.value.trim(),
+            budget: parseInt(budgetInput.value, 10),
+            phone: phoneInput.value.trim(),
           };
 
           console.log('Sending data to server:', data);
 
+          // Asynchronous registration request
           const response = await fetch('/signup-form-brand', {
             method: 'POST',
             headers: {
@@ -176,6 +532,7 @@
           console.log('Response data:', result);
 
           showMessage('Account created successfully! Redirecting to sign-in...', 'success');
+          // Redirect after successful registration
           setTimeout(() => {
             window.location.href = '/signin';
           }, 2000);

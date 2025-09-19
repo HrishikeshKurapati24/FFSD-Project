@@ -154,7 +154,13 @@ app.post('/signup-form-brand', async (req, res) => {
 
 app.post('/signup-form-influencer', async (req, res) => {
     try {
-        const { fullName, email, password, socialHandle, audience, niche, phone } = req.body;
+        const { fullName, email, password, platform, socialHandle, audience, niche, phone } = req.body;
+
+        // Validate platform selection
+        const validPlatforms = ['instagram', 'youtube', 'tiktok', 'facebook', 'twitter', 'linkedin'];
+        if (!platform || !validPlatforms.includes(platform)) {
+            return res.status(400).json({ message: 'Please select a valid social media platform' });
+        }
 
         // Check if influencer already exists
         const existingInfluencer = await InfluencerInfo.findOne({ email });
@@ -187,7 +193,7 @@ app.post('/signup-form-influencer', async (req, res) => {
             influencerId: influencer._id,
             socialHandle,
             platforms: [{
-                platform: 'instagram', // Default platform
+                platform: platform,
                 handle: socialHandle,
                 followers: audience || 0
             }]

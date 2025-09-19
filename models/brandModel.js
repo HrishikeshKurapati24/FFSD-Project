@@ -586,7 +586,7 @@ class brandModel {
         {
           $match: {
             campaign_id: { $in: campaignIds },
-            status: 'request'
+            status: 'active'
           }
         },
         {

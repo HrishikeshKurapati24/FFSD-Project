@@ -33,7 +33,7 @@
     /* Form container on the left */
     .form-container {
       flex: 1;
-      background-color: purple;
+      background-color: rgb(109, 128, 0);
       /* Changed inner background to purple */
       padding: 30px;
       text-align: left;
@@ -111,6 +111,42 @@
       max-height: 500px;
       object-fit: cover;
     }
+
+    /* Validation styles */
+    .message {
+      margin: 10px 0;
+      padding: 8px 10px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .message.error {
+      display: block;
+      background: rgba(255, 0, 0, 0.1);
+      color: #ff6b6b;
+      border: 1px solid #ff6b6b;
+    }
+
+    .message.success {
+      display: block;
+      background: rgba(0, 255, 0, 0.08);
+      color: #7CFC00;
+      border: 1px solid #7CFC00;
+    }
+
+    .error-text {
+      display: block;
+      margin-left: 160px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #ff6b6b;
+      min-height: 16px;
+    }
+
+    .invalid {
+      outline: 2px solid #ff6b6b;
+    }
   </style>
 </head>
 
@@ -124,17 +160,20 @@
         <p>
           <label for="email">Email ID:</label>
           <input type="email" id="email" name="email" placeholder="Enter your email" required>
+          <small id="emailError" class="error-text" aria-live="polite"></small>
         </p>
+
         <p>
           <label for="password">Password:</label>
           <input type="password" id="password" name="password" placeholder="Enter your password" required>
+          <small id="passwordError" class="error-text" aria-live="polite"></small>
         </p>
         <!-- <div class="checkbox-container">
           <input type="checkbox" id="remember" name="remember">
           <label for="remember" style="display:inline;">Remember me</label>
         </div> -->
         <p>
-          <button type="submit">Sign In</button>
+          <button id="submitBtn" type="submit">Sign In</button>
         </p>
         <!-- <p style="text-align: center;">
           <a href="/forgot-password" id="forgotPasswordLink">Forgot Password?</a>
@@ -150,6 +189,11 @@
     document.addEventListener('DOMContentLoaded', function () {
       const form = document.getElementById('signinForm');
       const messageBox = document.getElementById('messageBox');
+      const submitBtn = document.getElementById('submitBtn');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
       const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
       function showMessage(message, type) {
@@ -164,8 +208,104 @@
         }
       }
 
+      function validateEmail(value) {
+        const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/;
+        if (!value) return 'Email is required';
+        if (!emailRegex.test(value)) return 'Enter a valid email address';
+        return '';
+      }
+
+      function validatePassword(value) {
+        if (!value) return 'Password is required';
+        if (value.length < 8) return 'Password must be at least 8 characters';
+        if (!/[0-9]/.test(value)) return 'Password must include at least one digit';
+        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must include at least one special character';
+        return '';
+      }
+
+      function setFieldState(inputEl, errorEl, errorMsg) {
+        errorEl.textContent = errorMsg || '';
+        if (errorMsg) {
+          inputEl.classList.add('invalid');
+          inputEl.setAttribute('aria-invalid', 'true');
+          // Emphasize error visibility similar to profile page
+          errorEl.style.display = 'block';
+          errorEl.style.marginTop = '6px';
+          errorEl.style.padding = '6px 8px';
+          errorEl.style.borderRadius = '4px';
+          errorEl.style.background = 'rgba(255, 77, 79, 0.12)';
+          errorEl.style.border = '1px solid #ff4d4f';
+          errorEl.style.color = '#b00020';
+          inputEl.style.outline = '2px solid #ff4d4f';
+          inputEl.style.outlineOffset = '1px';
+        } else {
+          inputEl.classList.remove('invalid');
+          inputEl.removeAttribute('aria-invalid');
+          errorEl.style.display = '';
+          errorEl.style.padding = '';
+          errorEl.style.border = '';
+          errorEl.style.background = '';
+          errorEl.style.color = '';
+          errorEl.style.borderRadius = '';
+          inputEl.style.outline = '';
+          inputEl.style.outlineOffset = '';
+        }
+      }
+
+      function updateSubmitState() {
+        const emailMsg = validateEmail(emailInput.value.trim());
+        const pwdMsg = validatePassword(passwordInput.value);
+        submitBtn.disabled = Boolean(emailMsg || pwdMsg);
+      }
+
+      // Initial state
+      updateSubmitState();
+
+      // Live validation
+      emailInput.addEventListener('input', () => {
+        const msg = validateEmail(emailInput.value.trim());
+        setFieldState(emailInput, emailError, msg);
+        updateSubmitState();
+      });
+      emailInput.addEventListener('blur', () => {
+        const msg = validateEmail(emailInput.value.trim());
+        setFieldState(emailInput, emailError, msg);
+        updateSubmitState();
+      });
+
+      passwordInput.addEventListener('input', () => {
+        const msg = validatePassword(passwordInput.value);
+        setFieldState(passwordInput, passwordError, msg);
+        updateSubmitState();
+      });
+      passwordInput.addEventListener('blur', () => {
+        const msg = validatePassword(passwordInput.value);
+        setFieldState(passwordInput, passwordError, msg);
+        updateSubmitState();
+      });
+
+      // ========================================
+      // FUNCTIONALITY 1: USER AUTHENTICATION - SIGN IN
+      // ========================================
+      // Asynchronous user sign-in with form validation and redirect
+      // - Validates form data client-side before submission
+      // - Sends credentials to server via POST request
+      // - Handles success/error responses asynchronously
+      // - Redirects user on successful authentication
+      // - Provides user feedback for all scenarios
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
+
+        // Final validation gate before submit
+        const emailMsg = validateEmail(emailInput.value.trim());
+        const pwdMsg = validatePassword(passwordInput.value);
+        setFieldState(emailInput, emailError, emailMsg);
+        setFieldState(passwordInput, passwordError, pwdMsg);
+        if (emailMsg || pwdMsg) {
+          showMessage(emailMsg || pwdMsg, 'error');
+          updateSubmitState();
+          return;
+        }
 
         const formData = {
           email: document.getElementById('email').value.trim(),
@@ -174,6 +314,7 @@
         };
 
         try {
+          // Asynchronous authentication request
           const response = await fetch('/auth/signin', {
             method: 'POST',
             headers: {
@@ -186,11 +327,12 @@
 
           if (response.ok) {
             showMessage(data.message, 'success');
+            // Redirect after successful authentication
             setTimeout(() => {
               window.location.href = data.redirectUrl;
             }, 1500);
           } else {
-            showMessage(data.message, 'error');
+            showMessage(data.message || 'Invalid credentials', 'error');
           }
         } catch (error) {
           showMessage('An error occurred. Please try again.', 'error');
