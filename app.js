@@ -88,7 +88,7 @@ app.get('/brand/Sup_b', (req, res) => {
 
 app.post('/signup-form-brand', async (req, res) => {
     try {
-        const { brandName, email, password, industry, budget, phone } = req.body;
+        const { brandName, email, password, industry, website, phone, totalAudience } = req.body;
 
         // Check if brand already exists
         const existingBrand = await BrandInfo.findOne({ email });
@@ -106,6 +106,9 @@ app.post('/signup-form-brand', async (req, res) => {
             email,
             password: hashedPassword,
             industry,
+            website,
+            budget: 0,
+            totalAudience: totalAudience ? parseInt(totalAudience) : 0,
             phone,
             status: 'active',
             verified: false,

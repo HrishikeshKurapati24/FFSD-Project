@@ -95,6 +95,34 @@ button.action-btn.reject {
     cursor: pointer;
 }
 
+/* Approve Button */
+.btn-approve {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.btn-approve:hover {
+    background-color: #0056b3;
+}
+
+.btn-approve:active {
+    background-color: #004085;
+}
+
+/* Verified Status */
+.verified-status {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
 .error-alert {
     background-color: #ffebee;
     color: #c62828;

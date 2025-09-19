@@ -215,7 +215,7 @@ const AdminModel = {
     UserManagementModel: class {
         static async getInfluencers() {
             try {
-                // Aggregate influencers with their social handles
+                // Aggregate influencers with their social handles and analytics - include all influencers (verified and unverified)
                 const influencers = await InfluencerInfo.aggregate([
                     {
                         $lookup: {
@@ -226,6 +226,14 @@ const AdminModel = {
                         }
                     },
                     {
+                        $lookup: {
+                            from: 'influenceranalytics',
+                            localField: '_id',
+                            foreignField: 'influencerId',
+                            as: 'analytics'
+                        }
+                    },
+                    {
                         $addFields: {
                             social_handles: {
                                 $map: {
@@ -233,6 +241,12 @@ const AdminModel = {
                                     as: 'social',
                                     in: '$$social.socialHandle'
                                 }
+                            },
+                            audienceSize: {
+                                $ifNull: [
+                                    { $arrayElemAt: ['$analytics.totalFollowers', 0] },
+                                    0
+                                ]
                             }
                         }
                     },
@@ -244,7 +258,8 @@ const AdminModel = {
                             niche: 1,
                             categories: 1,
                             social_handles: 1,
-                            verified: 1
+                            verified: 1,
+                            audienceSize: 1
                         }
                     }
                 ]);
@@ -258,7 +273,7 @@ const AdminModel = {
         static async getBrands() {
             try {
                 return await BrandInfo.find()
-                    .select('brandName displayName email website categories industry verified')
+                    .select('brandName displayName email website categories industry verified totalAudience')
                     .lean();
             } catch (error) {
                 console.error('Error fetching brands:', error);
@@ -279,6 +294,32 @@ const AdminModel = {
             } catch (error) {
                 console.error('Error approving user:', error);
                 return { success: false, message: 'Error approving user' };
+            }
+        }
+
+        static async getBrandById(id) {
+            try {
+                const brand = await BrandInfo.findById(id).lean();
+                if (!brand) {
+                    return null;
+                }
+                return brand;
+            } catch (error) {
+                console.error('Error fetching brand by ID:', error);
+                return null;
+            }
+        }
+
+        static async getInfluencerById(id) {
+            try {
+                const influencer = await InfluencerInfo.findById(id).lean();
+                if (!influencer) {
+                    return null;
+                }
+                return influencer;
+            } catch (error) {
+                console.error('Error fetching influencer by ID:', error);
+                return null;
             }
         }
     },

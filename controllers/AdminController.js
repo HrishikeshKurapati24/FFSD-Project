@@ -353,6 +353,7 @@ const UserManagementController = {
                 email: influencer.email || 'N/A',
                 category: (influencer.categories && influencer.categories.length > 0) ? influencer.categories.join(', ') : (influencer.niche || 'N/A'),
                 social_handles: (influencer.social_handles && influencer.social_handles.length > 0) ? influencer.social_handles.join(', ') : 'N/A',
+                audienceSize: influencer.audienceSize || 0,
                 _id: influencer._id || influencer.id || null,
                 verified: influencer.verified || false
             }));
@@ -362,7 +363,8 @@ const UserManagementController = {
                 name: brand.brandName || brand.displayName || 'N/A',
                 email: brand.email || 'N/A',
                 website: brand.website || 'N/A',
-                businessCategory: (brand.categories && brand.categories.length > 0) ? brand.categories.join(', ') : (brand.industry || 'N/A'),
+                industry: brand.industry || brand.businessCategory || brand.category || 'N/A',
+                totalAudience: brand.totalAudience || 0,
                 _id: brand._id || brand.id || null,
                 verified: brand.verified || false
             }));
@@ -398,12 +400,49 @@ const UserManagementController = {
 
     async approveUser(req, res) {
         try {
-            const { id, userType } = req.body;
+            const { id } = req.params;
+            const { userType } = req.body;
+            console.log('AdminController approveUser called:', { id, userType });
             const result = await AdminModel.UserManagementModel.approveUser(id, userType);
+            console.log('AdminController approveUser result:', result);
             res.json(result);
         } catch (error) {
             console.error("Error in approveUser:", error);
             res.status(500).json({ success: false, message: "Failed to approve user" });
+        }
+    },
+
+    async getBrandDetails(req, res) {
+        try {
+            const { id } = req.params;
+            console.log('AdminController getBrandDetails called for ID:', id);
+
+            const brand = await AdminModel.UserManagementModel.getBrandById(id);
+            if (!brand) {
+                return res.status(404).json({ success: false, message: "Brand not found" });
+            }
+
+            res.json(brand);
+        } catch (error) {
+            console.error("Error in getBrandDetails:", error);
+            res.status(500).json({ success: false, message: "Failed to fetch brand details" });
+        }
+    },
+
+    async getInfluencerDetails(req, res) {
+        try {
+            const { id } = req.params;
+            console.log('AdminController getInfluencerDetails called for ID:', id);
+
+            const influencer = await AdminModel.UserManagementModel.getInfluencerById(id);
+            if (!influencer) {
+                return res.status(404).json({ success: false, message: "Influencer not found" });
+            }
+
+            res.json(influencer);
+        } catch (error) {
+            console.error("Error in getInfluencerDetails:", error);
+            res.status(500).json({ success: false, message: "Failed to fetch influencer details" });
         }
     }
 };

@@ -173,15 +173,17 @@
         <div id="industryCount" class="character-count"></div>
       </div>
 
-      <div class="field-group">
-        <label for="budget">Marketing Budget:</label>
-        <input type="number" id="budget" name="budget" placeholder="Your Budget">
-        <small id="budgetError" class="error-text" style="display: none;"></small>
-      </div>
+       <label for="website">Website:</label>
+      <input type="text" id="website" name="website" placeholder="Your Website URL" required>
+      <small id="websiteError" class="error-text" style="display: none;"></small>
+
+      <label for="totalAudience">Total Audience:</label>
+      <input type="number" id="totalAudience" name="totalAudience" placeholder="Total Audience" min="0" value="0" class="total-audience-input">
+      <small id="totalAudienceError" class="error-text" style="display: none;"></small>
 
       <div class="field-group">
         <label for="phone">Contact Number:</label>
-        <input type="number" id="phone" name="phone" placeholder="+1234567890 or 1234567890">
+        <input type="text" id="phone" name="phone" placeholder="+1234567890 or 1234567890">
         <small id="phoneError" class="error-text" style="display: none;"></small>
       </div>
 
@@ -201,7 +203,8 @@
       const emailInput = document.getElementById('email');
       const passwordInput = document.getElementById('password');
       const industryInput = document.getElementById('industry');
-      const budgetInput = document.getElementById('budget');
+      const websiteInput = document.getElementById('website');
+      const totalAudienceInput = document.getElementById('totalAudience');
       const phoneInput = document.getElementById('phone');
 
       // Get error elements
@@ -209,7 +212,8 @@
       const emailError = document.getElementById('emailError');
       const passwordError = document.getElementById('passwordError');
       const industryError = document.getElementById('industryError');
-      const budgetError = document.getElementById('budgetError');
+      const websiteError = document.getElementById('websiteError');
+      const totalAudienceError = document.getElementById('totalAudienceError');
       const phoneError = document.getElementById('phoneError');
 
       // Get character count elements
@@ -309,12 +313,19 @@
         return '';
       }
 
-      function validateBudget(value) {
-        if (!value) return 'Marketing budget is required';
+      function validateWebsite(value) {
+        if (!value) return 'Website is required';
+        const urlRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+        if (!urlRegex.test(value)) return 'Please enter a valid website URL (e.g., https://example.com)';
+        return '';
+      }
+
+      function validateTotalAudience(value) {
+        if (!value) return 'Total audience is required';
         const num = parseInt(value, 10);
-        if (isNaN(num)) return 'Budget must be a valid number';
-        if (num < 100) return 'Budget should be at least $100';
-        if (num > 10000000) return 'Budget cannot exceed $10,000,000';
+        if (isNaN(num)) return 'Total audience must be a valid number';
+        if (num < 0) return 'Total audience cannot be negative';
+        if (num > 1000000000) return 'Total audience cannot exceed 1,000,000,000';
         return '';
       }
 
@@ -371,10 +382,11 @@
         const emailMsg = validateEmail(emailInput.value.trim());
         const passwordMsg = validatePassword(passwordInput.value);
         const industryMsg = validateIndustry(industryInput.value.trim());
-        const budgetMsg = validateBudget(budgetInput.value);
+        const websiteMsg = validateWebsite(websiteInput.value.trim());
+        const totalAudienceMsg = validateTotalAudience(totalAudienceInput.value);
         const phoneMsg = validatePhone(phoneInput.value.trim());
 
-        const hasErrors = Boolean(brandNameMsg || emailMsg || passwordMsg || industryMsg || budgetMsg || phoneMsg);
+        const hasErrors = Boolean(brandNameMsg || emailMsg || passwordMsg || industryMsg || websiteMsg || totalAudienceMsg || phoneMsg);
 
         submitBtn.disabled = hasErrors;
         return hasErrors;
@@ -427,21 +439,28 @@
         industryCount.textContent = `${charCount}/50 characters`;
       });
 
-      budgetInput.addEventListener('input', (e) => {
+      websiteInput.addEventListener('input', () => {
+        markAsTouched(websiteInput);
+        const msg = validateWebsite(websiteInput.value.trim());
+        setFieldState(websiteInput, websiteError, msg);
+        updateSubmitState();
+      });
+
+      totalAudienceInput.addEventListener('input', (e) => {
         // Enforce numeric constraints
         let value = e.target.value;
         if (value && !isNaN(value)) {
           const numValue = parseInt(value, 10);
           if (numValue < 0) {
             e.target.value = '0';
-          } else if (numValue > 10000000) {
-            e.target.value = '10000000';
+          } else if (numValue > 1000000000) {
+            e.target.value = '1000000000';
           }
         }
 
-        markAsTouched(budgetInput);
-        const msg = validateBudget(budgetInput.value);
-        setFieldState(budgetInput, budgetError, msg);
+        markAsTouched(totalAudienceInput);
+        const msg = validateTotalAudience(totalAudienceInput.value);
+        setFieldState(totalAudienceInput, totalAudienceError, msg);
         updateSubmitState();
       });
 
@@ -453,7 +472,7 @@
       });
 
       // Add blur event listeners to mark fields as touched
-      [brandNameInput, emailInput, passwordInput, industryInput, budgetInput, phoneInput].forEach(input => {
+      [brandNameInput, emailInput, passwordInput, industryInput, websiteInput, totalAudienceInput, phoneInput].forEach(input => {
         input.addEventListener('blur', () => {
           markAsTouched(input);
         });
@@ -470,7 +489,8 @@
         const emailMsg = validateEmail(emailInput.value.trim());
         const passwordMsg = validatePassword(passwordInput.value);
         const industryMsg = validateIndustry(industryInput.value.trim());
-        const budgetMsg = validateBudget(budgetInput.value);
+        const websiteMsg = validateWebsite(websiteInput.value.trim());
+        const totalAudienceMsg = validateTotalAudience(totalAudienceInput.value);
         const phoneMsg = validatePhone(phoneInput.value.trim());
 
         // Set all field states
@@ -478,10 +498,11 @@
         setFieldState(emailInput, emailError, emailMsg);
         setFieldState(passwordInput, passwordError, passwordMsg);
         setFieldState(industryInput, industryError, industryMsg);
-        setFieldState(budgetInput, budgetError, budgetMsg);
+        setFieldState(websiteInput, websiteError, websiteMsg);
+        setFieldState(totalAudienceInput, totalAudienceError, totalAudienceMsg);
         setFieldState(phoneInput, phoneError, phoneMsg);
 
-        const hasErrors = Boolean(brandNameMsg || emailMsg || passwordMsg || industryMsg || budgetMsg || phoneMsg);
+        const hasErrors = Boolean(brandNameMsg || emailMsg || passwordMsg || industryMsg || websiteMsg || totalAudienceMsg || phoneMsg);
 
         if (hasErrors) {
           showMessage('Please fix all errors before submitting', 'error');
@@ -506,7 +527,8 @@
             email: emailInput.value.trim(),
             password: passwordInput.value,
             industry: industryInput.value.trim(),
-            budget: parseInt(budgetInput.value, 10),
+            website: document.getElementById('website').value.trim(),
+            totalAudience: parseInt(document.getElementById('totalAudience').value, 10) || 0,
             phone: phoneInput.value.trim(),
           };
 

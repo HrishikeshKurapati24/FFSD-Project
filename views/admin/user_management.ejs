@@ -11,6 +11,135 @@
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: black;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .btn-view-profile {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-view-profile:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .btn-approve {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+        /* Profile Content Styles */
+        .profile-section {
+            margin-bottom: 20px;
+        }
+
+        .profile-section h3 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .profile-field {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .profile-field label {
+            font-weight: bold;
+            width: 150px;
+            color: #555;
+        }
+
+        .profile-field span {
+            color: #333;
+        }
+
+        .verified-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .unverified-badge {
+            background-color: #ffc107;
+            color: black;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+    </style>
 </head>
 
 <body>
@@ -130,8 +259,8 @@
             <div id="verifyRegistrations" class="tab-content">
                 <h2>Verify Registrations</h2>
 
-                <!-- Verify Influencer Registrations Section -->
-                <h3>Verify Influencer Registrations</h3>
+                <!-- Influencer Registrations Section -->
+                <h3>Influencer Registrations</h3>
                 <% if (influencers && influencers.length > 0) { %>
                 <table>
                     <thead>
@@ -140,24 +269,28 @@
                             <th>Email</th>
                             <th>Category</th>
                             <th>Social Media Handles</th>
+                            <th>Audience Size</th>
+                            <th>Verified</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% influencers.forEach((influencer) => { %>
                         <tr>
-                            <td><%= influencer.name || 'N/A' %></td>
+                            <td><%= influencer.name || influencer.displayName || 'N/A' %></td>
                             <td><%= influencer.email || 'N/A' %></td>
                             <td><%= influencer.category || influencer.businessCategory || 'N/A' %></td>
                             <td><%= influencer.social_handles || influencer.socialHandles || 'N/A' %></td>
+                            <td><%= influencer.audienceSize ? influencer.audienceSize.toLocaleString() : '0' %></td>
                             <td>
-                                <% if (!influencer.verified) { %>
-                                <button onclick="approveInfluencer('<%= influencer._id || influencer.id %>')">
-                                    Approve
-                                </button>
+                                <% if (influencer.verified) { %>
+                                <span class="verified-badge">Verified</span>
                                 <% } else { %>
-                                <span>Verified</span>
+                                <span class="unverified-badge">Unverified</span>
                                 <% } %>
+                            </td>
+                            <td>
+                                <button class="btn-view-profile" onclick="viewInfluencerProfile('<%= influencer._id || influencer.id %>')">View Profile</button>
                             </td>
                         </tr>
                         <% }); %>
@@ -176,23 +309,29 @@
                             <th>Brand Name</th>
                             <th>Email</th>
                             <th>Website</th>
-                            <th>Business Category</th>
+                            <th>Industry</th>
+                            <th>Total Audience</th>
+                            <th>Verified</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% brands.forEach((brand) => { %>
                         <tr>
-                            <td><%= brand.name || 'N/A' %></td>
+                            <td><%= brand.brandName || brand.name || 'N/A' %></td>
                             <td><%= brand.email || 'N/A' %></td>
                             <td><%= brand.website || 'N/A' %></td>
-                            <td><%= brand.businessCategory || brand.category || 'N/A' %></td>
+                            <td><%= brand.industry || brand.businessCategory || brand.category || 'N/A' %></td>
+                            <td><%= brand.totalAudience ? brand.totalAudience.toLocaleString() : '0' %></td>
                             <td>
-                                <% if (!brand.verified) { %>
-                                <button onclick="approveBrand('<%= brand._id || brand.id %>')">Approve</button>
+                                <% if (brand.verified) { %>
+                                <span class="verified-badge">Verified</span>
                                 <% } else { %>
-                                <span>Verified</span>
+                                <span class="unverified-badge">Unverified</span>
                                 <% } %>
+                            </td>
+                            <td>
+                                <button class="btn-view-profile" onclick="viewBrandProfile('<%= brand._id || brand.id %>')">View Profile</button>
                             </td>
                         </tr>
                         <% }); %>
@@ -245,6 +384,36 @@
                     <li><%= suggestion %></li>
                     <% }); %>
                 </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Brand Profile Modal -->
+    <div class="modal" id="brandProfileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeBrandProfileModal()">&times;</span>
+            <h2 id="brandModalTitle">Brand Profile</h2>
+            <div id="brandProfileContent">
+                <!-- Brand profile content will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeBrandProfileModal()">Close</button>
+                <button type="button" class="btn-approve" id="approveBrandBtn" onclick="approveBrandFromModal()">Approve Brand</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Influencer Profile Modal -->
+    <div class="modal" id="influencerProfileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeInfluencerProfileModal()">&times;</span>
+            <h2 id="influencerModalTitle">Influencer Profile</h2>
+            <div id="influencerProfileContent">
+                <!-- Influencer profile content will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeInfluencerProfileModal()">Close</button>
+                <button type="button" class="btn-approve" id="approveInfluencerBtn" onclick="approveInfluencerFromModal()">Approve Influencer</button>
             </div>
         </div>
     </div>

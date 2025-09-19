@@ -76,6 +76,8 @@ router.get('/customer-analytics', AnalyticsController.getCustomerAnalytics);
 // User Management routes
 router.get('/user_management', UserManagementController.getUserManagementPage);
 router.post('/user_management/approve/:id', UserManagementController.approveUser);
+router.get('/user_management/brand/:id', UserManagementController.getBrandDetails);
+router.get('/user_management/influencer/:id', UserManagementController.getInfluencerDetails);
 
 // Collaboration routes
 router.get('/collaboration_monitoring', CollaborationController.getAllCollaborations);
