@@ -841,6 +841,14 @@
                     </div>
                     <div class="request-actions">
                       <% if (request.status==='request' && request._id) { %>
+                        <!-- ========================================
+                        SECTION 1: DYNAMIC CAMPAIGN ACTIVATION & MODAL MANAGEMENT
+                        ======================================== -->
+                        <!-- This section dynamically manages campaign activation and modal display:
+                      - Activates campaigns via Fetch API calls and updates UI state
+                      - Shows/hides success/error alerts dynamically
+                      - Manages modal content loading and display
+                      - Updates button states and campaign status in real-time -->
                         <button class="btn-activate" onclick="activateCampaign('<%= request._id %>')">
                           Activate Campaign
                         </button>
@@ -888,6 +896,14 @@
                   <div class="match-info">
                     <div class="match-percentage">
                       <span class="percentage-value">
+                        <!-- ========================================
+                        SECTION 2: DYNAMIC INFLUENCER MATCHING & DISPLAY
+                        ======================================== -->
+                        <!-- This section dynamically displays influencer recommendations:
+                        - Calculates and displays match percentages in real-time
+                        - Shows/hides influencer cards based on data availability
+                        - Updates category tags and stats dynamically
+                        - Manages conditional rendering of influencer information -->
                         <%= Math.round(influencer.categoryMatchPercentage) %>%
                       </span>
                       <span class="percentage-label">Category Match</span>
@@ -981,6 +997,15 @@
           });
         });
 
+        // ========================================
+        // FUNCTIONALITY 2: CAMPAIGN ACTIVATION
+        // ========================================
+        // Asynchronous campaign activation with dynamic UI feedback
+        // - Sends activation request to server via POST
+        // - Creates dynamic success alert and appends to DOM
+        // - Manages alert visibility with CSS transitions
+        // - Auto-removes alert after timeout
+        // - Reloads page to reflect updated campaign state
         async function activateCampaign(campaignId) {
           try {
             const response = await fetch(`/brand/campaigns/${campaignId}/activate`, {
@@ -1020,6 +1045,15 @@
           }
         }
 
+        // ========================================
+        // FUNCTIONALITY 2: CAMPAIGN DETAILS RETRIEVAL
+        // ========================================
+        // Asynchronous campaign details retrieval with dynamic modal population
+        // - Fetches campaign details from server via GET request
+        // - Handles error responses and validation
+        // - Dynamically populates modal content with fetched data
+        // - Creates Bootstrap modal instances programmatically
+        // - Manages conditional content rendering based on data availability
         async function viewCampaignDetails(campaignId) {
           try {
             console.log('Viewing details for campaign:', campaignId);
@@ -1038,6 +1072,15 @@
 
             const data = await response.json();
             console.log('Campaign details received:', data);
+            // ========================================
+            // SECTION 3: DYNAMIC MODAL CONTENT POPULATION
+            // ======================================== -->
+            // This section dynamically populates modal content via Fetch API:
+            // - Fetches campaign details asynchronously from server
+            // - Builds HTML content dynamically using template literals
+            // - Updates modal innerHTML with fetched data
+            // - Creates Bootstrap modal instances programmatically
+            // - Manages conditional content rendering based on data availability
 
             // Create the modal content
             const content = `

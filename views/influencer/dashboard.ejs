@@ -229,6 +229,15 @@
                 </div>
               </div>
 
+              <!-- ========================================
+                SECTION 2: DYNAMIC REQUEST HANDLING & UI UPDATES
+                ======================================== -->
+              <!-- This section manages collaboration request interactions:
+                - Accepts/rejects requests via Fetch API calls
+                - Updates UI state and button visibility dynamically
+                - Shows/hides request cards based on user actions
+                - Manages real-time status updates and page refreshes -->
+
               <div class="collab-actions">
                 <button class="update-progress-btn" onclick="updateCollabProgress('<%= collab.id %>')">
                   <i class="fas fa-chart-line"></i>
@@ -323,6 +332,15 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================
+  SECTION 1: DYNAMIC MODAL SYSTEM & PROGRESS TRACKING
+  ======================================== -->
+  <!-- This section manages dynamic modals and progress updates:
+  - Shows/hides modals for campaign details and progress updates
+  - Updates progress sliders and values in real-time
+  - Manages modal content population via Fetch API
+  - Handles dynamic form interactions and data submission -->
 
   <!-- Update Progress Modal -->
   <div id="updateProgressModal" class="modal">
@@ -834,6 +852,15 @@
   </style>
 
   <script>
+    // ========================================
+    // FUNCTIONALITY 3: COLLABORATION REQUEST HANDLING
+    // ========================================
+    // Asynchronous collaboration request acceptance
+    // - Sends acceptance request to server via POST
+    // - Handles success/error responses with Promise chains
+    // - Refreshes page on successful acceptance
+    // - Provides user feedback for all scenarios
+    // - Manages UI state updates after request processing
     function acceptRequest(requestId) {
       // Implement accept request functionality
       fetch(`/influencer/requests/${requestId}/accept`, {
@@ -883,7 +910,15 @@
       }
     }
 
-    // View Details function
+    // ========================================
+    // FUNCTIONALITY 3: COLLABORATION DETAILS RETRIEVAL
+    // ========================================
+    // Asynchronous collaboration details retrieval with dynamic modal population
+    // - Fetches collaboration details from server via GET request
+    // - Handles network errors and response validation
+    // - Dynamically builds HTML content using template literals
+    // - Populates modal with fetched collaboration data
+    // - Manages modal state and content updates
     function viewCollabDetails(collabId) {
       currentCollabId = collabId;
       fetch(`/influencer/collab/${collabId}`)
@@ -1004,7 +1039,15 @@
       updateProgressModal.style.display = 'block';
     }
 
-    // Save progress
+    // ========================================
+    // FUNCTIONALITY 4: PROGRESS UPDATE SYSTEM
+    // ========================================
+    // Asynchronous progress update submission with real-time UI updates
+    // - Sends progress updates to server via POST request
+    // - Handles success/error responses asynchronously
+    // - Updates progress bar and UI elements in real-time
+    // - Manages modal state and user feedback
+    // - Provides visual feedback for progress changes
     saveProgressBtn.onclick = async function () {
       if (!currentCollabId) {
         console.error('No collaboration ID selected');

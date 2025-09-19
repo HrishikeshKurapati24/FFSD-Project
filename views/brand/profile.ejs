@@ -259,24 +259,23 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closeEditModal()">&times;</span>
             <h2>Edit Brand Profile</h2>
-            <form id="profileForm" action="/brand/profile/update" method="POST">
+            <form id="profileForm" action="/brand/profile/update" method="POST" novalidate>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="brandName">Brand Name</label>
-                        <input type="text" class="form-control" id="brandName" name="name" value="<%= brand.name %>"
-                            required>
+                        <input type="text" class="form-control" id="brandName" name="name" value="<%= brand.name %>">
                     </div>
                     <div class="form-group">
                         <label for="brandUsername">Username</label>
                         <input type="text" class="form-control" id="brandUsername" name="username"
-                            value="<%= brand.username %>" required>
+                            value="<%= brand.username %>">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="brandDescription">Brand Description</label>
-                    <textarea class="form-control" id="brandDescription" name="description"
-                        required><%= brand.description %></textarea>
+                    <textarea class="form-control" id="brandDescription"
+                        name="description"><%= brand.description %></textarea>
                 </div>
 
                 <div class="form-group">
@@ -308,7 +307,7 @@
                     <div class="form-group">
                         <label for="brandWebsite">Website</label>
                         <input type="url" class="form-control" id="brandWebsite" name="website"
-                            value="<%= brand.website %>" required>
+                            value="<%= brand.website %>">
                     </div>
                 </div>
 
@@ -335,11 +334,11 @@
                         <div class="form-group">
                             <label for="targetAgeRange">Target Age Range</label>
                             <input type="text" class="form-control" id="targetAgeRange" name="targetAgeRange"
-                                value="<%= brand.targetAgeRange %>" required>
+                                value="<%= brand.targetAgeRange %>">
                         </div>
                         <div class="form-group">
                             <label for="targetGender">Primary Gender</label>
-                            <select class="form-control" id="targetGender" name="targetGender" required>
+                            <select class="form-control" id="targetGender" name="targetGender">
                                 <option value="">Select gender</option>
                                 <option value="Male" <%=brand.targetGender==='Male' ? 'selected' : '' %>>Male</option>
                                 <option value="Female" <%=brand.targetGender==='Female' ? 'selected' : '' %>>Female
@@ -402,7 +401,8 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closeEditImagesModal()">&times;</span>
             <h2>Edit Brand Images</h2>
-            <form id="imagesForm" action="/brand/profile/update-images" method="POST" enctype="multipart/form-data">
+            <form id="imagesForm" action="/brand/profile/update-images" method="POST" enctype="multipart/form-data"
+                novalidate>
                 <div class="form-group">
                     <label for="logoUpload">Brand Logo</label>
                     <div class="file-upload">
@@ -564,6 +564,75 @@
                 profileForm.addEventListener('submit', async function (e) {
                     e.preventDefault();
 
+                    // --- Validation helpers (styled same as influencer page) ---
+                    const brandNameInput = document.getElementById('brandName');
+                    const brandDescInput = document.getElementById('brandDescription');
+                    const missionInput = document.getElementById('brandMission');
+                    const campaignInput = document.getElementById('currentCampaign');
+                    const primaryMarketSelect = document.getElementById('primaryMarket');
+                    const websiteInput = document.getElementById('brandWebsite');
+                    const valuesContainer = document.getElementById('valuesContainer');
+                    const socialLinksContainer = document.getElementById('socialLinks');
+                    const targetAgeRangeInput = document.getElementById('targetAgeRange');
+
+                    function getOrCreateErrorEl(targetEl, idSuffix) {
+                        const id = targetEl.id ? `${targetEl.id}-${idSuffix}` : `${idSuffix}`;
+                        let el = document.getElementById(id);
+                        if (!el) {
+                            el = document.createElement('small');
+                            el.id = id;
+                            el.className = 'form-text error-inline';
+                            el.setAttribute('aria-live', 'polite');
+                            if (targetEl.parentElement) {
+                                targetEl.parentElement.appendChild(el);
+                            } else if (targetEl.appendChild) {
+                                targetEl.appendChild(el);
+                            }
+                        }
+                        return el;
+                    }
+
+                    function setError(targetEl, message, idSuffix = 'error') {
+                        const el = getOrCreateErrorEl(targetEl, idSuffix);
+                        el.textContent = message || '';
+                        if (message) {
+                            targetEl.setAttribute('aria-invalid', 'true');
+                            el.style.display = 'block';
+                            el.style.marginTop = '6px';
+                            el.style.padding = '6px 8px';
+                            el.style.borderRadius = '4px';
+                            el.style.background = 'rgba(255, 77, 79, 0.12)';
+                            el.style.border = '1px solid #ff4d4f';
+                            el.style.color = '#b00020';
+                            if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
+                                targetEl.style.outline = '2px solid #ff4d4f';
+                                targetEl.style.outlineOffset = '1px';
+                            }
+                        } else {
+                            targetEl.removeAttribute('aria-invalid');
+                            el.style.display = '';
+                            el.style.padding = '';
+                            el.style.border = '';
+                            el.style.background = '';
+                            el.style.color = '';
+                            el.style.borderRadius = '';
+                            if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
+                                targetEl.style.outline = '';
+                                targetEl.style.outlineOffset = '';
+                            }
+                        }
+                        return Boolean(message);
+                    }
+
+                    function clearAllErrors() {
+                        [brandNameInput, brandDescInput, missionInput, campaignInput, primaryMarketSelect, websiteInput, valuesContainer, socialLinksContainer, targetAgeRangeInput]
+                            .filter(Boolean)
+                            .forEach(el => setError(el, ''));
+                    }
+
+                    clearAllErrors();
+                    let hasErrors = false;
+
                     // Get all form data
                     const formData = new FormData(this);
 
@@ -637,20 +706,73 @@
                     console.log('Social links:', socialLinks);
                     console.log('Complete data object:', data);
 
-                    // Validate required fields
-                    const requiredFields = ['name', 'username', 'description', 'website', 'targetAgeRange', 'targetGender'];
-                    const missingFields = requiredFields.filter(field => !data[field]);
+                    // --- Business rules ---
+                    // Brand name: required, no numbers, >3 and <50
+                    if (!data.name) {
+                        hasErrors = setError(brandNameInput, 'Brand name is required') || hasErrors;
+                    } else if (data.name.length <= 3 || data.name.length >= 50) {
+                        hasErrors = setError(brandNameInput, 'Brand name must be > 3 and < 50 characters') || hasErrors;
+                    } else if (/\d/.test(data.name)) {
+                        hasErrors = setError(brandNameInput, 'Brand name must not contain numbers') || hasErrors;
+                    }
 
-                    if (missingFields.length > 0) {
-                        alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                    // Brand description: required, >10 and < 500 characters (chosen max)
+                    if (!data.description) {
+                        hasErrors = setError(brandDescInput, 'Brand description is required') || hasErrors;
+                    } else if (data.description.length <= 10) {
+                        hasErrors = setError(brandDescInput, 'Description must be more than 10 characters') || hasErrors;
+                    } else if (data.description.length > 500) {
+                        hasErrors = setError(brandDescInput, 'Description must be less than 500 characters') || hasErrors;
+                    }
+
+                    // Primary market: required
+                    if (!data.primaryMarket) {
+                        hasErrors = setError(primaryMarketSelect, 'Please select a primary market') || hasErrors;
+                    }
+
+                    // Website: required with regex validation
+                    const websiteRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
+                    if (!data.website) {
+                        hasErrors = setError(websiteInput, 'Website is required') || hasErrors;
+                    } else if (!websiteRegex.test(data.website)) {
+                        hasErrors = setError(websiteInput, 'Enter a valid website URL') || hasErrors;
+                    }
+
+                    // Target age range: optional but if present must be min-max with min<max
+                    if (data.targetAgeRange) {
+                        const ageMatch = data.targetAgeRange.match(/^(\d+)-(\d+)$/);
+                        if (!ageMatch) {
+                            hasErrors = setError(targetAgeRangeInput, 'Age range must be in format min-max, e.g., 18-35') || hasErrors;
+                        } else {
+                            const min = parseInt(ageMatch[1], 10);
+                            const max = parseInt(ageMatch[2], 10);
+                            if (min >= max) {
+                                hasErrors = setError(targetAgeRangeInput, 'Minimum age must be less than maximum age') || hasErrors;
+                            }
+                        }
+                    }
+
+                    // Brand categories: at least 1
+                    if (!Array.isArray(data.values) || data.values.length < 1) {
+                        hasErrors = setError(valuesContainer, 'Add at least one brand category', 'values-error') || hasErrors;
+                    }
+
+                    // Social media links: at least 1
+                    if (!Array.isArray(data.socialLinks) || data.socialLinks.length < 1) {
+                        hasErrors = setError(socialLinksContainer, 'Add at least one social media link', 'socials-error') || hasErrors;
+                    }
+
+                    if (hasErrors) {
+                        const firstInvalid = document.querySelector('[aria-invalid="true"]');
+                        if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
                         return;
                     }
 
-                    // Validate website URL
+                    // Validate website URL (strict URL object if scheme included)
                     try {
-                        new URL(data.website);
+                        if (/^https?:\/\//i.test(data.website)) new URL(data.website);
                     } catch {
-                        alert('Please enter a valid website URL');
+                        setError(websiteInput, 'Enter a valid website URL');
                         return;
                     }
 
@@ -661,13 +783,13 @@
                             try {
                                 new URL(link.url);
                             } catch {
-                                alert(`Please enter a valid URL for ${link.platform}`);
+                                setError(socialLinksContainer, `Please enter a valid URL for ${link.platform}`, 'socials-error');
                                 return;
                             }
                         }
 
                         if (isNaN(link.followers) || link.followers < 0) {
-                            alert(`Please enter a valid followers count for ${link.platform}`);
+                            setError(socialLinksContainer, `Please enter a valid followers count for ${link.platform}`, 'socials-error');
                             return;
                         }
                     }
@@ -778,28 +900,113 @@
                 }
             });
 
-            // Form Submission for Images
+            // Form Submission for Images with validation
             document.getElementById('imagesForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
 
+                // --- Validation helpers (same styling as profile modal) ---
+                const logoInput = document.getElementById('logoUpload');
+                const bannerInput = document.getElementById('bannerUpload');
+
+                function getOrCreateErrorEl(targetEl, idSuffix) {
+                    const id = targetEl.id ? `${targetEl.id}-${idSuffix}` : `${idSuffix}`;
+                    let el = document.getElementById(id);
+                    if (!el) {
+                        el = document.createElement('small');
+                        el.id = id;
+                        el.className = 'form-text error-inline';
+                        el.setAttribute('aria-live', 'polite');
+                        if (targetEl.parentElement) {
+                            targetEl.parentElement.appendChild(el);
+                        } else if (targetEl.appendChild) {
+                            targetEl.appendChild(el);
+                        }
+                    }
+                    return el;
+                }
+
+                function setError(targetEl, message, idSuffix = 'error') {
+                    const el = getOrCreateErrorEl(targetEl, idSuffix);
+                    el.textContent = message || '';
+                    if (message) {
+                        targetEl.setAttribute('aria-invalid', 'true');
+                        el.style.display = 'block';
+                        el.style.marginTop = '6px';
+                        el.style.padding = '6px 8px';
+                        el.style.borderRadius = '4px';
+                        el.style.background = 'rgba(255, 77, 79, 0.12)';
+                        el.style.border = '1px solid #ff4d4f';
+                        el.style.color = '#b00020';
+                        if (targetEl.tagName === 'INPUT') {
+                            targetEl.style.outline = '2px solid #ff4d4f';
+                            targetEl.style.outlineOffset = '1px';
+                        }
+                    } else {
+                        targetEl.removeAttribute('aria-invalid');
+                        el.style.display = '';
+                        el.style.padding = '';
+                        el.style.border = '';
+                        el.style.background = '';
+                        el.style.color = '';
+                        el.style.borderRadius = '';
+                        if (targetEl.tagName === 'INPUT') {
+                            targetEl.style.outline = '';
+                            targetEl.style.outlineOffset = '';
+                        }
+                    }
+                    return Boolean(message);
+                }
+
+                function clearAllErrors() {
+                    [logoInput, bannerInput].filter(Boolean).forEach(el => setError(el, ''));
+                }
+
+                clearAllErrors();
+                let hasErrors = false;
+
+                // Get files
+                const logoFile = logoInput.files[0];
+                const bannerFile = bannerInput.files[0];
+
+                // --- Validation rules ---
+                // Logo: required
+                if (!logoFile) {
+                    hasErrors = setError(logoInput, 'Brand logo is required') || hasErrors;
+                } else {
+                    // Validate file type
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(logoFile.type)) {
+                        hasErrors = setError(logoInput, 'Please select a valid image file (JPG, PNG, or GIF)') || hasErrors;
+                    }
+                    // Validate file size (5MB)
+                    else if (logoFile.size > 5 * 1024 * 1024) {
+                        hasErrors = setError(logoInput, 'Logo must be less than 5MB') || hasErrors;
+                    } else {
+                        setError(logoInput, '');
+                    }
+                }
+
+                // Banner: optional, but if provided, validate
+                if (bannerFile) {
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(bannerFile.type)) {
+                        hasErrors = setError(bannerInput, 'Please select a valid image file (JPG, PNG, or GIF)') || hasErrors;
+                    } else if (bannerFile.size > 10 * 1024 * 1024) {
+                        hasErrors = setError(bannerInput, 'Banner image must be less than 10MB') || hasErrors;
+                    } else {
+                        setError(bannerInput, '');
+                    }
+                } else {
+                    setError(bannerInput, '');
+                }
+
+                if (hasErrors) {
+                    const firstInvalid = document.querySelector('[aria-invalid="true"]');
+                    if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+                    return;
+                }
+
                 const formData = new FormData(this);
-                const logoFile = formData.get('logo');
-                const bannerFile = formData.get('banner');
-
-                // Validate file types
-                if (logoFile && logoFile.size > 0) {
-                    if (!logoFile.type.startsWith('image/')) {
-                        alert('Please upload a valid image file for the logo');
-                        return;
-                    }
-                }
-
-                if (bannerFile && bannerFile.size > 0) {
-                    if (!bannerFile.type.startsWith('image/')) {
-                        alert('Please upload a valid image file for the banner');
-                        return;
-                    }
-                }
 
                 try {
                     const response = await fetch(this.action, {
@@ -826,15 +1033,10 @@
                 }
             });
 
-            // Image Preview Functionality
+            // Image Preview Functionality (no validation, just preview)
             document.getElementById('logoUpload').addEventListener('change', function (e) {
                 const file = e.target.files[0];
                 if (file) {
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please select a valid image file');
-                        this.value = '';
-                        return;
-                    }
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         document.getElementById('logoPreview').src = e.target.result;
@@ -846,11 +1048,6 @@
             document.getElementById('bannerUpload').addEventListener('change', function (e) {
                 const file = e.target.files[0];
                 if (file) {
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please select a valid image file');
-                        this.value = '';
-                        return;
-                    }
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         document.getElementById('bannerPreview').src = e.target.result;
