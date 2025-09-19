@@ -199,8 +199,9 @@ function markAllAsRead() {
     document.getElementById('notification-count').style.display = 'none';
 }
 
-function handleLogout() {
-    window.location.href = '/admin/logout';
+async function handleLogout() {
+    await fetch('/admin/logout', { method: 'POST', credentials: 'include' });
+    window.location.href = '/admin/login';
 }
 
 // Initialize all charts when the DOM is loaded
