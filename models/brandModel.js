@@ -33,6 +33,64 @@ class brandModel {
     }
   }
 
+  // Get recent completed campaigns for a brand (limited)
+  static async getRecentCompletedCampaigns(brandId, limit = 3) {
+    try {
+      const brandObjectId = new mongoose.Types.ObjectId(brandId);
+
+      const campaigns = await CampaignInfo.find({
+        brand_id: brandObjectId,
+        status: 'completed',
+        end_date: { $lte: new Date() }
+      })
+        .sort({ end_date: -1 })
+        .limit(limit)
+        .lean();
+
+      if (!campaigns.length) return [];
+
+      const campaignIds = campaigns.map(c => c._id);
+
+      const [metrics, influencerCounts] = await Promise.all([
+        CampaignMetrics.find({ campaign_id: { $in: campaignIds } }).lean(),
+        CampaignInfluencers.aggregate([
+          { $match: { campaign_id: { $in: campaignIds } } },
+          { $group: { _id: '$campaign_id', count: { $sum: 1 } } }
+        ])
+      ]);
+
+      const metricsMap = new Map();
+      metrics.forEach(m => metricsMap.set(m.campaign_id.toString(), m));
+
+      const influencerCountMap = new Map();
+      influencerCounts.forEach(c => influencerCountMap.set(c._id.toString(), c.count));
+
+      return campaigns.map(campaign => {
+        const m = metricsMap.get(campaign._id.toString()) || {};
+        return {
+          _id: campaign._id,
+          name: campaign.title,
+          description: campaign.description,
+          end_date: campaign.end_date,
+          budget: campaign.budget || 0,
+          status: campaign.status,
+          duration: campaign.duration || 0,
+          target_audience: campaign.target_audience || '',
+          required_channels: campaign.required_channels || [],
+          min_followers: campaign.min_followers || 0,
+          engagement_rate: m.engagement_rate || 0,
+          reach: m.reach || 0,
+          conversion_rate: m.conversion_rate || 0,
+          performance_score: m.performance_score || 0,
+          influencersCount: influencerCountMap.get(campaign._id.toString()) || 0
+        };
+      });
+    } catch (err) {
+      console.error('Error fetching recent completed campaigns:', err);
+      return [];
+    }
+  }
+
   // Get all brands
   static async getAllBrands() {
     try {
@@ -545,6 +603,7 @@ class brandModel {
         }
         if (detail.influencer_id) {
           influencerMap.get(campaignId).push({
+            id: detail.influencer_id._id,
             name: detail.influencer_id.name,
             profilePicUrl: detail.influencer_id.profilePicUrl
           });

@@ -84,12 +84,36 @@ const getInfluencerDashboard = async (req, res) => {
 
     console.log('Transformed influencer data:', transformedInfluencer);
 
+    // Get recent completed campaigns (limit 3) for dashboard
+    const fullHistory = await influencerModel.getCampaignHistory(influencerId);
+    const recentCampaignHistory = (fullHistory || [])
+      .sort((a, b) => new Date(b.end_date) - new Date(a.end_date))
+      .slice(0, 3)
+      .map(c => ({
+        // Map from influencerModel.getCampaignHistory structure
+        title: c.campaign_name || 'Untitled Campaign',
+        description: c.description || c.objectives || c.target_audience || '',
+        status: 'completed',
+        end_date: c.end_date,
+        performance_score: c.performance_score || 0,
+        engagement_rate: c.engagement_rate || 0,
+        reach: c.reach || 0,
+        conversion_rate: c.conversion_rate || c.influencer_conversions || 0,
+        budget: c.budget || 0,
+        // additional fields if needed later
+        brand_name: c.brand_name || '',
+        brand_logo: c.brand_logo || '/images/default-brand.png',
+        start_date: c.start_date || null,
+        duration: c.duration || 0
+      }));
+
     // Render the dashboard with all data
     res.render('influencer/dashboard', {
       influencer: transformedInfluencer,
       stats,
       activeCollaborations: activeCollaborations || [],
-      pendingRequests: pendingRequests || []
+      pendingRequests: pendingRequests || [],
+      recentCampaignHistory
     });
   } catch (error) {
     console.error('Error in getInfluencerDashboard:', error);
@@ -361,24 +385,36 @@ const getCampaignHistory = async (req, res) => {
       });
     }
 
-    // Fetch all completed and cancelled campaigns
+    // Fetch completed campaigns with metrics and influencers
     const campaigns = await influencerModel.getCampaignHistory(influencerId);
     console.log('Retrieved campaigns:', campaigns.length);
 
     res.render('influencer/campaign_history', {
       campaigns: campaigns.map(campaign => ({
-        ...campaign,
+        // Pass-through and normalize for template
+        title: campaign.campaign_name,
+        brand_id: campaign.brand_id,
+        brand_name: campaign.brand_name,
+        brand_logo: campaign.brand_logo,
+        description: campaign.description,
+        objectives: campaign.objectives,
+        start_date: campaign.start_date,
+        end_date: campaign.end_date,
+        duration: campaign.duration || 0,
+        budget: campaign.budget || 0,
         performance_score: campaign.performance_score || 0,
         engagement_rate: campaign.engagement_rate || 0,
         reach: campaign.reach || 0,
+        clicks: campaign.clicks || 0,
         conversion_rate: campaign.conversion_rate || 0,
-        influencers_count: campaign.influencers?.length || 0,
-        budget: campaign.budget || 0,
-        end_date: campaign.end_date,
-        status: campaign.status,
-        title: campaign.title,
-        description: campaign.description,
-        influencers: campaign.influencers || []
+        impressions: campaign.impressions || 0,
+        revenue: campaign.revenue || 0,
+        roi: campaign.roi || 0,
+        required_channels: campaign.required_channels || [],
+        target_audience: campaign.target_audience || '',
+        influencers: campaign.influencers || [],
+        influencers_count: (campaign.influencers || []).length,
+        status: campaign.status || 'completed'
       }))
     });
   } catch (error) {

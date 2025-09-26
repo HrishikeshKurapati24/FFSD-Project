@@ -103,7 +103,7 @@
             <%= stats.activeCollaborations %>
           </p>
           <div class="progress-bar">
-            <div class="progress" style="width: <%= stats.completionPercentage %>%;"></div>
+            <div class="progress" style="--progress: <%= stats.completionPercentage %>%;"></div>
           </div>
           <small>
             <%= stats.nearingCompletion %> nearing completion
@@ -176,7 +176,7 @@
                   </span>
                 </div>
                 <div class="progress-bar">
-                  <div class="progress" style="width: <%= collab.progress %>%;"></div>
+                  <div class="progress" style="--progress: <%= collab.progress %>%;"></div>
                 </div>
               </div>
 
@@ -317,6 +317,94 @@
       </div>
     </section>
 
+    <!-- Recent Campaign History Section -->
+    <section class="campaign-history-section" style="margin-top: 2rem;">
+      <h2>Recent Campaign History</h2>
+      <% if (recentCampaignHistory && recentCampaignHistory.length> 0) { %>
+        <div class="campaigns-grid"
+          style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-top:10px;">
+          <% recentCampaignHistory.forEach(campaign=> { %>
+            <div class="campaign-card"
+              style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.08);position:relative;display:flex;flex-direction:column;gap:12px;">
+              <span class="campaign-status"
+                style="position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:12px;background:#e6f4ea;color:#34a853;">
+                <%= campaign.status %>
+              </span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <% if (campaign.brand_logo) { %>
+                  <img src="<%= campaign.brand_logo %>" alt="<%= campaign.brand_name %>"
+                    style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                  <% } %>
+                    <div style="flex:1;min-width:0;">
+                      <h3
+                        style="margin:0;font-size:18px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        <%= campaign.title %>
+                      </h3>
+                      <% if (campaign.brand_name) { %>
+                        <div
+                          style="font-size:12px;color:#6c757d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                          <%= campaign.brand_name %>
+                        </div>
+                        <% } %>
+                    </div>
+              </div>
+              <p style="margin:0;color:#666;">
+                <%= (campaign.description || '' ).substring(0, 120) %>...
+              </p>
+              <div class="campaign-metrics"
+                style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0;padding:10px;background:#f8f9fa;border-radius:8px;">
+                <div class="metric" style="text-align:center;">
+                  <div class="metric-value" style="font-weight:600;color:#4285f4;">
+                    <%= campaign.performance_score.toFixed(1) %>
+                  </div>
+                  <div class="metric-label" style="font-size:12px;color:#666;">Performance</div>
+                </div>
+                <div class="metric" style="text-align:center;">
+                  <div class="metric-value" style="font-weight:600;color:#4285f4;">
+                    <%= campaign.engagement_rate.toFixed(1) %>%
+                  </div>
+                  <div class="metric-label" style="font-size:12px;color:#666;">Engagement</div>
+                </div>
+                <div class="metric" style="text-align:center;">
+                  <div class="metric-value" style="font-weight:600;color:#4285f4;">
+                    <%= campaign.reach.toLocaleString() %>
+                  </div>
+                  <div class="metric-label" style="font-size:12px;color:#666;">Reach</div>
+                </div>
+              </div>
+              <div class="campaign-details"
+                style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:8px;border-top:1px solid #eee;">
+                <div class="detail-item" style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
+                  <i class="far fa-calendar" style="color:#4285f4;"></i>
+                  <span>
+                    <%= new Date(campaign.start_date || campaign.end_date).toLocaleDateString() %> - <%= new
+                        Date(campaign.end_date).toLocaleDateString() %>
+                  </span>
+                </div>
+                <div class="detail-item" style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
+                  <i class="fas fa-clock" style="color:#4285f4;"></i>
+                  <span>
+                    <%= campaign.duration || 0 %> days
+                  </span>
+                </div>
+                <div class="detail-item" style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
+                  <i class="fas fa-tag" style="color:#4285f4;"></i>
+                  <span>
+                    <%= (campaign.budget || 0).toLocaleString() %> budget
+                  </span>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+          <div class="view-history" style="margin-top: 12px;">
+            <a href="/influencer/campaign-history" class="view-campaigns-btn"
+              style="display:inline-block;background:#007BFF;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;">View
+              All Campaigns</a>
+          </div>
+    </section>
+
     <!-- <div>Check out all your completed campaigns!</div>
     <a href="/influencer/campaign-history" class="view-campaigns-btn">View Completed Campaigns</a> -->
   </div>
@@ -356,6 +444,13 @@
   </div>
 
   <style>
+    .progress-bar .progress {
+      height: 8px;
+      background: var(--primary-color);
+      border-radius: 4px;
+      width: var(--progress, 0%);
+    }
+
     .dashboard-items {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -848,6 +943,66 @@
 
     .update-progress-btn i {
       font-size: 0.9rem;
+    }
+
+    /* Responsive tweaks for Recent Campaign History cards */
+    @media (max-width: 768px) {
+      .campaign-history-section {
+        margin-top: 1.25rem;
+      }
+
+      .campaign-history-section .campaigns-grid {
+        gap: 12px !important;
+      }
+
+      .campaign-history-section .campaign-card {
+        padding: 12px !important;
+        gap: 8px !important;
+      }
+
+      .campaign-history-section .campaign-metrics {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        padding: 8px !important;
+      }
+
+      .campaign-history-section .metric-value {
+        font-size: 0.9rem !important;
+      }
+
+      .campaign-history-section .metric-label {
+        font-size: 0.7rem !important;
+      }
+
+      .campaign-history-section .detail-item {
+        font-size: 0.7rem !important;
+        gap: 4px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .campaign-history-section .campaigns-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+
+      .campaign-history-section .campaign-metrics {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+        padding: 6px !important;
+      }
+
+      .campaign-history-section .campaign-card {
+        padding: 10px !important;
+      }
+
+      .campaign-history-section .metric-value {
+        font-size: 0.85rem !important;
+      }
+
+      .campaign-history-section .metric-label {
+        font-size: 0.68rem !important;
+      }
     }
   </style>
 

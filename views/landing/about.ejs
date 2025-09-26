@@ -95,6 +95,13 @@
       text-align: center;
     }
 
+    /* Improve readability of main content paragraphs over background */
+    .about-section p,
+    .about-section h2 {
+      color: #ffffffc7;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+
     /* Features Grid */
     .features-grid {
       display: grid;
@@ -145,30 +152,52 @@
     }
 
     /* Benefits Section */
-    .benefits-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-      margin-top: 40px;
+    .benefit {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 50px 30px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
     }
 
-    .benefit {
-      text-align: center;
-      padding: 30px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    .benefit:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 35px rgba(0, 123, 255, 0.25);
     }
 
     .benefit i {
-      font-size: 2.5rem;
+      font-size: 3rem;
       color: #007BFF;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      background: #e8f1ff;
+      padding: 20px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .benefit:hover i {
+      background: #007BFF;
+      color: #ffffff;
+      transform: scale(1.1);
     }
 
     .benefit h3 {
-      color: #333;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #222;
       margin-bottom: 15px;
+    }
+
+    .benefit p {
+      font-size: 1.05rem;
+      color: #333;
+      line-height: 1.7;
+      max-width: 260px;
+      margin: 0 auto;
     }
 
     /* Pricing Section */

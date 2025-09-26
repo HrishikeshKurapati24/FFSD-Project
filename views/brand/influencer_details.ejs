@@ -307,15 +307,40 @@
         }
 
         .back-button {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             margin-bottom: 20px;
-            color: var(--primary-color);
+            color: #ffffff;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
+            padding: 10px 14px;
+            border-radius: 9999px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
         }
 
         .back-button:hover {
-            text-decoration: underline;
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            color: #ffffff;
+        }
+
+        .back-button:focus {
+            outline: 2px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
+        }
+
+        .back-button i {
+            color: inherit;
+        }
+
+        .back-button:hover i {
+            color: inherit;
         }
 
         .performance-metrics {
@@ -391,8 +416,8 @@
 <body>
     <div class="profile-header">
         <div class="profile-content">
-            <a href="/brand/home" class="back-button">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <a href="#" class="back-button" onclick="handleBack(event)" aria-label="Go back">
+                <i class="fas fa-arrow-left"></i> Go Back
             </a>
             <div class="profile-header-content">
                 <img src="<%= influencer.profilePicUrl %>" alt="<%= influencer.displayName %>" class="profile-pic">
@@ -613,6 +638,21 @@
             </div>
         </div>
     </div>
+    <script>
+        function handleBack(e) {
+            e.preventDefault();
+            const ref = document.referrer;
+            if (ref && new URL(ref, window.location.origin).origin === window.location.origin) {
+                window.location.href = ref;
+                return;
+            }
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = '/brand/home';
+        }
+    </script>
 </body>
 
 </html>

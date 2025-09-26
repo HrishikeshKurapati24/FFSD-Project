@@ -220,7 +220,7 @@ const getCampaignHistory = async (influencerId) => {
       influencer_id: new mongoose.Types.ObjectId(influencerId),
       status: 'completed'
     })
-      .populate('campaign_id', 'title budget duration required_channels min_followers target_audience start_date end_date')
+      .populate('campaign_id', 'title description objectives budget duration required_channels min_followers target_audience start_date end_date')
       .populate('influencer_id', 'fullName profilePicUrl')
       .populate({
         path: 'campaign_id',
@@ -233,18 +233,39 @@ const getCampaignHistory = async (influencerId) => {
       .sort({ 'campaign_id.end_date': -1 })
       .lean();
 
-    // Get campaign IDs for metrics lookup
+    // Get campaign IDs for metrics and influencers lookup
     const campaignIds = collaborations.map(collab => collab.campaign_id._id);
 
-    // Get metrics for all campaigns
-    const metrics = await CampaignMetrics.find({
-      campaign_id: { $in: campaignIds }
-    }).lean();
+    // Get metrics and influencers for all campaigns
+    const [metrics, campaignInfluencers] = await Promise.all([
+      CampaignMetrics.find({
+        campaign_id: { $in: campaignIds }
+      }).lean(),
+      CampaignInfluencers.find({
+        campaign_id: { $in: campaignIds },
+        status: { $in: ['active', 'completed'] }
+      })
+        .populate('influencer_id', 'fullName profilePicUrl')
+        .lean()
+    ]);
 
-    // Create a map for quick lookup
+    // Create maps for quick lookup
     const metricsMap = new Map();
     metrics.forEach(metric => {
       metricsMap.set(metric.campaign_id.toString(), metric);
+    });
+
+    const influencersMap = new Map();
+    campaignInfluencers.forEach(ci => {
+      const key = ci.campaign_id.toString();
+      if (!influencersMap.has(key)) influencersMap.set(key, []);
+      if (ci.influencer_id) {
+        influencersMap.get(key).push({
+          id: ci.influencer_id._id,
+          name: ci.influencer_id.fullName,
+          profilePicUrl: ci.influencer_id.profilePicUrl
+        });
+      }
     });
 
     return collaborations.map(collab => {
@@ -252,6 +273,9 @@ const getCampaignHistory = async (influencerId) => {
       return {
         id: collab._id,
         campaign_name: collab.campaign_id?.title || '',
+        brand_id: collab.campaign_id?.brand_id?._id || null,
+        description: collab.campaign_id?.description || '',
+        objectives: collab.campaign_id?.objectives || '',
         brand_name: collab.campaign_id?.brand_id?.brandName || '',
         brand_logo: collab.campaign_id?.brand_id?.logoUrl || '',
         start_date: collab.campaign_id?.start_date || '',
@@ -261,13 +285,18 @@ const getCampaignHistory = async (influencerId) => {
         engagement_rate: campaignMetrics.engagement_rate || 0,
         reach: campaignMetrics.reach || 0,
         clicks: campaignMetrics.clicks || 0,
-        conversions: campaignMetrics.conversion_rate || 0,
+        conversion_rate: campaignMetrics.conversion_rate || 0,
+        influencer_reach: collab.reach || 0,
+        influencer_clicks: collab.clicks || 0,
+        influencer_conversions: collab.conversions || 0,
         performance_score: campaignMetrics.performance_score || 0,
         impressions: campaignMetrics.impressions || 0,
         revenue: campaignMetrics.revenue || 0,
         roi: campaignMetrics.roi || 0,
         required_channels: collab.campaign_id?.required_channels || [],
-        target_audience: collab.campaign_id?.target_audience || ''
+        target_audience: collab.campaign_id?.target_audience || '',
+        influencers: (influencersMap.get(collab.campaign_id._id.toString()) || []).filter(i => i.id?.toString() !== influencerId.toString()),
+        status: 'completed'
       };
     });
   } catch (error) {

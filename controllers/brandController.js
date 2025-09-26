@@ -300,13 +300,14 @@ const brandController = {
       delete req.session.successMessage;
 
       // Fetch all required data concurrently
-      const [brand, stats, activeCampaigns, topInfluencers, analytics, campaignRequests] = await Promise.all([
+      const [brand, stats, activeCampaigns, topInfluencers, analytics, campaignRequests, recentCompletedCampaigns] = await Promise.all([
         brandModel.getBrandById(brandId),
         brandModel.getBrandStats(brandId),
         brandModel.getActiveCampaigns(brandId),
         brandModel.getTopInfluencers(brandId),
         brandModel.getBrandAnalytics(brandId),
-        brandModel.getCampaignRequests(brandId)
+        brandModel.getCampaignRequests(brandId),
+        brandModel.getRecentCompletedCampaigns(brandId, 3)
       ]);
 
       if (!brand) {
@@ -409,7 +410,7 @@ const brandController = {
         successMessage // Add success message to the template data
       };
 
-      res.render('brand/dashboard', transformedData);
+      res.render('brand/dashboard', { ...transformedData, recentCompletedCampaigns });
     } catch (error) {
       console.error('Error in getBrandDashboard:', error);
       res.status(500).render('error', {
@@ -437,7 +438,7 @@ const brandController = {
       const campaigns = await brandModel.getCampaignHistory(brandId);
       console.log('Retrieved campaigns:', campaigns.length);
 
-      res.render('brand/campaigns', {
+      res.render('brand/campaign_history', {
         campaigns: campaigns.map(campaign => ({
           ...campaign,
           performance_score: campaign.performance_score || 0,

@@ -18,21 +18,41 @@
         }
 
         .campaigns-header {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #e8f0fe 0%, #ffffff 100%);
+            padding: 32px 24px;
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            margin-bottom: 28px;
         }
 
         .campaigns-header h1 {
             color: var(--dark-gray);
-            margin-bottom: 10px;
+            margin-bottom: 6px;
+            font-size: 28px;
         }
 
         .campaigns-header p {
-            color: #666;
+            color: #555;
             margin: 0;
+            opacity: 0.9;
+        }
+
+        .campaigns-header .header-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .campaigns-header .btn {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
         }
 
         .campaigns-grid {
@@ -152,10 +172,16 @@
         }
 
         .influencer-tag img {
-            width: 20px;
-            height: 20px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: cover;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .influencer-tag img:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.35);
         }
 
         .filters {
@@ -332,13 +358,13 @@
                                 <h4>Influencers</h4>
                                 <div class="influencer-list">
                                     <% campaign.influencers.forEach(influencer=> { %>
-                                        <div class="influencer-tag">
+                                        <a class="influencer-tag" href="/brand/influencer_details/<%= influencer.id %>">
                                             <img src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>"
                                                 alt="<%= influencer.name %>">
                                             <span>
                                                 <%= influencer.name %>
                                             </span>
-                                        </div>
+                                        </a>
                                         <% }); %>
                                 </div>
                             </div>
@@ -381,6 +407,7 @@
                     menu.style.width = "0";
                 }
             });
+        });
     </script>
 </body>
 
