@@ -403,32 +403,14 @@
     </div>
 
     <script>
-        // Initialize all event listeners when the DOM is loaded
-        document.addEventListener('DOMContentLoaded', function () {
-            // Menu toggle functions
-            window.openMenu = function () {
-                const menu = document.getElementById("navMenu");
-                if (menu) {
-                    menu.style.width = "250px";
-                }
-            };
+        // Sidebar toggle functions
+    function openMenu() {
+      document.getElementById("navMenu").style.width = "250px";
+    }
 
-            window.closeMenu = function () {
-                const menu = document.getElementById("navMenu");
-                if (menu) {
-                    menu.style.width = "0";
-                }
-            };
-
-            // Close menu when clicking outside
-            document.addEventListener('click', function (e) {
-                const menu = document.getElementById('navMenu');
-                const toggleBtn = document.querySelector('.toggle-btn');
-                if (menu && toggleBtn && !menu.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    menu.style.width = "0";
-                }
-            });
-        });
+    function closeMenu() {
+      document.getElementById("navMenu").style.width = "0";
+    }
     </script>
 </body>
 
