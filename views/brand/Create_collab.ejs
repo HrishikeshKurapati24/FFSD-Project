@@ -323,7 +323,7 @@
   </div>
 
   <div class="form-container">
-    <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Collaboration</h2>
+    <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Campaign</h2>
 
     <form id="createCollabForm" method="POST" action="/brand/campaigns/create" novalidate>
       <div class="form-group">
@@ -350,72 +350,71 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="duration">Duration (days)</label>
-          <input type="number" class="form-control" id="duration" name="duration"
-            placeholder="Enter duration in days (min 1)">
-        </div>
-
-        <div class="form-group">
-          <label for="budget">Budget</label>
-          <input type="number" class="form-control" id="budget" name="budget" min="0"
-            placeholder="Enter budget (min 0)">
-        </div>
-      </div>
-
       <div class="form-group">
-        <label for="target_audience">Target Audience</label>
-        <input type="text" class="form-control" id="target_audience" name="target_audience"
-          placeholder="Describe your target audience">
+        <label for="budget">Budget(in $)</label>
+        <input type="number" class="form-control" id="budget" name="budget" min="0" placeholder="Enter budget (min 0)">
       </div>
+  </div>
 
-      <div class="form-group">
-        <label>Required Social Media Channels <span style="color: var(--danger-color);">*</span></label>
-        <div class="checkbox-group">
-          <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram">
-            <label for="channel-instagram">Instagram</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="YouTube" id="channel-youtube">
-            <label for="channel-youtube">YouTube</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="TikTok" id="channel-tiktok">
-            <label for="channel-tiktok">TikTok</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="Facebook" id="channel-facebook">
-            <label for="channel-facebook">Facebook</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="Twitter" id="channel-twitter">
-            <label for="channel-twitter">Twitter</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" name="required_channels" value="LinkedIn" id="channel-linkedin">
-            <label for="channel-linkedin">LinkedIn</label>
-          </div>
-        </div>
-      </div>
+  <div class="form-group">
+    <label for="required_influencers">Number of Required Influencers</label>
+    <input type="number" class="form-control" id="required_influencers" name="required_influencers" required min="1"
+      max="100" step="1" placeholder="Enter number of influencers needed (1-100)">
+  </div>
+  </div>
 
-      <div class="form-group">
-        <label for="min_followers">Minimum Followers Required</label>
-        <input type="number" class="form-control" id="min_followers" name="min_followers" min="0"
-          placeholder="Enter minimum followers (min 0)">
-      </div>
+  <div class="form-group">
+    <label for="target_audience">Target Audience</label>
+    <input type="text" class="form-control" id="target_audience" name="target_audience"
+      placeholder="Describe your target audience">
+  </div>
 
-      <div class="form-group">
-        <label for="objectives">Campaign Objectives</label>
-        <textarea class="form-control" id="objectives" name="objectives"
-          placeholder="State your campaign objectives (max 500 characters)"></textarea>
+  <div class="form-group">
+    <label>Required Social Media Channels <span style="color: var(--danger-color);">*</span></label>
+    <div class="checkbox-group">
+      <div class="checkbox-item">
+        <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram">
+        <label for="channel-instagram">Instagram</label>
       </div>
+      <div class="checkbox-item">
+        <input type="checkbox" name="required_channels" value="YouTube" id="channel-youtube">
+        <label for="channel-youtube">YouTube</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" name="required_channels" value="TikTok" id="channel-tiktok">
+        <label for="channel-tiktok">TikTok</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" name="required_channels" value="Facebook" id="channel-facebook">
+        <label for="channel-facebook">Facebook</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" name="required_channels" value="Twitter" id="channel-twitter">
+        <label for="channel-twitter">Twitter</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" name="required_channels" value="LinkedIn" id="channel-linkedin">
+        <label for="channel-linkedin">LinkedIn</label>
+      </div>
+    </div>
+  </div>
 
-      <div class="btn-group">
-        <button type="submit" class="submit-btn">Create Campaign</button>
-      </div>
-    </form>
+  <div class="form-group">
+    <label for="min_followers">Minimum Followers Required</label>
+    <input type="number" class="form-control" id="min_followers" name="min_followers" min="0"
+      placeholder="Enter minimum followers (min 0)">
+  </div>
+
+  <div class="form-group">
+    <label for="objectives">Campaign Objectives</label>
+    <textarea class="form-control" id="objectives" name="objectives"
+      placeholder="State your campaign objectives (max 500 characters)"></textarea>
+  </div>
+
+  <div class="btn-group">
+    <button type="submit" class="submit-btn">Create Campaign</button>
+  </div>
+  </form>
   </div>
 
   <footer>
@@ -497,12 +496,12 @@
       const description = document.getElementById('description');
       const startDate = document.getElementById('start_date');
       const endDate = document.getElementById('end_date');
-      const duration = document.getElementById('duration');
       const budget = document.getElementById('budget');
       const targetAudience = document.getElementById('target_audience');
       const minFollowers = document.getElementById('min_followers');
       const objectives = document.getElementById('objectives');
       const channels = document.querySelectorAll('input[name="required_channels"]');
+      const requiredInfluencers = document.getElementById('required_influencers');
 
       // --- Content validation helpers ---
       function containsVulgarContent(text) {
@@ -590,15 +589,6 @@
         }
       }
 
-      // Duration: required, min 1
-      if (!duration.value) {
-        hasErrors = setError(duration, 'Duration is required') || hasErrors;
-      } else if (parseInt(duration.value) < 1) {
-        hasErrors = setError(duration, 'Duration must be at least 1 day') || hasErrors;
-      } else {
-        setError(duration, '');
-      }
-
       // Budget: required, min 0
       if (!budget.value) {
         hasErrors = setError(budget, 'Budget is required') || hasErrors;
@@ -638,6 +628,24 @@
         hasErrors = setError(minFollowers, 'Minimum followers must be 0 or greater') || hasErrors;
       } else {
         setError(minFollowers, '');
+      }
+
+      // Required Influencers: required, min 1, max 100
+      if (!requiredInfluencers.value) {
+        hasErrors = setError(requiredInfluencers, 'Number of required influencers is required') || hasErrors;
+      } else {
+        const numInfluencers = parseInt(requiredInfluencers.value);
+        if (isNaN(numInfluencers)) {
+          hasErrors = setError(requiredInfluencers, 'Please enter a valid number') || hasErrors;
+        } else if (numInfluencers < 1) {
+          hasErrors = setError(requiredInfluencers, 'You must require at least 1 influencer') || hasErrors;
+        } else if (numInfluencers > 100) {
+          hasErrors = setError(requiredInfluencers, 'You cannot require more than 100 influencers') || hasErrors;
+        } else if (!Number.isInteger(parseFloat(requiredInfluencers.value))) {
+          hasErrors = setError(requiredInfluencers, 'Number of influencers must be a whole number') || hasErrors;
+        } else {
+          setError(requiredInfluencers, '');
+        }
       }
 
       // Campaign Objectives: required, max 500 characters, meaningful content
