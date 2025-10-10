@@ -68,7 +68,7 @@
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-dollar-sign"></i>
-                            <span>Budget: <%= campaignBudget %></span>
+                            <span>Budget(in $): <%= campaignBudget %></span>
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-users"></i>
@@ -133,8 +133,8 @@
                         action="/brand/<%= requestId1 %>/<%= requestId2 %>/transaction">
                         <div class="form-group">
                             <label for="amount">Amount (USD)</label>
-                            <input type="number" id="amount" name="amount" step="0.01" min="1"
-                                placeholder="e.g., <%= paymentDue?.replace('$', '') || '750.00' %>" required>
+                            <input type="number" id="amount" name="amount" step="0.01" min="1" max="<%= paymentMax || 0 %>"
+                                placeholder="Up to <%= paymentDue?.replace('$', '') || '0' %>" required>
                         </div>
                         <div class="form-group">
                             <label for="paymentMethod">Payment Method</label>
@@ -232,6 +232,13 @@
                         // Basic validation
                         if (!amount || amount <= 0) {
                             errorMessage += 'Please enter a valid amount.\n';
+                            isValid = false;
+                        }
+
+                        // Enforce remaining budget client-side
+                        const max = Number(document.getElementById('amount').getAttribute('max') || 0);
+                        if (max && Number(amount) > max) {
+                            errorMessage += `Amount exceeds remaining budget (max ${max}).\n`;
                             isValid = false;
                         }
 

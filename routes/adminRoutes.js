@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, PaymentController, UserManagementController, CollaborationController } = require('../controllers/AdminController');
+const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController } = require('../controllers/AdminController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
 
@@ -88,6 +88,11 @@ router.get('/payment_verification', PaymentController.getAllPayments);
 router.get('/payment_verification/:id', PaymentController.getPaymentDetails);
 router.post('/payment_verification/update/:id', PaymentController.updatePaymentStatus);
 
+// Feedback routes
+router.get('/feedback_and_moderation', FeedbackController.getAllFeedback);
+router.get('/feedback_and_moderation/:id', FeedbackController.getFeedbackDetails);
+router.post('/feedback_and_moderation/update/:id', FeedbackController.updateFeedbackStatus);
+
 // Settings route
 router.get('/settings', (req, res) => {
     res.render('admin/settings', { user: res.locals.user });
@@ -130,7 +135,7 @@ router.post('/reset-password', async (req, res) => {
 });
 
 // Logout route
-router.post('/logout', (req, res) => {
+router.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             console.error('Logout error:', err);
@@ -144,5 +149,18 @@ router.post('/logout', (req, res) => {
         }
     });
 });
+
+// Find and comment out or fix any route that uses an undefined controller function.
+// This will resolve the "[object Undefined]" error on startup.
+
+// Example (replace or comment out as needed):
+// router.post('/feedback', AdminController.handleFeedback);
+// router.post('/some-path', AdminController.someUndefinedFunction);
+
+// If you want to keep the route, provide a stub handler:
+router.post('/feedback', (req, res) => res.status(501).send('Not implemented'));
+
+// Repeat this for any other problematic routes that reference undefined controller functions.
+// If you want to be thorough, search for all routes and ensure every handler exists in AdminController.js.
 
 module.exports = router;
