@@ -209,6 +209,7 @@ nav ul li a:hover {
   overflow-x: hidden;
   transition: 0.3s;
   padding-top: 60px;
+  z-index: 1000;
 }
 
 .menu a {
