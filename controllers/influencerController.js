@@ -39,6 +39,14 @@ const getInfluencerDashboard = async (req, res) => {
     const pendingRequests = await collaborationModel.getPendingRequests(influencerId);
     console.log('Pending requests:', pendingRequests);
 
+    // Get brand invites
+    const brandInvites = await collaborationModel.getBrandInvites(influencerId);
+    console.log('Brand invites:', brandInvites);
+
+    // Get sent requests
+    const sentRequests = await collaborationModel.getSentRequests(influencerId);
+    console.log('Sent requests:', sentRequests);
+
     // Calculate completion percentage and nearing completion count
     const completionPercentage = activeCollaborations.length > 0
       ? activeCollaborations.reduce((acc, collab) => acc + (collab.progress || 0), 0) / activeCollaborations.length
@@ -52,6 +60,8 @@ const getInfluencerDashboard = async (req, res) => {
       completionPercentage: Math.round(completionPercentage),
       nearingCompletion: nearingCompletion,
       pendingRequests: pendingRequests.length,
+      brandInvites: brandInvites.length,
+      sentRequests: sentRequests.length,
       monthlyEarnings: influencer.monthlyEarnings || 0,
       earningsChange: 0, // We'll need to implement this later
       totalFollowers: influencer.metrics?.totalFollowers || 0,
@@ -113,6 +123,8 @@ const getInfluencerDashboard = async (req, res) => {
       stats,
       activeCollaborations: activeCollaborations || [],
       pendingRequests: pendingRequests || [],
+      brandInvites: brandInvites || [],
+      sentRequests: sentRequests || [],
       recentCampaignHistory
     });
   } catch (error) {
@@ -429,7 +441,7 @@ const getCampaignHistory = async (req, res) => {
 const updateProgress = async (req, res) => {
   try {
     const { collabId } = req.params;
-    const { progress } = req.body;
+    const { progress, reach, clicks, performance_score, conversions, engagement_rate, conversion_rate, impressions, revenue, roi } = req.body;
 
     if (!collabId || progress === undefined) {
       return res.status(400).json({
@@ -447,20 +459,60 @@ const updateProgress = async (req, res) => {
       });
     }
 
-    // Update progress in database
-    const result = await collaborationModel.updateCollaborationProgress(collabId, progressValue);
-
-    if (!result) {
+    // Get the collaboration to find the campaign_id
+    const collab = await CampaignInfluencers.findById(collabId).populate({ path: 'campaign_id', select: 'brand_id' });
+    if (!collab) {
       return res.status(404).json({
         success: false,
         message: 'Collaboration not found'
       });
     }
 
+    // Update progress in CampaignInfluencers
+    const result = await collaborationModel.updateCollaborationProgress(collabId, progressValue);
+
+    // Update metrics in CampaignMetrics if provided
+    if (reach !== undefined || clicks !== undefined || performance_score !== undefined || conversions !== undefined || engagement_rate !== undefined || conversion_rate !== undefined || impressions !== undefined || revenue !== undefined || roi !== undefined) {
+      const CampaignMetrics = require('../config/CampaignMongo').CampaignMetrics;
+
+      // Find existing metrics or create new ones
+      let metrics = await CampaignMetrics.findOne({ campaign_id: collab.campaign_id?._id || collab.campaign_id });
+
+      if (!metrics) {
+        // Create new metrics document
+        metrics = new CampaignMetrics({
+          campaign_id: collab.campaign_id?._id || collab.campaign_id,
+          brand_id: collab.campaign_id?.brand_id,
+          performance_score: performance_score || 0,
+          engagement_rate: engagement_rate || 0,
+          reach: reach || 0,
+          conversion_rate: conversion_rate || 0,
+          clicks: clicks || 0,
+          conversions: conversions || 0,
+          impressions: impressions || 0,
+          revenue: revenue || 0,
+          roi: roi || 0
+        });
+      } else {
+        // Update existing metrics
+        if (reach !== undefined) metrics.reach = parseInt(reach) || 0;
+        if (clicks !== undefined) metrics.clicks = parseInt(clicks) || 0;
+        if (performance_score !== undefined) metrics.performance_score = parseFloat(performance_score) || 0;
+        if (conversions !== undefined) metrics.conversions = parseInt(conversions) || 0;
+        if (engagement_rate !== undefined) metrics.engagement_rate = parseFloat(engagement_rate) || 0;
+        if (conversion_rate !== undefined) metrics.conversion_rate = parseFloat(conversion_rate) || 0;
+        if (impressions !== undefined) metrics.impressions = parseInt(impressions) || 0;
+        if (revenue !== undefined) metrics.revenue = parseFloat(revenue) || 0;
+        if (roi !== undefined) metrics.roi = parseFloat(roi) || 0;
+      }
+
+      await metrics.save();
+    }
+
     res.json({
       success: true,
       progress: progressValue,
-      message: 'Progress updated successfully'
+      message: 'Progress and metrics updated successfully'
     });
   } catch (error) {
     console.error('Error updating progress:', error);
@@ -534,6 +586,76 @@ const getCollabDetails = async (req, res) => {
   }
 };
 
+const getCollaborationDetails = async (req, res) => {
+  try {
+    const { collabId } = req.params;
+
+    if (!collabId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Collaboration ID is required'
+      });
+    }
+
+    // Get collaboration details from CampaignInfluencers
+    const collab = await CampaignInfluencers.findById(collabId)
+      .populate({ path: 'campaign_id', select: 'title description budget duration brand_id', populate: { path: 'brand_id', select: 'brandName logoUrl' } })
+      .populate('influencer_id', 'name');
+
+    if (!collab) {
+      return res.status(404).json({
+        success: false,
+        message: 'Collaboration not found'
+      });
+    }
+
+    // Get metrics from CampaignMetrics
+    const CampaignMetrics = require('../config/CampaignMongo').CampaignMetrics;
+    const metrics = await CampaignMetrics.findOne({ campaign_id: collab.campaign_id?._id || collab.campaign_id });
+
+    // Format dates
+    const startDate = collab.start_date ? new Date(collab.start_date) : new Date();
+    const endDate = collab.end_date ? new Date(collab.end_date) : new Date(startDate.getTime() + (collab.duration * 24 * 60 * 60 * 1000));
+
+    // Calculate duration in days
+    const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+    res.json({
+      success: true,
+      collab: {
+        id: collab._id,
+        campaign_name: collab.campaign_id?.title || 'Untitled Campaign',
+        brand_name: collab.campaign_id?.brand_id?.brandName || 'Unknown Brand',
+        brand_logo: collab.campaign_id?.brand_id?.logoUrl || '/images/default-brand.png',
+        progress: collab.progress || 0,
+        duration: duration,
+        budget: collab.campaign_id?.budget || 0,
+        engagement_rate: metrics?.engagement_rate || collab.engagement_rate || 0,
+        description: collab.campaign_id?.description || 'No description available',
+        start_date: startDate,
+        end_date: endDate,
+        deliverables: collab.deliverables || [],
+        performance_score: metrics?.performance_score || collab.performance_score || 0,
+        reach: metrics?.reach || collab.reach || 0,
+        clicks: metrics?.clicks || collab.clicks || 0,
+        conversions: metrics?.conversions || collab.conversions || 0,
+        conversion_rate: metrics?.conversion_rate || 0,
+        impressions: metrics?.impressions || 0,
+        revenue: metrics?.revenue || 0,
+        roi: metrics?.roi || 0,
+        status: collab.status || 'active'
+      }
+    });
+  } catch (error) {
+    console.error('Error in getCollabDetails:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching collaboration details',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   getInfluencerDashboard,
   getInfluencerExplorePage,
@@ -544,5 +666,6 @@ module.exports = {
   updateProgress,
   getCollabDetails,
   getBrandExplorePage,
-  getBrandProfilePage
+  getBrandProfilePage,
+  getCollaborationDetails
 };
