@@ -2,11 +2,11 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brand Sign Up - CollabSync</title>
   <style>
-    /* Basic Reset */
+    /* 🌿 Reset */
     * {
       margin: 0;
       padding: 0;
@@ -14,182 +14,255 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Inter", sans-serif;
+      background-color: #f0f0f0; /* only light grey background */
       color: #333;
-      /* Fixed background image for brands */
-      background: url('/Sign/SighUp_for_both.svg') no-repeat center center fixed;
-      background-size: cover;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 20px;
+      overflow-y: auto;
     }
 
-    /* Container for the sign-up form */
+    /* 🌐 Main Container */
     .signup-container {
-      max-width: 600px;
-      margin: 100px auto;
-      background-color: rgba(255, 255, 255, 0.8);
-      /* Semi-transparent background */
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      text-align: left;
+      display: flex;
+      flex-direction: row;
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      transition: all 0.3s ease;
     }
 
-    h1 {
-      font-size: 2.5rem;
+    /* 🧾 Form Section */
+    .form-container {
+      flex: 1;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: #007bff;
+      margin-bottom: 30px;
+    }
+
+    .form-container h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .form-container h2 {
+      font-size: 16px;
+      font-weight: 400;
+      color: #666;
+      margin-bottom: 35px;
+    }
+
+    .form-group {
       margin-bottom: 20px;
-      text-align: center;
     }
 
-    form {
-      width: 100%;
-    }
-
-    label {
+    .form-container label {
       display: block;
-      margin: 10px 0 5px;
-      font-size: 1rem;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
     }
 
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="number"],
-    textarea {
+    .form-container input,
+    .form-container textarea {
       width: 100%;
-      padding: 10px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-bottom: 15px;
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 1.8px solid #ccc;
+      border-radius: 10px;
+      background: #fafafa;
+      transition: all 0.3s;
     }
 
-    textarea {
-      resize: vertical;
-      height: 100px;
+    .form-container input:focus,
+    .form-container textarea:focus {
+      border-color: #007bff;
+      background: #fff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
     }
 
-    button {
+    .form-container button {
       width: 100%;
-      padding: 10px;
-      font-size: 1.2rem;
-      background-color: #007BFF;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #007bff;
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
       cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.3s;
     }
 
-    button:hover {
-      background-color: #0056b3;
+    .form-container button:hover:not(:disabled) {
+      background: #0056b3;
     }
 
     .back-link {
       display: block;
-      margin-top: 15px;
+      margin-top: 20px;
       text-align: center;
-      color: #007BFF;
+      color: #007bff;
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 15px;
+      font-weight: 600;
     }
 
+    .back-link:hover {
+      color: #0056b3;
+    }
+
+    /* 💬 Message Styles */
     .message {
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 5px;
+      margin-bottom: 20px;
+      padding: 14px;
+      border-radius: 10px;
       display: none;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .message.error {
       background-color: #f8d7da;
       color: #721c24;
-      border: 1px solid #f5c6cb;
     }
 
     .message.success {
       background-color: #d4edda;
       color: #155724;
-      border: 1px solid #c3e6cb;
     }
 
     .error-text {
-      display: block;
-      margin-top: 6px;
-      margin-bottom: 10px;
       font-size: 13px;
       color: #ff6b6b;
-      min-height: 16px;
+      margin-top: 5px;
+      display: none;
     }
 
     .invalid {
-      outline: 2px solid #ff6b6b;
+      border-color: #ff6b6b !important;
     }
 
-    input.touched:invalid,
-    textarea.touched:invalid {
-      border-color: #ff6b6b;
+    /* 🖼️ Image Section */
+    .image-container {
+      flex: 1;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 50px;
     }
 
-    .field-group {
-      margin-bottom: 20px;
+    .image-container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     }
 
-    .character-count {
-      font-size: 12px;
-      color: #666;
-      text-align: right;
-      margin-top: 2px;
+    /* 📱 Responsive Design */
+    @media (max-width: 900px) {
+      .signup-container {
+        flex-direction: column;
+      }
+
+      .image-container {
+        order: -1;
+        padding: 30px;
+      }
+
+      .form-container {
+        padding: 30px 20px;
+      }
+
+      .form-container h1 {
+        font-size: 26px;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="signup-container">
-    <h1>Brand Sign Up</h1>
-    <form id="brandSignupForm" action="/signup-form-brand" method="post" novalidate>
-      <div id="messageBox" class="message"></div>
-      <div class="field-group">
-        <label for="brandName">Brand Name:</label>
-        <input type="text" id="brandName" name="brandName" placeholder="Your Brand Name">
-        <small id="brandNameError" class="error-text" style="display: none;"></small>
-        <div id="brandNameCount" class="character-count"></div>
-      </div>
+    <!-- 🧾 Form Section -->
+    <div class="form-container">
+      <div class="logo">CollabSync</div>
+      <h1>Brand Sign Up</h1>
 
-      <div class="field-group">
-        <label for="email">Email:</label>
-        <input type="text" id="email" name="email" placeholder="Your Email">
-        <small id="emailError" class="error-text" style="display: none;"></small>
-      </div>
+      <form id="brandSignupForm" action="/signup-form-brand" method="post" novalidate>
+        <div id="messageBox" class="message"></div>
 
-      <div class="field-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"
-          placeholder="Choose a Password(At least 8 characters, one digit, and one special character)">
-        <small id="passwordError" class="error-text" style="display: none;"></small>
-      </div>
+        <div class="form-group">
+          <label for="brandName">Brand Name</label>
+          <input type="text" id="brandName" name="brandName" placeholder="Your Brand Name" />
+          <small id="brandNameError" class="error-text"></small>
+        </div>
 
-      <div class="field-group">
-        <label for="industry">Industry:</label>
-        <input type="text" id="industry" name="industry" placeholder="Your Industry">
-        <small id="industryError" class="error-text" style="display: none;"></small>
-        <div id="industryCount" class="character-count"></div>
-      </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="text" id="email" name="email" placeholder="Your Email" />
+          <small id="emailError" class="error-text"></small>
+        </div>
 
-       <label for="website">Website:</label>
-      <input type="text" id="website" name="website" placeholder="Your Website URL" required>
-      <small id="websiteError" class="error-text" style="display: none;"></small>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+            placeholder="At least 8 chars, one digit, one special char" />
+          <small id="passwordError" class="error-text"></small>
+        </div>
 
-      <label for="totalAudience">Total Audience:</label>
-      <input type="number" id="totalAudience" name="totalAudience" placeholder="Total Audience" min="0" value="0" class="total-audience-input">
-      <small id="totalAudienceError" class="error-text" style="display: none;"></small>
+        <div class="form-group">
+          <label for="industry">Industry</label>
+          <input type="text" id="industry" name="industry" placeholder="Your Industry" />
+          <small id="industryError" class="error-text"></small>
+        </div>
 
-      <div class="field-group">
-        <label for="phone">Contact Number:</label>
-        <input type="text" id="phone" name="phone" placeholder="+1234567890 or 1234567890">
-        <small id="phoneError" class="error-text" style="display: none;"></small>
-      </div>
+        <div class="form-group">
+          <label for="website">Website</label>
+          <input type="text" id="website" name="website" placeholder="Your Website URL" />
+          <small id="websiteError" class="error-text"></small>
+        </div>
 
-      <button type="submit">Sign Up as Brand</button>
-    </form>
-    <a href="/Sup_role" class="back-link">Back to Role Selection</a>
+        <div class="form-group">
+          <label for="totalAudience">Total Audience</label>
+          <input type="number" id="totalAudience" name="totalAudience" placeholder="Total Audience" min="0" value="0" />
+          <small id="totalAudienceError" class="error-text"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Contact Number</label>
+          <input type="text" id="phone" name="phone" placeholder="+1234567890" />
+          <small id="phoneError" class="error-text"></small>
+        </div>
+
+        <button type="submit">Sign Up as Brand</button>
+      </form>
+
+      <a href="/Sup_role" class="back-link">Back to Role Selection</a>
+    </div>
+
+    <!-- 🖼️ Image Section -->
+    <div class="image-container">
+      <img src="/Sign/SighUp_for_both.svg" alt="Sign Up Illustration" />
+    </div>
   </div>
 
   <script>
