@@ -18,7 +18,7 @@ const DashboardController = {
     async verifyUser(req, res) {
         try {
             const { username, password } = req.body;
-            
+
             // Find admin user
             const user = await Admin.findOne({ username });
             if (!user) {
@@ -88,34 +88,34 @@ const DashboardController = {
             const currentMonth = new Date();
             const previousMonth = new Date();
             previousMonth.setMonth(currentMonth.getMonth() - 1);
-            
+
             const [currentMonthRevenue, previousMonthRevenue] = await Promise.all([
                 CampaignPayments.aggregate([
-                    { 
-                        $match: { 
+                    {
+                        $match: {
                             status: "completed",
-                            payment_date: { 
+                            payment_date: {
                                 $gte: new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1),
                                 $lt: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
                             }
-                        } 
+                        }
                     },
                     { $group: { _id: null, total: { $sum: "$amount" } } }
                 ]),
                 CampaignPayments.aggregate([
-                    { 
-                        $match: { 
+                    {
+                        $match: {
                             status: "completed",
-                            payment_date: { 
+                            payment_date: {
                                 $gte: new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1),
                                 $lt: new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 1)
                             }
-                        } 
+                        }
                     },
                     { $group: { _id: null, total: { $sum: "$amount" } } }
                 ])
             ]);
-            
+
             const currentRevenue = currentMonthRevenue[0]?.total || 0;
             const previousRevenue = previousMonthRevenue[0]?.total || 0;
             const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue * 100) : 0;
@@ -145,7 +145,7 @@ const DashboardController = {
                 const date = new Date();
                 date.setMonth(date.getMonth() - i);
                 monthlyLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-                
+
                 // Generate realistic revenue data based on total revenue
                 const baseRevenue = totalRevenue / 6;
                 const variation = (Math.random() - 0.5) * 0.4; // ±20% variation
@@ -159,7 +159,7 @@ const DashboardController = {
                 const date = new Date();
                 date.setMonth(date.getMonth() - i);
                 userGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-                
+
                 // Simulate gradual growth
                 const growthFactor = (6 - i) / 6;
                 userGrowthData.push(Math.round((brandCount + influencerCount) * growthFactor * 0.8));
@@ -221,7 +221,7 @@ const DashboardController = {
                     .sort({ audienceSize: -1 })
                     .limit(5)
                     .select("displayName audienceSize categories");
-                
+
                 // Ensure all required fields have default values
                 topInfluencers = topInfluencers.map(inf => ({
                     displayName: inf.displayName || 'Unknown',
@@ -311,7 +311,7 @@ const DashboardController = {
             ];
 
             // Render the dashboard with dynamic data
-            res.render("admin/admin_dashboard", {
+            res.render("admin/dashboard", {
                 user: res.locals.user,
                 stats,
                 analytics,
@@ -339,33 +339,33 @@ const AnalyticsController = {
             console.log("Fetching brand analytics...");
             const { BrandInfo } = require("../config/BrandMongo");
             const { CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
-            
+
             // Get basic metrics
             const totalBrands = await BrandInfo.countDocuments();
             const activeBrands = await BrandInfo.countDocuments({ verified: true });
             const brandGrowth = 5; // Static for now
-            
+
             // Get top brands with proper data structure
             const topBrandsRaw = await BrandInfo.find({})
                 .sort({ completedCampaigns: -1 })
                 .limit(5)
                 .lean();
-            
+
             // Structure top brands data for the table
             const topBrands = await Promise.all(topBrandsRaw.map(async (brand) => {
                 // Get active campaigns count
-                const activeCampaigns = await CampaignInfluencers.countDocuments({ 
-                    brand_id: brand._id, 
-                    status: 'active' 
+                const activeCampaigns = await CampaignInfluencers.countDocuments({
+                    brand_id: brand._id,
+                    status: 'active'
                 });
-                
+
                 // Get total revenue for this brand
                 const revenueAgg = await CampaignPayments.aggregate([
                     { $match: { brand_id: brand._id, status: 'completed' } },
                     { $group: { _id: null, total: { $sum: "$amount" } } }
                 ]);
                 const revenue = revenueAgg[0]?.total || 0;
-                
+
                 return {
                     name: brand.brandName || 'Unknown Brand',
                     logo: brand.logoUrl || '/images/default-brand-logo.jpg',
@@ -376,21 +376,21 @@ const AnalyticsController = {
                     status: brand.verified ? 'Active' : 'Pending'
                 };
             }));
-            
+
             // Get highest collaboration brand
             const highestCollabBrand = topBrandsRaw[0] ? {
                 name: topBrandsRaw[0].brandName || 'N/A',
                 value: topBrands[0]?.revenue || 0,
                 logo: topBrandsRaw[0].logoUrl || '/images/default-brand-logo.jpg'
             } : { name: 'N/A', value: 0, logo: '/images/default-brand-logo.jpg' };
-            
+
             // Get most active brand
             const mostActiveBrand = topBrandsRaw[0] ? {
                 name: topBrandsRaw[0].brandName || 'N/A',
                 totalCollabs: topBrandsRaw[0].completedCampaigns || 0,
                 logo: topBrandsRaw[0].logoUrl || '/images/default-brand-logo.jpg'
             } : { name: 'N/A', totalCollabs: 0, logo: '/images/default-brand-logo.jpg' };
-            
+
             const metrics = {
                 totalBrands,
                 activeBrands,
@@ -400,9 +400,9 @@ const AnalyticsController = {
                 mostActiveBrand,
                 topBrands
             };
-            
+
             console.log("Metrics received:", metrics);
-            
+
             const chartData = {
                 brandGrowthData: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr'],
@@ -438,33 +438,33 @@ const AnalyticsController = {
             const metrics = await AdminModel.AnalyticsModel.getInfluencerAnalytics();
             console.log("Metrics received:", metrics);
             const performance_analytic = {
-            performanceChartData: {
-                labels: ['January', 'February', 'March', 'April', 'May'],
-                datasets: [
-                    {
-                        label: 'Reach',
-                        data: [12000, 15000, 18000, 14000, 20000],
-                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Impressions',
-                        data: [22000, 25000, 30000, 24000, 32000],
-                        backgroundColor: 'rgba(153, 102, 255, 0.5)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Engagement',
-                        data: [800, 1200, 1000, 1100, 1500],
-                        backgroundColor: 'rgba(255, 159, 64, 0.5)',
-                        borderColor: 'rgba(255, 159, 64, 1)',
-                        borderWidth: 1
-                    }
-                ]
-            }
-        };
+                performanceChartData: {
+                    labels: ['January', 'February', 'March', 'April', 'May'],
+                    datasets: [
+                        {
+                            label: 'Reach',
+                            data: [12000, 15000, 18000, 14000, 20000],
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Impressions',
+                            data: [22000, 25000, 30000, 24000, 32000],
+                            backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Engagement',
+                            data: [800, 1200, 1000, 1100, 1500],
+                            backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                }
+            };
 
 
             if (!metrics) {
@@ -490,18 +490,18 @@ const AnalyticsController = {
             console.log("Fetching campaign analytics...");
             const metrics = await AdminModel.AnalyticsModel.getCampaignAnalytics();
             console.log("Metrics received:", metrics);
-            
-            const campaignTypesData = {
-            labels: ['Active', 'Completed', 'Draft', 'Cancelled', 'Request'],
-            counts: [10, 7, 5, 2, 3] // Mock values
-        };
 
-        // Static data for Engagement Trends
-        const engagementTrendsData = {
-            labels: ['January', 'February', 'March', 'April', 'May'],
-            engagementRates: [25, 30, 28, 35, 40], // Mock values
-            reach: [1000, 1500, 1300, 1700, 2000]  // Mock values
-        };
+            const campaignTypesData = {
+                labels: ['Active', 'Completed', 'Draft', 'Cancelled', 'Request'],
+                counts: [10, 7, 5, 2, 3] // Mock values
+            };
+
+            // Static data for Engagement Trends
+            const engagementTrendsData = {
+                labels: ['January', 'February', 'March', 'April', 'May'],
+                engagementRates: [25, 30, 28, 35, 40], // Mock values
+                reach: [1000, 1500, 1300, 1700, 2000]  // Mock values
+            };
 
 
             if (!metrics) {
@@ -515,7 +515,7 @@ const AnalyticsController = {
                     engagementTrendsData,
                 },
                 error: null,
-                
+
             });
 
         } catch (error) {

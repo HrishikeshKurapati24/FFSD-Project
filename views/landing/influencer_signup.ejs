@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -63,6 +64,7 @@
     input[type="email"],
     input[type="password"],
     input[type="number"],
+    input[type="tel"],
     select {
       width: 100%;
       padding: 10px 12px;
@@ -148,6 +150,31 @@
       border: 1px solid #c3e6cb;
     }
 
+    /* Error Messages */
+    .error-message {
+      color: #dc3545;
+      font-size: 0.85rem;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    /* Character Count */
+    .char-count {
+      color: #6c757d;
+      font-size: 0.8rem;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      text-align: right;
+    }
+
+    /* Invalid input styling */
+    input.invalid,
+    select.invalid {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
     /* Responsive Design */
     @media (max-width: 900px) {
       .signup-wrapper {
@@ -180,17 +207,17 @@
 
         <label for="fullName">Full Name</label>
         <input type="text" id="fullName" name="fullName" placeholder="Your Full Name" />
+        <div id="fullNameError" class="error-message"></div>
+        <div id="fullNameCount" class="char-count"></div>
 
         <label for="email">Email</label>
         <input type="email" id="email" name="email" placeholder="Your Email" />
+        <div id="emailError" class="error-message"></div>
 
         <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="At least 8 characters, one digit, and one special character"
-        />
+        <input type="password" id="password" name="password"
+          placeholder="At least 8 characters, one digit, and one special character" />
+        <div id="passwordError" class="error-message"></div>
 
         <label for="platform">Social Media Platform</label>
         <select id="platform" name="platform">
@@ -202,18 +229,25 @@
           <option value="twitter">Twitter</option>
           <option value="linkedin">LinkedIn</option>
         </select>
+        <div id="platformError" class="error-message"></div>
 
         <label for="socialHandle">Social Media Handle</label>
         <input type="text" id="socialHandle" name="socialHandle" placeholder="@yourhandle" />
+        <div id="socialHandleError" class="error-message"></div>
+        <div id="socialHandleCount" class="char-count"></div>
 
         <label for="audience">Audience Size</label>
         <input type="number" id="audience" name="audience" placeholder="e.g. 10000" />
+        <div id="audienceError" class="error-message"></div>
 
         <label for="niche">Niche/Category</label>
         <input type="text" id="niche" name="niche" placeholder="e.g. fashion, tech, travel" />
+        <div id="nicheError" class="error-message"></div>
+        <div id="nicheCount" class="char-count"></div>
 
         <label for="phone">Contact Number</label>
-        <input type="number" id="phone" name="phone" placeholder="+1234567890 or 1234567890" />
+        <input type="tel" id="phone" name="phone" placeholder="+1234567890 or 1234567890" />
+        <div id="phoneError" class="error-message"></div>
 
         <button type="submit">Sign Up as Influencer</button>
       </form>
@@ -243,7 +277,7 @@
       const nicheInput = document.getElementById('niche');
       const phoneInput = document.getElementById('phone');
 
-      // Get error elements
+      // Get error elements (with null checks)
       const fullNameError = document.getElementById('fullNameError');
       const emailError = document.getElementById('emailError');
       const passwordError = document.getElementById('passwordError');
@@ -253,7 +287,7 @@
       const nicheError = document.getElementById('nicheError');
       const phoneError = document.getElementById('phoneError');
 
-      // Get character count elements
+      // Get character count elements (with null checks)
       const fullNameCount = document.getElementById('fullNameCount');
       const socialHandleCount = document.getElementById('socialHandleCount');
       const nicheCount = document.getElementById('nicheCount');
@@ -419,15 +453,17 @@
       }
 
       function setFieldState(inputEl, errorEl, errorMsg) {
-        errorEl.textContent = errorMsg || '';
-        if (errorMsg) {
-          inputEl.classList.add('invalid');
-          inputEl.setAttribute('aria-invalid', 'true');
-          errorEl.style.display = 'block';
-        } else {
-          inputEl.classList.remove('invalid');
-          inputEl.removeAttribute('aria-invalid');
-          errorEl.style.display = 'none';
+        if (errorEl) {
+          errorEl.textContent = errorMsg || '';
+          if (errorMsg) {
+            inputEl.classList.add('invalid');
+            inputEl.setAttribute('aria-invalid', 'true');
+            errorEl.style.display = 'block';
+          } else {
+            inputEl.classList.remove('invalid');
+            inputEl.removeAttribute('aria-invalid');
+            errorEl.style.display = 'none';
+          }
         }
       }
 
@@ -466,7 +502,9 @@
 
         // Update character count
         const charCount = fullNameInput.value.length;
-        fullNameCount.textContent = `${charCount}/50 characters`;
+        if (fullNameCount) {
+          fullNameCount.textContent = `${charCount}/50 characters`;
+        }
       });
 
       emailInput.addEventListener('input', () => {
@@ -503,7 +541,9 @@
 
         // Update character count
         const charCount = socialHandleInput.value.length;
-        socialHandleCount.textContent = `${charCount}/30 characters`;
+        if (socialHandleCount) {
+          socialHandleCount.textContent = `${charCount}/30 characters`;
+        }
       });
 
       audienceInput.addEventListener('input', (e) => {
@@ -537,7 +577,9 @@
 
         // Update character count
         const charCount = nicheInput.value.length;
-        nicheCount.textContent = `${charCount}/50 characters`;
+        if (nicheCount) {
+          nicheCount.textContent = `${charCount}/50 characters`;
+        }
       });
 
       phoneInput.addEventListener('input', () => {
