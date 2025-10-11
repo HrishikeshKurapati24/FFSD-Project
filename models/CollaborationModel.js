@@ -445,11 +445,50 @@ class CollaborationModel {
 
     static async updateCollaborationProgress(collabId, progress) {
         try {
-            const collab = await CampaignInfluencers.findById(collabId);
+            // 1) Update influencer's own progress on CampaignInfluencers
+            const collab = await CampaignInfluencers.findById(collabId).populate('campaign_id').lean(false);
             if (!collab) throw new Error('Collaboration not found');
 
             collab.progress = progress;
             await collab.save();
+
+            // 2) Recompute overall campaign progress (weighted by influencer followers)
+            const campaignId = collab.campaign_id;
+
+            // Get active influencers on this campaign with their progress and follower counts
+            const activeInfluencers = await CampaignInfluencers.find({
+                campaign_id: campaignId,
+                status: 'active'
+            })
+                .populate({ path: 'influencer_id', select: 'totalFollowers', model: 'InfluencerAnalytics', options: { lean: true } })
+                .lean();
+
+            // Fallback if above populate path doesn't resolve, fetch followers via InfluencerAnalytics collection
+            const influencerIds = activeInfluencers.map(ai => ai.influencer_id?._id || ai.influencer_id);
+            const InfluencerAnalytics = mongoose.model('InfluencerAnalytics');
+            const analytics = await InfluencerAnalytics.find({ influencerId: { $in: influencerIds } })
+                .select('influencerId totalFollowers')
+                .lean();
+            const followersMap = new Map(analytics.map(a => [a.influencerId.toString(), a.totalFollowers || 0]));
+
+            let weightedSum = 0;
+            let totalFollowers = 0;
+            activeInfluencers.forEach(ai => {
+                const infId = (ai.influencer_id?._id || ai.influencer_id || '').toString();
+                const followers = followersMap.get(infId) || 0;
+                const prog = Math.max(0, Math.min(100, ai.progress || 0));
+                weightedSum += prog * followers;
+                totalFollowers += followers;
+            });
+
+            const overallProgress = totalFollowers > 0 ? Math.round((weightedSum / totalFollowers)) : Math.round((activeInfluencers.reduce((s, ai) => s + (ai.progress || 0), 0) / Math.max(1, activeInfluencers.length)));
+
+            // 3) Upsert overall progress into CampaignMetrics
+            await CampaignMetrics.findOneAndUpdate(
+                { campaign_id: campaignId, brand_id: collab.campaign_id?.brand_id || collab.brand_id },
+                { $set: { overall_progress: overallProgress } },
+                { upsert: true, new: true }
+            );
 
             return { id: collabId, progress };
         } catch (error) {
@@ -483,6 +522,90 @@ class CollaborationModel {
             }));
         } catch (error) {
             console.error('Error in getPendingRequests:', error);
+            throw error;
+        }
+    }
+
+    static async getBrandInvites(influencerId) {
+        try {
+            const invites = await CampaignInfluencers.find({
+                influencer_id: new mongoose.Types.ObjectId(influencerId),
+                status: 'brand-invite'
+            })
+                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date')
+                .populate({
+                    path: 'campaign_id',
+                    populate: {
+                        path: 'brand_id',
+                        model: 'BrandInfo',
+                        select: 'brandName logoUrl industry location'
+                    }
+                })
+                .sort({ createdAt: -1 })
+                .lean();
+
+            return invites.map(invite => ({
+                ...invite,
+                brand_name: invite.campaign_id?.brand_id?.brandName || '',
+                brand_logo: invite.campaign_id?.brand_id?.logoUrl || '',
+                brand_industry: invite.campaign_id?.brand_id?.industry || '',
+                brand_location: invite.campaign_id?.brand_id?.location || '',
+                campaign_title: invite.campaign_id?.title || '',
+                campaign_description: invite.campaign_id?.description || '',
+                campaign_budget: invite.campaign_id?.budget || 0,
+                campaign_duration: invite.campaign_id?.duration || 0,
+                campaign_start_date: invite.campaign_id?.start_date || null,
+                campaign_end_date: invite.campaign_id?.end_date || null
+            }));
+        } catch (error) {
+            console.error('Error in getBrandInvites:', error);
+            throw error;
+        }
+    }
+
+    static async getSentRequests(influencerId) {
+        try {
+            // First, get all campaigns with status 'request'
+            const requestCampaigns = await CampaignInfo.find({ status: 'request' }).select('_id').lean();
+            const requestCampaignIds = requestCampaigns.map(c => c._id);
+
+            // Then, find influencer requests for these campaigns
+            const sentRequests = await CampaignInfluencers.find({
+                influencer_id: new mongoose.Types.ObjectId(influencerId),
+                status: 'influencer-invite',
+                campaign_id: { $in: requestCampaignIds }
+            })
+                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date status')
+                .populate({
+                    path: 'campaign_id',
+                    populate: {
+                        path: 'brand_id',
+                        model: 'BrandInfo',
+                        select: 'brandName logoUrl industry location'
+                    }
+                })
+                .sort({ createdAt: -1 })
+                .lean();
+
+            // Filter out any requests where campaign is null
+            return sentRequests
+                .filter(req => req.campaign_id)
+                .map(request => ({
+                    ...request,
+                    brand_name: request.campaign_id?.brand_id?.brandName || '',
+                    brand_logo: request.campaign_id?.brand_id?.logoUrl || '',
+                    brand_industry: request.campaign_id?.brand_id?.industry || '',
+                    brand_location: request.campaign_id?.brand_id?.location || '',
+                    campaign_title: request.campaign_id?.title || '',
+                    campaign_description: request.campaign_id?.description || '',
+                    campaign_budget: request.campaign_id?.budget || 0,
+                    campaign_duration: request.campaign_id?.duration || 0,
+                    campaign_start_date: request.campaign_id?.start_date || null,
+                    campaign_end_date: request.campaign_id?.end_date || null,
+                    required_channels: request.campaign_id?.required_channels || []
+                }));
+        } catch (error) {
+            console.error('Error in getSentRequests:', error);
             throw error;
         }
     }

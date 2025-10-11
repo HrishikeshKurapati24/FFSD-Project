@@ -14,10 +14,34 @@
       padding: 20px;
     }
 
+    /* Grid view - changes the container to grid */
     .influencer-list.grid {
-      display: grid;
+      display: grid !important;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 20px;
+    }
+
+    .influencer-list.list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Default list view - horizontal layout */
+    .influencer-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Grid view - vertical layout */
+    .influencer-list.grid .influencer-item {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      width: 100% !important;
     }
 
     .toggle-container {
@@ -39,6 +63,198 @@
       background-color: #3367d6;
     }
 
+    /* A11y helpers */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+
+    /* Invite Modal Styles */
+    .invite-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .invite-modal-content {
+      background: white;
+      max-width: 500px;
+      width: 90%;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .invite-modal-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 32px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.3s;
+      line-height: 1;
+    }
+
+    .invite-modal-close:hover {
+      color: #333;
+    }
+
+    .invite-modal-title {
+      color: #4285f4;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      padding-right: 30px;
+    }
+
+    .invite-influencer-name {
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 25px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 4px solid #4285f4;
+    }
+
+    .invite-form-group {
+      margin-bottom: 25px;
+    }
+
+    .invite-label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #333;
+      font-size: 1rem;
+    }
+
+    .invite-select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: white;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s;
+      outline: none;
+    }
+
+    .invite-select:hover {
+      border-color: #4285f4;
+    }
+
+    .invite-select:focus {
+      border-color: #4285f4;
+      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    }
+
+    .invite-modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .invite-btn-send {
+      flex: 1;
+      padding: 14px 20px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .invite-btn-send:hover {
+      background: #3367d6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+
+    .invite-btn-send:active {
+      transform: translateY(0);
+    }
+
+    .invite-btn-cancel {
+      flex: 1;
+      padding: 14px 20px;
+      background: white;
+      color: #333;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .invite-btn-cancel:hover {
+      background: #f8f9fa;
+      border-color: #999;
+    }
+
+    .invite-btn-cancel:active {
+      transform: scale(0.98);
+    }
+
     .influencer-item {
       display: flex;
       align-items: center;
@@ -46,20 +262,48 @@
       padding: 15px;
       background: white;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    /* Default list view button styling */
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-left: 20px;
+    }
+
+    /* Grid view button styling */
+    .influencer-list.grid .button-group {
+      display: flex !important;
+      gap: 10px !important;
+      margin-top: auto !important;
+      justify-content: center !important;
+      margin-left: 0 !important;
+      padding-top: 12px !important;
+      width: 100% !important;
     }
 
     .influencer-item:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
 
+    /* Default list view content */
     .influencer-content {
       display: flex;
       align-items: center;
       gap: 20px;
       flex: 1;
+    }
+
+    /* Grid view content layout */
+    .influencer-list.grid .influencer-content {
+      display: flex !important;
+      flex-direction: column !important;
+      text-align: center !important;
+      gap: 15px !important;
+      flex: none !important;
     }
 
     .influencer-image {
@@ -100,10 +344,10 @@
     .button-group {
       display: flex;
       gap: 10px;
-      margin-left: 20px;
     }
 
-    .invite-button, .profile-button {
+    .invite-button,
+    .profile-button {
       padding: 8px 16px;
       border-radius: 4px;
       cursor: pointer;
@@ -151,7 +395,8 @@
         margin-left: 0;
       }
 
-      .invite-button, .profile-button {
+      .invite-button,
+      .profile-button {
         flex: 1;
       }
     }
@@ -184,6 +429,31 @@
     <a href="/brand/signout">Sign Out</a>
   </div>
 
+  <!-- Invite Modal -->
+  <div id="inviteModal" class="invite-modal" style="display: none;">
+    <div class="invite-modal-content">
+      <span class="invite-modal-close" onclick="closeInviteModal()">&times;</span>
+      <h2 class="invite-modal-title">Invite Influencer</h2>
+      <p id="inviteInfluencerName" class="invite-influencer-name"></p>
+
+      <div class="invite-form-group">
+        <label for="campaignSelect" class="invite-label">Select Campaign:</label>
+        <select id="campaignSelect" class="invite-select">
+          <option value="">Loading campaigns...</option>
+        </select>
+      </div>
+
+      <div class="invite-modal-actions">
+        <button onclick="sendInvite()" class="invite-btn-send">
+          <i class="fas fa-paper-plane"></i> Send Invite
+        </button>
+        <button onclick="closeInviteModal()" class="invite-btn-cancel">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Content -->
   <div class="container">
     <div class="intro">
@@ -193,31 +463,41 @@
 
     <!-- Toggle Button -->
     <div class="toggle-container">
-      <button class="toggle-button" onclick="toggleLayout()">Toggle Layout</button>
+      <button type="button" id="viewToggle" class="toggle-button" aria-pressed="false" aria-controls="influencerList" aria-label="Switch to grid view">Grid view</button>
+      <span id="viewAnnouncer" class="visually-hidden" aria-live="polite"></span>
     </div>
 
     <!-- Influencer List -->
     <div class="influencer-list" id="influencerList">
-      <% if (influencers && influencers.length > 0) { %>
+      <% if (influencers && influencers.length> 0) { %>
         <% influencers.forEach(function(influencer) { %>
           <div class="influencer-item">
             <div class="influencer-content">
-              <img class="influencer-image" 
-                src="<%= influencer.profilePicUrl || '/images/default-profile.jpg' %>" 
+              <img class="influencer-image" loading="lazy"
+                src="<%= influencer.profilePicUrl || '/images/default-profile.jpg' %>"
                 alt="<%= influencer.displayName %>">
               <div class="influencer-info">
                 <div class="influencer-name">
-                  <h2><%= influencer.displayName %></h2>
+                  <h2>
+                    <%= influencer.displayName %>
+                  </h2>
                   <% if (influencer.verified) { %>
                     <span class="verified-badge">✓</span>
-                  <% } %>
+                    <% } %>
                 </div>
                 <div class="influencer-details">
-                  <p><strong>Niche:</strong> <%= influencer.niche || 'Not specified' %></p>
-                  <p><strong>Followers:</strong> <%= influencer.totalFollowers.toLocaleString() %></p>
-                  <p><strong>Engagement Rate:</strong> <%= influencer.avgEngagementRate.toFixed(2) %>%</p>
-                  <% if (influencer.categories && influencer.categories.length > 0) { %>
-                    <p><strong>Categories:</strong> <%= influencer.categories.join(', ') %></p>
+                  <p><strong>Niche:</strong>
+                    <%= influencer.niche || 'Not specified' %>
+                  </p>
+                  <p><strong>Followers:</strong>
+                    <%= influencer.totalFollowers.toLocaleString() %>
+                  </p>
+                  <p><strong>Engagement Rate:</strong>
+                    <%= influencer.avgEngagementRate.toFixed(2) %>%
+                  </p>
+                  <% if (influencer.categories && influencer.categories.length> 0) { %>
+                    <p><strong>Categories:</strong>
+                      <%= influencer.categories.join(', ') %></p>
                   <% } %>
                   <% if (influencer.audienceDemographics) { %>
                     <p><strong>Audience:</strong> <%= influencer.audienceDemographics.gender %>, <%= influencer.audienceDemographics.ageRange %></p>
@@ -226,37 +506,168 @@
               </div>
             </div>
             <div class="button-group">
-              <button class="invite-button">Invite</button>
-              <a href="/brand/influencer_profile/<%= influencer._id %>" class="profile-button">View Profile</a>
+              <button class="invite-button" onclick="openInviteModal(' <%=influencer._id %>', '<%=influencer.displayName %>')">Invite</button>
+                          <a href="/brand/influencer_profile/<%= influencer._id %>" class="profile-button">View
+                            Profile</a>
+                </div>
+              </div>
+              <% }); %>
+                <% } else { %>
+                  <div class="no-influencers-message" style="text-align: center; padding: 20px;">
+                    <h2>No influencers found</h2>
+                    <p>There are currently no influencers available for collaboration.</p>
+                  </div>
+                  <% } %>
             </div>
           </div>
-        <% }); %>
-      <% } else { %>
-        <div class="no-influencers-message" style="text-align: center; padding: 20px;">
-          <h2>No influencers found</h2>
-          <p>There are currently no influencers available for collaboration.</p>
-        </div>
-      <% } %>
-    </div>
-  </div>
 
-  <!-- Scripts -->
-  <script>
-    function openMenu() {
-      document.getElementById("navMenu").style.width = "250px";
+          <!-- Scripts -->
+          <script>
+            let selectedInfluencerId = null;
+            let selectedInfluencerName = null;
+
+            function openMenu() {
+              document.getElementById("navMenu").style.width = "250px";
+            }
+
+            function closeMenu() {
+              document.getElementById("navMenu").style.width = "0";
+            }
+
+            // Open invite modal and fetch draft campaigns
+            async function openInviteModal(influencerId, influencerName) {
+              selectedInfluencerId = influencerId;
+              selectedInfluencerName = influencerName;
+
+              document.getElementById('inviteInfluencerName').textContent = `Inviting: ${influencerName}`;
+              document.getElementById('inviteModal').style.display = 'flex';
+
+              // Fetch draft/request campaigns for this brand
+              try {
+                const response = await fetch('/brand/campaigns/draft-list');
+                const data = await response.json();
+
+                const select = document.getElementById('campaignSelect');
+                select.innerHTML = '';
+
+                if (data.campaigns && data.campaigns.length > 0) {
+                  select.innerHTML = '<option value="">-- Select a Campaign --</option>';
+                  data.campaigns.forEach(campaign => {
+                    const option = document.createElement('option');
+                    option.value = campaign._id;
+                    option.textContent = `${campaign.title} (Budget: $${campaign.budget.toLocaleString()})`;
+                    select.appendChild(option);
+                  });
+                } else {
+                  select.innerHTML = '<option value="">No draft campaigns available. Create one first.</option>';
+                }
+              } catch (error) {
+                console.error('Error fetching campaigns:', error);
+                document.getElementById('campaignSelect').innerHTML = '<option value="">Error loading campaigns</option>';
+              }
+            }
+
+            function closeInviteModal() {
+              document.getElementById('inviteModal').style.display = 'none';
+              selectedInfluencerId = null;
+              selectedInfluencerName = null;
+            }
+
+            // Send invite to influencer for selected campaign
+            async function sendInvite() {
+              const campaignId = document.getElementById('campaignSelect').value;
+
+              if (!campaignId) {
+                alert('Please select a campaign first.');
+                return;
+              }
+
+              if (!selectedInfluencerId) {
+                alert('Influencer not selected.');
+                return;
+              }
+
+              try {
+                const response = await fetch('/brand/invite-influencer', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    influencerId: selectedInfluencerId,
+                    campaignId: campaignId
+                  })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                  alert(`Invitation sent successfully to ${selectedInfluencerName}!`);
+                  closeInviteModal();
+                } else {
+                  alert('Failed to send invite: ' + (data.message || 'Unknown error'));
+                }
+              } catch (error) {
+                console.error('Error sending invite:', error);
+                alert('An error occurred while sending the invite. Please try again.');
+              }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function (event) {
+              const modal = document.getElementById('inviteModal');
+              if (event.target === modal) {
+                closeInviteModal();
+              }
+            }
+
+  // Accessible, persistent view toggle
+  document.addEventListener('DOMContentLoaded', function () {
+  (function () {
+    const containerId = 'influencerList';
+    const buttonId = 'viewToggle';
+    const param = 'view';
+
+    const listEl = document.getElementById(containerId);
+    const btn = document.getElementById(buttonId);
+    const announce = document.getElementById('viewAnnouncer');
+
+    if (!listEl || !btn) {
+      console.error('Required elements not found for view toggle');
+      return;
     }
 
-    function closeMenu() {
-      document.getElementById("navMenu").style.width = "0";
+    const url = (typeof URL !== 'undefined' && window.location) ? new URL(window.location.href) : null;
+    const saved = (function () { try { return localStorage.getItem(`${containerId}:view`); } catch (e) { return null; } })();
+    const fromUrl = url ? url.searchParams.get(param) : null;
+    const initial = (fromUrl || saved || 'list');
+
+    function setModeClass(mode) {
+      listEl.classList.remove('grid', 'list');
+      listEl.classList.add(mode);
     }
 
-    function toggleLayout() {
-      const influencerList = document.getElementById('influencerList');
-      influencerList.classList.toggle('grid');
-      const button = document.querySelector('.toggle-button');
-      button.textContent = influencerList.classList.contains('grid') ? 'Switch to List View' : 'Switch to Grid View';
+    function apply(mode) {
+      setModeClass(mode);
+      const isGrid = mode === 'grid';
+      btn.setAttribute('aria-pressed', String(isGrid));
+      btn.textContent = isGrid ? 'List view' : 'Grid view';
+      btn.setAttribute('aria-label', isGrid ? 'Switch to list view' : 'Switch to grid view');
+
+      if (announce) announce.textContent = isGrid ? 'Grid view' : 'List view';
+      try { localStorage.setItem(`${containerId}:view`, mode); } catch (e) { }
     }
-  </script>
+
+    apply(initial);
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const next = listEl.classList.contains('grid') ? 'list' : 'grid';
+      apply(next);
+    });
+  })();
+});
+          </script>
 </body>
 
 </html>

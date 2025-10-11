@@ -356,6 +356,8 @@
                                             >Twitter</option>
                                         <option value="facebook" <%=platform.platform==='facebook' ? 'selected' : '' %>
                                             >Facebook</option>
+                                        <option value="linkedin" <%=platform.platform==='linkedin' ? 'selected' : '' %>
+                                            >LinkedIn</option>
                                     </select>
                                 </div>
                                 <div class="form-group social-platform-url">
@@ -752,7 +754,7 @@
                     }
 
                     try {
-                        const response = await fetch('/influencer/profile/update', {
+                        const response = await fetch('/influencer/profile/update/data', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -849,6 +851,7 @@
                         <option value="tiktok">TikTok</option>
                         <option value="twitter">Twitter</option>
                         <option value="facebook">Facebook</option>
+                        <option value="linkedin">LinkedIn</option>
                     </select>
                 </div>
                     <div class="form-group social-platform-url">

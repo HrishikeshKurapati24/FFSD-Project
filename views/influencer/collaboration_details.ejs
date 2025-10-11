@@ -446,13 +446,36 @@
                                 <% }); %>
                         </div>
                     </div>
+                    <% if (typeof isEligible !== 'undefined' && !isEligible) { %>
+                    <div class="detail-item" style="margin-top: 1rem;">
+                        <span class="label" style="color: #c0392b;">Unmet Requirements:</span>
+                        <ul style="margin: 0.5rem 0 0 1rem; color: #c0392b;">
+                            <% unmetRequirements.forEach(msg => { %>
+                                <li><%= msg %></li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                    <% } %>
                 </div>
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="applyForCampaign('<%= collab._id %>')">
-                    <i class="fas fa-check"></i> Apply For Campaign
-                </button>
+                <% if (applicationStatus === 'request') { %>
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-check"></i> Applied for Campaign
+                    </button>
+                <% }else if(applicationStatus === 'active'){ %>
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-check"></i>Application already accepted
+                    </button>
+                <% } else { %>
+                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                        <input type="text" id="specialMessage" placeholder="Add a message to brand (optional)" style="flex:1;padding:10px;border-radius:6px;border:1px solid #ccc;" />
+                        <button class="btn btn-primary" onclick="applyForCampaign('<%= collab._id %>')" <%= (typeof isEligible !== 'undefined' && !isEligible) ? 'disabled' : '' %>>
+                            <i class="fas fa-check"></i> Apply For Campaign
+                        </button>
+                    </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -468,23 +491,25 @@
         // New functions for applying for campaigns
         async function applyForCampaign(campaignId) {
             try {
+                const msg = document.getElementById('specialMessage')?.value || '';
                 const response = await fetch(`/influencer/apply/${campaignId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
+                    , body: JSON.stringify({ message: msg })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    alert('Request accepted successfully!');
-                    window.location.href = '/influencer/collab';
+                    alert('Application submitted successfully!');
+                    window.location.reload();
                 } else {
-                    alert('Failed to accept request: ' + data.message);
+                    alert('Failed to submit application: ' + data.message);
                 }
             } catch (error) {
-                console.error('Error accepting request:', error);
-                alert('An error occurred while accepting the request');
+                console.error('Error submitting application:', error);
+                alert('An error occurred while submitting the application');
             }
         }
     </script>

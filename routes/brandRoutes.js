@@ -8,6 +8,7 @@ const { CampaignPayments, CampaignInfluencers, CampaignInfo, CampaignMetrics } =
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('../config/InfluencerMongo');
 const mongoose = require('mongoose');
 const { BrandInfo, BrandAnalytics, BrandSocials } = require('../config/BrandMongo');
+const { Message } = require('../config/MessageMongo');
 const Offer = require('../config/OfferMongo');
 
 // Apply authentication middleware to all routes
@@ -188,19 +189,28 @@ router.get('/collab', async (req, res) => {
     try {
         const brandId = req.session.user.id;
         console.log('brandId:' + brandId);
-        // Get campaigns from CampaignInfo collection
-        /*const campaigns = await CampaignInfo.find({ brand_id: brandId })
-            .populate('brand_id', 'brandName logoUrl')
-            .sort({ createdAt: -1 })
-            .lean();*/
-        const campaigns = await CampaignInfo.find({})
+
+        // Get campaigns with status 'request' from CampaignInfo (brand posted campaigns)
+        const allRequests = await CampaignInfo.find({ status: 'request' })
             .populate('brand_id', 'brandName logoUrl')
             .sort({ createdAt: -1 })
             .lean();
 
+        // Get campaigns where influencers have entries with 'influencer-invite' status
+        const existingInvites = await CampaignInfluencers.find({
+            status: { $in: ['influencer-invite'] }
+        }).select('campaign_id').lean();
+
+        // Extract campaign IDs that this influencer is already invited to or has invited
+        const excludedCampaignIds = existingInvites.map(invite => invite.campaign_id.toString());
+
+        // Filter out campaigns where influencer already has invites
+        const requests = allRequests.filter(request =>
+            !excludedCampaignIds.includes(request._id.toString())
+        );
 
         // Get campaign metrics
-        const campaignIds = campaigns.map(campaign => campaign._id);
+        const campaignIds = requests.map(campaign => campaign._id);
         const metrics = await CampaignMetrics.find({ campaign_id: { $in: campaignIds } })
             .lean();
 
@@ -211,7 +221,7 @@ router.get('/collab', async (req, res) => {
         }, {});
 
         // Transform the data to match the view's requirements
-        const collabs = campaigns.map(campaign => ({
+        const collabs = requests.map(campaign => ({
             id: campaign._id,
             title: campaign.title || 'Untitled Campaign',
             brand_name: campaign.brand_id?.brandName || 'Unknown Brand',
@@ -234,6 +244,7 @@ router.get('/collab', async (req, res) => {
             objectives: campaign.objectives || 'Not specified'
         }));
 
+
         res.render('brand/collaborations', {
             collabs,
             influencers: [] // Placeholder for influencer cards
@@ -254,42 +265,61 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
     try {
         // Get brand ID from session
         const brandId = req.session.user.id;
+        console.log('Fetching received requests for brand:', brandId);
 
-        // Find campaigns posted by this brand with status 'request'
+        // Find all campaigns posted by this brand (any status)
         const campaigns = await CampaignInfo.find({
-            brand_id: brandId,
-            status: 'influencer-request'
+            brand_id: brandId
         }).lean();
+        console.log('Found campaigns:', campaigns.length);
 
-        // Get campaign IDs
         const campaignIds = campaigns.map(campaign => campaign._id);
+        console.log('Campaign IDs:', campaignIds);
 
-        // Find corresponding entries in CampaignInfluencers
-        const campaignInfluencers = await CampaignInfluencers.find({
+        // Fetch influencer-sent invites (new collab proposals to this brand)
+        console.log('Fetching influencer invites...');
+        const influencerInvites = await CampaignInfluencers.find({
             campaign_id: { $in: campaignIds },
-            status: 'influencer-request'
+            status: 'influencer-invite'
         })
             .populate('influencer_id', 'name username profile_pic location categories')
+            .populate('campaign_id', 'title description duration budget target_audience required_channels min_followers')
             .lean();
+        console.log('Found influencer invites:', influencerInvites.length);
 
-        // Transform the data to match the view requirements
-        const requests = await Promise.all(campaignInfluencers.map(async ci => {
-            const campaign = campaigns.find(c => c._id.toString() === ci.campaign_id.toString());
+        // Fetch brand campaign requests (multi-influencer campaigns accepting applications)
+        const requestCampaignIds = campaigns
+            .filter(c => c.status === 'request')
+            .map(c => c._id);
+        console.log('Request campaign IDs:', requestCampaignIds.length);
+
+        console.log('Fetching campaign requests...');
+        const campaignRequests = await CampaignInfluencers.find({
+            campaign_id: { $in: requestCampaignIds },
+            status: 'request'
+        })
+            .populate('influencer_id', 'name username profile_pic location categories')
+            .populate('campaign_id', 'title description duration budget target_audience required_channels min_followers')
+            .lean();
+        console.log('Found campaign requests:', campaignRequests.length);
+
+        // Helper to format one invite entry
+        const formatInvite = async (ci, tag) => {
+            const campaign = ci.campaign_id || {};
             const influencer = ci.influencer_id || {};
 
-            // Get additional influencer details
             const [influencerSocials, influencerAnalytics] = await Promise.all([
                 InfluencerSocials.findOne({ influencerId: influencer._id }).lean(),
                 InfluencerAnalytics.findOne({ influencerId: influencer._id }).lean()
             ]);
 
-            // Format channels data
+            // Format channels data (influencer platforms)
             let formattedChannels = [];
             if (influencerSocials?.platforms) {
                 formattedChannels = influencerSocials.platforms.map(p => p.platform);
             }
 
-            // Format required channels data
+            // Format required channels data (campaign requirements)
             let formattedRequiredChannels = [];
             if (campaign.required_channels) {
                 if (Array.isArray(campaign.required_channels)) {
@@ -299,43 +329,69 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
                 }
             }
 
-            // Calculate total followers and average engagement rate
             const totalFollowers = influencerSocials?.platforms?.reduce((sum, p) => sum + (p.followers || 0), 0) || 0;
-            const avgEngagementRate = influencerSocials?.platforms?.reduce((sum, p) => sum + (p.engagementRate || 0), 0) /
-                (influencerSocials?.platforms?.length || 1) || 0;
+            const avgEngagementRate = influencerSocials?.platforms?.reduce((sum, p) => sum + (p.engagementRate || 0), 0) / (influencerSocials?.platforms?.length || 1) || 0;
+
+            // Fetch latest message from this influencer regarding this campaign
+            let latestMessage = null;
+            try {
+                const msgDoc = await Message.findOne({
+                    brand_id: new mongoose.Types.ObjectId(brandId),
+                    influencer_id: new mongoose.Types.ObjectId(influencer._id),
+                    campaign_id: new mongoose.Types.ObjectId(campaign._id)
+                }).sort({ createdAt: -1 }).lean();
+                latestMessage = msgDoc?.message || null;
+            } catch (e) {
+                latestMessage = null;
+            }
+
 
             return {
+                tag, // 'influencer invite' | 'request'
                 _cid: ci._id,
                 _iid: influencer._id,
-                collab_title: campaign.title,
-                collab_description: campaign.description,
-                duration: campaign.duration,
-                budget: campaign.budget,
-                target_audience: campaign.target_audience,
-                required_channels: formattedRequiredChannels,
-                min_followers: campaign.min_followers,
-                influencer_name: influencer.name || 'Unknown',
-                influencer_username: influencer.username || 'unknown',
-                influencer_profile_pic: influencer.profile_pic || '/images/default-avatar.jpg',
-                influencer_location: influencer.location || 'Not specified',
-                influencer_categories: influencer.categories || [],
-                influencer_channels: formattedChannels,
-                followers: totalFollowers,
-                engagement_rate: avgEngagementRate,
-                social_handles: influencerSocials?.platforms?.map(p => ({
-                    platform: p.platform,
-                    handle: p.handle,
-                    followers: p.followers,
-                    engagement_rate: p.engagementRate
-                })) || [],
-                analytics: {
-                    total_followers: influencerAnalytics?.totalFollowers || 0,
-                    avg_engagement_rate: influencerAnalytics?.avgEngagementRate || 0,
-                    rating: influencerAnalytics?.rating || 0,
-                    audience_demographics: influencerAnalytics?.audienceDemographics || {}
+                collab: {
+                    title: campaign.title,
+                    description: campaign.description,
+                    duration: campaign.duration,
+                    budget: campaign.budget,
+                    target_audience: campaign.target_audience,
+                    required_channels: formattedRequiredChannels,
+                    min_followers: campaign.min_followers
+                },
+                influencer: {
+                    id: influencer._id,
+                    name: influencer.name || 'Unknown',
+                    username: influencer.username || 'unknown',
+                    profile_pic: influencer.profile_pic || '/images/default-avatar.jpg',
+                    location: influencer.location || 'Not specified',
+                    categories: influencer.categories || [],
+                    channels: formattedChannels,
+                    followers: totalFollowers,
+                    engagement_rate: avgEngagementRate,
+                    socials: influencerSocials?.platforms?.map(p => ({
+                        platform: p.platform,
+                        handle: p.handle,
+                        followers: p.followers,
+                        engagement_rate: p.engagementRate
+                    })) || [],
+                    analytics: {
+                        total_followers: influencerAnalytics?.totalFollowers || 0,
+                        avg_engagement_rate: influencerAnalytics?.avgEngagementRate || 0,
+                        rating: influencerAnalytics?.rating || 0,
+                        audience_demographics: influencerAnalytics?.audienceDemographics || {}
+                    }
                 }
             };
-        }));
+        };
+
+        // Build requests list with tags
+        const [formattedInfluencerInvites, formattedCampaignRequests] = await Promise.all([
+            Promise.all(influencerInvites.map(ci => formatInvite(ci, 'influencer invite'))),
+            Promise.all(campaignRequests.map(ci => formatInvite(ci, 'request')))
+        ]);
+
+        const requests = [...formattedInfluencerInvites, ...formattedCampaignRequests];
 
         res.render('brand/received_requests', { requests });
     } catch (error) {
@@ -481,6 +537,17 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
         // Get primary social handle (first platform)
         const primarySocial = influencerSocials?.platforms?.[0] || {};
 
+        // Calculate remaining budget: budget - sum(completed payments for this campaign)
+        let remainingBudget = 0;
+        if (request?.campaign_id?._id) {
+            const paymentsAgg = await CampaignPayments.aggregate([
+                { $match: { campaign_id: request.campaign_id._id, status: 'completed' } },
+                { $group: { _id: '$campaign_id', total: { $sum: '$amount' } } }
+            ]);
+            const totalPaid = paymentsAgg?.[0]?.total || 0;
+            remainingBudget = Math.max(0, (request.campaign_id.budget || 0) - totalPaid);
+        }
+
         // Format campaign dates
         const startDate = new Date(request.campaign_id.start_date).toLocaleDateString();
         const endDate = new Date(request.campaign_id.end_date).toLocaleDateString();
@@ -522,6 +589,7 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
             requestId1: requestId1,
             requestId2: requestId2,
             paymentDue: `$${request.campaign_id.budget}`,
+            paymentMax: remainingBudget,
 
             // Additional campaign metrics if available
             metrics: request.campaign_metrics || {
@@ -797,13 +865,26 @@ router.post('/campaigns/create', async (req, res) => {
             description,
             start_date,
             end_date,
-            duration,
             budget,
             target_audience,
             required_channels,
+            required_influencers,
             min_followers,
             objectives
         } = req.body;
+
+        // Calculate duration from start and end dates
+        const startDate = new Date(start_date);
+        const endDate = new Date(end_date);
+        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24) + 1); // Calculate days
+
+        // Validate duration
+        if (duration <= 0) {
+            return res.status(400).render('brand/Create_collab', {
+                error: 'End date must be after start date.',
+                formData: req.body
+            });
+        }
 
         // Create new campaign info
         const campaignInfo = new CampaignInfo({
@@ -813,10 +894,11 @@ router.post('/campaigns/create', async (req, res) => {
             status: 'request',
             start_date: new Date(start_date),
             end_date: new Date(end_date),
-            duration: parseInt(duration),
+            duration: duration,
             budget: parseFloat(budget),
             target_audience,
             required_channels: Array.isArray(required_channels) ? required_channels : [required_channels],
+            required_influencers: parseInt(required_influencers),
             min_followers: parseInt(min_followers),
             objectives
         });
@@ -870,6 +952,22 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         if (!campaign) {
             return res.status(404).json({ error: 'Campaign not found' });
         }
+
+        // Guard: must have at least one accepted/active influencer
+        const acceptedCount = await CampaignInfluencers.countDocuments({
+            campaign_id: new mongoose.Types.ObjectId(campaignId),
+            status: 'active'
+        });
+        if (acceptedCount === 0) {
+            return res.status(400).json({ error: 'Cannot activate: no accepted influencers yet.' });
+        }
+
+        // Guard: cannot activate before start date
+        const now = new Date();
+        if (campaign.start_date && now < new Date(campaign.start_date)) {
+            return res.status(400).json({ error: 'Cannot activate before the campaign start date.' });
+        }
+
 
         // Update campaign status to active
         campaign.status = 'active';
@@ -943,6 +1041,170 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
         console.error('Error fetching campaign details:', error);
         res.status(500).json({
             error: 'Failed to fetch campaign details',
+            details: error.message
+        });
+    }
+});
+
+// Route to end a campaign (mark as completed)
+router.post('/campaigns/:campaignId/end', async (req, res) => {
+    try {
+        const { campaignId } = req.params;
+        const brandId = req.session.user.id;
+
+        console.log('Ending campaign:', { campaignId, brandId });
+
+        // Find the campaign and verify ownership
+        const campaign = await CampaignInfo.findOne({
+            _id: new mongoose.Types.ObjectId(campaignId),
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            status: 'active'
+        });
+
+        if (!campaign) {
+            console.log('Campaign not found or not active');
+            return res.status(404).json({
+                success: false,
+                message: 'Campaign not found or already completed'
+            });
+        }
+
+        // Update campaign status to completed
+        campaign.status = 'completed';
+        campaign.end_date = new Date();
+        await campaign.save();
+
+        // Also update all associated campaign influencer records to completed
+        await CampaignInfluencers.updateMany(
+            {
+                campaign_id: new mongoose.Types.ObjectId(campaignId),
+                status: 'active'
+            },
+            {
+                $set: { status: 'completed' }
+            }
+        );
+
+        console.log('Campaign ended successfully:', campaignId);
+        res.json({
+            success: true,
+            message: 'Campaign ended successfully'
+        });
+    } catch (error) {
+        console.error('Error ending campaign:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to end campaign',
+            details: error.message
+        });
+    }
+});
+
+// Route to get draft campaigns for inviting influencers
+router.get('/campaigns/draft-list', async (req, res) => {
+    try {
+        const brandId = req.session.user.id;
+
+        // Find campaigns with status 'request' (draft campaigns ready for invites)
+        const draftCampaigns = await CampaignInfo.find({
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            status: 'request'
+        })
+            .select('_id title budget description duration start_date end_date')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        res.json({
+            success: true,
+            campaigns: draftCampaigns
+        });
+    } catch (error) {
+        console.error('Error fetching draft campaigns:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch campaigns',
+            campaigns: []
+        });
+    }
+});
+
+// Route to invite influencer to a campaign
+router.post('/invite-influencer', async (req, res) => {
+    try {
+        let { influencerId, campaignId } = req.body;
+        const brandId = req.session.user.id;
+
+        // Trim whitespace from IDs
+        influencerId = influencerId?.trim();
+        campaignId = campaignId?.trim();
+
+        console.log('Inviting influencer:', { influencerId, campaignId, brandId });
+
+        // Validate input
+        if (!influencerId || !campaignId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Influencer ID and Campaign ID are required'
+            });
+        }
+
+        // Validate MongoDB ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(influencerId) || !mongoose.Types.ObjectId.isValid(campaignId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid ID format provided'
+            });
+        }
+
+        // Verify the campaign belongs to this brand and has status 'request'
+        const campaign = await CampaignInfo.findOne({
+            _id: new mongoose.Types.ObjectId(campaignId),
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            status: 'request'
+        });
+
+        if (!campaign) {
+            return res.status(404).json({
+                success: false,
+                message: 'Campaign not found or not available for invites'
+            });
+        }
+
+        // Check if this influencer is already invited or part of this campaign
+        const existingInvite = await CampaignInfluencers.findOne({
+            campaign_id: new mongoose.Types.ObjectId(campaignId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId)
+        });
+
+        if (existingInvite) {
+            return res.status(400).json({
+                success: false,
+                message: 'Influencer already invited to this campaign'
+            });
+        }
+
+        // Create new campaign influencer record with status 'brand-invite'
+        const newInvite = new CampaignInfluencers({
+            campaign_id: new mongoose.Types.ObjectId(campaignId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: 'brand-invite',
+            progress: 0
+        });
+
+        await newInvite.save();
+
+        console.log('Invite created successfully:', newInvite._id);
+
+        res.json({
+            success: true,
+            message: 'Influencer invited successfully',
+            inviteId: newInvite._id
+        });
+    } catch (error) {
+        console.error('Error inviting influencer:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to send invite',
             details: error.message
         });
     }

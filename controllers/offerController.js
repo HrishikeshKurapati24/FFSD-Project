@@ -24,7 +24,6 @@ const getOffers = async (req, res) => {
 
         res.render('customer/offers', {
             offers,
-            query,
             title: 'Offers',
             subtitle: 'Discover the best brand offers tailored for you'
         });

@@ -10,6 +10,166 @@
 </head>
 
 <body>
+  <style>
+    .collab-box {
+      position: relative;
+    }
+
+    .tag-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, #4285f4, #2e70e3);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+
+    .tag-badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(66, 133, 244, 0.4);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .accept-btn,
+    .decline-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .accept-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .accept-btn:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
+    }
+
+    .decline-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .decline-btn:hover {
+      background-color: #da190b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(244, 67, 54, 0.2);
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .search-bar:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .search-bar::placeholder {
+      color: #999;
+    }
+
+    .influencer-message-bar {
+      grid-column: 1 / -1;
+      width: 100%;
+      box-sizing: border-box;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      /* sits below the two-column container */
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .influencer-message-bar .message-text {
+      white-space: pre-wrap;
+      color: #555;
+      flex: 1;
+    }
+
+    /* No requests message styles */
+    .no-requests-message {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin: 40px auto;
+      max-width: 500px;
+    }
+
+    .no-requests-icon {
+      font-size: 4rem;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .no-requests-message h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    .no-requests-message p {
+      color: #666;
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .create-campaign-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #4285f4;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .create-campaign-btn:hover {
+      background: #3367d6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+  </style>
   <!-- Header -->
   <header>
     <div class="header-container">
@@ -43,14 +203,18 @@
     <input type="text" class="search-bar" placeholder="Search for collabs..." onkeyup="searchCollabs(this.value)">
     <div class="collab-list">
       <!-- Dynamically render requests -->
-      <% requests.forEach(request=> { %>
-        <div class="collab-box" data-title="<%= request.collab_title.toLowerCase() %>">
+      <% if(requests && requests.length> 0){ requests.forEach(request=> { %>
+        <div class="collab-box"
+          data-title="<%= ((request.collab && request.collab.title) ? request.collab.title : '').toLowerCase() %>">
           <div class="collab-header">
             <h2 class="collab-title">
-              <%= request.collab_title %>
+              <%= (request.collab && request.collab.title) %>
             </h2>
+            <span class="tag-badge">
+              <%= request.tag %>
+            </span>
             <p class="collab-description">
-              <%= request.collab_description %>
+              <%= (request.collab && request.collab.description) %>
             </p>
           </div>
           <div class="bottom-row">
@@ -59,13 +223,14 @@
               <div class="blue-box">
                 <h3><i class="fas fa-user-circle"></i> Influencer Details</h3>
                 <div class="influencer-profile">
-                  <img src="<%= request.influencer_profile_pic || '/images/default-avatar.jpg' %>"
-                    alt="<%= request.influencer_name %>" class="influencer-avatar">
+                  <img
+                    src="<%= (request.influencer && request.influencer.profile_pic) ? request.influencer.profile_pic : '/images/default-avatar.jpg' %>"
+                    alt="<%= (request.influencer && request.influencer.name) %>" class="influencer-avatar">
                   <div class="influencer-info">
                     <h4>
-                      <%= request.influencer_name %>
+                      <%= (request.influencer && request.influencer.name) %>
                     </h4>
-                    <p class="influencer-username">@<%= request.influencer_username %>
+                    <p class="influencer-username">@<%= (request.influencer && request.influencer.username) || '' %>
                     </p>
                   </div>
                 </div>
@@ -74,36 +239,39 @@
                     <i class="fas fa-users"></i>
                     <span class="attr">Total Followers:</span>
                     <span class="value">
-                      <%= request.followers.toLocaleString() %>
+                      <%= ((request.influencer && request.influencer.followers) ? request.influencer.followers :
+                        0).toLocaleString() %>
                     </span>
                   </div>
                   <div class="stat-item">
                     <i class="fas fa-chart-line"></i>
                     <span class="attr">Engagement Rate:</span>
                     <span class="value">
-                      <%= request.engagement_rate %>%
+                      <%= (request.influencer && request.influencer.engagement_rate) %>%
                     </span>
                   </div>
                   <div class="stat-item">
                     <i class="fas fa-map-marker-alt"></i>
                     <span class="attr">Location:</span>
                     <span class="value">
-                      <%= request.influencer_location || 'Not specified' %>
+                      <%= (request.influencer && request.influencer.location) || 'Not specified' %>
                     </span>
                   </div>
                   <div class="stat-item">
                     <i class="fas fa-tags"></i>
                     <span class="attr">Categories:</span>
                     <span class="value">
-                      <%= request.influencer_categories?.join(', ') || ' Not specified' %>
+                      <%= ((request.influencer && request.influencer.categories) ?
+                        request.influencer.categories.join(', ') : ' Not specified') %>
                     </span>
                   </div>
                 </div>
                 <div class="social-channels">
                   <h4><i class="fas fa-share-alt"></i> Social Channels</h4>
                   <div class="channels-grid">
-                    <% if (request.influencer_channels && request.influencer_channels.length> 0) { %>
-                      <% request.influencer_channels.forEach(channel=> { %>
+                    <% if (request.influencer && request.influencer.channels && request.influencer.channels.length> 0) {
+                      %>
+                      <% request.influencer.channels.forEach(channel=> { %>
                         <div class="channel-item">
                           <i class="fab fa-<%= channel.toLowerCase() %>"></i>
                           <span>
@@ -127,34 +295,37 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span class="attr">Duration:</span>
                     <span class="value">
-                      <%= request.duration %> days
+                      <%= (request.collab && request.collab.duration) %> days
                     </span>
                   </div>
                   <div class="requirement-item">
                     <i class="fas fa-dollar-sign"></i>
                     <span class="attr">Budget:</span>
-                    <span class="value">$<%= request.budget.toLocaleString() %></span>
+                    <span class="value">$<%= ((request.collab && request.collab.budget) ? request.collab.budget :
+                        0).toLocaleString() %></span>
                   </div>
                   <div class="requirement-item">
                     <i class="fas fa-users"></i>
                     <span class="attr">Min Followers:</span>
                     <span class="value">
-                      <%= request.min_followers.toLocaleString() %>
+                      <%= ((request.collab && request.collab.min_followers) ? request.collab.min_followers :
+                        0).toLocaleString() %>
                     </span>
                   </div>
                   <div class="requirement-item">
                     <i class="fas fa-bullseye"></i>
                     <span class="attr">Target Audience:</span>
                     <span class="value">
-                      <%= request.target_audience %>
+                      <%= (request.collab && request.collab.target_audience) %>
                     </span>
                   </div>
                 </div>
                 <div class="channels-section">
                   <h4><i class="fas fa-share-alt"></i> Required Channels</h4>
                   <div class="channels-list">
-                    <% if (request.required_channels && request.required_channels.length> 0) { %>
-                      <% request.required_channels.forEach(channel=> { %>
+                    <% if (request.collab && request.collab.required_channels &&
+                      request.collab.required_channels.length> 0) { %>
+                      <% request.collab.required_channels.forEach(channel=> { %>
                         <span class="channel-badge">
                           <%= channel %>
                         </span>
@@ -162,6 +333,14 @@
                           <% } else { %>
                             <p class="no-channels">No channels required</p>
                             <% } %>
+                              <% if (request && request.message) { %>
+                                <div class="influencer-message-bar">
+                                  <strong>Message from influencer:</strong>
+                                  <div class="message-text">
+                                    <%= request.message %>
+                                  </div>
+                                </div>
+                                <% } %>
                   </div>
                 </div>
                 <div class="action-buttons">
@@ -176,7 +355,19 @@
             </div>
           </div>
         </div>
-        <% }); %>
+        <% }); } else { %>
+          <div class="no-requests-message">
+            <div class="no-requests-icon">
+              <i class="fas fa-inbox"></i>
+            </div>
+            <h3>No Requests Yet</h3>
+            <p>You haven't received any collaboration requests at the moment.</p>
+            <p>Create campaigns and invite influencers to start receiving requests!</p>
+            <a href="/brand/create_collab" class="create-campaign-btn">
+              <i class="fas fa-plus"></i> Create New Campaign
+            </a>
+          </div>
+          <% } %>
     </div>
   </div>
 
@@ -272,72 +463,7 @@
     document.head.appendChild(style);
   </script>
 
-  <style>
-    .action-buttons {
-      display: flex;
-      gap: 15px;
-      margin-top: 20px;
-    }
 
-    .accept-btn,
-    .decline-btn {
-      flex: 1;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-      text-decoration: none;
-    }
-
-    .accept-btn {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    .accept-btn:hover {
-      background-color: #45a049;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
-    }
-
-    .decline-btn {
-      background-color: #f44336;
-      color: white;
-    }
-
-    .decline-btn:hover {
-      background-color: #da190b;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(244, 67, 54, 0.2);
-    }
-
-    .search-bar {
-      width: 100%;
-      padding: 12px 20px;
-      margin-bottom: 20px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    }
-
-    .search-bar:focus {
-      outline: none;
-      border-color: #4CAF50;
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-    }
-
-    .search-bar::placeholder {
-      color: #999;
-    }
-  </style>
 </body>
 
 </html>

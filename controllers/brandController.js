@@ -300,14 +300,14 @@ const brandController = {
       delete req.session.successMessage;
 
       // Fetch all required data concurrently
-      const [brand, stats, activeCampaigns, topInfluencers, analytics, campaignRequests, recentCompletedCampaigns] = await Promise.all([
+      const [brand, stats, activeCampaigns, analytics, campaignRequests, recentCompletedCampaigns, completedProgressCampaigns] = await Promise.all([
         brandModel.getBrandById(brandId),
         brandModel.getBrandStats(brandId),
         brandModel.getActiveCampaigns(brandId),
-        brandModel.getTopInfluencers(brandId),
         brandModel.getBrandAnalytics(brandId),
         brandModel.getCampaignRequests(brandId),
-        brandModel.getRecentCompletedCampaigns(brandId, 3)
+        brandModel.getRecentCompletedCampaigns(brandId, 3),
+        brandModel.getCompletedProgressCampaigns(brandId)
       ]);
 
       if (!brand) {
@@ -384,18 +384,6 @@ const brandController = {
           objectives: request.objectives,
           influencers_count: request.influencers_count || 0
         })),
-        topInfluencers: topInfluencers.map(influencer => ({
-          _id: influencer._id,
-          name: influencer.fullName || 'Unknown',
-          username: influencer.username || 'unknown',
-          profilePicUrl: influencer.profilePicUrl || '/images/default-avatar.jpg',
-          avgEngagement: influencer.avgEngagement || 0,
-          followers: influencer.followers || 0,
-          categories: influencer.categories || [],
-          categoryMatchPercentage: influencer.categoryMatchPercentage || 0,
-          matchingCategories: influencer.matchingCategories || 0,
-          campaignCount: influencer.campaignCount || 0
-        })),
         analytics: {
           months: analytics.months || [],
           engagementRates: analytics.engagementRates || [],
@@ -407,7 +395,8 @@ const brandController = {
             data: [25, 35, 20, 15, 5]
           }
         },
-        successMessage // Add success message to the template data
+        successMessage, // Add success message to the template data
+        completedProgressCampaigns // Campaigns with 100% progress that need to be marked as completed
       };
 
       res.render('brand/dashboard', { ...transformedData, recentCompletedCampaigns });

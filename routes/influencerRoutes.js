@@ -15,6 +15,8 @@ const path = require('path');
 const fs = require('fs/promises');
 const { InfluencerInfo, InfluencerAnalytics, InfluencerSocials } = require('../config/InfluencerMongo');
 const { CampaignMetrics } = require('../config/CampaignMongo');
+const brandModel = require('../models/brandModel');
+const { Message } = require('../config/MessageMongo');
 
 // Apply authentication middleware to all routes
 router.use(isAuthenticated);
@@ -333,11 +335,25 @@ router.get('/collab', async (req, res) => {
     try {
         const influencerId = req.session.user.id;
 
-        // Get campaigns with status 'request' from CampaignInfo
-        const requests = await CampaignInfo.find({ status: 'request' })
+        // Get campaigns with status 'request' from CampaignInfo (brand posted campaigns)
+        const allRequests = await CampaignInfo.find({ status: 'request' })
             .populate('brand_id', 'brandName logoUrl')
             .sort({ createdAt: -1 })
             .lean();
+
+        // Get campaigns where this influencer already has entries with 'brand-invite' or 'influencer-invite' status
+        const existingInvites = await CampaignInfluencers.find({
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: { $in: ['brand-invite', 'influencer-invite'] }
+        }).select('campaign_id').lean();
+
+        // Extract campaign IDs that this influencer is already invited to or has invited
+        const excludedCampaignIds = existingInvites.map(invite => invite.campaign_id.toString());
+
+        // Filter out campaigns where influencer already has invites
+        const requests = allRequests.filter(request =>
+            !excludedCampaignIds.includes(request._id.toString())
+        );
 
         // Transform the data to match the view's requirements
         const collabs = requests.map(request => ({
@@ -346,7 +362,6 @@ router.get('/collab', async (req, res) => {
             brand_name: request.brand_id?.brandName || 'Unknown Brand',
             influence_regions: request.target_audience,
             budget: parseFloat(request.budget) || 0,
-            commission: '10%',
             offer_sentence: request.description,
             channels: Array.isArray(request.required_channels) ? request.required_channels.join(', ') : '',
             min_followers: request.min_followers?.toLocaleString() || '0',
@@ -372,8 +387,10 @@ router.get('/collab', async (req, res) => {
 
 
 router.get('/collab/:id', async (req, res) => {
+
     try {
         const collabId = req.params.id;
+        const influencerId = req.session.user.id;
         const collab = await collaborationModel.getCollaborationDetails(collabId);
         if (!collab) {
             return res.status(404).render('error', {
@@ -381,7 +398,37 @@ router.get('/collab/:id', async (req, res) => {
                 error: { status: 404 }
             });
         }
-        res.render('influencer/collaboration_details', { collab });
+
+        // Check if influencer has already applied to this campaign
+        const existingApplication = await CampaignInfluencers.findOne({
+            campaign_id: new mongoose.Types.ObjectId(collabId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId)
+        });
+
+        const applicationStatus = existingApplication ? existingApplication.status : null;
+
+        // Compute eligibility based on requirements
+        // Fetch influencer socials to determine channels and followers
+        const socials = await InfluencerSocials.findOne({ influencerId: new mongoose.Types.ObjectId(influencerId) }).lean();
+        const influencerChannels = (socials?.platforms || []).map(p => (p.platform || '').toLowerCase());
+        const influencerFollowersTotal = (socials?.platforms || []).reduce((sum, p) => sum + (p.followers || 0), 0);
+
+        const requiredChannels = Array.isArray(collab.required_channels) ? collab.required_channels.map(c => (c || '').toLowerCase()) : [];
+        const missingChannels = requiredChannels.filter(rc => !influencerChannels.includes(rc));
+        const minFollowers = typeof collab.min_followers === 'number' ? collab.min_followers : 0;
+        const meetsFollowers = influencerFollowersTotal >= minFollowers;
+
+        const unmetRequirements = [];
+        if (missingChannels.length > 0) {
+            unmetRequirements.push(`Missing required channels: ${missingChannels.join(', ')}`);
+        }
+        if (!meetsFollowers) {
+            unmetRequirements.push(`Minimum followers required: ${minFollowers.toLocaleString()}`);
+        }
+
+        const isEligible = unmetRequirements.length === 0;
+
+        res.render('influencer/collaboration_details', { collab, applicationStatus, isEligible, unmetRequirements });
     } catch (error) {
         console.error('Error fetching collaboration details:', error);
         res.status(500).render('error', {
@@ -399,6 +446,7 @@ router.post('/apply/:campaignId', async (req, res) => {
     try {
         const campaignId = req.params.campaignId;
         const influencerId = req.session.user.id;
+        const specialMessage = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
 
         // Check if campaign exists
         const campaign = await CampaignInfo.findById(campaignId);
@@ -409,17 +457,48 @@ router.post('/apply/:campaignId', async (req, res) => {
             });
         }
 
-        // Check if influencer has already applied
+         // Check if influencer has already applied or been invited
         const existingApplication = await CampaignInfluencers.findOne({
             campaign_id: new mongoose.Types.ObjectId(campaignId),
             influencer_id: new mongoose.Types.ObjectId(influencerId)
         });
 
         if (existingApplication) {
-            return res.status(400).json({
-                success: false,
-                message: 'You have already applied to this campaign'
-            });
+            if (existingApplication.status === 'request') {
+                // If invited, accept the invitation
+                existingApplication.status = 'active';
+                existingApplication.applied_at = new Date();
+                await existingApplication.save();
+
+                // Store special message if provided
+                if (specialMessage) {
+                    const campaignDoc = await CampaignInfo.findById(campaignId).select('brand_id').lean();
+                    if (campaignDoc?.brand_id) {
+                        await new Message({
+                            brand_id: campaignDoc.brand_id,
+                            influencer_id: new mongoose.Types.ObjectId(influencerId),
+                            campaign_id: new mongoose.Types.ObjectId(campaignId),
+                            message: specialMessage
+                        }).save();
+                    }
+                }
+
+                return res.json({
+                    success: true,
+                    message: 'Invitation accepted successfully',
+                    applicationId: existingApplication._id
+                });
+            } else if (existingApplication.status === 'active') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'You are already active in this campaign'
+                });
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: 'You have already applied to this campaign'
+                });
+            }
         }
 
         // Create new campaign influencer entry
@@ -432,10 +511,24 @@ router.post('/apply/:campaignId', async (req, res) => {
             reach: 0,
             clicks: 0,
             conversions: 0,
-            timeliness_score: 0
+            timeliness_score: 0,
+            applied_at: new Date()
         });
 
         await newApplication.save();
+
+        // Store special message if provided
+        if (specialMessage) {
+            const campaignDoc = await CampaignInfo.findById(campaignId).select('brand_id').lean();
+            if (campaignDoc?.brand_id) {
+                await new Message({
+                    brand_id: campaignDoc.brand_id,
+                    influencer_id: new mongoose.Types.ObjectId(influencerId),
+                    campaign_id: new mongoose.Types.ObjectId(campaignId),
+                    message: specialMessage
+                }).save();
+            }
+        }
 
         res.json({
             success: true,
@@ -499,5 +592,394 @@ router.use('/signout', (req, res) => {
 router.post('/collab/:collabId/update-progress', influencerController.updateProgress);
 
 router.get('/collab/:collabId', influencerController.getCollabDetails);
+
+router.get('/collab/:collabId/details', influencerController.getCollaborationDetails);
+// Accept brand invite
+router.post('/brand-invites/:inviteId/accept', async (req, res) => {
+    try {
+        const inviteId = req.params.inviteId;
+        const influencerId = req.session.user.id;
+
+        // Find the invite
+        const invite = await CampaignInfluencers.findOne({
+            _id: new mongoose.Types.ObjectId(inviteId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: 'brand-invite'
+        });
+
+        if (!invite) {
+            return res.status(404).json({
+                success: false,
+                message: 'Invitation not found or already processed'
+            });
+        }
+
+        // Update status to request
+        invite.status = 'request';
+        await invite.save();
+
+        res.json({
+            success: true,
+            message: 'Invitation accepted successfully'
+        });
+    } catch (error) {
+        console.error('Error accepting brand invite:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to accept invitation',
+            error: error.message
+        });
+    }
+});
+
+// Decline brand invite
+router.post('/brand-invites/:inviteId/decline', async (req, res) => {
+    try {
+        const inviteId = req.params.inviteId;
+        const influencerId = req.session.user.id;
+
+        // Find the invite
+        const invite = await CampaignInfluencers.findOne({
+            _id: new mongoose.Types.ObjectId(inviteId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: 'brand-invite'
+        });
+
+        if (!invite) {
+            return res.status(404).json({
+                success: false,
+                message: 'Invitation not found or already processed'
+            });
+        }
+
+        // Update status to cancelled
+        invite.status = 'cancelled';
+        await invite.save();
+
+        res.json({
+            success: true,
+            message: 'Invitation declined'
+        });
+    } catch (error) {
+        console.error('Error declining brand invite:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to decline invitation',
+            error: error.message
+        });
+    }
+});
+
+// Cancel sent request
+router.post('/sent-requests/:requestId/cancel', async (req, res) => {
+    try {
+        const requestId = req.params.requestId;
+        const influencerId = req.session.user.id;
+
+        // Find the sent request
+        const request = await CampaignInfluencers.findOne({
+            _id: new mongoose.Types.ObjectId(requestId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: 'influencer-invite'
+        });
+
+        if (!request) {
+            return res.status(404).json({
+                success: false,
+                message: 'Request not found or already processed'
+            });
+        }
+
+        // Verify the campaign is still in 'request' status
+        const campaign = await CampaignInfo.findById(request.campaign_id);
+        if (!campaign || campaign.status !== 'request') {
+            return res.status(400).json({
+                success: false,
+                message: 'Campaign is no longer accepting requests'
+            });
+        }
+
+        // Update status to cancelled
+        request.status = 'cancelled';
+        await request.save();
+
+        campaign.status = 'cancelled';
+        await campaign.save();
+
+        res.json({
+            success: true,
+            message: 'Request cancelled successfully'
+        });
+    } catch (error) {
+        console.error('Error cancelling sent request:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to cancel request',
+            error: error.message
+        });
+    }
+});
+
+// Invite brand to collaborate
+router.post('/invite-brand', async (req, res) => {
+    try {
+        const influencerId = req.session.user.id;
+        let {
+            brandId,
+            title,
+            description,
+            objectives,
+            budget,
+            start_date,
+            end_date,
+            target_audience,
+            required_channels
+        } = req.body;
+
+        // Validate input
+        if (!brandId || !title || !description || !objectives || !budget || !start_date || !end_date || !target_audience || !required_channels || required_channels.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'All required fields must be provided'
+            });
+        }
+
+        // Calculate duration from start and end dates
+        const startDate = new Date(start_date);
+        const endDate = new Date(end_date);
+
+        // Validate that end date is after start date
+        if (endDate <= startDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'End date must be after start date'
+            });
+        }
+
+        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+
+        // Validate MongoDB ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(brandId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid brand ID format'
+            });
+        }
+
+        // Check if brand exists
+        const { BrandInfo } = require('../config/BrandMongo');
+        const brand = await BrandInfo.findById(brandId);
+        if (!brand) {
+            return res.status(404).json({
+                success: false,
+                message: 'Brand not found'
+            });
+        }
+
+        // Get influencer's total follower count
+        let influencerFollowers = 0;
+        try {
+            const influencerAnalytics = await InfluencerAnalytics.findOne({
+                influencer_id: new mongoose.Types.ObjectId(influencerId)
+            });
+            if (influencerAnalytics) {
+                influencerFollowers = influencerAnalytics.totalFollowers || 0;
+            }
+        } catch (error) {
+            console.error('Error fetching influencer analytics:', error);
+            // Continue with 0 if analytics not found
+        }
+
+        // Create campaign in CampaignInfo
+        const newCampaign = new CampaignInfo({
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            title: title.trim(),
+            description: description.trim(),
+            objectives: objectives.trim(),
+            budget: parseFloat(budget),
+            duration: duration,
+            start_date: startDate,
+            end_date: endDate,
+            target_audience: target_audience.trim(),
+            required_channels: required_channels,
+            min_followers: Math.floor(influencerFollowers * 0.5), // 50% of influencer's total followers
+            status: 'request' // Campaign starts in request status
+        });
+
+        await newCampaign.save();
+
+        // Create entry in CampaignInfluencers with influencer-invite status
+        const campaignInfluencer = new CampaignInfluencers({
+            campaign_id: newCampaign._id,
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: 'influencer-invite',
+            progress: 0
+        });
+
+        await campaignInfluencer.save();
+
+        res.json({
+            success: true,
+            message: 'Invitation sent to brand successfully',
+            campaignId: newCampaign._id
+        });
+    } catch (error) {
+        console.error('Error inviting brand:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to send invitation',
+            error: error.message
+        });
+    }
+});
+
+// Route for brand profile page
+router.get('/brand_profile/:id', async (req, res) => {
+    try {
+        const brandId = req.params.id;
+        const brand = await brandModel.getBrandById(brandId);
+
+        if (!brand) {
+            return res.status(404).render('error', {
+                error: { status: 404 },
+                message: 'Brand not found'
+            });
+        }
+
+        // Get additional data needed for the profile
+        const socialStats = await brandModel.getSocialStats(brandId);
+        const topCampaigns = await brandModel.getTopCampaigns(brandId);
+        const verificationStatus = await brandModel.getVerificationStatus(brandId);
+
+        // Helper function to safely parse categories
+        const parseCategories = (categories) => {
+            if (!categories) return [];
+            if (Array.isArray(categories)) return categories;
+            if (typeof categories === 'string') {
+                try {
+                    return JSON.parse(categories);
+                } catch (e) {
+                    // If JSON parsing fails, try splitting by comma
+                    return categories.split(',').map(cat => cat.trim()).filter(Boolean);
+                }
+            }
+            return [];
+        };
+
+        // Get social media platforms data
+        const socials = socialStats.map(stat => {
+            const platformIcons = {
+                'instagram': 'instagram',
+                'youtube': 'youtube',
+                'tiktok': 'tiktok',
+                'facebook': 'facebook',
+                'twitter': 'twitter',
+                'linkedin': 'linkedin'
+            };
+
+            return {
+                platform: stat.platform,
+                name: stat.platform.charAt(0).toUpperCase() + stat.platform.slice(1),
+                icon: platformIcons[stat.platform] || 'link',
+                followers: stat.followers || 0,
+                avgLikes: Math.floor((stat.followers || 0) * 0.05), // Estimated likes based on followers
+                avgComments: Math.floor((stat.followers || 0) * 0.01), // Estimated comments
+                avgViews: stat.platform === 'youtube' ? Math.floor((stat.followers || 0) * 2) : Math.floor((stat.followers || 0) * 0.1)
+            };
+        });
+
+        // Get best campaigns (top performing campaigns)
+        const bestCampaigns = topCampaigns.slice(0, 6).map(campaign => ({
+            id: campaign._id,
+            title: campaign.title,
+            thumbnail: campaign.thumbnail || '/images/default-campaign.jpg',
+            platform: campaign.platform || 'general',
+            likes: campaign.likes || Math.floor(Math.random() * 10000),
+            comments: campaign.comments || Math.floor(Math.random() * 1000),
+            views: campaign.views || Math.floor(Math.random() * 50000),
+            url: campaign.url || '#',
+            performance_score: campaign.performance_score || Math.random() * 10
+        }));
+
+        // Calculate performance metrics
+        const totalFollowers = socialStats.reduce((sum, stat) => sum + (stat.followers || 0), 0);
+        const avgEngagementRate = brand.avgEngagementRate || Math.random() * 5 + 2; // 2-7%
+        const totalReach = Math.floor(totalFollowers * (avgEngagementRate / 100) * 10);
+        const totalImpressions = Math.floor(totalReach * 3);
+        const totalEngagement = Math.floor(totalImpressions * (avgEngagementRate / 100));
+        const conversionRate = brand.conversionRate || Math.random() * 3 + 1; // 1-4%
+
+        // Transform brand data for the template - matching influencer_details.ejs structure
+        const transformedBrand = {
+            // Basic info (matching influencer structure)
+            displayName: brand.displayName || brand.name || 'Unknown Brand',
+            fullName: brand.displayName || brand.name,
+            username: brand.username || 'unknown',
+            bio: brand.bio || brand.mission || 'No description available',
+            profilePicUrl: brand.logoUrl || '/images/default-brand.png',
+            verified: brand.verified || false,
+
+            // Stats (matching influencer structure)
+            totalFollowers: totalFollowers,
+            avgEngagementRate: avgEngagementRate,
+            completedCollabs: topCampaigns.length,
+            rating: brand.rating || 4.5,
+
+            // Social platforms (matching influencer structure)
+            socials: socials,
+
+            // Best posts/campaigns (matching influencer structure)
+            bestPosts: bestCampaigns,
+
+            // Audience demographics (matching influencer structure)
+            audienceDemographics: {
+                gender: brand.targetGender || 'Mixed',
+                ageRange: brand.targetAgeRange || '18-45'
+            },
+
+            // Performance metrics (matching influencer structure)
+            performanceMetrics: {
+                reach: totalReach,
+                impressions: totalImpressions,
+                engagement: totalEngagement,
+                conversionRate: conversionRate
+            },
+
+            // Categories (matching influencer structure)
+            categories: parseCategories(brand.categories),
+
+            // Languages (brand-specific)
+            languages: brand.languages || ['English'],
+
+            // Additional brand-specific data
+            location: brand.location,
+            website: brand.website || `https://${brand.username}.com`,
+            mission: brand.mission || brand.bio,
+            values: parseCategories(brand.categories),
+            targetAgeRange: brand.targetAgeRange,
+            targetGender: brand.targetGender,
+            completedCampaigns: topCampaigns.length,
+            influencerPartnerships: Math.round(topCampaigns.length * 2.5),
+            avgCampaignRating: brand.rating || 4.5,
+            topCampaigns: topCampaigns.map(campaign => ({
+                id: campaign._id,
+                title: campaign.title,
+                status: campaign.status || 'Active',
+                performance_score: campaign.performance_score || 0,
+                reach: campaign.reach || 0
+            }))
+        };
+
+        res.render('influencer/brand_profile', {
+            brand: transformedBrand
+        });
+    } catch (error) {
+        console.error('Error fetching brand profile:', error);
+        res.status(500).render('error', {
+            error: { status: 500 },
+            message: 'Error loading brand profile'
+        });
+    }
+});
 
 module.exports = router;

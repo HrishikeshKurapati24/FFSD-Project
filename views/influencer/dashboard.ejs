@@ -191,12 +191,6 @@
                   <span class="label">Budget</span>
                   <span class="value">$<%= collab.budget.toLocaleString() %></span>
                 </div>
-                <div class="metric">
-                  <span class="label">Engagement</span>
-                  <span class="value">
-                    <%= collab.engagement_rate %>%
-                  </span>
-                </div>
               </div>
 
               <div class="collab-analytics">
@@ -223,7 +217,37 @@
                   <div class="analytics-item">
                     <span class="label">Performance Score</span>
                     <span class="value">
-                      <%= collab.performance_score %>%
+                      <%= collab.performance_score %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Engagement</span>
+                    <span class="value">
+                      <%= collab.engagement_rate %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Impressions</span>
+                    <span class="value">
+                      <%= collab.impressions %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Revenue</span>
+                    <span class="value">
+                      <%= collab.revenue %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">ROI</span>
+                    <span class="value">
+                      <%= collab.roi %>
+                    </span>
+                  </div>
+                  <div class="analytics-item">
+                    <span class="label">Conversion Rate</span>
+                    <span class="value">
+                      <%= collab.engagement_rate %>%
                     </span>
                   </div>
                 </div>
@@ -255,63 +279,199 @@
       </div>
     </section>
 
-    <!-- Pending Requests Section -->
-    <section class="pending-requests">
-      <h2>Pending Requests</h2>
-      <div class="requests-grid">
-        <% if (pendingRequests && pendingRequests.length> 0) { %>
-          <% pendingRequests.forEach(request=> { %>
-            <div class="request-card">
-              <div class="request-header">
-                <img src="<%= request.brand_logo %>" alt="<%= request.brand_name %>" class="brand-logo">
-                <div class="request-info">
+    <!-- Brand Invites Section -->
+    <section class="brand-invites">
+      <h2>Brand Invitations</h2>
+      <div class="invites-grid">
+        <% if (brandInvites && brandInvites.length> 0) { %>
+          <% brandInvites.forEach(invite=> { %>
+            <div class="invite-card">
+              <span class="invite-badge">New Invite</span>
+              <div class="invite-header">
+                <img src="<%= invite.brand_logo || '/images/default-brand.png' %>" alt="<%= invite.brand_name %>"
+                  class="brand-logo">
+                <div class="invite-info">
                   <h3>
-                    <%= request.campaign_name %>
+                    <%= invite.campaign_title %>
                   </h3>
                   <p class="brand-name">
-                    <%= request.brand_name %>
+                    <%= invite.brand_name %>
                   </p>
+                  <% if (invite.brand_location) { %>
+                    <p class="brand-location"><i class="fas fa-map-marker-alt"></i>
+                      <%= invite.brand_location %>
+                    </p>
+                    <% } %>
                 </div>
-                <span class="request-date">
-                  <%= new Date(request.created_at).toLocaleDateString() %>
-                </span>
               </div>
-              <div class="request-details">
-                <div class="detail-item">
-                  <span class="label">Budget:</span>
-                  <span class="value">$<%= (request.budget || 0).toLocaleString() %></span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Duration:</span>
-                  <span class="value">
-                    <%= request.duration %> days
-                  </span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Required Channels:</span>
-                  <div class="channel-badges">
-                    <% if (request.required_channels && Array.isArray(request.required_channels)) { %>
-                      <% request.required_channels.forEach(channel=> { %>
-                        <span class="channel-badge">
-                          <%= channel %>
-                        </span>
-                        <% }); %>
-                          <% } else { %>
-                            <span class="channel-badge">No channels specified</span>
-                            <% } %>
+              <div class="invite-description">
+                <p>
+                  <%= invite.campaign_description || 'No description provided' %>
+                </p>
+              </div>
+              <div class="invite-details">
+                <div class="detail-row">
+                  <div class="detail-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span class="label">Budget:</span>
+                    <span class="value">$<%= (invite.campaign_budget || 0).toLocaleString() %></span>
+                  </div>
+                  <div class="detail-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="label">Duration:</span>
+                    <span class="value">
+                      <%= invite.campaign_duration %> days
+                    </span>
                   </div>
                 </div>
+                <% if (invite.campaign_id?.required_channels && invite.campaign_id.required_channels.length> 0) { %>
+                  <div class="detail-row">
+                    <div class="detail-item full-width">
+                      <i class="fas fa-share-alt"></i>
+                      <span class="label">Required Channels:</span>
+                      <div class="channel-badges">
+                        <% invite.campaign_id.required_channels.forEach(channel=> { %>
+                          <span class="channel-badge">
+                            <%= channel %>
+                          </span>
+                          <% }); %>
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+                    <% if (invite.campaign_start_date && invite.campaign_end_date) { %>
+                      <div class="detail-row">
+                        <div class="detail-item">
+                          <i class="fas fa-calendar-check"></i>
+                          <span class="label">Start:</span>
+                          <span class="value">
+                            <%= new Date(invite.campaign_start_date).toLocaleDateString() %>
+                          </span>
+                        </div>
+                        <div class="detail-item">
+                          <i class="fas fa-calendar-times"></i>
+                          <span class="label">End:</span>
+                          <span class="value">
+                            <%= new Date(invite.campaign_end_date).toLocaleDateString() %>
+                          </span>
+                        </div>
+                      </div>
+                      <% } %>
               </div>
-              <div class="request-status">
-                <span class="status-badge pending">Pending Brand Approval</span>
+              <div class="invite-actions">
+                <button class="btn-accept"
+                  onclick="acceptBrandInvite('<%= invite._id %>', '<%= invite.campaign_title %>')">
+                  <i class="fas fa-check"></i> Accept Invitation
+                </button>
+                <button class="btn-decline"
+                  onclick="declineBrandInvite('<%= invite._id %>', '<%= invite.campaign_title %>')">
+                  <i class="fas fa-times"></i> Decline
+                </button>
               </div>
             </div>
             <% }); %>
               <% } else { %>
-                <div class="no-requests">
-                  <i class="fas fa-inbox"></i>
-                  <h3>No Pending Requests</h3>
-                  <p>You don't have any pending collaboration requests at the moment.</p>
+                <div class="no-invites">
+                  <i class="fas fa-envelope-open"></i>
+                  <h3>No Brand Invitations</h3>
+                  <p>You don't have any brand invitations at the moment.</p>
+                </div>
+                <% } %>
+      </div>
+    </section>
+
+    <!-- Sent Requests Section -->
+    <section class="sent-requests">
+      <h2>Sent Requests</h2>
+      <div class="sent-requests-grid">
+        <% if (sentRequests && sentRequests.length> 0) { %>
+          <% sentRequests.forEach(request=> { %>
+            <div class="sent-request-card">
+              <span class="sent-badge">Awaiting Response</span>
+              <div class="sent-request-header">
+                <img src="<%= request.brand_logo || '/images/default-brand.png' %>" alt="<%= request.brand_name %>"
+                  class="brand-logo">
+                <div class="sent-request-info">
+                  <h3>
+                    <%= request.campaign_title %>
+                  </h3>
+                  <p class="brand-name">
+                    <%= request.brand_name %>
+                  </p>
+                  <% if (request.brand_location) { %>
+                    <p class="brand-location"><i class="fas fa-map-marker-alt"></i>
+                      <%= request.brand_location %>
+                    </p>
+                    <% } %>
+                </div>
+              </div>
+              <div class="sent-request-description">
+                <p>
+                  <%= request.campaign_description || 'No description provided' %>
+                </p>
+              </div>
+              <div class="sent-request-details">
+                <div class="detail-row">
+                  <div class="detail-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span class="label">Budget:</span>
+                    <span class="value">$<%= (request.campaign_budget || 0).toLocaleString() %></span>
+                  </div>
+                  <div class="detail-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="label">Duration:</span>
+                    <span class="value">
+                      <%= request.campaign_duration %> days
+                    </span>
+                  </div>
+                </div>
+                <% if (request.required_channels && request.required_channels.length> 0) { %>
+                  <div class="detail-row">
+                    <div class="detail-item full-width">
+                      <i class="fas fa-share-alt"></i>
+                      <span class="label">Required Channels:</span>
+                      <div class="channel-badges">
+                        <% request.required_channels.forEach(channel=> { %>
+                          <span class="channel-badge">
+                            <%= channel %>
+                          </span>
+                          <% }); %>
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+                    <% if (request.campaign_start_date && request.campaign_end_date) { %>
+                      <div class="detail-row">
+                        <div class="detail-item">
+                          <i class="fas fa-calendar-check"></i>
+                          <span class="label">Start:</span>
+                          <span class="value">
+                            <%= new Date(request.campaign_start_date).toLocaleDateString() %>
+                          </span>
+                        </div>
+                        <div class="detail-item">
+                          <i class="fas fa-calendar-times"></i>
+                          <span class="label">End:</span>
+                          <span class="value">
+                            <%= new Date(request.campaign_end_date).toLocaleDateString() %>
+                          </span>
+                        </div>
+                      </div>
+                      <% } %>
+              </div>
+              <div class="sent-request-actions">
+                <button class="btn-cancel-request"
+                  onclick="cancelSentRequest('<%= request._id %>', '<%= request.campaign_title %>')">
+                  <i class="fas fa-times-circle"></i> Cancel Request
+                </button>
+              </div>
+            </div>
+            <% }); %>
+              <% } else { %>
+                <div class="no-sent-requests">
+                  <i class="fas fa-paper-plane"></i>
+                  <h3>No Sent Requests</h3>
+                  <p>You haven't sent any collaboration requests yet. Explore campaigns to get started!</p>
                 </div>
                 <% } %>
       </div>
@@ -434,12 +594,66 @@
   <div id="updateProgressModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h2>Update Progress</h2>
-      <div class="progress-input">
-        <input type="range" id="progressSlider" min="0" max="100" value="0">
-        <span id="progressValue">0%</span>
-      </div>
-      <button id="saveProgress" class="save-btn">Save Progress</button>
+      <h2>Update Progress & Metrics</h2>
+      <p style="font-size: 0.9rem; color: #666; margin: 10px 0;">Note: Progress can only be increased, not decreased.
+      </p>
+
+      <form id="updateMetricsForm">
+        <div class="progress-input">
+          <label for="progressSlider">Campaign Progress:</label>
+          <input type="range" id="progressSlider" min="0" max="100" value="0">
+          <span id="progressValue">0%</span>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-group">
+            <label for="reachInput">Reach:</label>
+            <input type="number" id="reachInput" name="reach" min="0" placeholder="0">
+          </div>
+
+          <div class="metric-group">
+            <label for="clicksInput">Clicks:</label>
+            <input type="number" id="clicksInput" name="clicks" min="0" placeholder="0">
+          </div>
+
+          <div class="metric-group">
+            <label for="performanceScoreInput">Performance Score (%):</label>
+            <input type="number" id="performanceScoreInput" name="performance_score" min="0" max="100" step="0.1"
+              placeholder="0">
+          </div>
+
+          <div class="metric-group">
+            <label for="conversionsInput">Conversions:</label>
+            <input type="number" id="conversionsInput" name="conversions" min="0" placeholder="0">
+          </div>
+
+          <div class="metric-group">
+            <label for="engagementRateInput">Engagement Rate (%):</label>
+            <input type="number" id="engagementRateInput" name="engagement_rate" min="0" max="100" step="0.1"
+              placeholder="0">
+          </div>
+
+          <div class="metric-group">
+            <label for="impressionsInput">Impressions:</label>
+            <input type="number" id="impressionsInput" name="impressions" min="0" placeholder="0">
+          </div>
+
+          <div class="metric-group">
+            <label for="revenueInput">Revenue ($):</label>
+            <input type="number" id="revenueInput" name="revenue" min="0" step="0.01" placeholder="0.00">
+          </div>
+
+          <div class="metric-group">
+            <label for="roiInput">ROI (%):</label>
+            <input type="number" id="roiInput" name="roi" min="0" step="0.1" placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="closeUpdateProgressModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Progress & Metrics</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -449,6 +663,96 @@
       background: var(--primary-color);
       border-radius: 4px;
       width: var(--progress, 0%);
+    }
+
+    /* Update Progress Modal Styles */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .metric-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metric-group label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .metric-group input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .metric-group input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+    }
+
+    .progress-input {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .progress-input label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .progress-input input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    .progress-input span {
+      font-weight: 600;
+      color: var(--primary-color);
+      font-size: 16px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .btn-secondary {
+      padding: 10px 20px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-primary {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background: #3367d6;
     }
 
     .dashboard-items {
@@ -525,6 +829,429 @@
       display: flex;
       justify-content: space-between;
       color: var(--secondary-color);
+    }
+
+    /* Brand Invites Section */
+    .brand-invites {
+      margin-top: 2rem;
+    }
+
+    .invites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .invite-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .invite-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.15);
+    }
+
+    .invite-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, #4285f4, #2e70e3);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .invite-header {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-right: 100px;
+    }
+
+    .invite-header .brand-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid #f0f0f0;
+    }
+
+    .invite-info h3 {
+      color: #333;
+      font-size: 1.3rem;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+
+    .invite-info .brand-name {
+      color: #4285f4;
+      font-weight: 500;
+      margin-bottom: 0.2rem;
+    }
+
+    .invite-info .brand-location {
+      color: #666;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .invite-description {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #4285f4;
+    }
+
+    .invite-description p {
+      color: #555;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .invite-details {
+      margin: 1rem 0;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .detail-row .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .invite-details .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .invite-details .detail-item i {
+      color: #4285f4;
+      width: 20px;
+    }
+
+    .invite-details .label {
+      font-weight: 600;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .invite-details .value {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .invite-details .channel-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .invite-details .channel-badge {
+      background: #4285f4;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .invite-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+    }
+
+    .btn-accept,
+    .btn-decline {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-accept {
+      background: #4285f4;
+      color: white;
+    }
+
+    .btn-accept:hover {
+      background: #3367d6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+
+    .btn-decline {
+      background: white;
+      color: #666;
+      border: 2px solid #ddd;
+    }
+
+    .btn-decline:hover {
+      background: #f44336;
+      color: white;
+      border-color: #f44336;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    }
+
+    .no-invites {
+      text-align: center;
+      padding: 3rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .no-invites i {
+      font-size: 3rem;
+      color: #ddd;
+      margin-bottom: 1rem;
+    }
+
+    .no-invites h3 {
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .no-invites p {
+      color: #999;
+    }
+
+    /* Sent Requests Section */
+    .sent-requests {
+      margin-top: 2rem;
+    }
+
+    .sent-requests-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .sent-request-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .sent-request-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .sent-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    }
+
+    .sent-request-header {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-right: 140px;
+    }
+
+    .sent-request-header .brand-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid #f0f0f0;
+    }
+
+    .sent-request-info h3 {
+      color: #333;
+      font-size: 1.3rem;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+
+    .sent-request-info .brand-name {
+      color: #ff9800;
+      font-weight: 500;
+      margin-bottom: 0.2rem;
+    }
+
+    .sent-request-info .brand-location {
+      color: #666;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .sent-request-description {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #fff8f0;
+      border-radius: 8px;
+      border-left: 4px solid #ff9800;
+    }
+
+    .sent-request-description p {
+      color: #555;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .sent-request-details {
+      margin: 1rem 0;
+    }
+
+    .sent-request-details .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .sent-request-details .detail-item i {
+      color: #ff9800;
+      width: 20px;
+    }
+
+    .sent-request-details .label {
+      font-weight: 600;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .sent-request-details .value {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .sent-request-details .channel-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .sent-request-details .channel-badge {
+      background: #ff9800;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .sent-request-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+    }
+
+    .btn-cancel-request {
+      flex: 1;
+      padding: 12px 20px;
+      border: 2px solid #f44336;
+      background: white;
+      color: #f44336;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel-request:hover {
+      background: #f44336;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    }
+
+    .no-sent-requests {
+      text-align: center;
+      padding: 3rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .no-sent-requests i {
+      font-size: 3rem;
+      color: #ddd;
+      margin-bottom: 1rem;
+    }
+
+    .no-sent-requests h3 {
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+
+    .no-sent-requests p {
+      color: #999;
     }
 
     .pending-requests {
@@ -1042,10 +1769,21 @@
     let currentCollabId = null;
     const viewDetailsModal = document.getElementById('viewDetailsModal');
     const updateProgressModal = document.getElementById('updateProgressModal');
+    const updateMetricsForm = document.getElementById('updateMetricsForm');
     const closeButtons = document.getElementsByClassName('close');
     const progressSlider = document.getElementById('progressSlider');
     const progressValue = document.getElementById('progressValue');
     const saveProgressBtn = document.getElementById('saveProgress');
+
+    // Input elements for metrics
+    const reachInput = document.getElementById('reachInput');
+    const clicksInput = document.getElementById('clicksInput');
+    const performanceScoreInput = document.getElementById('performanceScoreInput');
+    const conversionsInput = document.getElementById('conversionsInput');
+    const engagementRateInput = document.getElementById('engagementRateInput');
+    const impressionsInput = document.getElementById('impressionsInput');
+    const revenueInput = document.getElementById('revenueInput');
+    const roiInput = document.getElementById('roiInput');
 
     // Close modals when clicking X
     Array.from(closeButtons).forEach(button => {
@@ -1064,6 +1802,16 @@
         updateProgressModal.style.display = 'none';
       }
     }
+
+    // Function to close update progress modal
+    window.closeUpdateProgressModal = function () {
+      updateProgressModal.style.display = 'none';
+    }
+
+    // Update progress value display when slider changes
+    progressSlider.addEventListener('input', function () {
+      progressValue.textContent = this.value + '%';
+    });
 
     // ========================================
     // FUNCTIONALITY 3: COLLABORATION DETAILS RETRIEVAL
@@ -1177,7 +1925,11 @@
         });
     }
 
-    // Update Progress function
+    // ========================================
+    // FUNCTIONALITY 4: PROGRESS & METRICS UPDATE SYSTEM
+    // ========================================
+
+    // Update Progress & Prefill Metrics
     function updateCollabProgress(collabId) {
       currentCollabId = collabId;
       const collabCard = document.querySelector(`[data-collab-id="${collabId}"]`);
@@ -1189,21 +1941,76 @@
       const progressText = collabCard.querySelector('.progress-info span:last-child');
       const currentProgress = parseInt(progressText.textContent) || 0;
 
+      // Set minimum value to prevent decrementing below current progress
+      progressSlider.min = currentProgress;
       progressSlider.value = currentProgress;
       progressValue.textContent = `${currentProgress}%`;
-      updateProgressModal.style.display = 'block';
+
+      // Fetch current metrics and pre-fill inputs
+      fetch(`/influencer/collab/${collabId}/details`)
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            const details = data.collab;
+            reachInput.value = details.reach || 0;
+            clicksInput.value = details.clicks || 0;
+            performanceScoreInput.value = details.performance_score || 0;
+            conversionsInput.value = details.conversions || 0;
+            engagementRateInput.value = details.engagement_rate || 0;
+            impressionsInput.value = details.impressions || 0;
+            revenueInput.value = details.revenue || 0;
+            roiInput.value = details.roi || 0;
+          } else {
+            reachInput.value = 0;
+            clicksInput.value = 0;
+            performanceScoreInput.value = 0;
+            conversionsInput.value = 0;
+            engagementRateInput.value = 0;
+            impressionsInput.value = 0;
+            revenueInput.value = 0;
+            roiInput.value = 0;
+          }
+          updateProgressModal.style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error fetching collab details:', error);
+          reachInput.value = 0;
+          clicksInput.value = 0;
+          performanceScoreInput.value = 0;
+          conversionsInput.value = 0;
+          engagementRateInput.value = 0;
+          impressionsInput.value = 0;
+          revenueInput.value = 0;
+          roiInput.value = 0;
+          updateProgressModal.style.display = 'block';
+        });
     }
 
-    // ========================================
-    // FUNCTIONALITY 4: PROGRESS UPDATE SYSTEM
-    // ========================================
-    // Asynchronous progress update submission with real-time UI updates
-    // - Sends progress updates to server via POST request
-    // - Handles success/error responses asynchronously
-    // - Updates progress bar and UI elements in real-time
-    // - Manages modal state and user feedback
-    // - Provides visual feedback for progress changes
-    saveProgressBtn.onclick = async function () {
+    // Save Progress & Metrics
+    updateMetricsForm.onsubmit = async function (event) {
+      event.preventDefault();
+
+      // Validate percentage fields (0–100)
+      const percentageFields = [
+        { name: 'Performance Score', value: parseFloat(performanceScoreInput.value) },
+        { name: 'Engagement Rate', value: parseFloat(engagementRateInput.value) }
+      ];
+      for (const field of percentageFields) {
+        if (field.value < 0 || field.value > 100) {
+          alert(`${field.name} must be between 0 and 100.`);
+          return;
+        }
+      }
+
+      // Validate ROI
+      if (parseFloat(roiInput.value) < 0) {
+        alert('ROI must be 0 or greater.');
+        return;
+      }
+
       if (!currentCollabId) {
         console.error('No collaboration ID selected');
         return;
@@ -1216,30 +2023,68 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            progress: parseInt(progressSlider.value)
+            progress: parseInt(progressSlider.value),
+            reach: parseInt(reachInput.value),
+            clicks: parseInt(clicksInput.value),
+            performance_score: parseFloat(performanceScoreInput.value),
+            conversions: parseInt(conversionsInput.value),
+            engagement_rate: parseFloat(engagementRateInput.value),
+            impressions: parseInt(impressionsInput.value),
+            revenue: parseFloat(revenueInput.value),
+            roi: parseFloat(roiInput.value)
           })
         });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+          alert('Failed to update progress: ' + errorData.message);
+          return;
+        }
 
         const data = await response.json();
 
         if (data.success) {
-          // Update the progress bar in the UI
-          const collabCard = document.querySelector(`[data-collab-id="${currentCollabId}"]`);
-          if (collabCard) {
-            const progressBar = collabCard.querySelector('.progress');
-            const progressText = collabCard.querySelector('.progress-info span:last-child');
+          // Fetch updated details and refresh UI
+          fetch(`/influencer/collab/${currentCollabId}/details`)
+            .then(response => response.json())
+            .then(updateData => {
+              if (updateData.success) {
+                const details = updateData.collab;
+                const collabCard = document.querySelector(`[data-collab-id="${currentCollabId}"]`);
+                if (collabCard) {
+                  const progressBar = collabCard.querySelector('.progress');
+                  const progressText = collabCard.querySelector('.progress-info span:last-child');
+                  const reachValue = collabCard.querySelector('.analytics-row:nth-child(1) .analytics-item:nth-child(1) .value');
+                  const clicksValue = collabCard.querySelector('.analytics-row:nth-child(1) .analytics-item:nth-child(2) .value');
+                  const conversionsValue = collabCard.querySelector('.analytics-row:nth-child(1) .analytics-item:nth-child(3) .value');
+                  const performanceScoreValue = collabCard.querySelector('.analytics-row:nth-child(2) .analytics-item:nth-child(1) .value');
+                  const engagementRateValue = collabCard.querySelector('.analytics-row:nth-child(2) .analytics-item:nth-child(2) .value');
+                  const impressionsValue = collabCard.querySelector('.analytics-row:nth-child(3) .analytics-item:nth-child(1) .value');
+                  const revenueValue = collabCard.querySelector('.analytics-row:nth-child(3) .analytics-item:nth-child(2) .value');
+                  const roiValue = collabCard.querySelector('.analytics-row:nth-child(3) .analytics-item:nth-child(3) .value');
 
-            if (progressBar && progressText) {
-              progressBar.style.width = `${data.progress}%`;
-              progressText.textContent = `${data.progress}%`;
-            }
-          }
+                  if (progressBar && progressText) {
+                    progressBar.style.width = `${details.progress || 0}%`;
+                    progressText.textContent = `${details.progress || 0}%`;
+                  }
+                  if (reachValue) reachValue.textContent = (details.reach || 0).toLocaleString();
+                  if (clicksValue) clicksValue.textContent = (details.clicks || 0).toLocaleString();
+                  if (conversionsValue) conversionsValue.textContent = (details.conversions || 0).toLocaleString();
+                  if (performanceScoreValue) performanceScoreValue.textContent = (details.performance_score || 0) + '%';
+                  if (engagementRateValue) engagementRateValue.textContent = (details.engagement_rate || 0) + '%';
+                  if (impressionsValue) impressionsValue.textContent = (details.impressions || 0).toLocaleString();
+                  if (revenueValue) revenueValue.textContent = '$' + (details.revenue || 0).toLocaleString();
+                  if (roiValue) roiValue.textContent = (details.roi || 0) + '%';
+                }
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching updated data:', error);
+            });
 
-          // Close the modal
+          // Close modal and show success message
           updateProgressModal.style.display = 'none';
-
-          // Show success message
-          alert('Progress updated successfully!');
+          alert('Progress and metrics updated successfully!');
         } else {
           alert('Failed to update progress: ' + data.message);
         }
@@ -1247,12 +2092,19 @@
         console.error('Error updating progress:', error);
         alert('An error occurred while updating progress');
       }
-    }
+    };
 
-    // Update progress value display
+    // Update progress value live display (with validation)
     progressSlider.oninput = function () {
+      const minValue = parseInt(this.min) || 0;
+      const currentValue = parseInt(this.value);
+
+      if (currentValue < minValue) {
+        this.value = minValue;
+      }
+
       progressValue.textContent = `${this.value}%`;
-    }
+    };
 
     function cancelRequest(requestId) {
       if (confirm('Are you sure you want to cancel this request?')) {
@@ -1274,6 +2126,90 @@
             console.error('Error:', error);
             alert('An error occurred while cancelling the request');
           });
+      }
+    }
+
+    // Accept brand invite
+    async function acceptBrandInvite(inviteId, campaignTitle) {
+      if (!confirm(`Accept invitation for "${campaignTitle}"?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/influencer/brand-invites/${inviteId}/accept`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('Invitation accepted successfully!');
+          window.location.reload();
+        } else {
+          alert('Failed to accept invitation: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error accepting invite:', error);
+        alert('An error occurred while accepting the invitation. Please try again.');
+      }
+    }
+
+    // Decline brand invite
+    async function declineBrandInvite(inviteId, campaignTitle) {
+      if (!confirm(`Decline invitation for "${campaignTitle}"?\n\nThis action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/influencer/brand-invites/${inviteId}/decline`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('Invitation declined.');
+          window.location.reload();
+        } else {
+          alert('Failed to decline invitation: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error declining invite:', error);
+        alert('An error occurred while declining the invitation. Please try again.');
+      }
+    }
+
+    // Cancel sent request
+    async function cancelSentRequest(requestId, campaignTitle) {
+      if (!confirm(`Cancel your request for "${campaignTitle}"?\n\nThis action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/influencer/sent-requests/${requestId}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('Request cancelled successfully.');
+          window.location.reload();
+        } else {
+          alert('Failed to cancel request: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error cancelling request:', error);
+        alert('An error occurred while cancelling the request. Please try again.');
       }
     }
   </script>
