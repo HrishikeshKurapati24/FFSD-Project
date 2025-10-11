@@ -42,6 +42,136 @@
             margin-bottom: 10px;
             font-size: 18px;
         }
+
+        .top-performers-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .performer-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .performer-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 12px;
+        }
+
+        .performer-info {
+            flex: 1;
+        }
+
+        .performer-info .name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .performer-info .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .performer-info .revenue,
+        .performer-info .audience {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .notification-item.read {
+            opacity: 0.7;
+        }
+
+        .notification-icon {
+            margin-right: 12px;
+            color: #666;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .notification-priority {
+            margin-left: 8px;
+        }
+
+        .notification-priority.high i {
+            color: #f44336;
+        }
+
+        .notification-priority.medium i {
+            color: #ff9800;
+        }
+
+        .notification-priority.low i {
+            color: #4caf50;
+        }
+
+        .no-notifications {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
     </style>
 </head>
 
@@ -97,7 +227,7 @@
             <div class="notifications">
                 <div class="notification-icon" onclick="toggleNotifications()">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="notification-count">0</span>
+                    <span class="notification-badge" id="notification-count"><%= notifications.filter(n => !n.read).length %></span>
                 </div>
                 <div class="notifications-dropdown" id="notifications-dropdown">
                     <div class="notifications-header">
@@ -106,9 +236,27 @@
                             Mark all as read
                         </button>
                     </div>
-                    <!-- <div class="notifications-list" id="notifications-list">
-                         Notifications will be dynamically inserted here 
-                    </div> -->
+                    <div class="notifications-list" id="notifications-list">
+                        <% if (notifications && notifications.length > 0) { %>
+                            <% notifications.forEach(notification => { %>
+                                <div class="notification-item <%= notification.read ? 'read' : 'unread' %>" data-id="<%= notification.id %>">
+                                    <div class="notification-icon">
+                                        <i class="fas fa-<%= notification.type === 'collaboration' ? 'handshake' : notification.type === 'payment' ? 'money-check' : 'user' %>"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title"><%= notification.title %></div>
+                                        <div class="notification-message"><%= notification.message %></div>
+                                        <div class="notification-time"><%= notification.timestamp.toLocaleString() %></div>
+                                    </div>
+                                    <div class="notification-priority <%= notification.priority %>">
+                                        <i class="fas fa-circle"></i>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="no-notifications">No notifications available</div>
+                        <% } %>
+                    </div>
                 </div>
             </div>
 
@@ -175,7 +323,7 @@
                             <span class="value">$<%= totalRevenue.toLocaleString() %></span>
                             <span class="growth <%= revenueGrowth >= 0 ? 'positive' : 'negative' %>">
                                 <i class="fas fa-<%= revenueGrowth >= 0 ? 'arrow-up' : 'arrow-down' %>"></i>
-                                <%= Math.abs(revenueGrowth) %>%
+                                <%= Math.abs(revenueGrowth).toFixed(1) %>%
                             </span>
                         </div>
                         <div class="stat-item">
@@ -243,6 +391,55 @@
     </div>
         </div>
 
+        <!-- Top Brands and Influencers Section -->
+        <div class="analytics-container">
+            <h2>Top Performers</h2>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Top Brands by Revenue</h3>
+                    <div class="top-performers-list">
+                        <% if (topBrands && topBrands.length > 0) { %>
+                            <% topBrands.forEach((brand, index) => { %>
+                                <div class="performer-item">
+                                    <div class="rank">#<%= index + 1 %></div>
+                                    <div class="performer-info">
+                                        <div class="name"><%= brand.name || 'Unknown Brand' %></div>
+                                        <div class="stats">
+                                            <span class="revenue">$<%= (brand.totalRevenue || 0).toLocaleString() %></span>
+                                            <span class="deals"><%= brand.dealCount || 0 %> deals</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="no-data">No brand data available</div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Top Influencers by Audience</h3>
+                    <div class="top-performers-list">
+                        <% if (topInfluencers && topInfluencers.length > 0) { %>
+                            <% topInfluencers.forEach((influencer, index) => { %>
+                                <div class="performer-item">
+                                    <div class="rank">#<%= index + 1 %></div>
+                                    <div class="performer-info">
+                                        <div class="name"><%= influencer.displayName || 'Unknown Influencer' %></div>
+                                        <div class="stats">
+                                            <span class="audience"><%= (influencer.audienceSize || 0).toLocaleString() %> followers</span>
+                                            <span class="category"><%= influencer.categories ? influencer.categories.join(', ') : 'N/A' %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="no-data">No influencer data available</div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- New Dashboard Links Section -->
         <div class="dashboard-links-container">
             <h2>Detailed Analytics Dashboards</h2>
@@ -299,6 +496,33 @@
                     }
                 });
             });
+        });
+
+        // Notification functionality
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notifications-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function markAllAsRead() {
+            const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+            unreadNotifications.forEach(item => {
+                item.classList.remove('unread');
+                item.classList.add('read');
+            });
+            
+            // Update notification count
+            document.getElementById('notification-count').textContent = '0';
+        }
+
+        // Close notifications when clicking outside
+        document.addEventListener('click', function(event) {
+            const notifications = document.querySelector('.notifications');
+            const dropdown = document.getElementById('notifications-dropdown');
+            
+            if (!notifications.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
         });
     </script>
 </body>

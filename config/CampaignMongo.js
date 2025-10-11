@@ -96,6 +96,12 @@ const campaignMetricsSchema = new mongoose.Schema({
         max: [100, 'Overall progress cannot exceed 100'],
         default: 0
     },
+    overall_progress: {
+        type: Number,
+        min: [0, 'Overall progress cannot be negative'],
+        max: [100, 'Overall progress cannot exceed 100'],
+        default: 0
+    },
     performance_score: {
         type: Number,
         min: [0, 'Performance score cannot be negative'],
