@@ -44,6 +44,11 @@ const campaignInfoSchema = new mongoose.Schema({
         required: [true, 'Duration is required'],
         min: [1, 'Duration must be at least 1 day']
     },
+    required_influencers: {
+        type: Number,
+        required: [true, 'Number of required influencers is required'],
+        min: [1, 'At least 1 influencer is required']
+    },
     budget: {
         type: Number,
         required: [true, 'Budget is required'],
@@ -85,6 +90,12 @@ const campaignMetricsSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'BrandInfo',
         required: [true, 'Brand ID is required']
+    },
+    overall_progress: {
+        type: Number,
+        min: [0, 'Overall progress cannot be negative'],
+        max: [100, 'Overall progress cannot exceed 100'],
+        default: 0
     },
     performance_score: {
         type: Number,

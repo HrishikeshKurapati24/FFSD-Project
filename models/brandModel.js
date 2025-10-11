@@ -40,8 +40,7 @@ class brandModel {
 
       const campaigns = await CampaignInfo.find({
         brand_id: brandObjectId,
-        status: 'completed',
-        end_date: { $lte: new Date() }
+        status: 'completed'
       })
         .sort({ end_date: -1 })
         .limit(limit)
@@ -50,6 +49,7 @@ class brandModel {
       if (!campaigns.length) return [];
 
       const campaignIds = campaigns.map(c => c._id);
+      console.log(campaignIds);
 
       const [metrics, influencerCounts] = await Promise.all([
         CampaignMetrics.find({ campaign_id: { $in: campaignIds } }).lean(),
@@ -94,8 +94,11 @@ class brandModel {
   // Get all brands
   static async getAllBrands() {
     try {
-      const brands = await BrandInfo.find({})
-        .limit(10);
+      const brands = await BrandInfo.find({ status: 'active' })
+        .select('brandName username logoUrl bannerUrl categories location website mission tagline verified completedCampaigns influencerPartnerships avgCampaignRating primaryMarket influenceRegions')
+        .sort({ verified: -1, avgCampaignRating: -1, completedCampaigns: -1 })
+        .limit(50)
+        .lean();
       return brands;
     } catch (err) {
       console.error('Error fetching brands:', err);
@@ -415,9 +418,11 @@ class brandModel {
 
       return activeCampaigns.map(campaign => {
         const campaignMetrics = metricsMap.get(campaign._id.toString()) || {};
+        // Prefer influencer-driven overall_progress from CampaignMetrics; fallback to time-based progress
+        const overallProgress = campaignMetrics.overall_progress;
         return {
           ...campaign,
-          progress: this.calculateCampaignProgress(campaign),
+          progress: (overallProgress !== undefined && overallProgress !== null) ? overallProgress : this.calculateCampaignProgress(campaign),
           engagement_rate: campaignMetrics.engagement_rate || 0,
           reach: campaignMetrics.reach || 0,
           conversion_rate: campaignMetrics.conversion_rate || 0,
@@ -446,108 +451,7 @@ class brandModel {
     return Math.round((elapsed / total) * 100);
   }
 
-  // Get top influencers for a brand
-  static async getTopInfluencers(brandId) {
-    try {
-      console.log('Getting top influencers for brand:', brandId);
 
-      // First get the brand's categories
-      const brand = await BrandInfo.findById(brandId).select('categories');
-      console.log('Brand categories:', brand?.categories);
-
-      if (!brand || !brand.categories || brand.categories.length === 0) {
-        console.log('No brand or categories found');
-        return [];
-      }
-
-      // Find all active influencers first
-      const allInfluencers = await InfluencerInfo.find({})
-        .select('_id fullName username profilePicUrl categories')
-        .lean();
-
-      console.log('Total active influencers found:', allInfluencers.length);
-
-      // Get analytics data for all influencers
-      const influencerIds = allInfluencers.map(inf => inf._id);
-      const analyticsData = await InfluencerAnalytics.find({
-        influencerId: { $in: influencerIds }
-      })
-        .select('influencerId avgEngagementRate totalFollowers')
-        .lean();
-
-      console.log('Analytics data found:', analyticsData.length);
-
-      // Create a map of analytics data for quick lookup
-      const analyticsMap = new Map();
-      analyticsData.forEach(analytics => {
-        analyticsMap.set(analytics.influencerId.toString(), {
-          avgEngagementRate: analytics.avgEngagementRate || 0,
-          totalFollowers: analytics.totalFollowers || 0
-        });
-      });
-
-      // Calculate category match percentage and sort influencers
-      const topInfluencers = allInfluencers
-        .map(influencer => {
-          const matchingCategories = influencer.categories.filter(cat =>
-            brand.categories.includes(cat)
-          ).length;
-
-          // Get analytics data for this influencer
-          const analytics = analyticsMap.get(influencer._id.toString()) || {
-            avgEngagementRate: 0,
-            totalFollowers: 0
-          };
-
-          // Calculate match percentage based on matching categories
-          const categoryMatchPercentage = matchingCategories > 0 ?
-            (matchingCategories / Math.max(brand.categories.length, influencer.categories.length)) * 100 : 0;
-
-          console.log(`Influencer ${influencer.fullName}:`, {
-            matchingCategories,
-            totalCategories: influencer.categories.length,
-            matchPercentage: categoryMatchPercentage,
-            avgEngagementRate: analytics.avgEngagementRate,
-            totalFollowers: analytics.totalFollowers
-          });
-
-          return {
-            _id: influencer._id,
-            name: influencer.fullName,
-            username: influencer.username,
-            profilePicUrl: influencer.profilePicUrl,
-            categories: influencer.categories,
-            avgEngagement: analytics.avgEngagementRate,
-            followers: analytics.totalFollowers,
-            categoryMatchPercentage,
-            matchingCategories: matchingCategories
-          };
-        })
-        .filter(influencer => influencer.categoryMatchPercentage > 0) // Only include influencers with at least one matching category
-        .sort((a, b) => {
-          // Sort by category match percentage first, then by engagement rate
-          if (b.categoryMatchPercentage !== a.categoryMatchPercentage) {
-            return b.categoryMatchPercentage - a.categoryMatchPercentage;
-          }
-          return b.avgEngagement - a.avgEngagement;
-        })
-        .slice(0, 5);
-
-      console.log('Final top influencers count:', topInfluencers.length);
-      console.log('Top influencers:', topInfluencers.map(i => ({
-        name: i.name,
-        matchPercentage: i.categoryMatchPercentage,
-        categories: i.categories,
-        avgEngagement: i.avgEngagement,
-        followers: i.followers
-      })));
-
-      return topInfluencers;
-    } catch (err) {
-      console.error('Error fetching top influencers:', err);
-      return [];
-    }
-  }
 
   // Get campaign history for a brand
   static async getCampaignHistory(brandId) {
@@ -669,6 +573,50 @@ class brandModel {
       }));
     } catch (error) {
       console.error('Error getting campaign requests:', error);
+      return [];
+    }
+  }
+
+  // Get campaigns that have reached 100% progress but are still active
+  static async getCompletedProgressCampaigns(brandId) {
+    try {
+      const brandObjectId = new mongoose.Types.ObjectId(brandId);
+
+      // Find active campaigns
+      const activeCampaigns = await CampaignInfo.find({
+        brand_id: brandObjectId,
+        status: 'active'
+      }).lean();
+
+      if (activeCampaigns.length === 0) {
+        return [];
+      }
+
+      const campaignIds = activeCampaigns.map(c => c._id);
+
+      // Get metrics with 100% overall progress
+      const metrics = await CampaignMetrics.find({
+        campaign_id: { $in: campaignIds },
+        overall_progress: { $gte: 100 }
+      }).lean();
+
+      const completedProgressCampaignIds = new Set(
+        metrics.map(m => m.campaign_id.toString())
+      );
+
+      // Return campaigns that have reached 100% progress
+      return activeCampaigns
+        .filter(campaign => completedProgressCampaignIds.has(campaign._id.toString()))
+        .map(campaign => ({
+          _id: campaign._id,
+          title: campaign.title,
+          description: campaign.description,
+          start_date: campaign.start_date,
+          end_date: campaign.end_date,
+          budget: campaign.budget
+        }));
+    } catch (error) {
+      console.error('Error getting completed progress campaigns:', error);
       return [];
     }
   }
