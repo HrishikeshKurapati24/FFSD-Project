@@ -99,6 +99,9 @@ app.post('/signup-form-brand', async (req, res) => {
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
+        // Generate a safe username
+        const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const username = `${baseUsername}_${Math.floor(1000 + Math.random() * 9000)}`;
 
         // Create new brand with required fields
         const brand = new BrandInfo({
@@ -113,7 +116,7 @@ app.post('/signup-form-brand', async (req, res) => {
             status: 'active',
             verified: false,
             // Set default values for other required fields
-            username: email.split('@')[0], // Generate username from email
+            username: username, // Generate username from email
             displayName: brandName,
             influenceRegions: 'Global',
             primaryMarket: 'Global'
@@ -175,6 +178,10 @@ app.post('/signup-form-influencer', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // Generate a safe username
+        const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const username = `${baseUsername}_${Math.floor(1000 + Math.random() * 9000)}`;
+
         // Create new influencer with required fields
         const influencer = new InfluencerInfo({
             fullName,
@@ -182,7 +189,7 @@ app.post('/signup-form-influencer', async (req, res) => {
             password: hashedPassword,
             phone,
             niche,
-            username: email.split('@')[0], // Generate username from email
+            username: username, // Generate username from email
             displayName: fullName,
             verified: false,
             status: 'active',
