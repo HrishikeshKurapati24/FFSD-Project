@@ -1,134 +1,202 @@
-let modalFeedbackId = null; // Track the currently viewed feedback ID
+let currentFeedbackId = null; // Track the currently viewed feedback ID
 
-// ========================================
-// FUNCTIONALITY 5: ADMIN DATA MANAGEMENT - FEEDBACK RETRIEVAL
-// ========================================
-// Asynchronous feedback data retrieval for admin panel
-// - Fetches feedback data from server via GET request
-// - Handles error responses and data validation
-// - Renders feedback into dynamic HTML table
-// - Provides error handling for failed requests
-// - Manages data display and UI updates
-async function fetchFeedback() {
+// View Feedback Details
+async function viewFeedback(feedbackId) {
     try {
-        const response = await fetch("/feedback_and_moderation");
-        const feedbacks = await response.json();
-        renderFeedback(feedbacks);
+        currentFeedbackId = feedbackId;
+        const response = await fetch(`/admin/feedback_and_moderation/${feedbackId}`);
+        const feedback = await response.json();
+        
+        if (response.ok) {
+            populateFeedbackModal(feedback);
+            document.getElementById('feedback-modal').style.display = 'block';
+        } else {
+            alert('Error loading feedback details: ' + feedback.message);
+        }
     } catch (error) {
-        console.error("Error fetching feedback:", error);
+        console.error('Error fetching feedback details:', error);
+        alert('Error loading feedback details');
     }
 }
 
-// Render Feedback
-function renderFeedback(filteredFeedback) {
-    const tableBody = document.querySelector("#feedback-table tbody");
-    tableBody.innerHTML = "";
-
-    filteredFeedback.forEach(feedback => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-        <td>${feedback.id}</td>
-        <td>${feedback.type}</td>
-        <td>${feedback.user}</td>
-        <td>${feedback.message}</td>
-        <td><span class="status ${feedback.status}">${feedback.status}</span></td>
-        <td>${feedback.date}</td>
-        <td class="actions">
-          <button class="view" onclick="viewFeedback(${feedback.id})">View</button>
-        </td>
-      `;
-        tableBody.appendChild(row);
-    });
-}
-
-// Filter Feedback
-function filterFeedback() {
-    const searchTerm = document.getElementById("search-feedback").value.toLowerCase();
-    const typeFilter = document.getElementById("type-filter").value;
-    const statusFilter = document.getElementById("status-filter").value;
-
-    const filteredFeedback = feedbackList.filter(feedback => {
-        const matchesSearch = feedback.user.toLowerCase().includes(searchTerm) ||
-            feedback.message.toLowerCase().includes(searchTerm);
-        const matchesType = typeFilter === "all" || feedback.type === typeFilter;
-        const matchesStatus = statusFilter === "all" || feedback.status === statusFilter;
-
-        return matchesSearch && matchesType && matchesStatus;
-    });
-
-    renderFeedback(filteredFeedback);
-}
-
-// Reset Filters
-function resetFilters() {
-    document.getElementById("search-feedback").value = "";
-    document.getElementById("type-filter").value = "all";
-    document.getElementById("status-filter").value = "all";
-    filterFeedback(); // Re-render the full list
-}
-
-// View Feedback Details
-function viewFeedback(feedbackId) {
-    const feedback = feedbackList.find(f => f.id === feedbackId);
-    if (feedback) {
-        modalFeedbackId = feedbackId; // Track the currently viewed feedback
-        document.getElementById("modal-feedback-id").textContent = `Feedback #${feedback.id}`;
-        document.getElementById("modal-type").textContent = feedback.type;
-        document.getElementById("modal-user").textContent = feedback.user;
-        document.getElementById("modal-message").textContent = feedback.message;
-        document.getElementById("modal-status").textContent = feedback.status;
-        document.getElementById("modal-date").textContent = feedback.date;
-        document.getElementById("feedback-modal").style.display = "block";
+function populateFeedbackModal(feedback) {
+    document.getElementById('modal-user').textContent = feedback.userName || feedback.user || 'Anonymous';
+    document.getElementById('modal-type').textContent = feedback.type || 'General';
+    document.getElementById('modal-subject').textContent = feedback.subject || feedback.title || 'No Subject';
+    document.getElementById('modal-date').textContent = feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : feedback.date || 'N/A';
+    document.getElementById('modal-status').textContent = feedback.status || 'pending';
+    document.getElementById('modal-message').textContent = feedback.message || feedback.content || 'No message content';
+    
+    // Show/hide resolve button based on status
+    const resolveBtn = document.getElementById('modal-resolve-btn');
+    if (feedback.status === 'resolved') {
+        resolveBtn.style.display = 'none';
+    } else {
+        resolveBtn.style.display = 'inline-block';
     }
 }
 
 // Resolve Feedback
-function resolveFeedback(feedbackId) {
-    const feedback = feedbackList.find(f => f.id === feedbackId);
-    if (feedback) {
-        feedback.status = "resolved";
-        filterFeedback(); // Re-render the list
-        alert(`Feedback #${feedback.id} resolved!`);
-        document.getElementById("feedback-modal").style.display = "none";
+async function resolveFeedback(feedbackId) {
+    if (confirm('Are you sure you want to mark this feedback as resolved?')) {
+        try {
+            const response = await fetch(`/admin/feedback_and_moderation/${feedbackId}/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Feedback marked as resolved!');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to resolve feedback'));
+            }
+        } catch (error) {
+            console.error('Error resolving feedback:', error);
+            alert('Error resolving feedback. Please try again.');
+        }
     }
 }
 
-// Warn User
-function warnUser(feedbackId) {
-    const feedback = feedbackList.find(f => f.id === feedbackId);
-    if (feedback) {
-        alert(`User ${feedback.user} warned!`);
+// Resolve from modal
+async function resolveFeedbackFromModal() {
+    if (!currentFeedbackId) return;
+    
+    if (confirm('Are you sure you want to mark this feedback as resolved?')) {
+        try {
+            const response = await fetch(`/admin/feedback_and_moderation/${currentFeedbackId}/resolve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Feedback marked as resolved!');
+                closeFeedbackModal();
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to resolve feedback'));
+            }
+        } catch (error) {
+            console.error('Error resolving feedback:', error);
+            alert('Error resolving feedback. Please try again.');
+        }
     }
 }
 
-// Ban User
-function banUser(feedbackId) {
-    const feedback = feedbackList.find(f => f.id === feedbackId);
-    if (feedback) {
-        alert(`User ${feedback.user} banned!`);
+// Delete Feedback
+async function deleteFeedback(feedbackId) {
+    if (confirm('Are you sure you want to delete this feedback? This action cannot be undone.')) {
+        try {
+            const response = await fetch(`/admin/feedback_and_moderation/${feedbackId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Feedback deleted successfully!');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to delete feedback'));
+            }
+        } catch (error) {
+            console.error('Error deleting feedback:', error);
+            alert('Error deleting feedback. Please try again.');
+        }
     }
 }
 
-// Close Modal
-document.querySelector(".close").addEventListener("click", () => {
-    document.getElementById("feedback-modal").style.display = "none";
+// Filter Functions
+function filterFeedback() {
+    const searchTerm = document.getElementById('search-feedback')?.value.toLowerCase() || '';
+    const statusFilter = document.getElementById('status-filter')?.value || 'all';
+    const typeFilter = document.getElementById('type-filter')?.value || 'all';
+    const dateFilter = document.getElementById('date-filter')?.value;
+    
+    const rows = document.querySelectorAll('.feedback-table tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 0) return;
+        
+        const text = row.textContent.toLowerCase();
+        const status = cells[5]?.textContent.toLowerCase() || '';
+        const type = cells[2]?.textContent.toLowerCase() || '';
+        const date = cells[4]?.textContent || '';
+        
+        let show = true;
+        
+        // Search filter
+        if (searchTerm && !text.includes(searchTerm)) {
+            show = false;
+        }
+        
+        // Status filter
+        if (statusFilter !== 'all' && !status.includes(statusFilter)) {
+            show = false;
+        }
+        
+        // Type filter
+        if (typeFilter !== 'all' && !type.includes(typeFilter.replace('_', ' '))) {
+            show = false;
+        }
+        
+        // Date filter
+        if (dateFilter && !date.includes(dateFilter)) {
+            show = false;
+        }
+        
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function resetFilters() {
+    document.getElementById('search-feedback').value = '';
+    document.getElementById('status-filter').value = 'all';
+    document.getElementById('type-filter').value = 'all';
+    document.getElementById('date-filter').value = '';
+    
+    filterFeedback();
+}
+
+// Close Feedback Modal
+function closeFeedbackModal() {
+    document.getElementById('feedback-modal').style.display = 'none';
+    currentFeedbackId = null;
+}
+
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Add filter functionality
+    const searchInput = document.getElementById('search-feedback');
+    const statusFilter = document.getElementById('status-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const dateFilter = document.getElementById('date-filter');
+    const resetBtn = document.getElementById('reset-filters');
+    
+    if (searchInput) searchInput.addEventListener('input', filterFeedback);
+    if (statusFilter) statusFilter.addEventListener('change', filterFeedback);
+    if (typeFilter) typeFilter.addEventListener('change', filterFeedback);
+    if (dateFilter) dateFilter.addEventListener('change', filterFeedback);
+    if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+    
+    // Modal event listeners
+    const modal = document.getElementById('feedback-modal');
+    const closeBtn = document.querySelector('.close');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeFeedbackModal);
+    }
+    
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeFeedbackModal();
+        }
+    });
 });
-
-// Close Modal When Clicking Outside
-window.addEventListener("click", (event) => {
-    const modal = document.getElementById("feedback-modal");
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
-});
-
-// Attach Event Listeners to Filters
-document.getElementById("search-feedback").addEventListener("input", filterFeedback);
-document.getElementById("type-filter").addEventListener("change", filterFeedback);
-document.getElementById("status-filter").addEventListener("change", filterFeedback);
-document.getElementById("reset-filters").addEventListener("click", resetFilters);
-
-fetchFeedback();
-
-// Initial Render (Show All Feedback)
-filterFeedback();

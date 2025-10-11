@@ -10,16 +10,6 @@ function showTab(tabId) {
     document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
 }
 
-// ========================================
-// FUNCTIONALITY 5: ADMIN DATA MANAGEMENT - USER DATA RETRIEVAL
-// ========================================
-// Asynchronous user data retrieval for admin panel
-// - Fetches user data from server via GET request
-// - Handles both influencers and brands data
-// - Renders data into dynamic HTML tables
-// - Provides error handling for failed requests
-// - Manages data refresh and UI updates
-
 async function fetchUserData() {
     try {
         const response = await fetch("/admin/user_management");
@@ -357,15 +347,6 @@ function closeInfluencerProfileModal() {
     currentInfluencerId = null;
 }
 
-// ========================================
-// FUNCTIONALITY 5: ADMIN DATA MANAGEMENT - USER APPROVAL
-// ========================================
-// Asynchronous user approval with data refresh
-// - Sends approval request to server via POST
-// - Handles success/error responses asynchronously
-// - Refreshes user data after successful approval
-// - Provides user feedback for approval status
-// - Manages UI updates and data synchronization
 async function approveInfluencerFromModal() {
     if (!currentInfluencerId) return;
 
@@ -407,3 +388,245 @@ window.onclick = function(event) {
 }
 
 fetchUserData();
+
+// Flagged Content Functions
+async function viewFlaggedContent(contentId) {
+    try {
+        const response = await fetch(`/admin/user_management/flagged/${contentId}`);
+        const content = await response.json();
+        
+        if (response.ok) {
+            alert(`Full Content: ${content.fullContent || content.content}`);
+        } else {
+            alert('Error loading content details');
+        }
+    } catch (error) {
+        console.error('Error viewing flagged content:', error);
+        alert('Error loading content details');
+    }
+}
+
+async function approveFlaggedContent(contentId) {
+    if (confirm('Are you sure you want to approve this content?')) {
+        try {
+            const response = await fetch(`/admin/user_management/flagged/${contentId}/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Content approved successfully!');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to approve content'));
+            }
+        } catch (error) {
+            console.error('Error approving content:', error);
+            alert('Error approving content. Please try again.');
+        }
+    }
+}
+
+async function removeFlaggedContent(contentId) {
+    if (confirm('Are you sure you want to remove this content? This action cannot be undone.')) {
+        try {
+            const response = await fetch(`/admin/user_management/flagged/${contentId}/remove`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Content removed successfully!');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to remove content'));
+            }
+        } catch (error) {
+            console.error('Error removing content:', error);
+            alert('Error removing content. Please try again.');
+        }
+    }
+}
+
+// Suspicious Activity Functions
+async function investigateUser(userId) {
+    try {
+        const response = await fetch(`/admin/user_management/investigate/${userId}`);
+        const investigation = await response.json();
+        
+        if (response.ok) {
+            let details = `Investigation Report for User: ${investigation.userName || userId}\n\n`;
+            details += `Account Created: ${investigation.accountCreated || 'N/A'}\n`;
+            details += `Last Login: ${investigation.lastLogin || 'N/A'}\n`;
+            details += `Total Posts: ${investigation.totalPosts || 0}\n`;
+            details += `Total Reports: ${investigation.totalReports || 0}\n`;
+            details += `Verification Status: ${investigation.verified ? 'Verified' : 'Unverified'}\n\n`;
+            details += `Recent Activity:\n${investigation.recentActivity || 'No recent suspicious activity'}\n\n`;
+            details += `Risk Assessment: ${investigation.riskLevel || 'Medium'}`;
+            
+            alert(details);
+        } else {
+            alert('Error loading investigation details');
+        }
+    } catch (error) {
+        console.error('Error investigating user:', error);
+        alert('Error loading investigation details');
+    }
+}
+
+async function suspendUser(userId) {
+    const reason = prompt('Please provide a reason for suspension:');
+    if (reason && confirm('Are you sure you want to suspend this user?')) {
+        try {
+            const response = await fetch(`/admin/user_management/suspend/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('User suspended successfully!');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to suspend user'));
+            }
+        } catch (error) {
+            console.error('Error suspending user:', error);
+            alert('Error suspending user. Please try again.');
+        }
+    }
+}
+
+async function warnUser(userId) {
+    const warning = prompt('Please provide a warning message:');
+    if (warning && confirm('Are you sure you want to send this warning?')) {
+        try {
+            const response = await fetch(`/admin/user_management/warn/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ warning })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Warning sent successfully!');
+            } else {
+                alert('Error: ' + (result.message || 'Failed to send warning'));
+            }
+        } catch (error) {
+            console.error('Error sending warning:', error);
+            alert('Error sending warning. Please try again.');
+        }
+    }
+}
+
+async function whitelistActivity(activityId) {
+    if (confirm('Are you sure you want to mark this activity as safe?')) {
+        try {
+            const response = await fetch(`/admin/user_management/whitelist/${activityId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert('Activity marked as safe!');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to whitelist activity'));
+            }
+        } catch (error) {
+            console.error('Error whitelisting activity:', error);
+            alert('Error whitelisting activity. Please try again.');
+        }
+    }
+}
+
+// Filter Functions
+document.addEventListener('DOMContentLoaded', function() {
+    // Search filters for flagged content
+    const searchFlagged = document.getElementById('search-flagged');
+    const contentTypeFilter = document.getElementById('content-type-filter');
+    const severityFilter = document.getElementById('severity-filter');
+    
+    if (searchFlagged) {
+        searchFlagged.addEventListener('input', filterFlaggedContent);
+    }
+    if (contentTypeFilter) {
+        contentTypeFilter.addEventListener('change', filterFlaggedContent);
+    }
+    if (severityFilter) {
+        severityFilter.addEventListener('change', filterFlaggedContent);
+    }
+    
+    // Search filters for suspicious activity
+    const searchSuspicious = document.getElementById('search-suspicious');
+    const activityTypeFilter = document.getElementById('activity-type-filter');
+    const riskLevelFilter = document.getElementById('risk-level-filter');
+    
+    if (searchSuspicious) {
+        searchSuspicious.addEventListener('input', filterSuspiciousActivity);
+    }
+    if (activityTypeFilter) {
+        activityTypeFilter.addEventListener('change', filterSuspiciousActivity);
+    }
+    if (riskLevelFilter) {
+        riskLevelFilter.addEventListener('change', filterSuspiciousActivity);
+    }
+});
+
+function filterFlaggedContent() {
+    const searchTerm = document.getElementById('search-flagged')?.value.toLowerCase() || '';
+    const contentType = document.getElementById('content-type-filter')?.value || 'all';
+    const severity = document.getElementById('severity-filter')?.value || 'all';
+    
+    const flaggedItems = document.querySelectorAll('.flagged-item');
+    
+    flaggedItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        const itemContentType = item.querySelector('.flagged-header h4')?.textContent.toLowerCase() || '';
+        const itemSeverity = item.querySelector('.severity-badge')?.textContent.toLowerCase() || '';
+        
+        const matchesSearch = text.includes(searchTerm);
+        const matchesType = contentType === 'all' || itemContentType.includes(contentType);
+        const matchesSeverity = severity === 'all' || itemSeverity.includes(severity);
+        
+        if (matchesSearch && matchesType && matchesSeverity) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function filterSuspiciousActivity() {
+    const searchTerm = document.getElementById('search-suspicious')?.value.toLowerCase() || '';
+    const activityType = document.getElementById('activity-type-filter')?.value || 'all';
+    const riskLevel = document.getElementById('risk-level-filter')?.value || 'all';
+    
+    const suspiciousItems = document.querySelectorAll('.suspicious-item');
+    
+    suspiciousItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        const itemActivityType = item.querySelector('.suspicious-header h4')?.textContent.toLowerCase() || '';
+        const itemRiskLevel = item.querySelector('.risk-badge')?.textContent.toLowerCase() || '';
+        
+        const matchesSearch = text.includes(searchTerm);
+        const matchesType = activityType === 'all' || itemActivityType.includes(activityType.replace('_', ' '));
+        const matchesRisk = riskLevel === 'all' || itemRiskLevel.includes(riskLevel);
+        
+        if (matchesSearch && matchesType && matchesRisk) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
