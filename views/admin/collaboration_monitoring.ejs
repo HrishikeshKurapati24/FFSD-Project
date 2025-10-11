@@ -79,7 +79,7 @@
             </div>
 
             <button class="dark-mode-toggle" onclick="toggleDarkMode()">
-                <i class="fas fa-moon"></i>
+                <i class="fas fa-moon" id="theme-icon"></i>
             </button>
 
             <div class="profile">
@@ -126,17 +126,44 @@
                 <% if (collab.influencers && collab.influencers.length > 0) { %>
                 <% collab.influencers.forEach((inf) => { %>
                 <div class="collab-card" onclick="openCollabModal('<%= collab.id %>')">
-                    <h3><%= collab.brand %> & <%= inf.influencer %></h3>
-                    <p><strong>Status:</strong> <%= collab.status || 'N/A' %></p>
-                    <p><strong>Engagement Rate:</strong> <%= inf.engagementRate != null ? inf.engagementRate : 'N/A' %>%</p>
-                    <p><strong>Reach:</strong> <%= inf.reach != null ? inf.reach : 'N/A' %></p>
+                    <div class="collab-header">
+                        <h3 class="collab-title"><%= collab.brand %> & <%= inf.influencer %></h3>
+                        <span class="status-badge status-<%= (collab.status || 'pending').toLowerCase() %>">
+                            <%= (collab.status || 'Pending').toUpperCase() %>
+                        </span>
+                    </div>
+                    <div class="collab-metrics">
+                        <p><strong>Engagement Rate:</strong> <%= inf.engagementRate != null ? inf.engagementRate + '%' : 'N/A' %></p>
+                        <p><strong>Reach:</strong> <%= inf.reach != null ? inf.reach.toLocaleString() : 'N/A' %></p>
+                        <p><strong>Start Date:</strong> <%= collab.startDate ? new Date(collab.startDate).toLocaleDateString() : 'N/A' %></p>
+                        <p><strong>End Date:</strong> <%= collab.endDate ? new Date(collab.endDate).toLocaleDateString() : 'N/A' %></p>
+                    </div>
+                    <div class="collab-actions">
+                        <button class="btn-action btn-view" onclick="event.stopPropagation(); openCollabModal('<%= collab.id %>')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <% if (collab.status === 'pending') { %>
+                        <button class="btn-action btn-approve" onclick="event.stopPropagation(); approveCollab('<%= collab.id %>')">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <% } %>
+                    </div>
                 </div>
                 <% }); %>
                 <% } else { %>
                 <div class="collab-card" onclick="openCollabModal('<%= collab.id %>')">
-                    <h3><%= collab.brand || 'Unknown Brand' %></h3>
-                    <p><strong>Status:</strong> <%= collab.status || 'N/A' %></p>
-                    <p>No influencer data available</p>
+                    <div class="collab-header">
+                        <h3 class="collab-title"><%= collab.brand || 'Unknown Brand' %></h3>
+                        <span class="status-badge status-<%= (collab.status || 'pending').toLowerCase() %>">
+                            <%= (collab.status || 'Pending').toUpperCase() %>
+                        </span>
+                    </div>
+                    <p class="no-data-text">No influencer data available</p>
+                    <div class="collab-actions">
+                        <button class="btn-action btn-view" onclick="event.stopPropagation(); openCollabModal('<%= collab.id %>')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
                 </div>
                 <% } %>
                 <% }); %>
@@ -152,27 +179,77 @@
             <% } %>
 
             <!-- Collaboration Details Modal -->
-            <div id="collab-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeCollabModal()">&times;</span>
+            <div id="collab-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+                <div class="modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 700px; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+                    <span class="close" onclick="closeCollabModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
                     <h2 id="modal-collab-id">Collaboration Details</h2>
                     <div class="modal-details">
-                        <p><strong>Brand:</strong> <span id="modal-brand"></span></p>
-                        <p><strong>Influencer:</strong> <span id="modal-influencer"></span></p>
-                        <p><strong>Status:</strong> <span id="modal-status"></span></p>
-                        <p><strong>Engagement Rate:</strong> <span id="modal-engagement"></span></p>
-                        <p><strong>Reach:</strong> <span id="modal-reach"></span></p>
+                        <div class="details-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div>
+                                <p><strong>Collaboration ID:</strong> <span id="modal-collab-number"></span></p>
+                                <p><strong>Brand:</strong> <span id="modal-brand"></span></p>
+                                <p><strong>Influencer:</strong> <span id="modal-influencer"></span></p>
+                                <p><strong>Status:</strong> <span id="modal-status" class="status-badge"></span></p>
+                            </div>
+                            <div>
+                                <p><strong>Start Date:</strong> <span id="modal-start-date"></span></p>
+                                <p><strong>End Date:</strong> <span id="modal-end-date"></span></p>
+                                <p><strong>Engagement Rate:</strong> <span id="modal-engagement"></span></p>
+                                <p><strong>Reach:</strong> <span id="modal-reach"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="collaboration-description" style="margin-bottom: 20px;">
+                            <p><strong>Description:</strong></p>
+                            <div id="modal-description" style="background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 4px solid #007bff;"></div>
+                        </div>
+                        
+                        <div class="collaboration-metrics" style="margin-bottom: 20px;">
+                            <h4>Performance Metrics</h4>
+                            <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                                <div class="metric-item" style="background: #e8f5e9; padding: 10px; border-radius: 4px; text-align: center;">
+                                    <div class="metric-label" style="font-size: 0.8em; color: #666;">Impressions</div>
+                                    <div class="metric-value" id="modal-impressions" style="font-size: 1.2em; font-weight: bold; color: #28a745;">-</div>
+                                </div>
+                                <div class="metric-item" style="background: #fff3cd; padding: 10px; border-radius: 4px; text-align: center;">
+                                    <div class="metric-label" style="font-size: 0.8em; color: #666;">Clicks</div>
+                                    <div class="metric-value" id="modal-clicks" style="font-size: 1.2em; font-weight: bold; color: #856404;">-</div>
+                                </div>
+                                <div class="metric-item" style="background: #d1ecf1; padding: 10px; border-radius: 4px; text-align: center;">
+                                    <div class="metric-label" style="font-size: 0.8em; color: #666;">Conversions</div>
+                                    <div class="metric-value" id="modal-conversions" style="font-size: 1.2em; font-weight: bold; color: #0c5460;">-</div>
+                                </div>
+                                <div class="metric-item" style="background: #f8d7da; padding: 10px; border-radius: 4px; text-align: center;">
+                                    <div class="metric-label" style="font-size: 0.8em; color: #666;">ROI</div>
+                                    <div class="metric-value" id="modal-roi" style="font-size: 1.2em; font-weight: bold; color: #721c24;">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="collaboration-posts" style="margin-bottom: 20px;">
+                            <h4>Posts/Content</h4>
+                            <div id="modal-posts" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 4px;"></div>
+                        </div>
                     </div>
-                    <h3>Performance Analytics</h3>
-                    <canvas id="performanceChart"></canvas>
-                    <h3>Posts/Content</h3>
-                    <ul id="modal-posts"></ul>
+                    
+                    <div class="modal-actions" style="margin-top: 20px; text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
+                        <button class="btn-action btn-approve" id="modal-approve-btn" onclick="approveCollabFromModal()" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                            <i class="fas fa-check"></i> Approve Collaboration
+                        </button>
+                        <button class="btn-action btn-reject" id="modal-reject-btn" onclick="rejectCollabFromModal()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                            <i class="fas fa-times"></i> Reject Collaboration
+                        </button>
+                        <button class="btn-action btn-secondary" onclick="closeCollabModal()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
     </div>
 
     <script src="/admin/admin_dashboard.js"></script>
+    <script src="/admin/collaboration_monitoring.js"></script>
 </body>
 
 </html>

@@ -6,6 +6,144 @@ body {
     background-color: #f0f2f5;
     color: #1a1a1a;
     line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .navbar {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .card {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .modal-content {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #3d3d3d;
+    color: #e0e0e0;
+    border: 1px solid #555;
+}
+
+body.dark-mode table {
+    background-color: #2d2d2d;
+}
+
+body.dark-mode table th {
+    background-color: #3d3d3d;
+    color: #e0e0e0;
+}
+
+body.dark-mode table td {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-bottom: 1px solid #555;
+}
+
+body.dark-mode .sidebar {
+    background-color: #2d2d2d;
+}
+
+body.dark-mode .sidebar a {
+    color: #e0e0e0;
+}
+
+body.dark-mode .sidebar a:hover {
+    background-color: #3d3d3d;
+}
+
+body.dark-mode .profile-dropdown {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .profile-dropdown a {
+    color: #e0e0e0;
+}
+
+body.dark-mode .profile-dropdown a:hover {
+    background-color: #3d3d3d;
+}
+
+body.dark-mode .notifications-dropdown {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Status badge colors for dark mode */
+body.dark-mode .status-pending {
+    background-color: #664d03;
+    color: #ffecb5;
+}
+
+body.dark-mode .status-approved,
+body.dark-mode .status-completed {
+    background-color: #0f5132;
+    color: #d1e7dd;
+}
+
+body.dark-mode .status-rejected,
+body.dark-mode .status-failed {
+    background-color: #842029;
+    color: #f8d7da;
+}
+
+/* Severity and risk badges for dark mode */
+body.dark-mode .severity-low,
+body.dark-mode .risk-low {
+    background-color: #0f5132;
+    color: #d1e7dd;
+}
+
+body.dark-mode .severity-medium,
+body.dark-mode .risk-medium {
+    background-color: #664d03;
+    color: #ffecb5;
+}
+
+body.dark-mode .severity-high,
+body.dark-mode .risk-high {
+    background-color: #842029;
+    color: #f8d7da;
+}
+
+body.dark-mode .severity-critical,
+body.dark-mode .risk-critical {
+    background-color: #721c24;
+    color: #f5c2c7;
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.dark-mode-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .dark-mode-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Common navbar styles */

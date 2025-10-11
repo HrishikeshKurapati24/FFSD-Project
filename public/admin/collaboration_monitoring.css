@@ -5,6 +5,241 @@ body {
     padding: 0;
     background-color: #f4f4f9;
     color: #333;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .collab-card {
+    background-color: #2d2d2d;
+    border-color: #555;
+    color: #e0e0e0;
+}
+
+body.dark-mode .collab-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .collab-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .collab-card p {
+    color: #b0b0b0;
+}
+
+body.dark-mode .collab-card p strong {
+    color: #e0e0e0;
+}
+
+body.dark-mode .no-data-text {
+    color: #888;
+}
+
+body.dark-mode .btn-view {
+    background-color: #0d6efd;
+}
+
+body.dark-mode .btn-view:hover {
+    background-color: #0b5ed7;
+}
+
+body.dark-mode .btn-approve {
+    background-color: #198754;
+}
+
+body.dark-mode .btn-approve:hover {
+    background-color: #157347;
+}
+
+body.dark-mode .btn-flag {
+    background-color: #dc3545;
+}
+
+body.dark-mode .btn-flag:hover {
+    background-color: #bb2d3b;
+}
+
+/* Dark mode status badges */
+body.dark-mode .status-pending {
+    background-color: #664d03;
+    color: #ffecb5;
+}
+
+body.dark-mode .status-in-progress,
+body.dark-mode .status-approved {
+    background-color: #0f5132;
+    color: #d1e7dd;
+}
+
+body.dark-mode .status-completed {
+    background-color: #055160;
+    color: #b6effb;
+}
+
+body.dark-mode .status-rejected {
+    background-color: #842029;
+    color: #f8d7da;
+}
+
+body.dark-mode .modal-content {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-mode .filters input,
+body.dark-mode .filters select {
+    background-color: #3d3d3d;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-mode .filters button {
+    background-color: #0d6efd;
+}
+
+body.dark-mode .filters button:hover {
+    background-color: #0b5ed7;
+}
+
+/* Modal Enhancements */
+.modal {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close:hover {
+    color: #000 !important;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-approved,
+.status-active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-completed {
+    background-color: #cce7ff;
+    color: #004085;
+}
+
+.status-rejected,
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.btn-action {
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-approve:hover {
+    background-color: #218838 !important;
+}
+
+.btn-reject:hover {
+    background-color: #c82333 !important;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268 !important;
+}
+
+/* Dark mode modal styles */
+body.dark-mode .modal-content {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-mode .close {
+    color: #ccc;
+}
+
+body.dark-mode .close:hover {
+    color: #fff !important;
+}
+
+body.dark-mode .metric-item {
+    background-color: #3d3d3d !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode #modal-posts {
+    background-color: #3d3d3d !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode #modal-description {
+    background-color: #3d3d3d !important;
+    color: #e0e0e0;
+    border-left-color: #0d6efd !important;
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95% !important;
+        margin: 2% auto !important;
+        padding: 15px !important;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    
+    .modal-actions {
+        text-align: center !important;
+    }
+    
+    .btn-action {
+        display: block !important;
+        width: 100% !important;
+        margin: 5px 0 !important;
+    }
 }
 
 header {
@@ -127,21 +362,50 @@ h1 {
 
 .collab-card {
     background-color: #ffffff;
+    border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-    transition: transform 0.2s;
+    padding: 15px;
+    cursor: pointer;
+    transition: box-shadow 0.3s, transform 0.2s;
 }
 
 .collab-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.collab-card h3 {
-    color: #007bff;
-    margin-top: 0;
-    font-size: 1.2rem;
+.collab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.collab-title {
+    margin: 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.collab-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.collab-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.no-data-text {
+    color: #666;
+    font-style: italic;
+    margin: 10px 0;
 }
 
 .collab-card p {
@@ -149,51 +413,76 @@ h1 {
     color: #666;
 }
 
-.collab-card .status {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
+.collab-card p strong {
+    color: #333;
 }
 
-.collab-card .status.pending {
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-pending {
     background-color: #fff3cd;
     color: #856404;
 }
 
-.collab-card .status.in-progress {
-    background-color: #e8f5e9;
-    color: #28a745;
+.status-in-progress,
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
 }
 
-.collab-card .status.completed {
-    background-color: #e8f5e9;
-    color: #28a745;
+.status-completed {
+    background-color: #cce7ff;
+    color: #004085;
 }
 
-.collab-card .actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
 }
 
-.collab-card .actions button {
-    padding: 8px 12px;
+.btn-action {
+    padding: 6px 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.collab-card .actions button.view {
+.btn-view {
     background-color: #007bff;
-    color: #fff;
+    color: white;
 }
 
-.collab-card .actions button.flag {
+.btn-view:hover {
+    background-color: #0056b3;
+}
+
+.btn-approve {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-approve:hover {
+    background-color: #218838;
+}
+
+.btn-flag {
     background-color: #dc3545;
-    color: #fff;
+    color: white;
+}
+
+.btn-flag:hover {
+    background-color: #c82333;
 }
 
 /* Modal */
