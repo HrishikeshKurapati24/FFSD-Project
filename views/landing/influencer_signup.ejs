@@ -1,52 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Influencer Sign Up - CollabSync</title>
+
   <style>
-    /* Basic Reset */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
     }
 
     body {
-      font-family: Arial, sans-serif;
-      color: #333;
-      /* Fixed background image for influencers */
-      background: url('/Sign/SighUp_for_both.svg') no-repeat center center fixed;
-      background-size: cover;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
-    /* Container for the sign-up form */
-    .signup-container {
-      max-width: 600px;
-      margin: 100px auto;
-      background-color: rgba(255, 255, 255, 0.8);
-      /* Semi-transparent background */
-      padding: 30px;
+    .signup-wrapper {
+      display: flex;
+      width: 90%;
+      max-width: 1100px;
+      background-color: #ffffff;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      text-align: left;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      text-align: center;
+    /* Left section - form */
+    .signup-left {
+      flex: 1;
+      padding: 40px 50px;
     }
 
-    form {
-      width: 100%;
+    .brand-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #007bff;
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 25px;
+      color: #333;
     }
 
     label {
       display: block;
-      margin: 10px 0 5px;
-      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+      color: #333;
     }
 
     input[type="text"],
@@ -55,32 +65,32 @@
     input[type="number"],
     select {
       width: 100%;
-      padding: 10px;
+      padding: 10px 12px;
       font-size: 1rem;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
       margin-bottom: 15px;
+      transition: border-color 0.3s;
+      background-color: #fff;
     }
 
-    select {
-      background-color: white;
-      cursor: pointer;
-    }
-
+    input:focus,
     select:focus {
+      border-color: #007bff;
       outline: none;
-      border-color: #007BFF;
     }
 
     button {
       width: 100%;
-      padding: 10px;
-      font-size: 1.2rem;
-      background-color: #007BFF;
+      padding: 12px;
+      background-color: #007bff;
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
 
     button:hover {
@@ -89,18 +99,41 @@
 
     .back-link {
       display: block;
-      margin-top: 15px;
+      margin-top: 20px;
       text-align: center;
-      color: #007BFF;
+      color: #007bff;
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Right section - image (same style as Brand page) */
+    .signup-right {
+      flex: 1;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 50px;
+    }
+
+    .signup-right img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Message Box */
     .message {
-      padding: 10px;
+      padding: 10px 12px;
       margin-bottom: 15px;
-      border-radius: 5px;
+      border-radius: 6px;
       display: none;
+      font-size: 0.95rem;
     }
 
     .message.error {
@@ -115,64 +148,51 @@
       border: 1px solid #c3e6cb;
     }
 
-    .error-text {
-      display: block;
-      margin-top: 6px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      color: #ff6b6b;
-      min-height: 16px;
-    }
+    /* Responsive Design */
+    @media (max-width: 900px) {
+      .signup-wrapper {
+        flex-direction: column;
+        height: auto;
+      }
 
-    .invalid {
-      outline: 2px solid #ff6b6b;
-    }
+      .signup-right {
+        order: -1;
+        padding: 30px;
+      }
 
-    input.touched:invalid,
-    select.touched:invalid {
-      border-color: #ff6b6b;
-    }
-
-    .field-group {
-      margin-bottom: 20px;
-    }
-
-    .character-count {
-      font-size: 12px;
-      color: #666;
-      text-align: right;
-      margin-top: 2px;
+      body {
+        height: auto;
+        padding: 30px 10px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="signup-container">
-    <h1>Influencer Sign Up</h1>
-    <form id="influencerSignupForm" action="/signup-form-influencer" method="post" novalidate>
-      <div id="messageBox" class="message"></div>
-      <div class="field-group">
-        <label for="fullName">Full Name:</label>
-        <input type="text" id="fullName" name="fullName" placeholder="Your Full Name">
-        <small id="fullNameError" class="error-text" style="display: none;"></small>
-        <div id="fullNameCount" class="character-count"></div>
-      </div>
+  <div class="signup-wrapper">
+    <!-- Left side (form) -->
+    <div class="signup-left">
+      <div class="brand-title">CollabSync</div>
+      <h2>Influencer Sign Up</h2>
 
-      <div class="field-group">
-        <label for="email">Email:</label>
-        <input type="text" id="email" name="email" placeholder="Your Email">
-        <small id="emailError" class="error-text" style="display: none;"></small>
-      </div>
+      <form id="influencerSignupForm" action="/signup-form-influencer" method="post" novalidate>
+        <div id="messageBox" class="message"></div>
 
-      <div class="field-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"
-          placeholder="Choose a Password(At least 8 characters, one digit, and one special character)">
-        <small id="passwordError" class="error-text" style="display: none;"></small>
-      </div>
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" placeholder="Your Full Name" />
 
-      <div class="field-group">
-        <label for="platform">Social Media Platform:</label>
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Your Email" />
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="At least 8 characters, one digit, and one special character"
+        />
+
+        <label for="platform">Social Media Platform</label>
         <select id="platform" name="platform">
           <option value="">Select Platform</option>
           <option value="instagram">Instagram</option>
@@ -182,38 +202,29 @@
           <option value="twitter">Twitter</option>
           <option value="linkedin">LinkedIn</option>
         </select>
-        <small id="platformError" class="error-text" style="display: none;"></small>
-      </div>
 
-      <div class="field-group">
-        <label for="socialHandle">Social Media Handle:</label>
-        <input type="text" id="socialHandle" name="socialHandle" placeholder="yourhandle">
-        <small id="socialHandleError" class="error-text" style="display: none;"></small>
-        <div id="socialHandleCount" class="character-count"></div>
-      </div>
+        <label for="socialHandle">Social Media Handle</label>
+        <input type="text" id="socialHandle" name="socialHandle" placeholder="@yourhandle" />
 
-      <div class="field-group">
-        <label for="audience">Audience Size:</label>
-        <input type="number" id="audience" name="audience" placeholder="e.g. 10000">
-        <small id="audienceError" class="error-text" style="display: none;"></small>
-      </div>
+        <label for="audience">Audience Size</label>
+        <input type="number" id="audience" name="audience" placeholder="e.g. 10000" />
 
-      <div class="field-group">
-        <label for="niche">Niche/Category:</label>
-        <input type="text" id="niche" name="niche" placeholder="Your niche e.g. fashion, tech">
-        <small id="nicheError" class="error-text" style="display: none;"></small>
-        <div id="nicheCount" class="character-count"></div>
-      </div>
+        <label for="niche">Niche/Category</label>
+        <input type="text" id="niche" name="niche" placeholder="e.g. fashion, tech, travel" />
 
-      <div class="field-group">
-        <label for="phone">Contact Number:</label>
-        <input type="number" id="phone" name="phone" placeholder="+1234567890 or 1234567890">
-        <small id="phoneError" class="error-text" style="display: none;"></small>
-      </div>
+        <label for="phone">Contact Number</label>
+        <input type="number" id="phone" name="phone" placeholder="+1234567890 or 1234567890" />
 
-      <button type="submit">Sign Up as Influencer</button>
-    </form>
-    <a href="/Sup_role" class="back-link">Back to Role Selection</a>
+        <button type="submit">Sign Up as Influencer</button>
+      </form>
+
+      <a href="/Sup_role" class="back-link">Back to Role Selection</a>
+    </div>
+
+    <!-- Right side (image same as brand page) -->
+    <div class="signup-right">
+      <img src="/Sign/SighUp_for_both.svg" alt="Sign Up Illustration" />
+    </div>
   </div>
 
   <script>
