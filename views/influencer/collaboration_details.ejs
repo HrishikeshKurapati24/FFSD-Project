@@ -456,16 +456,6 @@
                         </ul>
                     </div>
                     <% } %>
-                    <% if (typeof isEligible !== 'undefined' && !isEligible) { %>
-                    <div class="detail-item" style="margin-top: 1rem;">
-                        <span class="label" style="color: #c0392b;">Unmet Requirements:</span>
-                        <ul style="margin: 0.5rem 0 0 1rem; color: #c0392b;">
-                            <% unmetRequirements.forEach(msg => { %>
-                                <li><%= msg %></li>
-                            <% }); %>
-                        </ul>
-                    </div>
-                    <% } %>
                 </div>
             </div>
 
@@ -502,13 +492,11 @@
         async function applyForCampaign(campaignId) {
             try {
                 const msg = document.getElementById('specialMessage')?.value || '';
-                const msg = document.getElementById('specialMessage')?.value || '';
                 const response = await fetch(`/influencer/apply/${campaignId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
-                    , body: JSON.stringify({ message: msg })
                     , body: JSON.stringify({ message: msg })
                 });
 
@@ -516,15 +504,10 @@
                 if (data.success) {
                     alert('Application submitted successfully!');
                     window.location.reload();
-                    alert('Application submitted successfully!');
-                    window.location.reload();
                 } else {
-                    alert('Failed to submit application: ' + data.message);
                     alert('Failed to submit application: ' + data.message);
                 }
             } catch (error) {
-                console.error('Error submitting application:', error);
-                alert('An error occurred while submitting the application');
                 console.error('Error submitting application:', error);
                 alert('An error occurred while submitting the application');
             }

@@ -209,16 +209,11 @@
           <div class="collab-header">
             <h2 class="collab-title">
               <%= (request.collab && request.collab.title) %>
-              <%= (request.collab && request.collab.title) %>
             </h2>
             <span class="tag-badge">
               <%= request.tag %>
             </span>
-            <span class="tag-badge">
-              <%= request.tag %>
-            </span>
             <p class="collab-description">
-              <%= (request.collab && request.collab.description) %>
               <%= (request.collab && request.collab.description) %>
             </p>
           </div>
@@ -231,15 +226,10 @@
                   <img
                     src="<%= (request.influencer && request.influencer.profile_pic) ? request.influencer.profile_pic : '/images/default-avatar.jpg' %>"
                     alt="<%= (request.influencer && request.influencer.name) %>" class="influencer-avatar">
-                  <img
-                    src="<%= (request.influencer && request.influencer.profile_pic) ? request.influencer.profile_pic : '/images/default-avatar.jpg' %>"
-                    alt="<%= (request.influencer && request.influencer.name) %>" class="influencer-avatar">
                   <div class="influencer-info">
                     <h4>
                       <%= (request.influencer && request.influencer.name) %>
-                      <%= (request.influencer && request.influencer.name) %>
                     </h4>
-                    <p class="influencer-username">@<%= (request.influencer && request.influencer.username) || '' %>
                     <p class="influencer-username">@<%= (request.influencer && request.influencer.username) || '' %>
                     </p>
                   </div>
@@ -251,8 +241,6 @@
                     <span class="value">
                       <%= ((request.influencer && request.influencer.followers) ? request.influencer.followers :
                         0).toLocaleString() %>
-                      <%= ((request.influencer && request.influencer.followers) ? request.influencer.followers :
-                        0).toLocaleString() %>
                     </span>
                   </div>
                   <div class="stat-item">
@@ -260,14 +248,12 @@
                     <span class="attr">Engagement Rate:</span>
                     <span class="value">
                       <%= (request.influencer && request.influencer.engagement_rate) %>%
-                      <%= (request.influencer && request.influencer.engagement_rate) %>%
                     </span>
                   </div>
                   <div class="stat-item">
                     <i class="fas fa-map-marker-alt"></i>
                     <span class="attr">Location:</span>
                     <span class="value">
-                      <%= (request.influencer && request.influencer.location) || 'Not specified' %>
                       <%= (request.influencer && request.influencer.location) || 'Not specified' %>
                     </span>
                   </div>
@@ -277,17 +263,12 @@
                     <span class="value">
                       <%= ((request.influencer && request.influencer.categories) ?
                         request.influencer.categories.join(', ') : ' Not specified') %>
-                      <%= ((request.influencer && request.influencer.categories) ?
-                        request.influencer.categories.join(', ') : ' Not specified') %>
                     </span>
                   </div>
                 </div>
                 <div class="social-channels">
                   <h4><i class="fas fa-share-alt"></i> Social Channels</h4>
                   <div class="channels-grid">
-                    <% if (request.influencer && request.influencer.channels && request.influencer.channels.length> 0) {
-                      %>
-                      <% request.influencer.channels.forEach(channel=> { %>
                     <% if (request.influencer && request.influencer.channels && request.influencer.channels.length> 0) {
                       %>
                       <% request.influencer.channels.forEach(channel=> { %>
@@ -315,14 +296,11 @@
                     <span class="attr">Duration:</span>
                     <span class="value">
                       <%= (request.collab && request.collab.duration) %> days
-                      <%= (request.collab && request.collab.duration) %> days
                     </span>
                   </div>
                   <div class="requirement-item">
                     <i class="fas fa-dollar-sign"></i>
                     <span class="attr">Budget:</span>
-                    <span class="value">$<%= ((request.collab && request.collab.budget) ? request.collab.budget :
-                        0).toLocaleString() %></span>
                     <span class="value">$<%= ((request.collab && request.collab.budget) ? request.collab.budget :
                         0).toLocaleString() %></span>
                   </div>
@@ -332,8 +310,6 @@
                     <span class="value">
                       <%= ((request.collab && request.collab.min_followers) ? request.collab.min_followers :
                         0).toLocaleString() %>
-                      <%= ((request.collab && request.collab.min_followers) ? request.collab.min_followers :
-                        0).toLocaleString() %>
                     </span>
                   </div>
                   <div class="requirement-item">
@@ -341,16 +317,12 @@
                     <span class="attr">Target Audience:</span>
                     <span class="value">
                       <%= (request.collab && request.collab.target_audience) %>
-                      <%= (request.collab && request.collab.target_audience) %>
                     </span>
                   </div>
                 </div>
                 <div class="channels-section">
                   <h4><i class="fas fa-share-alt"></i> Required Channels</h4>
                   <div class="channels-list">
-                    <% if (request.collab && request.collab.required_channels &&
-                      request.collab.required_channels.length> 0) { %>
-                      <% request.collab.required_channels.forEach(channel=> { %>
                     <% if (request.collab && request.collab.required_channels &&
                       request.collab.required_channels.length> 0) { %>
                       <% request.collab.required_channels.forEach(channel=> { %>
@@ -490,9 +462,6 @@
     `;
     document.head.appendChild(style);
   </script>
-
-
-
 </body>
 
 </html>
