@@ -16,16 +16,6 @@ const initializeAllSeedData = async () => {
         await connectDB();
         console.log('✅ MongoDB connected successfully!\n');
 
-        // Initialize original brand data (5 brands)
-        console.log('📊 Initializing original brand data...');
-        await initializeBrandData();
-        console.log('✅ Original brand data initialized successfully!\n');
-
-        // Initialize original influencer data (5 influencers)
-        console.log('👥 Initializing original influencer data...');
-        await initializeInfluencerData();
-        console.log('✅ Original influencer data initialized successfully!\n');
-
         // Initialize extended brand data (5 additional brands)
         console.log('📊 Initializing extended brand data...');
         await initializeExtendedBrandData();
@@ -35,16 +25,6 @@ const initializeAllSeedData = async () => {
         console.log('👥 Initializing extended influencer data...');
         await initializeExtendedInfluencerData();
         console.log('✅ Extended influencer data initialized successfully!\n');
-
-        // Initialize campaign data
-        console.log('🎯 Initializing campaign data...');
-        await initializeCampaignData();
-        console.log('✅ Campaign data initialized successfully!\n');
-
-        // Initialize campaign, message, and offer data
-        console.log('📊 Initializing campaign, message, and offer data...');
-        await initializeCampaignMessageOfferData();
-        console.log('✅ Campaign, message, and offer data initialized successfully!\n');
 
         // Initialize additional campaign data
         console.log('🎯 Initializing additional campaign data...');

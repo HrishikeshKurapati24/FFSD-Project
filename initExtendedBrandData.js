@@ -130,7 +130,7 @@ const initializeExtendedBrandData = async () => {
                     avgCampaignRating: 4.7,
                     totalAudience: 9000000,
                     targetAgeRange: "18-40",
-                    targetGender: "Mixed",
+                    targetGender: "All",
                     targetInterests: ["Fashion", "Lifestyle", "Beauty", "Shopping"]
                 },
                 brandSocials: {
@@ -316,7 +316,7 @@ const initializeExtendedBrandData = async () => {
                     avgCampaignRating: 4.6,
                     totalAudience: 5000000,
                     targetAgeRange: "25-45",
-                    targetGender: "Mixed",
+                    targetGender: "All",
                     targetInterests: ["Home Services", "Beauty", "Lifestyle", "Convenience"]
                 },
                 brandSocials: {
@@ -409,7 +409,7 @@ const initializeExtendedBrandData = async () => {
                     avgCampaignRating: 4.8,
                     totalAudience: 4000000,
                     targetAgeRange: "25-45",
-                    targetGender: "Mixed",
+                    targetGender: "All",
                     targetInterests: ["Finance", "Technology", "Rewards", "Lifestyle"]
                 },
                 brandSocials: {
