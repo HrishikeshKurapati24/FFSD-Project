@@ -18,7 +18,7 @@ class CollaborationModel {
                 influencer_id: new mongoose.Types.ObjectId(influencerId),
                 status: 'active'
             })
-                .populate('campaign_id', 'title budget duration required_channels min_followers target_audience')
+                .populate('campaign_id', 'title budget duration required_channels min_followers target_audience status')
                 .populate('influencer_id', 'fullName profilePicUrl')
                 .populate({
                     path: 'campaign_id',
@@ -30,10 +30,16 @@ class CollaborationModel {
                 })
                 .lean();
 
+            // Filter out collaborations where the campaign still has status 'request'
+            const filteredCollaborations = collaborations.filter(collab =>
+                collab.campaign_id && collab.campaign_id.status !== 'request'
+            );
+
             console.log('Found collaborations:', collaborations.length);
+            console.log('Filtered collaborations (excluding request status):', filteredCollaborations.length);
 
             // Get campaign IDs for metrics lookup
-            const campaignIds = collaborations.map(collab => collab.campaign_id._id);
+            const campaignIds = filteredCollaborations.map(collab => collab.campaign_id._id);
 
             // Get metrics for all campaigns
             const metrics = await CampaignMetrics.find({
@@ -48,10 +54,11 @@ class CollaborationModel {
                 metricsMap.set(metric.campaign_id.toString(), metric);
             });
 
-            const formattedCollaborations = collaborations.map(collab => {
+            const formattedCollaborations = filteredCollaborations.map(collab => {
                 const campaignMetrics = metricsMap.get(collab.campaign_id._id.toString()) || {};
                 return {
                     id: collab._id,
+                    campaign_id: collab.campaign_id._id,
                     campaign_name: collab.campaign_id?.title || '',
                     brand_name: collab.campaign_id?.brand_id?.brandName || '',
                     brand_logo: collab.campaign_id?.brand_id?.logoUrl || '',

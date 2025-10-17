@@ -23,7 +23,7 @@ try {
     throw error;
 }
 
-// Function to upload file to Cloudinary
+// Function to upload file to Cloudinary (from file path)
 const uploadToCloudinary = async (file, folder) => {
     try {
         console.log('Uploading file to folder:', folder);
@@ -60,6 +60,44 @@ const uploadToCloudinary = async (file, folder) => {
     }
 };
 
+// Function to upload buffer to Cloudinary (from memory storage)
+const uploadBufferToCloudinary = async (file, folder) => {
+    try {
+        console.log('Uploading buffer to folder:', folder);
+        console.log('File size:', file.size);
+        console.log('File mimetype:', file.mimetype);
+
+        // Create a data URI from the buffer
+        const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+
+        // Upload the buffer with additional options
+        const result = await cloudinary.uploader.upload(dataUri, {
+            folder: folder,
+            resource_type: 'auto',
+            use_filename: true,
+            unique_filename: true,
+            overwrite: true
+        });
+
+        console.log('Upload successful:', {
+            public_id: result.public_id,
+            secure_url: result.secure_url
+        });
+
+        // Return the secure URL
+        return result.secure_url;
+    } catch (error) {
+        console.error('Detailed Cloudinary Error:', {
+            message: error.message,
+            http_code: error.http_code,
+            name: error.name,
+            stack: error.stack
+        });
+        throw error;
+    }
+};
+
 module.exports = {
-    uploadToCloudinary
+    uploadToCloudinary,
+    uploadBufferToCloudinary
 };

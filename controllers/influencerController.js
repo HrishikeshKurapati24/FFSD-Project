@@ -125,7 +125,8 @@ const getInfluencerDashboard = async (req, res) => {
       pendingRequests: pendingRequests || [],
       brandInvites: brandInvites || [],
       sentRequests: sentRequests || [],
-      recentCampaignHistory
+      recentCampaignHistory,
+      baseUrl: `${req.protocol}://${req.get('host')}`
     });
   } catch (error) {
     console.error('Error in getInfluencerDashboard:', error);

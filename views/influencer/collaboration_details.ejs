@@ -278,6 +278,175 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+        /* Products Section Styles */
+        .products-intro {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .products-intro p {
+            margin: 0;
+            color: #1976d2;
+            font-size: 1rem;
+        }
+
+        .products-intro i {
+            margin-right: 0.5rem;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            max-width: 250px;
+            height: 200px;
+            margin: 0 auto 1rem auto;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .product-img:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+
+        .product-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 2rem;
+        }
+
+        .product-placeholder span {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            margin: 0 0 0.5rem 0;
+        }
+
+        .category-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .product-pricing {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .campaign-price {
+            color: var(--secondary-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .discount-badge {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .product-description {
+            margin: 1rem 0;
+        }
+
+        .product-description p {
+            color: #666;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .special-instructions {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff3e0;
+            border-radius: 8px;
+            border-left: 4px solid #f57c00;
+        }
+
+        .special-instructions h5 {
+            color: #f57c00;
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .special-instructions p {
+            color: #666;
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
         /* Footer Styles */
         footer {
             background-color: white;
@@ -446,36 +615,121 @@
                                 <% }); %>
                         </div>
                     </div>
-                    <% if (typeof isEligible !== 'undefined' && !isEligible) { %>
-                    <div class="detail-item" style="margin-top: 1rem;">
-                        <span class="label" style="color: #c0392b;">Unmet Requirements:</span>
-                        <ul style="margin: 0.5rem 0 0 1rem; color: #c0392b;">
-                            <% unmetRequirements.forEach(msg => { %>
-                                <li><%= msg %></li>
-                            <% }); %>
-                        </ul>
+                    <% if (typeof isEligible !=='undefined' && !isEligible) { %>
+                        <div class="detail-item" style="margin-top: 1rem;">
+                            <span class="label" style="color: #c0392b;">Unmet Requirements:</span>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: #c0392b;">
+                                <% unmetRequirements.forEach(msg=> { %>
+                                    <li>
+                                        <%= msg %>
+                                    </li>
+                                    <% }); %>
+                            </ul>
+                        </div>
+                        <% } %>
+                </div>
+
+                <!-- Products Section -->
+                <% if (collab.products && collab.products.length> 0) { %>
+                    <div class="detail-section" style="grid-column: 1 / -1;">
+                        <h3>Campaign Products</h3>
+                        <div class="products-intro">
+                            <p><i class="fas fa-info-circle"></i> <strong>These are the products you will be promoting
+                                    in this campaign. A sample will be sent to you after approval of request.</strong></p>
+                        </div>
+                        <div class="products-grid">
+                            <% collab.products.forEach(product=> { %>
+                                <div class="product-card">
+                                    <div class="product-image">
+                                        <% // Get the primary image or first image from the images array const
+                                            productImage=product.images && product.images.length> 0
+                                            ? (product.images.find(img => img.is_primary) || product.images[0])
+                                            : null;
+                                            const imageUrl = productImage ? productImage.url : null;
+                                            %>
+                                            <% if (imageUrl && imageUrl.trim() !=='' ) { %>
+                                                <img src="<%= imageUrl %>" alt="<%= product.name %>" class="product-img"
+                                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                    onload="console.log('Image loaded successfully:', '<%= imageUrl %>');">
+                                                <div class="product-placeholder" style="display: none;">
+                                                    <i class="fas fa-box"></i>
+                                                    <span>Image Failed to Load</span>
+                                                    <small
+                                                        style="display: block; margin-top: 0.5rem; font-size: 0.7rem; color: #999;">
+                                                        URL: <%= imageUrl %>
+                                                    </small>
+                                                </div>
+                                                <% } else { %>
+                                                    <div class="product-placeholder">
+                                                        <i class="fas fa-box"></i>
+                                                        <span>No Image</span>
+                                                    </div>
+                                                    <% } %>
+                                    </div>
+                                    <div class="product-details">
+                                        <h4 class="product-name">
+                                            <%= product.name %>
+                                        </h4>
+                                        <div class="product-category">
+                                            <span class="category-badge">
+                                                <%= product.category %>
+                                            </span>
+                                        </div>
+                                        <div class="product-pricing">
+                                            <div class="price-row">
+                                                <span class="price-label">Original Price:</span>
+                                                <span class="original-price">$<%= product.original_price %></span>
+                                            </div>
+                                            <div class="price-row">
+                                                <span class="price-label">Campaign Price:</span>
+                                                <span class="campaign-price">$<%= product.campaign_price %></span>
+                                            </div>
+                                            <% if (product.discount_percentage) { %>
+                                                <div class="discount-badge">
+                                                    <%= product.discount_percentage %>% OFF
+                                                </div>
+                                                <% } %>
+                                        </div>
+                                        <div class="product-description">
+                                            <p>
+                                                <%= product.description %>
+                                            </p>
+                                        </div>
+                                        <% if (product.special_instructions) { %>
+                                            <div class="special-instructions">
+                                                <h5>Special Instructions:</h5>
+                                                <p>
+                                                    <%= product.special_instructions %>
+                                                </p>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                </div>
+                                <% }); %>
+                        </div>
                     </div>
                     <% } %>
-                </div>
             </div>
 
             <div class="action-buttons">
-                <% if (applicationStatus === 'request') { %>
+                <% if (applicationStatus==='request' ) { %>
                     <button class="btn btn-secondary" disabled>
                         <i class="fas fa-check"></i> Applied for Campaign
                     </button>
-                <% }else if(applicationStatus === 'active'){ %>
-                    <button class="btn btn-secondary" disabled>
-                        <i class="fas fa-check"></i>Application already accepted
-                    </button>
-                <% } else { %>
-                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                        <input type="text" id="specialMessage" placeholder="Add a message to brand (optional)" style="flex:1;padding:10px;border-radius:6px;border:1px solid #ccc;" />
-                        <button class="btn btn-primary" onclick="applyForCampaign('<%= collab._id %>')" <%= (typeof isEligible !== 'undefined' && !isEligible) ? 'disabled' : '' %>>
-                            <i class="fas fa-check"></i> Apply For Campaign
+                    <% }else if(applicationStatus==='active' ){ %>
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-check"></i>Application already accepted
                         </button>
-                    </div>
-                <% } %>
+                        <% } else { %>
+                            <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                                <input type="text" id="specialMessage" placeholder="Add a message to brand (optional)"
+                                    style="flex:1;padding:10px;border-radius:6px;border:1px solid #ccc;" />
+                                <button class="btn btn-primary" onclick="applyForCampaign('<%= collab._id %>')"
+                                    <%=(typeof isEligible !=='undefined' && !isEligible) ? 'disabled' : '' %>>
+                                    <i class="fas fa-check"></i> Apply For Campaign
+                                </button>
+                            </div>
+                            <% } %>
             </div>
         </div>
     </div>

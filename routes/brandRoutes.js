@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const brandController = require('../controllers/brandController');
+const CampaignContentController = require('../controllers/campaignContentController');
 const { upload } = require('../utils/imageUpload');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const multer = require('multer');
+const { uploadToCloudinary, uploadBufferToCloudinary } = require('../utils/cloudinary');
 const { isAuthenticated, isBrand } = require('./authRoutes');
 const { CampaignPayments, CampaignInfluencers, CampaignInfo, CampaignMetrics } = require('../config/CampaignMongo');
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('../config/InfluencerMongo');
 const mongoose = require('mongoose');
 const { BrandInfo, BrandAnalytics, BrandSocials } = require('../config/BrandMongo');
 const { Message } = require('../config/MessageMongo');
-const Offer = require('../config/OfferMongo');
+const { Product } = require('../config/ProductMongo');
 
 // Apply authentication middleware to all routes
 router.use(isAuthenticated);
@@ -282,7 +284,7 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
             campaign_id: { $in: campaignIds },
             status: 'influencer-invite'
         })
-            .populate('influencer_id', 'name username profile_pic location categories')
+            .populate('influencer_id', 'fullName displayName username profilePicUrl location categories')
             .populate('campaign_id', 'title description duration budget target_audience required_channels min_followers')
             .lean();
         console.log('Found influencer invites:', influencerInvites.length);
@@ -298,7 +300,7 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
             campaign_id: { $in: requestCampaignIds },
             status: 'request'
         })
-            .populate('influencer_id', 'name username profile_pic location categories')
+            .populate('influencer_id', 'fullName displayName username profilePicUrl location categories')
             .populate('campaign_id', 'title description duration budget target_audience required_channels min_followers')
             .lean();
         console.log('Found campaign requests:', campaignRequests.length);
@@ -345,6 +347,31 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
                 latestMessage = null;
             }
 
+            // Fetch campaign products
+            let campaignProducts = [];
+            try {
+                const products = await Product.find({
+                    campaign_id: new mongoose.Types.ObjectId(campaign._id),
+                    status: 'active'
+                }).lean();
+
+                campaignProducts = products.map(product => ({
+                    id: product._id,
+                    name: product.name,
+                    category: product.category,
+                    original_price: product.original_price,
+                    campaign_price: product.campaign_price,
+                    discount_percentage: product.discount_percentage,
+                    description: product.description,
+                    image_url: product.images && product.images.length > 0
+                        ? (product.images.find(img => img.is_primary) || product.images[0]).url
+                        : null,
+                    special_instructions: product.special_instructions
+                }));
+            } catch (e) {
+                console.error('Error fetching campaign products:', e);
+                campaignProducts = [];
+            }
 
             return {
                 tag, // 'influencer invite' | 'request'
@@ -357,13 +384,14 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
                     budget: campaign.budget,
                     target_audience: campaign.target_audience,
                     required_channels: formattedRequiredChannels,
-                    min_followers: campaign.min_followers
+                    min_followers: campaign.min_followers,
+                    products: campaignProducts
                 },
                 influencer: {
                     id: influencer._id,
-                    name: influencer.name || 'Unknown',
+                    name: influencer.displayName || influencer.fullName || 'Unknown',
                     username: influencer.username || 'unknown',
-                    profile_pic: influencer.profile_pic || '/images/default-avatar.jpg',
+                    profile_pic: influencer.profilePicUrl || '/images/default-avatar.jpg',
                     location: influencer.location || 'Not specified',
                     categories: influencer.categories || [],
                     channels: formattedChannels,
@@ -408,65 +436,6 @@ router.get('/create_collab', (req, res) => {
     res.render('brand/create_collab');
 });
 
-// Route to render the Create Offer page
-router.get('/create_offer', (req, res) => {
-    res.render('brand/create_offer');
-});
-
-// Route to handle form submission for creating an offer
-router.post('/create_offer', async (req, res) => {
-    try {
-        const brandId = req.session.user.id;
-        const {
-            description,
-            start_date,
-            end_date,
-            eligibility,
-            offer_percentage,
-            offer_details
-        } = req.body;
-
-        // Validate required fields
-        const requiredFields = ['description', 'start_date', 'end_date', 'eligibility', 'offer_percentage', 'offer_details'];
-        const missingFields = requiredFields.filter(field => !req.body[field]);
-
-        if (missingFields.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields',
-                fields: missingFields
-            });
-        }
-
-        // Create new offer
-        const newOffer = new Offer({
-            brand_id: new mongoose.Types.ObjectId(brandId),
-            description: description.trim(),
-            start_date: new Date(start_date),
-            end_date: new Date(end_date),
-            eligibility: eligibility.trim(),
-            offer_percentage: parseFloat(offer_percentage),
-            offer_details: offer_details.trim(),
-            status: 'active',
-            created_at: new Date(),
-            updated_at: new Date()
-        });
-
-        await newOffer.save();
-
-        // Set success message in session
-        req.session.successMessage = 'Offer created successfully.';
-
-        res.redirect('/brand/home');
-    } catch (error) {
-        console.error('Error creating offer:', error);
-        res.status(500).render('brand/create_offer', {
-            error: 'Failed to create offer. Please try again.',
-            formData: req.body
-        });
-    }
-});
-
 // Route for the B2_transaction with requestId
 router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
     try {
@@ -491,7 +460,7 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
                 path: 'campaign_id',
                 select: 'title description budget duration target_audience required_channels min_followers objectives start_date end_date status'
             })
-            .populate('influencer_id', 'name username profile_pic')
+            .populate('influencer_id', 'fullName displayName username profilePicUrl')
             .lean();
 
         // Log the query result
@@ -562,6 +531,32 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
             }
         }
 
+        // Fetch campaign products
+        let campaignProducts = [];
+        try {
+            const products = await Product.find({
+                campaign_id: new mongoose.Types.ObjectId(request.campaign_id._id),
+                status: 'active'
+            }).lean();
+
+            campaignProducts = products.map(product => ({
+                id: product._id,
+                name: product.name,
+                category: product.category,
+                original_price: product.original_price,
+                campaign_price: product.campaign_price,
+                discount_percentage: product.discount_percentage,
+                description: product.description,
+                image_url: product.images && product.images.length > 0
+                    ? (product.images.find(img => img.is_primary) || product.images[0]).url
+                    : null,
+                special_instructions: product.special_instructions
+            }));
+        } catch (e) {
+            console.error('Error fetching campaign products:', e);
+            campaignProducts = [];
+        }
+
         // Prepare data for the view
         const viewData = {
             // Campaign details
@@ -578,8 +573,8 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
             campaignStatus: request.campaign_id.status,
 
             // Influencer details
-            influencerImage: request.influencer_id.profile_pic || '/images/default-avatar.jpg',
-            influencerName: request.influencer_id.name,
+            influencerImage: request.influencer_id.profilePicUrl || '/images/default-avatar.jpg',
+            influencerName: request.influencer_id.displayName || request.influencer_id.fullName,
             influencerUsername: request.influencer_id.username,
             socialHandle: primarySocial.handle || 'Not available',
             socialPlatform: primarySocial.platform || 'Not specified',
@@ -590,6 +585,7 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
             requestId2: requestId2,
             paymentDue: `$${request.campaign_id.budget}`,
             paymentMax: remainingBudget,
+            allowComplete: (request.campaign_id.status === 'influencer-invite'),
 
             // Additional campaign metrics if available
             metrics: request.campaign_metrics || {
@@ -597,7 +593,10 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
                 engagement_rate: 0,
                 reach: 0,
                 conversion_rate: 0
-            }
+            },
+
+            // Campaign products
+            campaignProducts: campaignProducts
         };
 
         res.render('brand/transaction', viewData);
@@ -611,11 +610,15 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
 });
 
 // POST route to handle payment submission
-router.post('/:requestId1/:requestId2/transaction', async (req, res) => {
+router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'), async (req, res) => {
     try {
         const brandId = req.session.user.id;
         const { requestId1, requestId2 } = req.params;
         const {
+            objectives,
+            startDate,
+            endDate,
+            targetAudience,
             amount,
             paymentMethod,
             cardNumber,
@@ -627,7 +630,9 @@ router.post('/:requestId1/:requestId2/transaction', async (req, res) => {
             bankName
         } = req.body;
 
-        // Validate required fields
+        console.log('req.body', req.body);
+
+        // Validate required fields (always required)
         if (!amount || !paymentMethod) {
             return res.status(400).send('Amount and payment method are required');
         }
@@ -647,9 +652,113 @@ router.post('/:requestId1/:requestId2/transaction', async (req, res) => {
             return res.status(404).send('Request not found');
         }
 
+        // Ensure campaign is in influencer-invite status before allowing completion
+        const campaignDoc = await CampaignInfo.findById(request.campaign_id).select('status brand_id');
+        if (!campaignDoc) {
+            return res.status(404).send('Campaign not found');
+        }
+
+        const isCompleting = (campaignDoc.status === 'influencer-invite');
+
+        if (isCompleting) {
+            // Validate campaign completion fields
+            if (!objectives || !startDate || !endDate || !targetAudience) {
+                return res.status(400).send('Campaign completion fields are required');
+            }
+
+            // Validate dates
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (start < today) {
+                return res.status(400).send('Start date cannot be in the past');
+            }
+
+            if (end <= start) {
+                return res.status(400).send('End date must be after start date');
+            }
+
+            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            if (duration > 365) {
+                return res.status(400).send('Campaign duration cannot exceed 365 days');
+            }
+
+            // Update the campaign with the completed details
+            await CampaignInfo.updateOne(
+                { _id: request.campaign_id },
+                {
+                    $set: {
+                        objectives: objectives.trim(),
+                        start_date: start,
+                        end_date: end,
+                        duration: duration,
+                        target_audience: targetAudience.trim(),
+                        status: 'active' // Change status from 'influencer-invite' to 'active'
+                    }
+                }
+            );
+        }
+
+        // If completing (influencer-invite), require minimal product and create it
+        if (isCompleting) {
+            const {
+                prodName,
+                prodDescription,
+                originalPrice,
+                campaignPrice,
+                category,
+                targetQty
+            } = req.body;
+
+            // Basic validation for product
+            if (!prodName || !prodDescription || !category) {
+                return res.status(400).send('All product fields are required');
+            }
+
+            if (!req.file) {
+                return res.status(400).send('Product image is required');
+            }
+
+            const op = Number(originalPrice);
+            const cp = Number(campaignPrice);
+            const tq = Number(targetQty);
+            if (!Number.isFinite(op) || op < 0 || !Number.isFinite(cp) || cp < 0 || cp > op || !Number.isFinite(tq) || tq < 0) {
+                return res.status(400).send('Invalid product pricing or target quantity');
+            }
+
+            try {
+                // Upload image to Cloudinary
+                console.log('Uploading product image to Cloudinary...');
+                const imageUrl = await uploadToCloudinary(req.file, 'products');
+                console.log('Image uploaded successfully:', imageUrl);
+
+                // Create product
+                await Product.create({
+                    brand_id: new mongoose.Types.ObjectId(brandId),
+                    campaign_id: request.campaign_id,
+                    name: prodName.trim(),
+                    description: prodDescription.trim(),
+                    images: [{ url: imageUrl, is_primary: true }],
+                    original_price: op,
+                    campaign_price: cp,
+                    category: category.trim(),
+                    target_quantity: tq,
+                    created_by: new mongoose.Types.ObjectId(brandId),
+                    status: 'active'
+                });
+
+                console.log('Product created successfully');
+            } catch (uploadError) {
+                console.error('Error uploading image to Cloudinary:', uploadError);
+                return res.status(500).send('Error uploading product image');
+            }
+        }
+
         // Save payment details
         const payment = new CampaignPayments({
-            campaign_id: campaignId,
+            campaign_id: request.campaign_id,  // Use the actual campaign ID from the request
             brand_id: new mongoose.Types.ObjectId(brandId),
             influencer_id: influencerId,
             amount: parseFloat(amount),
@@ -658,7 +767,12 @@ router.post('/:requestId1/:requestId2/transaction', async (req, res) => {
             payment_method: paymentMethod === 'creditCard' ? 'credit_card' : 'bank_transfer'
         });
 
-        await payment.save();
+        try {
+            await payment.save();
+        } catch (error) {
+            console.error('Error saving payment:', error);
+            return res.status(500).send('Internal Server Error');
+        }
 
         // Update CampaignInfluencers status to 'active'
         await CampaignInfluencers.updateOne(
@@ -672,7 +786,7 @@ router.post('/:requestId1/:requestId2/transaction', async (req, res) => {
         );
 
         // Set success message in session
-        req.session.successMessage = 'Payment completed successfully!';
+        req.session.successMessage = 'Campaign completed and payment processed successfully!';
 
         // Redirect to received requests page
         res.redirect(`/brand/home`);
@@ -856,9 +970,31 @@ router.post('/profile/update-images', upload.fields([
     }
 });
 
+// Create a custom multer configuration for campaign creation
+const campaignUpload = multer({
+    storage: multer.memoryStorage(), // Use memory storage for Cloudinary
+    fileFilter: (req, file, cb) => {
+        // Accept images only
+        if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)) {
+            return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+    },
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB max file size
+    }
+});
+
 // Route to handle campaign creation
-router.post('/campaigns/create', async (req, res) => {
+router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
     try {
+        // Handle multer errors
+        if (req.fileValidationError) {
+            return res.status(400).render('brand/Create_collab', {
+                error: req.fileValidationError,
+                formData: req.body
+            });
+        }
         const brandId = req.session.user.id;
         const {
             title,
@@ -870,8 +1006,18 @@ router.post('/campaigns/create', async (req, res) => {
             required_channels,
             required_influencers,
             min_followers,
-            objectives
+            objectives,
+            products
         } = req.body;
+
+        //Check if the brand is verified, if not, return an error
+        const brand = await BrandInfo.findById(brandId);
+        if (!brand.verified) {
+            return res.status(400).render('brand/Create_collab', {
+                error: 'Your account is not verified. Please wait for verification.',
+                formData: req.body
+            });
+        }
 
         // Calculate duration from start and end dates
         const startDate = new Date(start_date);
@@ -903,8 +1049,99 @@ router.post('/campaigns/create', async (req, res) => {
             objectives
         });
 
+        // Validate products if provided (purchase_url will be generated later)
+        if (products && Array.isArray(products) && products.length > 0) {
+            for (const product of products) {
+                if (!product.name || !product.category || !product.original_price || !product.campaign_price || !product.description || !product.target_quantity) {
+                    return res.status(400).render('brand/Create_collab', {
+                        error: 'All product fields (name, category, original_price, campaign_price, description) are required.',
+                        formData: req.body
+                    });
+                }
+
+                if (parseInt(product.target_quantity) < 0) {
+                    return res.status(400).render('brand/Create_collab', {
+                        error: 'Target quantity must be 0 or greater.',
+                        formData: req.body
+                    });
+                }
+
+                if (parseFloat(product.original_price) <= 0 || parseFloat(product.campaign_price) <= 0) {
+                    return res.status(400).render('brand/Create_collab', {
+                        error: 'Product prices must be greater than 0.',
+                        formData: req.body
+                    });
+                }
+
+                if (parseFloat(product.campaign_price) >= parseFloat(product.original_price)) {
+                    return res.status(400).render('brand/Create_collab', {
+                        error: 'Campaign price must be less than original price.',
+                        formData: req.body
+                    });
+                }
+            }
+        } else {
+            return res.status(400).render('brand/Create_collab', {
+                error: 'At least one product is required.',
+                formData: req.body
+            });
+        }
+
         // Save campaign info
         const savedCampaign = await campaignInfo.save();
+
+        // Create products for the campaign
+        if (products && Array.isArray(products)) {
+            const { Product } = require('../config/ProductMongo');
+
+            for (let i = 0; i < products.length; i++) {
+                const productData = products[i];
+
+                // Calculate discount percentage
+                const discountPercentage = productData.original_price > 0
+                    ? Math.round(((productData.original_price - productData.campaign_price) / productData.original_price) * 100)
+                    : 0;
+
+                // Handle image upload for this product
+                let imageUrl = '';
+                if (req.files && req.files.length > 0) {
+                    // Find the corresponding image file for this product
+                    const productImageFile = req.files.find(file =>
+                        file.fieldname === `products[${i}][image]`
+                    );
+
+                    if (productImageFile) {
+                        try {
+                            imageUrl = await uploadBufferToCloudinary(productImageFile, 'product-images');
+                        } catch (error) {
+                            console.error('Error uploading product image:', error);
+                            return res.status(500).render('brand/Create_collab', {
+                                error: 'Error uploading product image: ' + error.message,
+                                formData: req.body
+                            });
+                        }
+                    }
+                }
+
+                const product = new Product({
+                    name: productData.name,
+                    category: productData.category,
+                    description: productData.description,
+                    original_price: parseFloat(productData.original_price),
+                    campaign_price: parseFloat(productData.campaign_price),
+                    discount_percentage: discountPercentage,
+                    images: [{ url: imageUrl }],
+                    special_instructions: productData.special_instructions || '',
+                    brand_id: new mongoose.Types.ObjectId(brandId),
+                    campaign_id: savedCampaign._id,
+                    created_by: new mongoose.Types.ObjectId(brandId),
+                    status: 'active',
+                    target_quantity: parseInt(productData.target_quantity)
+                });
+
+                await product.save();
+            }
+        }
 
         // Create campaign metrics with default values
         const campaignMetrics = new CampaignMetrics({
@@ -930,7 +1167,23 @@ router.post('/campaigns/create', async (req, res) => {
         res.redirect('/brand/home');
     } catch (error) {
         console.error('Error creating campaign:', error);
-        res.status(500).render('brand/create_collab', {
+
+        // Handle multer errors specifically
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).render('brand/Create_collab', {
+                error: 'File size too large. Maximum size is 5MB.',
+                formData: req.body
+            });
+        }
+
+        if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).render('brand/Create_collab', {
+                error: 'Unexpected file field. Please check your form.',
+                formData: req.body
+            });
+        }
+
+        res.status(500).render('brand/Create_collab', {
             error: 'Failed to create campaign. Please try again.',
             formData: req.body
         });
@@ -1070,10 +1323,28 @@ router.post('/campaigns/:campaignId/end', async (req, res) => {
             });
         }
 
+        // Update campaign metrics revenue to total products sold * campaign price
+        const productsSold = await Product.countDocuments({ campaign_id: new mongoose.Types.ObjectId(campaignId) }) || 0;
+        const campaignPrice = campaign.budget || 0;
+        const revenue = productsSold * campaignPrice || 0;
+        await CampaignMetrics.findByIdAndUpdate(campaign._id, { $set: { revenue: revenue } });
+
+        // Update campaign metrics roi to revenue / budget
+        const roi = revenue / (campaign.budget || 0) || 0;
+        await CampaignMetrics.findByIdAndUpdate(campaign._id, { $set: { roi: roi } });
+
         // Update campaign status to completed
         campaign.status = 'completed';
         campaign.end_date = new Date();
         await campaign.save();
+
+        // Increment the completed campaigns count for the brand
+        await BrandInfo.findByIdAndUpdate(brandId, { $inc: { completedCampaigns: 1 } });
+
+        const influencers = await CampaignInfluencers.find({ campaign_id: new mongoose.Types.ObjectId(campaignId) });
+        for (const influencer of influencers) {
+            await InfluencerInfo.findByIdAndUpdate(influencer.influencer_id, { $inc: { completedCampaigns: 1 } });
+        }
 
         // Also update all associated campaign influencer records to completed
         await CampaignInfluencers.updateMany(
@@ -1134,6 +1405,15 @@ router.post('/invite-influencer', async (req, res) => {
     try {
         let { influencerId, campaignId } = req.body;
         const brandId = req.session.user.id;
+
+        //Check if the brand is verified, if not, return an error
+        const brand = await BrandInfo.findById(brandId);
+        if (!brand.verified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your account is not verified. Please wait for verification.'
+            });
+        }
 
         // Trim whitespace from IDs
         influencerId = influencerId?.trim();
@@ -1373,5 +1653,15 @@ router.get('/influencer_details/:influencerId', isAuthenticated, isBrand, async 
         });
     }
 });
+
+// ========== CAMPAIGN CONTENT MANAGEMENT ROUTES ==========
+
+// Product management routes
+router.post('/campaigns/:campaignId/products', CampaignContentController.createCampaignProducts);
+router.get('/campaigns/:campaignId/products', CampaignContentController.getCampaignProducts);
+
+// Content review routes
+router.get('/campaigns/:campaignId/pending-content', CampaignContentController.getCampaignPendingContentForBrand);
+router.post('/content/:contentId/review', CampaignContentController.reviewContent);
 
 module.exports = router;

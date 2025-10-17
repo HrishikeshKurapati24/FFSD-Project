@@ -92,10 +92,6 @@ const brandInfoSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
-    currentCampaign: {
-        type: String,
-        trim: true
-    },
     about: {
         type: String,
         trim: true,
@@ -124,11 +120,6 @@ const brandInfoSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         min: [0, 'Completed campaigns cannot be negative']
-    },
-    influencerPartnerships: {
-        type: Number,
-        default: 0,
-        min: [0, 'Partnerships cannot be negative']
     },
     avgCampaignRating: {
         type: Number,

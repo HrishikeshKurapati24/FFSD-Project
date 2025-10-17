@@ -27,13 +27,14 @@ const campaignInfoSchema = new mongoose.Schema({
     },
     start_date: {
         type: Date,
-        required: [true, 'Start date is required']
+        required: false // Will be filled by brand
     },
     end_date: {
         type: Date,
-        required: [true, 'End date is required'],
+        required: false, // Will be filled by brand
         validate: {
             validator: function (value) {
+                if (!value || !this.start_date) return true; // Skip validation if either is null
                 return value > this.start_date;
             },
             message: 'End date must be after start date'
@@ -41,12 +42,12 @@ const campaignInfoSchema = new mongoose.Schema({
     },
     duration: {
         type: Number,
-        required: [true, 'Duration is required'],
-        min: [1, 'Duration must be at least 1 day']
+        required: false, // Will be filled by brand
     },
     required_influencers: {
         type: Number,
-        min: [1, 'At least 1 influencer is required']
+        min: [1, 'At least 1 influencer is required'],
+        default: 1
     },
     budget: {
         type: Number,
@@ -55,7 +56,7 @@ const campaignInfoSchema = new mongoose.Schema({
     },
     target_audience: {
         type: String,
-        required: [true, 'Target audience is required'],
+        required: false, // Will be filled by brand
         trim: true
     },
     required_channels: [{
@@ -70,9 +71,14 @@ const campaignInfoSchema = new mongoose.Schema({
     },
     objectives: {
         type: String,
-        required: [true, 'Campaign objectives are required'],
+        required: false, // Will be filled by brand
         trim: true,
         maxlength: [500, 'Objectives cannot exceed 500 characters']
+    },
+    product_name: {
+        type: String,
+        trim: true,
+        maxlength: [200, 'Product name cannot exceed 200 characters']
     }
 }, {
     timestamps: true

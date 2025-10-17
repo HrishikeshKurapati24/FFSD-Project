@@ -391,9 +391,40 @@
       background: #e0e0e0;
     }
 
-    .btn-end-campaign {
+    .campaign-actions {
       margin-top: 15px;
-      width: 100%;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-review-content {
+      flex: 1;
+      padding: 10px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-review-content:hover {
+      background: #3367d6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+    }
+
+    .btn-review-content:active {
+      transform: translateY(0);
+    }
+
+    .btn-review-content i {
+      margin-right: 5px;
+    }
+
+    .btn-end-campaign {
+      flex: 1;
       padding: 10px;
       background: var(--accent-color);
       color: white;
@@ -416,6 +447,179 @@
 
     .btn-end-campaign i {
       margin-right: 5px;
+    }
+
+    /* Content Review Modal Styles */
+    .content-list {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .content-item {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: white;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .influencer-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .influencer-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .influencer-info h4 {
+      margin: 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .content-date {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .content-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .status-submitted {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .content-body {
+      margin-bottom: 15px;
+    }
+
+    .content-caption {
+      margin-bottom: 15px;
+    }
+
+    .content-caption p {
+      margin: 0;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .content-media {
+      margin-bottom: 15px;
+    }
+
+    .content-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .content-video {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+    }
+
+    .special-instructions {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--primary-color);
+    }
+
+    .special-instructions strong {
+      color: var(--primary-color);
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-approve,
+    .btn-reject {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-approve {
+      background: var(--secondary-color);
+      color: white;
+    }
+
+    .btn-approve:hover {
+      background: #28a745;
+      transform: translateY(-1px);
+    }
+
+    .btn-reject {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .btn-reject:hover {
+      background: #dc3545;
+      transform: translateY(-1px);
+    }
+
+    .status-approved,
+    .status-rejected {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-approved {
+      background: var(--secondary-color);
+      color: white;
+    }
+
+    .status-rejected {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .no-content {
+      text-align: center;
+      padding: 40px;
+      color: #666;
     }
 
     .no-requests {
@@ -562,6 +766,104 @@
 </head>
 
 <body>
+  <script>
+    // Content Review Modal Functions
+    function openContentReviewModal(campaignId, campaignName) {
+      // Load content for the campaign
+      loadCampaignContent(campaignId, campaignName);
+    }
+
+    async function loadCampaignContent(campaignId, campaignName) {
+      try {
+        const response = await fetch(`/brand/campaigns/${campaignId}/pending-content`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to load campaign content');
+        }
+
+        // Update modal title
+        document.getElementById('contentReviewModalTitle').textContent = `Review Content -
+                                    ${campaignName}`;
+
+        // Update modal content
+        const contentList = document.getElementById('contentList');
+        if (data.content && data.content.length > 0) {
+          contentList.innerHTML = data.content.map(content => `
+                                    <div class="content-item" data-content-id="${content._id}">
+                                      <div class="content-header">
+                                        <div class="influencer-info">
+                                          <img
+                                            src="${content.influencer_id.profilePicUrl || '/images/default-avatar.jpg'}"
+                                            alt="${content.influencer_id.fullName}" class="influencer-avatar">
+                                          <div>
+                                            <h4>${content.influencer_id.fullName}</h4>
+                                            <span class="content-date">${new
+              Date(content.createdAt).toLocaleDateString()}</span>
+                                          </div>
+                                        </div>
+                                        <span class="content-status status-${content.status}">${content.status}</span>
+                                      </div>
+
+                                      <div class="content-body">
+                                        <div class="content-caption">
+                                          <p>${content.caption}</p>
+                                        </div>
+
+                                        ${content.media_urls && content.media_urls.length > 0 ? `
+                                        <div class="content-media">
+                                          ${content.media_urls.map(media => `
+                                          ${media.type === 'image' ?
+                  `<img src="${media.url}" alt="Content media" class="content-image">` :
+                  `<video controls class="content-video">
+                                            <source src="${media.url}" type="video/mp4">
+                                          </video>`
+                }
+                                          `).join('')}
+                                        </div>
+                                        ` : ''}
+
+                                        ${content.special_instructions ? `
+                                        <div class="special-instructions">
+                                          <strong>Special Instructions:</strong>
+                                          <p>${content.special_instructions}</p>
+                                        </div>
+                                        ` : ''}
+                                      </div>
+
+                                      <div class="content-actions">
+                                        ${content.status === 'submitted' ? `
+                                        <button class="btn-approve"
+                                          onclick="reviewContent('${content._id}', 'approve')">
+                                          <i class="fas fa-check"></i> Approve
+                                        </button>
+                                        <button class="btn-reject" onclick="reviewContent('${content._id}', 'reject')">
+                                          <i class="fas fa-times"></i> Reject
+                                        </button>
+                                        ` : content.status === 'approved' ? `
+                                        <span class="status-approved"><i class="fas fa-check-circle"></i>
+                                          Approved</span>
+                                        ` : content.status === 'rejected' ? `
+                                        <span class="status-rejected"><i class="fas fa-times-circle"></i>
+                                          Rejected</span>
+                                        ` : ''}
+                                      </div>
+                                    </div>
+                                    `).join('');
+        } else {
+          contentList.innerHTML = '<div class="no-content"><p> No content submitted for this campaign yet.</p></div> ';
+        }
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('contentReviewModal'));
+        modal.show();
+
+      } catch (error) {
+        console.error('Error loading campaign content:', error);
+        alert('Failed to load campaign content: ' + error.message);
+      }
+    }
+  </script>
   <!-- Header -->
   <header>
     <div class="header-container">
@@ -599,10 +901,8 @@
       <button class="toggle-btn" onclick="openMenu()">☰</button>
       <div class="menu" id="navMenu">
         <span class="close-btn" onclick="closeMenu()">&times;</span>
-        <a href="/brand/collab">Collabs</a>
         <a href="/brand/recievedRequests">Collab Requests</a>
         <a href="/brand/create_collab">Create Collab</a>
-        <a href="/brand/create_offer">Create Offer</a>
         <a href="/brand/signout">Sign Out</a>
       </div>
 
@@ -781,11 +1081,17 @@
                           </div>
                         </div>
 
-                        <!-- End Campaign Button -->
-                        <button class="btn-end-campaign"
-                          onclick="endCampaign('<%= campaign._id %>', '<%= campaign.title %>')">
-                          <i class="fas fa-check-circle"></i> End Campaign
-                        </button>
+                        <!-- Campaign Action Buttons -->
+                        <div class="campaign-actions">
+                          <button class="btn-review-content"
+                            onclick="openContentReviewModal('<%= campaign._id %>', '<%= campaign.name %>')">
+                            <i class="fas fa-eye"></i> Review Content
+                          </button>
+                          <button class="btn-end-campaign"
+                            onclick="endCampaign('<%= campaign._id %>', '<%= campaign.title %>')">
+                            <i class="fas fa-check-circle"></i> End Campaign
+                          </button>
+                        </div>
                       </div>
                       <% }); %>
                         <% } else { %>
@@ -1005,6 +1311,23 @@
           </div>
         </div>
       </div>
+
+      <!-- Content Review Modal -->
+      <div class="modal fade" id="contentReviewModal" tabindex="-1" aria-labelledby="contentReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="contentReviewModalTitle">Review Content</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="contentList" class="content-list">
+                <!-- Content will be loaded dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <script>
         function openMenu() {
           document.getElementById("navMenu").style.width = "250px";
@@ -1016,9 +1339,9 @@
         async function activateCampaign(campaignId) {
           try {
             const response = await fetch(`/brand/campaigns/${campaignId}/activate`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }
-            }); if (response.ok) { // Show success message
-                                    const alert = document.createElement('div');
+              method: ' POST', headers: { 'Content-Type': 'application/json' }
+            }); if (response.ok) { // Show success
+              // message const alert=document.createElement('div');
               alert.className = 'alert alert-success alert-dismissible fade show';
               alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; min-width: 300px;'
                 ; alert.innerHTML = `Campaign activated successfully! <button type="button"
@@ -1196,6 +1519,52 @@
           } catch (error) {
             console.error('Error ending campaign:', error);
             alert('An error occurred while ending the campaign. Please try again.');
+          }
+        }
+
+        async function reviewContent(contentId, action) {
+          const feedback = prompt(`Please provide feedback for ${action === 'approve' ?
+            'approving' : 'rejecting'} this content:`);
+
+          if (feedback === null) return; // User cancelled
+
+          try {
+            const response = await fetch(`/brand/content/${contentId}/review`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: action,
+                feedback: feedback
+              })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              alert(`Content ${action}d successfully!`);
+              // Reload the content list
+              const contentItem = document.querySelector(`[data-content-id="${contentId}"]`);
+              if (contentItem) {
+                const statusSpan = contentItem.querySelector('.content-status');
+                const actionsDiv = contentItem.querySelector('.content-actions');
+
+                statusSpan.textContent = action === 'approve' ? 'approved' : 'rejected';
+                statusSpan.className = `content-status status-${action === 'approve' ? 'approved' :
+                  'rejected'}`;
+
+                actionsDiv.innerHTML = action === 'approve' ?
+                  '<span class="status-approved"><i class="fas fa-check-circle"></i> Approved</span>'
+                  :
+                  '<span class="status-rejected"><i class="fas fa-times-circle"></i> Rejected</span>';
+              }
+            } else {
+              alert('Error: ' + data.message);
+            }
+          } catch (error) {
+            console.error('Error reviewing content:', error);
+            alert('An error occurred while reviewing the content. Please try again.');
           }
         }
       </script>

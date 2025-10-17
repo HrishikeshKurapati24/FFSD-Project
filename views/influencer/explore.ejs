@@ -570,9 +570,9 @@
             </div>
             <div class="brand-details">
               <div class="brand-header">
-              <h2 class="brand-name">
+                <h2 class="brand-name">
                   <%= brand.brandName || brand.name %>
-              </h2>
+                </h2>
                 <% if (brand.avgCampaignRating && brand.avgCampaignRating> 0) { %>
                   <div class="brand-rating">
                     <i class="fas fa-star"></i>
@@ -671,30 +671,13 @@
         </div>
 
         <div class="form-group">
-          <label for="campaignObjectives">Campaign Objectives *</label>
-          <textarea id="campaignObjectives" required rows="3"
-            placeholder="e.g., Increase brand awareness, Drive sales, Promote new product launch, Build community engagement"></textarea>
-        </div>
-
-        <div class="form-group">
           <label for="budget">Proposed Budget ($) *</label>
           <input type="number" id="budget" required min="0" placeholder="5000">
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="startDate">Start Date *</label>
-            <input type="date" id="startDate" required>
-          </div>
-          <div class="form-group">
-            <label for="endDate">End Date *</label>
-            <input type="date" id="endDate" required>
-          </div>
-        </div>
-
         <div class="form-group">
-          <label for="targetAudience">Target Audience *</label>
-          <input type="text" id="targetAudience" required placeholder="e.g., Young Adults, 18-35">
+          <label for="productName">Product Name *</label>
+          <input type="text" id="productName" required placeholder="e.g., Summer Collection Dress">
         </div>
 
         <div class="form-group">
@@ -740,11 +723,6 @@
       document.getElementById('inviteBrandName').textContent = `Inviting: ${brandName}`;
       document.getElementById('inviteModal').style.display = 'flex';
       document.getElementById('inviteForm').reset();
-
-      // Set minimum date to today
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('startDate').min = today;
-      document.getElementById('endDate').min = today;
     }
 
     function closeInviteModal() {
@@ -761,33 +739,17 @@
       }
     }
 
-    // Update end date min when start date changes and add real-time validation
+    // Add real-time validation for form fields
     document.addEventListener('DOMContentLoaded', function () {
-      const startDateInput = document.getElementById('startDate');
-      const endDateInput = document.getElementById('endDate');
-
-      startDateInput.addEventListener('change', function () {
-        endDateInput.min = this.value;
-        if (endDateInput.value && endDateInput.value < this.value) {
-          endDateInput.value = this.value;
-        }
-        // Clear any existing date errors when dates change
-        clearFieldError('startDate');
-      });
-
-      endDateInput.addEventListener('change', function () {
-        clearFieldError('startDate');
-      });
 
       // Add real-time validation and character filtering for text fields
-      const textFields = ['campaignTitle', 'campaignDescription', 'campaignObjectives', 'targetAudience'];
+      const textFields = ['campaignTitle', 'campaignDescription', 'productName'];
 
       // Define character patterns for each field
       const characterPatterns = {
         campaignTitle: /^[a-zA-Z0-9\s\-_.,!?&():;'"]*$/,
         campaignDescription: /^[a-zA-Z0-9\s\-_.,!?&():;'"@#$%*+/=<>[\]{}|\\~`]*$/,
-        campaignObjectives: /^[a-zA-Z0-9\s\-_.,!?&():;'"@#$%*+/=<>[\]{}|\\~`]*$/,
-        targetAudience: /^[a-zA-Z0-9\s\-_.,!?&():;'"]*$/
+        productName: /^[a-zA-Z0-9\s\-_.,!?&():;'"]*$/
       };
 
       textFields.forEach(fieldId => {
@@ -1047,6 +1009,36 @@
       return null;
     }
 
+    function validateProductName(productName) {
+      if (!productName || productName.trim().length === 0) {
+        return 'Product name is required';
+      }
+      if (productName.trim().length < 3) {
+        return 'Product name must be at least 3 characters long';
+      }
+      if (productName.trim().length > 200) {
+        return 'Product name must not exceed 200 characters';
+      }
+
+      // Check for vague/invalid patterns
+      const vaguePatterns = [
+        /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+        /^(product|item|thing|stuff|object|goods)$/i,
+        /^(my|the|a|an)\s+(product|item|thing)$/i,
+        /^[a-z]{1,3}$/i, // Very short strings
+        /^[0-9]+$/, // Only numbers
+        /^(.)\1{4,}$/, // Repeated characters like "aaaaa", "bbbbb"
+        /^[^a-zA-Z0-9\s]*$/, // Only special characters
+        /^(lorem|ipsum|dolor|sit|amet)/i // Lorem ipsum text
+      ];
+
+      if (vaguePatterns.some(pattern => pattern.test(productName.trim()))) {
+        return 'Please enter a meaningful product name';
+      }
+
+      return null;
+    }
+
     function showFieldError(fieldId, message) {
       const field = document.getElementById(fieldId);
       const errorDiv = field.parentNode.querySelector('.field-error');
@@ -1086,7 +1078,7 @@
       const errorElements = document.querySelectorAll('.field-error');
       errorElements.forEach(el => el.remove());
 
-      const fields = ['campaignTitle', 'campaignDescription', 'campaignObjectives', 'budget', 'startDate', 'endDate', 'targetAudience'];
+      const fields = ['campaignTitle', 'campaignDescription', 'budget', 'productName'];
       fields.forEach(fieldId => {
         clearFieldError(fieldId);
       });
@@ -1094,11 +1086,8 @@
       // Get form values
       const title = document.getElementById('campaignTitle').value.trim();
       const description = document.getElementById('campaignDescription').value.trim();
-      const objectives = document.getElementById('campaignObjectives').value.trim();
       const budget = parseFloat(document.getElementById('budget').value);
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      const targetAudience = document.getElementById('targetAudience').value.trim();
+      const productName = document.getElementById('productName').value.trim();
 
       // Get selected channels
       const channelCheckboxes = document.querySelectorAll('input[name="channels"]:checked');
@@ -1119,27 +1108,15 @@
         hasErrors = true;
       }
 
-      const objectivesError = validateObjectives(objectives);
-      if (objectivesError) {
-        showFieldError('campaignObjectives', objectivesError);
-        hasErrors = true;
-      }
-
       const budgetError = validateBudget(budget);
       if (budgetError) {
         showFieldError('budget', budgetError);
         hasErrors = true;
       }
 
-      const datesError = validateDates(startDate, endDate);
-      if (datesError) {
-        showFieldError('startDate', datesError);
-        hasErrors = true;
-      }
-
-      const audienceError = validateTargetAudience(targetAudience);
-      if (audienceError) {
-        showFieldError('targetAudience', audienceError);
+      const productNameError = validateProductName(productName);
+      if (productNameError) {
+        showFieldError('productName', productNameError);
         hasErrors = true;
       }
 
@@ -1170,11 +1147,8 @@
         brandId: selectedBrandId,
         title: title,
         description: description,
-        objectives: objectives,
         budget: budget,
-        start_date: startDate,
-        end_date: endDate,
-        target_audience: targetAudience,
+        product_name: productName,
         required_channels: channels
       };
 

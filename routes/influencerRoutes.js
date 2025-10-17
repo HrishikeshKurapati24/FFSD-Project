@@ -3,12 +3,24 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const brandController = require('../controllers/brandController');
 const influencerController = require('../controllers/influencerController');
+const CampaignContentController = require('../controllers/campaignContentController');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+    dest: 'uploads/',
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit
+        files: 10 // Maximum 10 files
+    },
+    fileFilter: (req, file, cb) => {
+        console.log('File filter called:', file);
+        cb(null, true);
+    }
+});
 const { uploadToCloudinary } = require('../utils/cloudinary');
 const collaborationModel = require('../models/CollaborationModel');
 const { isAuthenticated, isInfluencer } = require('./authRoutes');
 const { CampaignInfo, CampaignInfluencers } = require('../config/CampaignMongo');
+const { Product } = require('../config/ProductMongo');
 const mongoose = require('mongoose');
 const { uploadInfluencerProfilePic, uploadInfluencerBanner, deleteOldImage, handleUploadError } = require('../utils/imageUpload');
 const path = require('path');
@@ -19,6 +31,12 @@ const brandModel = require('../models/brandModel');
 const { Message } = require('../config/MessageMongo');
 
 // Apply authentication middleware to all routes
+router.use((req, res, next) => {
+    console.log('=== AUTH CHECK ===');
+    console.log('User:', req.session.user);
+    next();
+});
+
 router.use(isAuthenticated);
 router.use(isInfluencer);
 
@@ -33,6 +51,20 @@ const verifyInfluencer = (req, res, next) => {
 
 // Apply influencer verification to all routes
 router.use(verifyInfluencer);
+
+// Debug middleware to see all requests
+router.use((req, res, next) => {
+    next();
+});
+
+// Also keep the original route
+router.post('/content/create', upload.array('media_files', 10), CampaignContentController.createContentFromForm);
+
+// Route to get approved content for influencer
+router.get('/content/approved', CampaignContentController.getApprovedContent);
+
+// Route to update content status to published
+router.post('/content/:contentId/publish', CampaignContentController.updateContentStatus);
 
 // Validation middleware
 const validateProfileUpdate = [
@@ -355,22 +387,47 @@ router.get('/collab', async (req, res) => {
             !excludedCampaignIds.includes(request._id.toString())
         );
 
+        // Get products for each campaign
+        const campaignIds = requests.map(request => request._id);
+        const products = await Product.find({
+            campaign_id: { $in: campaignIds }
+        }).select('campaign_id name category').lean();
+
+        // Group products by campaign_id
+        const productsByCampaign = {};
+        products.forEach(product => {
+            if (!productsByCampaign[product.campaign_id.toString()]) {
+                productsByCampaign[product.campaign_id.toString()] = [];
+            }
+            productsByCampaign[product.campaign_id.toString()].push(product);
+        });
+
         // Transform the data to match the view's requirements
-        const collabs = requests.map(request => ({
-            id: request._id,
-            title: request.title,
-            brand_name: request.brand_id?.brandName || 'Unknown Brand',
-            influence_regions: request.target_audience,
-            budget: parseFloat(request.budget) || 0,
-            offer_sentence: request.description,
-            channels: Array.isArray(request.required_channels) ? request.required_channels.join(', ') : '',
-            min_followers: request.min_followers?.toLocaleString() || '0',
-            age_group: request.target_audience?.split(',')[0] || 'All Ages',
-            genders: request.target_audience?.split(',')[1] || 'All Genders',
-            duration: request.duration || 0,
-            required_channels: Array.isArray(request.required_channels) ? request.required_channels : [],
-            created_at: request.createdAt || new Date()
-        }));
+        const collabs = requests.map(request => {
+            const campaignProducts = productsByCampaign[request._id.toString()] || [];
+            const productCategories = [...new Set(campaignProducts.map(p => p.category).filter(Boolean))];
+
+            return {
+                id: request._id,
+                title: request.title,
+                brand_name: request.brand_id?.brandName || 'Unknown Brand',
+                influence_regions: request.target_audience,
+                budget: parseFloat(request.budget) || 0,
+                offer_sentence: request.description,
+                channels: Array.isArray(request.required_channels) ? request.required_channels.join(', ') : '',
+                min_followers: request.min_followers?.toLocaleString() || '0',
+                age_group: request.target_audience?.split(',')[0] || 'All Ages',
+                genders: request.target_audience?.split(',')[1] || 'All Genders',
+                duration: request.duration || 0,
+                required_channels: Array.isArray(request.required_channels) ? request.required_channels : [],
+                created_at: request.createdAt || new Date(),
+                // Product information
+                products: campaignProducts,
+                product_names: campaignProducts.map(p => p.name).join(', '),
+                product_categories: productCategories,
+                primary_category: productCategories[0] || null
+            };
+        });
 
         res.render('influencer/collaborations', {
             collabs: collabs,
@@ -412,6 +469,10 @@ router.get('/collab/:id', async (req, res) => {
         const influencerChannels = (socials?.platforms || []).map(p => (p.platform || '').toLowerCase());
         const influencerFollowersTotal = (socials?.platforms || []).reduce((sum, p) => sum + (p.followers || 0), 0);
 
+        // Fetch influencer categories from InfluencerInfo
+        const influencerInfo = await InfluencerInfo.findById(influencerId).select('categories').lean();
+        const influencerCategories = (influencerInfo?.categories || []).map(cat => (cat || '').toLowerCase().trim());
+
         const requiredChannels = Array.isArray(collab.required_channels) ? collab.required_channels.map(c => (c || '').toLowerCase()) : [];
         const missingChannels = requiredChannels.filter(rc => !influencerChannels.includes(rc));
         const minFollowers = typeof collab.min_followers === 'number' ? collab.min_followers : 0;
@@ -423,6 +484,31 @@ router.get('/collab/:id', async (req, res) => {
         }
         if (!meetsFollowers) {
             unmetRequirements.push(`Minimum followers required: ${minFollowers.toLocaleString()}`);
+        }
+
+        // Fetch products for this campaign
+        const products = await Product.find({
+            campaign_id: new mongoose.Types.ObjectId(collabId),
+            status: 'active'
+        }).lean();
+
+        // Add products to the collab object
+        collab.products = products;
+
+        // Check category matching between influencer and products
+        if (products && products.length > 0) {
+            const productCategories = products.map(product => (product.category || '').toLowerCase().trim()).filter(Boolean);
+            const hasCategoryMatch = productCategories.some(productCategory =>
+                influencerCategories.some(influencerCategory =>
+                    influencerCategory === productCategory ||
+                    influencerCategory.includes(productCategory) ||
+                    productCategory.includes(influencerCategory)
+                )
+            );
+
+            if (!hasCategoryMatch && productCategories.length > 0) {
+                unmetRequirements.push(`Category mismatch: Your categories (${influencerCategories.join(', ') || 'None'}) don't match the product categories (${productCategories.join(', ')})`);
+            }
         }
 
         const isEligible = unmetRequirements.length === 0;
@@ -447,6 +533,15 @@ router.post('/apply/:campaignId', async (req, res) => {
         const influencerId = req.session.user.id;
         const specialMessage = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
 
+        //Check if the influencer is verified, if not, return an error
+        const influencer = await InfluencerInfo.findById(influencerId);
+        if (!influencer.verified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your account is not verified. Please wait for verification.'
+            });
+        }
+
         // Check if campaign exists
         const campaign = await CampaignInfo.findById(campaignId);
         if (!campaign) {
@@ -456,7 +551,7 @@ router.post('/apply/:campaignId', async (req, res) => {
             });
         }
 
-         // Check if influencer has already applied or been invited
+        // Check if influencer has already applied or been invited
         const existingApplication = await CampaignInfluencers.findOne({
             campaign_id: new mongoose.Types.ObjectId(campaignId),
             influencer_id: new mongoose.Types.ObjectId(influencerId)
@@ -727,35 +822,27 @@ router.post('/invite-brand', async (req, res) => {
             brandId,
             title,
             description,
-            objectives,
             budget,
-            start_date,
-            end_date,
-            target_audience,
+            product_name,
             required_channels
         } = req.body;
 
-        // Validate input
-        if (!brandId || !title || !description || !objectives || !budget || !start_date || !end_date || !target_audience || !required_channels || required_channels.length === 0) {
+        //Check if the influencer is verified, if not, return an error
+        const influencer = await InfluencerInfo.findById(influencerId);
+        if (!influencer.verified) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your account is not verified. Please wait for verification.'
+            });
+        }
+
+        // Validate input - only require the fields that influencer fills
+        if (!brandId || !title || !description || !budget || !product_name || !required_channels || required_channels.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: 'All required fields must be provided'
             });
         }
-
-        // Calculate duration from start and end dates
-        const startDate = new Date(start_date);
-        const endDate = new Date(end_date);
-
-        // Validate that end date is after start date
-        if (endDate <= startDate) {
-            return res.status(400).json({
-                success: false,
-                message: 'End date must be after start date'
-            });
-        }
-
-        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
 
         // Validate MongoDB ObjectId format
         if (!mongoose.Types.ObjectId.isValid(brandId)) {
@@ -789,23 +876,50 @@ router.post('/invite-brand', async (req, res) => {
             // Continue with 0 if analytics not found
         }
 
-        // Create campaign in CampaignInfo
+        // Create campaign in CampaignInfo with minimal required fields
+        // The brand will fill the rest (objectives, start_date, end_date, target_audience, etc.)
         const newCampaign = new CampaignInfo({
             brand_id: new mongoose.Types.ObjectId(brandId),
             title: title.trim(),
             description: description.trim(),
-            objectives: objectives.trim(),
             budget: parseFloat(budget),
-            duration: duration,
-            start_date: startDate,
-            end_date: endDate,
-            target_audience: target_audience.trim(),
+            product_name: product_name.trim(),
             required_channels: required_channels,
             min_followers: Math.floor(influencerFollowers * 0.5), // 50% of influencer's total followers
-            status: 'request' // Campaign starts in request status
+            status: 'influencer-invite', // Campaign starts in influencer-invite status
+            // These fields will be filled by the brand later:
+            objectives: '', // Empty - brand will fill
+            start_date: null, // Empty - brand will fill
+            end_date: null, // Empty - brand will fill
+            duration: 0, // Empty - brand will fill
+            target_audience: '', // Empty - brand will fill
+            required_influencers: 1 // Default to 1 since influencer is inviting themselves
         });
 
         await newCampaign.save();
+
+        const newProduct = new Product({
+            campaign_id: newCampaign._id,
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            name: product_name.trim(),
+            description: '',
+            original_price: 0,
+            campaign_price: 0,
+            category: '',
+            target_quantity: 0,
+            images: [],
+            tags: [],
+            is_digital: false,
+            delivery_info: {
+                estimated_days: 0,
+                shipping_cost: 0,
+                free_shipping_threshold: 0
+            },
+            specifications: new Map(),
+            status: 'active',
+            created_by: new mongoose.Types.ObjectId(brandId)
+        });
+        await newProduct.save();
 
         // Create entry in CampaignInfluencers with influencer-invite status
         const campaignInfluencer = new CampaignInfluencers({
@@ -819,7 +933,7 @@ router.post('/invite-brand', async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Invitation sent to brand successfully',
+            message: 'Invitation sent to brand successfully. The brand will complete the campaign details.',
             campaignId: newCampaign._id
         });
     } catch (error) {
@@ -979,6 +1093,70 @@ router.get('/brand_profile/:id', async (req, res) => {
             message: 'Error loading brand profile'
         });
     }
+});
+
+// ========== CAMPAIGN CONTENT CREATION ROUTES ==========
+
+// Test route to verify routes are working
+router.get('/test', (req, res) => {
+    res.json({ message: 'Influencer routes are working!' });
+});
+
+// Other content routes (must come after specific routes)
+router.post('/campaigns/:campaignId/content', CampaignContentController.createContent);
+router.post('/content/:contentId/submit', CampaignContentController.submitContent);
+
+// Get products for a campaign (for content creation)
+router.get('/campaigns/:campaignId/products', async (req, res) => {
+    try {
+        const { campaignId } = req.params;
+        const influencerId = req.session.user.id;
+
+        // Verify influencer has access to this campaign
+        const collaboration = await CampaignInfluencers.findOne({
+            campaign_id: campaignId,
+            influencer_id: influencerId,
+            status: 'active'
+        });
+
+        if (!collaboration) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied: You are not part of this campaign'
+            });
+        }
+
+        // Get products for this campaign
+        const products = await Product.find({
+            campaign_id: campaignId,
+            status: 'active'
+        }).select('name description campaign_price images category');
+
+        res.json({
+            success: true,
+            products
+        });
+
+    } catch (error) {
+        console.error('Error fetching campaign products:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching products',
+            error: error.message
+        });
+    }
+});
+
+// Error handling middleware for multer errors
+router.use((error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        console.error('Multer error:', error);
+        return res.status(400).json({
+            success: false,
+            message: 'File upload error: ' + error.message
+        });
+    }
+    next(error);
 });
 
 module.exports = router;

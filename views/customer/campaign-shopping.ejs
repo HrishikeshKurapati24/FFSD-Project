@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= campaign && campaign.title ? campaign.title : 'Campaign' %> - CollabSync
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/c_index/campaign-shopping.css">
+    <style>
+        .navbar {
+            background: #ffffff !important;
+            border-bottom: 1px solid #e6e9f0;
+            box-shadow: 0 4px 14px rgba(17, 17, 17, .06);
+        }
+
+        .navbar .navbar-brand {
+            color: #111111;
+        }
+
+        .navbar .nav-link {
+            color: #6c757d;
+        }
+
+        .navbar .nav-link:hover,
+        .navbar .nav-link.active {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .navbar .btn-primary {
+            background: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .navbar .btn-primary:hover {
+            background: #0b5ed7;
+            border-color: #0b5ed7;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-light bg-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/customer">
+                <i class="fas fa-shopping-bag me-2"></i>CollabSync
+            </a>
+            <ul class="nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/customer">All Campaigns</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/rankings">Rankings</a></li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div class="input-group me-3">
+                    <input type="text" id="search" class="form-control" placeholder="Search products or posts..."
+                        aria-label="Search products or posts">
+                    <button class="btn btn-outline-secondary" type="button" aria-label="Search"
+                        onclick="performSearch()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <a class="btn btn-primary" href="/customer/cart" aria-label="Go to cart">
+                    <i class="fas fa-shopping-cart me-2"></i>Cart
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Campaign Header -->
+    <div class="campaign-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <% const brandLogo=campaign && campaign.brand && campaign.brand.logoUrl ? campaign.brand.logoUrl
+                            : '/images/default-brand-logo.jpg' ; %>
+                            <img src="<%= brandLogo %>"
+                                alt="<%= (campaign && campaign.brand && campaign.brand.brandName) ? campaign.brand.brandName : 'Brand' %>"
+                                class="brand-logo me-3 campaign-brand-image"
+                                onerror="this.onerror=null; this.src='/images/default-brand-logo.jpg';">
+                            <div>
+                                <h1 class="campaign-title mb-1">
+                                    <%= campaign && campaign.title ? campaign.title : 'Campaign' %>
+                                </h1>
+                                <p class="brand-name mb-0">by <%= (campaign && campaign.brand &&
+                                        campaign.brand.brandName) ? campaign.brand.brandName : 'Unknown Brand' %>
+                                </p>
+                            </div>
+                    </div>
+                    <p class="campaign-description">
+                        <%= campaign && campaign.description ? campaign.description : '' %>
+                    </p>
+                    <div class="campaign-dates">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <% if (campaign && campaign.start_date && campaign.end_date) { %>
+                                <%= new Date(campaign.start_date).toLocaleDateString() %> - <%= new
+                                        Date(campaign.end_date).toLocaleDateString() %>
+                                        <% } %>
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="campaign-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-products">
+                                <%= (products && products.length) || 0 %>
+                            </span>
+                            <span class="stat-label">Products</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-content">
+                                <%= (content && content.length) || 0 %>
+                            </span>
+                            <span class="stat-label">Posts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Filter Tabs -->
+        <ul class="nav nav-tabs mb-4" id="contentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products"
+                    type="button" role="tab" aria-controls="products" aria-selected="true">
+                    <i class="fas fa-box me-2"></i>Products
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="content-tab" data-bs-toggle="tab" data-bs-target="#content" type="button"
+                    role="tab" aria-controls="content" aria-selected="false">
+                    <i class="fas fa-images me-2"></i>Influencer Content
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="contentTabsContent">
+            <!-- Products Tab -->
+            <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
+                <div class="row" id="products-container">
+                    <% if (!products || products.length===0) { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No products available for this campaign.
+                            </div>
+                        </div>
+                        <% } else { %>
+                            <% products.forEach(function(product) { %>
+                                <% const primaryImage=(product && product.images && product.images.length> 0)
+                                    ? (product.images.find(i => i && i.is_primary) || product.images[0])
+                                    : null;
+                                    const imageUrl = primaryImage && primaryImage.url ? primaryImage.url : null;
+                                    const computedAvailableStock = Math.max(0,
+                                    ((product && product.target_quantity) ? product.target_quantity : 0) -
+                                    ((product && product.sold_quantity) ? product.sold_quantity : 0)
+                                    );
+                                    %>
+                                    <div class="col-md-6 col-lg-4 mb-4 product-item"
+                                        data-search-text="<%- (product.name || '') + ' ' + (product.description || '') + ' ' + (product.category || '') %>">
+                                        <div class="product-card h-100 d-flex flex-column">
+                                            <div class="product-image-container">
+                                                <% if (imageUrl) { %>
+                                                    <img src="<%= imageUrl %>"
+                                                        alt="<%= product.name || 'Product image' %>"
+                                                        class="product-image"
+                                                        onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                    <div class="product-placeholder" style="display:none;"><i
+                                                            class="fas fa-image"></i></div>
+                                                    <% } else { %>
+                                                        <div class="product-placeholder"><i class="fas fa-image"></i>
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (product && product.discount_percentage> 0) { %>
+                                                                <span class="discount-badge">
+                                                                    <%= product.discount_percentage %>% OFF
+                                                                </span>
+                                                                <% } %>
+                                            </div>
+                                            <div class="product-info d-flex flex-column flex-grow-1">
+                                                <h6 class="product-name">
+                                                    <%= product && product.name ? product.name : 'Unnamed Product' %>
+                                                </h6>
+                                                <p class="product-description">
+                                                    <%= product && product.description ? (product.description.length>
+                                                        120 ? (product.description.substring(0, 120) + '...') :
+                                                        product.description) : '' %>
+                                                </p>
+                                                <div class="product-pricing mb-2">
+                                                    <span class="current-price">$<%= product && product.campaign_price
+                                                            !=null ? product.campaign_price : 0 %></span>
+                                                    <% if (product && product.original_price !=null &&
+                                                        product.original_price> product.campaign_price) { %>
+                                                        <span class="original-price">$<%= product.original_price %>
+                                                        </span>
+                                                        <% } %>
+                                                </div>
+                                                <div class="product-details mb-3">
+                                                    <ul class="list-unstyled small mb-0">
+                                                        <% if (product && product.category) { %>
+                                                            <li><strong>Category:</strong>
+                                                                <%= product.category %>
+                                                            </li>
+                                                            <% } %>
+                                                                <li><strong>Stock:</strong>
+                                                                    <%= computedAvailableStock %> available
+                                                                </li>
+                                                                <% if (product && product.special_instructions) { %>
+                                                                    <li><strong>Note:</strong>
+                                                                        <%= product.special_instructions %>
+                                                                    </li>
+                                                                    <% } %>
+                                                    </ul>
+                                                </div>
+                                                <div class="mt-auto product-actions">
+                                                    <button class="btn btn-primary btn-sm" type="button"
+                                                        onclick="addToCart('<%= product._id %>', <%= computedAvailableStock %>)">
+                                                        <i class="fas fa-shopping-cart me-1"></i>Add to Cart
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                        <% } %>
+                </div>
+            </div>
+
+            <!-- Content Tab -->
+            <div class="tab-pane fade" id="content" role="tabpanel" aria-labelledby="content-tab">
+                <div class="row" id="content-container">
+                    <% if (!content || content.length===0) { %>
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No content available for this campaign.
+                            </div>
+                        </div>
+                        <% } else { %>
+                            <% content.forEach(function(item) { %>
+                                <% const cover=(item && item.media_urls && item.media_urls.length> 0) ?
+                                    item.media_urls[0] : null;
+                                    const coverUrl = cover && cover.url ? cover.url : null;
+                                    const inf = item && item.influencer_id ? item.influencer_id : {};
+                                    %>
+                                    <div class="col-md-6 col-lg-4 mb-4 content-item"
+                                        data-search-text="<%- (item.title || '') + ' ' + (item.caption || '') + ' ' + ((inf && (inf.fullName || inf.displayName || inf.username)) || '') %>">
+                                        <div class="content-card h-100 d-flex flex-column">
+                                            <div class="content-image-container">
+                                                <% if (coverUrl) { %>
+                                                    <img src="<%= coverUrl %>"
+                                                        alt="<%= item.title || 'Content image' %>" class="content-image"
+                                                        onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                    <div class="content-placeholder" style="display:none;"><i
+                                                            class="fas fa-image"></i></div>
+                                                    <% } else { %>
+                                                        <div class="content-placeholder"><i class="fas fa-image"></i>
+                                                        </div>
+                                                        <% } %>
+                                            </div>
+                                            <div class="content-info d-flex flex-column flex-grow-1">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <img src="<%= (inf && inf.profilePicUrl) ? inf.profilePicUrl : '/images/default-avatar.jpg' %>"
+                                                        alt="<%= (inf && (inf.fullName || inf.displayName || inf.username)) || 'Influencer' %>"
+                                                        class="influencer-avatar me-2"
+                                                        onerror="this.onerror=null; this.src='/images/default-avatar.jpg';">
+                                                    <span class="influencer-name">
+                                                        <%= (inf && (inf.fullName || inf.displayName || inf.username))
+                                                            || 'Influencer' %>
+                                                    </span>
+                                                </div>
+                                                <h6 class="content-title">
+                                                    <%= item && item.title ? item.title : 'Post' %>
+                                                </h6>
+                                                <p class="content-caption">
+                                                    <%= item && item.caption ? (item.caption.length> 140 ?
+                                                        (item.caption.substring(0, 140) + '...') : item.caption) : '' %>
+                                                </p>
+                                                <div class="content-stats mt-auto mb-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-eye me-1"></i>
+                                                        <%= (item && item.performance_metrics &&
+                                                            item.performance_metrics.views) ?
+                                                            item.performance_metrics.views : 0 %> views
+                                                    </small>
+                                                </div>
+                                                <div class="content-actions">
+                                                    <button class="btn btn-outline-primary btn-sm me-2" type="button"
+                                                        onclick="viewContentDetails('<%= item._id %>')">
+                                                        <i class="fas fa-eye me-1"></i>View Content
+                                                    </button>
+                                                    <% if (item && item.attached_products &&
+                                                        item.attached_products.length> 0) { %>
+                                                        <button class="btn btn-primary btn-sm" type="button"
+                                                            onclick="shopFromContent('<%= item._id %>')">
+                                                            <i class="fas fa-shopping-bag me-1"></i>Shop Products
+                                                        </button>
+                                                        <% } %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                        <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Content Details Modal -->
+    <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="contentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contentModalLabel">Influencer Content</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="contentModalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const campaignId = '<%= campaign && (campaign.id || campaign._id) ? (campaign.id || campaign._id) : '' %>';
+
+        function performSearch() {
+            const term = (document.getElementById('search').value || '').toLowerCase();
+            // Products
+            document.querySelectorAll('#products .product-item').forEach(card => {
+                const text = (card.getAttribute('data-search-text') || '').toLowerCase();
+                card.style.display = text.includes(term) ? '' : 'none';
+            });
+            // Content
+            document.querySelectorAll('#content .content-item').forEach(card => {
+                const text = (card.getAttribute('data-search-text') || '').toLowerCase();
+                card.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(performSearch, 250));
+            }
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        async function addToCart(productId, availableStock) {
+            try {
+                const maxQty = Number.isFinite(availableStock) ? Math.max(0, availableStock) : 0;
+                if (maxQty === 0) {
+                    showError('Out of stock');
+                    return;
+                }
+                let qtyStr = prompt(`Enter quantity (1 - ${maxQty})`, '1');
+                if (qtyStr === null) return; // cancelled
+                let quantity = parseInt(qtyStr, 10);
+                if (!Number.isFinite(quantity) || quantity < 1) {
+                    showError('Invalid quantity');
+                    return;
+                }
+                if (quantity > maxQty) {
+                    showError(`Only ${maxQty} available`);
+                    return;
+                }
+                const res = await fetch('/customer/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, quantity })
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                    showSuccess('Added to cart');
+                } else {
+                    showError((data && data.message) || 'Failed to add to cart');
+                }
+            } catch (e) {
+                console.error(e);
+                showError('Failed to add to cart');
+            }
+        }
+
+
+
+        function viewContentDetails(contentId) {
+            const card = Array.from(document.querySelectorAll('#content .content-item'))
+                .find(el => (el.innerHTML || '').includes(contentId));
+            if (!card) return;
+            // For simplicity in this rewrite, show basic message
+            const modalContent = document.getElementById('contentModalContent');
+            modalContent.innerHTML = '<div class="text-muted">Open the influencer post to view details.</div>';
+            new bootstrap.Modal(document.getElementById('contentModal')).show();
+        }
+
+        function shopFromContent(contentId) {
+            document.getElementById('products-tab').click();
+            setTimeout(() => {
+                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+            }, 200);
+        }
+
+        function showSuccess(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            document.body.appendChild(alert);
+            setTimeout(() => { if (alert.parentNode) alert.remove(); }, 4000);
+        }
+
+        function showError(message) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            document.body.appendChild(alert);
+            setTimeout(() => { if (alert.parentNode) alert.remove(); }, 5000);
+        }
+    </script>
+</body>
+
+</html>

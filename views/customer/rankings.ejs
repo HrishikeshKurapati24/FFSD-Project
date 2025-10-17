@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %> - CollabSync
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --brand-blue: #0d6efd;
+            --brand-blue-600: #0b5ed7;
+            --text-black: #111111;
+            --muted: #6c757d;
+            --bg-light: #f5f7fb;
+            --border: #e6e9f0;
+            --white: #ffffff;
+        }
+
+        body {
+            background: var(--bg-light);
+            color: var(--text-black);
+        }
+
+        .navbar {
+            background: var(--white) !important;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 14px rgba(17, 17, 17, 0.06);
+        }
+
+        .navbar .btn-outline-primary {
+            border-color: var(--brand-blue);
+            color: var(--brand-blue);
+        }
+
+        .navbar .btn-outline-primary:hover {
+            background: var(--brand-blue);
+            color: var(--white);
+        }
+
+        .rankings-section-title {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .metric-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            background: rgba(13, 110, 253, 0.08);
+            color: var(--brand-blue-600);
+            border: 1px solid rgba(13, 110, 253, 0.18);
+            padding: .25rem .5rem;
+            border-radius: 999px;
+            font-size: .775rem;
+            font-weight: 600;
+        }
+
+        .rank-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(17, 17, 17, 0.06);
+            overflow: hidden;
+        }
+
+        .list-group-numbered .list-group-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            background: transparent;
+        }
+
+        .list-group-numbered .list-group-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-group-numbered .list-group-item:hover {
+            background: #f8faff;
+        }
+
+        .brand-avatar,
+        .inf-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex: 0 0 44px;
+            border: 1px solid var(--border);
+            background: var(--white);
+        }
+
+        .rank-name {
+            font-weight: 700;
+        }
+
+        .rank-meta {
+            color: var(--muted);
+            font-size: .85rem;
+        }
+
+        .filters-wrap select.form-select {
+            min-width: 220px;
+            background-color: var(--white);
+            border-color: var(--border);
+        }
+
+        .filters-wrap label {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .container .card-like {
+            padding: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/customer"><i class="fas fa-shopping-bag me-2"></i>CollabSync</a>
+            <ul class="nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/customer">All Campaigns</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/customer/rankings">Rankings</a></li>
+            </ul>
+            <a class="btn btn-primary" href="/customer/cart"><i class="fas fa-shopping-cart me-2"></i>Cart</a>
+            <form class="d-flex align-items-center gap-2 filters-wrap" method="get" action="/customer/rankings">
+                <div class="d-flex align-items-center me-2">
+                    <label class="me-2">Brand:</label>
+                    <select class="form-select me-3" name="brandCategory" onchange="this.form.submit()">
+                        <option value="revenue" <%=brandCategory==='revenue' ? 'selected' : '' %>>Campaign Revenue
+                        </option>
+                        <option value="engagement_rate" <%=brandCategory==='engagement_rate' ? 'selected' : '' %>
+                            >Engagement Rate</option>
+                        <option value="rating" <%=brandCategory==='rating' ? 'selected' : '' %>>Rating</option>
+                        <option value="completedCampaigns" <%=brandCategory==='completedCampaigns' ? 'selected' : '' %>
+                            >Completed Campaigns</option>
+                    </select>
+                </div>
+                <div class="d-flex align-items-center me-2">
+                    <label class="me-2">Influencer:</label>
+                    <select class="form-select me-3" name="influencerCategory" onchange="this.form.submit()">
+                        <option value="totalFollowers" <%=influencerCategory==='totalFollowers' ? 'selected' : '' %>
+                            >Total Followers</option>
+                        <option value="engagement_rate" <%=influencerCategory==='engagement_rate' ? 'selected' : '' %>
+                            >Engagement Rate</option>
+                        <option value="platform_count" <%=influencerCategory==='platform_count' ? 'selected' : '' %>
+                            >Platform Count</option>
+                        <option value="completedCampaigns" <%=influencerCategory==='completedCampaigns' ? 'selected'
+                            : '' %>>Completed Campaigns</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3 class="mb-1">Top Brands</h3>
+                <small class="text-muted d-block mb-3">Sorted by:
+                    <%= brandCategory==='revenue' ? 'Campaign Revenue' : brandCategory==='engagement_rate'
+                        ? 'Engagement Rate' : brandCategory==='rating' ? 'Rating' : 'Completed Campaigns' %>
+                </small>
+                <ol class="list-group list-group-numbered">
+                    <% brandRankings.forEach(b=> { %>
+                        <li class="list-group-item d-flex align-items-center">
+                            <img src="<%= b.logoUrl %>" alt="<%= b.name %>" class="me-3"
+                                style="width:40px;height:40px;object-fit:cover;border-radius:50%"
+                                onerror="this.style.display='none'">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">
+                                    <%= b.name %>
+                                </div>
+                                <% let brandMetricLabel='' ; let brandMetricValue='' ; if (brandCategory==='revenue' ) {
+                                    brandMetricLabel='Revenue' ; brandMetricValue='$' +(b.revenue||0).toLocaleString();
+                                    } else if (brandCategory==='engagement_rate' ) { brandMetricLabel='Engagement Rate'
+                                    ; brandMetricValue=(b.engagement_rate||0).toFixed(2)+'%'; } else if
+                                    (brandCategory==='rating' ) { brandMetricLabel='Rating' ;
+                                    brandMetricValue=(b.rating||0).toFixed(2)+'/5'; } else {
+                                    brandMetricLabel='Completed Campaigns' ; brandMetricValue=(b.completedCampaigns||0);
+                                    } %>
+                                    <small class="text-muted">
+                                        <%= brandMetricLabel %>: <%= brandMetricValue %>
+                                    </small>
+                            </div>
+                        </li>
+                        <% }) %>
+                </ol>
+            </div>
+            <div class="col-lg-6">
+                <h3 class="mb-1">Top Influencers</h3>
+                <small class="text-muted d-block mb-3">Sorted by:
+                    <%= influencerCategory==='totalFollowers' ? 'Total Followers' :
+                        influencerCategory==='engagement_rate' ? 'Engagement Rate' :
+                        influencerCategory==='platform_count' ? 'Platform Count' : 'Completed Campaigns' %>
+                </small>
+                <ol class="list-group list-group-numbered">
+                    <% influencerRankings.forEach(i=> { %>
+                        <li class="list-group-item d-flex align-items-center">
+                            <img src="<%= i.profilePicUrl %>" alt="<%= i.name %>" class="me-3"
+                                style="width:40px;height:40px;object-fit:cover;border-radius:50%"
+                                onerror="this.src='/images/default-avatar.jpg'">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">
+                                    <%= i.name %>
+                                </div>
+                                <% let infMetricLabel='' ; let infMetricValue='' ; if
+                                    (influencerCategory==='totalFollowers' ) { infMetricLabel='Total Followers' ;
+                                    infMetricValue=(i.totalFollowers||0).toLocaleString(); } else if
+                                    (influencerCategory==='engagement_rate' ) { infMetricLabel='Engagement Rate' ;
+                                    infMetricValue=(i.engagement_rate||0).toFixed(2)+'%'; } else if
+                                    (influencerCategory==='platform_count' ) { infMetricLabel='Platform Count' ;
+                                    infMetricValue=(i.platform_count||0); } else { infMetricLabel='Completed Campaigns'
+                                    ; infMetricValue=(i.completedCampaigns||0); } %>
+                                    <small class="text-muted">
+                                        <%= infMetricLabel %>: <%= infMetricValue %>
+                                    </small>
+                            </div>
+                        </li>
+                        <% }) %>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -251,6 +251,99 @@
       box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
     }
 
+    /* Product Section Styles */
+    .products-section {
+      margin: 30px 0;
+      padding: 25px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 1px solid #e9ecef;
+    }
+
+    .section-title {
+      color: #007BFF;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-description {
+      color: #6c757d;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .product-item {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .product-header h4 {
+      color: #495057;
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .btn-remove-product {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-remove-product:hover {
+      background: #c82333;
+      transform: scale(1.1);
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+      transform: translateY(-2px);
+    }
+
+    .required {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .add-product-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
     /* Footer */
     footer {
       background-color: #333;
@@ -314,18 +407,16 @@
   <!-- Sidebar Navigation -->
   <button class="toggle-btn" onclick="openMenu()">☰</button>
   <div class="menu" id="navMenu">
-    <span class="close-btn" onclick="closeMenu()">&times;</span>
-    <a href="/brand/collab">Collabs</a>
+    <span class="close-btn" onclick="closeMenu()">&timxes;</span>
     <a href="/brand/recievedRequests">Collab requests</a>
     <a href="/brand/create_collab">Create Collab</a>
-    <a href="/brand/create_offer">Create Offer</a>
     <a href="/brand/signout">Sign Out</a>
   </div>
 
   <div class="form-container">
     <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Campaign</h2>
 
-    <form id="createCollabForm" method="POST" action="/brand/campaigns/create" novalidate>
+    <form id="createCollabForm" method="POST" action="/brand/campaigns/create" enctype="multipart/form-data" novalidate>
       <div class="form-group">
         <label for="title">Campaign Title</label>
         <input type="text" class="form-control" id="title" name="title"
@@ -356,64 +447,159 @@
       </div>
 
       <div class="form-group">
-    <label for="required_influencers">Number of Required Influencers</label>
-    <input type="number" class="form-control" id="required_influencers" name="required_influencers" required min="1"
-      max="100" step="1" placeholder="Enter number of influencers needed (1-100)">
-    </div>
+        <label for="required_influencers">Number of Required Influencers</label>
+        <input type="number" class="form-control" id="required_influencers" name="required_influencers" required min="1"
+          max="100" step="1" placeholder="Enter number of influencers needed (1-100)">
+      </div>
 
-    <div class="form-group">
-    <label for="target_audience">Target Audience</label>
-    <input type="text" class="form-control" id="target_audience" name="target_audience"
-      placeholder="Describe your target audience">
+      <div class="form-group">
+        <label for="target_audience">Target Audience</label>
+        <input type="text" class="form-control" id="target_audience" name="target_audience"
+          placeholder="Describe your target audience">
+      </div>
+
+      <div class="form-group">
+        <label>Required Social Media Channels <span style="color: var(--danger-color);">*</span></label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram">
+            <label for="channel-instagram">Instagram</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="YouTube" id="channel-youtube">
+            <label for="channel-youtube">YouTube</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="TikTok" id="channel-tiktok">
+            <label for="channel-tiktok">TikTok</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="Facebook" id="channel-facebook">
+            <label for="channel-facebook">Facebook</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="Twitter" id="channel-twitter">
+            <label for="channel-twitter">Twitter</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" name="required_channels" value="LinkedIn" id="channel-linkedin">
+            <label for="channel-linkedin">LinkedIn</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="min_followers">Minimum Followers Required</label>
+        <input type="number" class="form-control" id="min_followers" name="min_followers" min="0"
+          placeholder="Enter minimum followers (min 0)">
+      </div>
+      <div class="form-group">
+        <label for="objectives">Campaign Objectives</label>
+        <textarea class="form-control" id="objectives" name="objectives"
+          placeholder="State your campaign objectives (max 500 characters)"></textarea>
+      </div>
+
+      <!-- Product Details Section -->
+      <div class="products-section">
+        <h3 class="section-title"><i class="fa-solid fa-box"></i> Campaign Products</h3>
+        <p class="section-description">Add products that influencers will promote during this campaign</p>
+
+        <div id="products-container">
+          <div class="product-item" data-index="0">
+            <div class="product-header">
+              <h4>Product 1</h4>
+              <button type="button" class="btn-remove-product" onclick="removeProduct(0)" style="display: none;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="products[0][name]">Product Name</label>
+                <input type="text" class="form-control" id="products[0][name]" name="products[0][name]"
+                  placeholder="Enter product name" required>
+              </div>
+
+              <div class="form-group">
+                <label for="products[0][category]">Category</label>
+                <select class="form-control" id="products[0][category]" name="products[0][category]" required>
+                  <option value="">Select category</option>
+                  <option value="Beauty">Beauty</option>
+                  <option value="Fashion">Fashion</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Food & Beverage">Food & Beverage</option>
+                  <option value="Health & Wellness">Health & Wellness</option>
+                  <option value="Home & Garden">Home & Garden</option>
+                  <option value="Sports & Fitness">Sports & Fitness</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="products[0][target_quantity]">Target Quantity</label>
+              <input type="number" class="form-control" id="products[0][target_quantity]"
+                name="products[0][target_quantity]" min="0" placeholder="Enter target quantity" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="products[0][original_price]">Original Price ($)</label>
+                <input type="number" class="form-control" id="products[0][original_price]"
+                  name="products[0][original_price]" min="0" step="0.01" placeholder="0.00" required>
+              </div>
+
+              <div class="form-group">
+                <label for="products[0][campaign_price]">Campaign Price ($)</label>
+                <input type="number" class="form-control" id="products[0][campaign_price]"
+                  name="products[0][campaign_price]" min="0" step="0.01" placeholder="0.00" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="products[0][description]">Product Description</label>
+              <textarea class="form-control" id="products[0][description]" name="products[0][description]"
+                placeholder="Describe the product features and benefits" required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="products[0][image]">Product Image</label>
+                <input type="file" class="form-control" id="products[0][image]" name="products[0][image]"
+                  accept="image/*" onchange="previewImage(this, 'preview-0')">
+                <div id="preview-0" class="image-preview" style="display: none; margin-top: 10px;">
+                  <img src="" alt="Product preview" style="max-width: 200px; max-height: 200px; border-radius: 5px;">
+                  <button type="button" onclick="removeImage('products[0][image]', 'preview-0')"
+                    style="margin-left: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="products[0][special_instructions]">Special Instructions for Influencers</label>
+              <textarea class="form-control" id="products[0][special_instructions]"
+                name="products[0][special_instructions]"
+                placeholder="Any specific instructions for influencers promoting this product"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-product-container">
+          <button type="button" class="btn btn-secondary" onclick="addProduct()">
+            <i class="fa-solid fa-plus"></i> Add Another Product
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button type="submit" class="submit-btn">Create Campaign</button>
+      </div>
   </div>
 
-  <div class="form-group">
-    <label>Required Social Media Channels <span style="color: var(--danger-color);">*</span></label>
-    <div class="checkbox-group">
-      <div class="checkbox-item">
-        <input type="checkbox" name="required_channels" value="Instagram" id="channel-instagram">
-        <label for="channel-instagram">Instagram</label>
-      </div>
-      <div class="checkbox-item">
-        <input type="checkbox" name="required_channels" value="YouTube" id="channel-youtube">
-        <label for="channel-youtube">YouTube</label>
-      </div>
-      <div class="checkbox-item">
-        <input type="checkbox" name="required_channels" value="TikTok" id="channel-tiktok">
-        <label for="channel-tiktok">TikTok</label>
-      </div>
-      <div class="checkbox-item">
-        <input type="checkbox" name="required_channels" value="Facebook" id="channel-facebook">
-        <label for="channel-facebook">Facebook</label>
-      </div>
-      <div class="checkbox-item">
-        <input type="checkbox" name="required_channels" value="Twitter" id="channel-twitter">
-        <label for="channel-twitter">Twitter</label>
-      </div>
-      <div class="checkbox-item">
-        <input type="checkbox" name="required_channels" value="LinkedIn" id="channel-linkedin">
-        <label for="channel-linkedin">LinkedIn</label>
-      </div>
-    </div>
-  </div>
 
-  <div class="form-group">
-    <label for="min_followers">Minimum Followers Required</label>
-    <input type="number" class="form-control" id="min_followers" name="min_followers" min="0"
-      placeholder="Enter minimum followers (min 0)">
-  </div>
-  <div class="form-group">
-    <label for="objectives">Campaign Objectives</label>
-    <textarea class="form-control" id="objectives" name="objectives"
-      placeholder="State your campaign objectives (max 500 characters)"></textarea>
-  </div>
-
-  <div class="btn-group">
-    <button type="submit" class="submit-btn">Create Campaign</button>
-  </div>
-  </div>
-
-  
   </form>
   </div>
 
@@ -422,11 +608,178 @@
   </footer>
 
   <script>
+    // Product management functions
+    let productIndex = 1;
+
+    function addProduct() {
+      const container = document.getElementById('products-container');
+      const productItem = document.createElement('div');
+      productItem.className = 'product-item';
+      productItem.setAttribute('data-index', productIndex);
+
+      productItem.innerHTML = `
+        <div class="product-header">
+          <h4>Product ${productIndex + 1}</h4>
+          <button type="button" class="btn-remove-product" onclick="removeProduct(${productIndex})">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="products[${productIndex}][name]">Product Name</label>
+            <input type="text" class="form-control" id="products[${productIndex}][name]" name="products[${productIndex}][name]" 
+                   placeholder="Enter product name" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="products[${productIndex}][category]">Category</label>
+            <select class="form-control" id="products[${productIndex}][category]" name="products[${productIndex}][category]" required>
+              <option value="">Select category</option>
+              <option value="Beauty">Beauty</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Food & Beverage">Food & Beverage</option>
+              <option value="Health & Wellness">Health & Wellness</option>
+              <option value="Home & Garden">Home & Garden</option>
+              <option value="Sports & Fitness">Sports & Fitness</option>
+              <option value="Travel">Travel</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+              <label for="products[${productIndex}][target_quantity]">Target Quantity</label>
+              <input type="number" class="form-control" id="products[${productIndex}][target_quantity]" name="products[${productIndex}][target_quantity]" min="0"
+                placeholder="Enter target quantity" required>
+            </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="products[${productIndex}][original_price]">Original Price ($)</label>
+            <input type="number" class="form-control" id="products[${productIndex}][original_price]" name="products[${productIndex}][original_price]" 
+                   min="0" step="0.01" placeholder="0.00" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="products[${productIndex}][campaign_price]">Campaign Price ($)</label>
+            <input type="number" class="form-control" id="products[${productIndex}][campaign_price]" name="products[${productIndex}][campaign_price]" 
+                   min="0" step="0.01" placeholder="0.00" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="products[${productIndex}][description]">Product Description</label>
+          <textarea class="form-control" id="products[${productIndex}][description]" name="products[${productIndex}][description]" 
+                    placeholder="Describe the product features and benefits" required></textarea>
+        </div>
+
+
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="products[${productIndex}][image]">Product Image</label>
+            <input type="file" class="form-control" id="products[${productIndex}][image]" name="products[${productIndex}][image]" 
+                   accept="image/*" onchange="previewImage(this, 'preview-${productIndex}')">
+            <div id="preview-${productIndex}" class="image-preview" style="display: none; margin-top: 10px;">
+              <img src="" alt="Product preview" style="max-width: 200px; max-height: 200px; border-radius: 5px;">
+              <button type="button" onclick="removeImage('products[${productIndex}][image]', 'preview-${productIndex}')" 
+                style="margin-left: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="products[${productIndex}][special_instructions]">Special Instructions for Influencers</label>
+          <textarea class="form-control" id="products[${productIndex}][special_instructions]" name="products[${productIndex}][special_instructions]" 
+                    placeholder="Any specific instructions for influencers promoting this product"></textarea>
+        </div>
+      `;
+
+      container.appendChild(productItem);
+      productIndex++;
+
+      // Show remove button for first product if there are multiple products
+      if (productIndex > 1) {
+        const firstProduct = container.querySelector('[data-index="0"] .btn-remove-product');
+        if (firstProduct) {
+          firstProduct.style.display = 'block';
+        }
+      }
+    }
+
+    function removeProduct(index) {
+      const productItem = document.querySelector(`[data-index="${index}"]`);
+      if (productItem) {
+        productItem.remove();
+
+        // Update product numbers
+        const remainingProducts = document.querySelectorAll('.product-item');
+        remainingProducts.forEach((item, i) => {
+          const header = item.querySelector('.product-header h4');
+          if (header) {
+            header.textContent = `Product ${i + 1}`;
+          }
+        });
+
+        // Hide remove button for first product if only one product remains
+        if (remainingProducts.length === 1) {
+          const firstProduct = remainingProducts[0].querySelector('.btn-remove-product');
+          if (firstProduct) {
+            firstProduct.style.display = 'none';
+          }
+        }
+      }
+    }
+
     function openMenu() {
       document.getElementById("navMenu").style.width = "250px";
     }
     function closeMenu() {
       document.getElementById("navMenu").style.width = "0";
+    }
+
+    // Image upload and preview functions
+    function previewImage(input, previewId) {
+      const preview = document.getElementById(previewId);
+      const file = input.files[0];
+
+      if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file.');
+          input.value = '';
+          return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image size must be less than 5MB.');
+          input.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = preview.querySelector('img');
+          img.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    function removeImage(inputId, previewId) {
+      const input = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+
+      input.value = '';
+      preview.style.display = 'none';
     }
 
     // Form validation with same styling as influencer profile modal
@@ -502,6 +855,8 @@
       const objectives = document.getElementById('objectives');
       const channels = document.querySelectorAll('input[name="required_channels"]');
       const requiredInfluencers = document.getElementById('required_influencers');
+      const productsContainer = document.getElementById('products-container');
+      const productItems = Array.from(document.querySelectorAll('#products-container .product-item'));
 
       // --- Content validation helpers ---
       function containsVulgarContent(text) {
@@ -543,9 +898,11 @@
         hasErrors = setError(title, 'Campaign title must be 100 characters or less') || hasErrors;
       } else if (containsVulgarContent(title.value)) {
         hasErrors = setError(title, 'Campaign title contains inappropriate content') || hasErrors;
-      } else if (isVagueContent(title.value, 'title')) {
-        hasErrors = setError(title, 'Please provide a meaningful campaign title (avoid URLs, test content, or placeholder text)') || hasErrors;
-      } else if (!hasMinimumMeaningfulContent(title.value, 2)) {
+      }
+      //else if (isVagueContent(title.value, 'title')) {
+      //   hasErrors = setError(title, 'Please provide a meaningful campaign title (avoid URLs, test content, or placeholder text)') || hasErrors;
+      // }
+      else if (!hasMinimumMeaningfulContent(title.value, 2)) {
         hasErrors = setError(title, 'Campaign title must contain at least 2 meaningful words') || hasErrors;
       } else {
         setError(title, '');
@@ -556,11 +913,14 @@
         hasErrors = setError(description, 'Campaign description is required') || hasErrors;
       } else if (description.value.length > 1000) {
         hasErrors = setError(description, 'Campaign description must be 1000 characters or less') || hasErrors;
-      } else if (containsVulgarContent(description.value)) {
-        hasErrors = setError(description, 'Campaign description contains inappropriate content') || hasErrors;
-      } else if (isVagueContent(description.value, 'description')) {
-        hasErrors = setError(description, 'Please provide a meaningful campaign description (avoid URLs, test content, or placeholder text)') || hasErrors;
-      } else if (!hasMinimumMeaningfulContent(description.value, 5)) {
+      }
+      // else if (containsVulgarContent(description.value)) {
+      //   hasErrors = setError(description, 'Campaign description contains inappropriate content') || hasErrors;
+      // }
+      // else if (isVagueContent(description.value, 'description')) {
+      //  hasErrors = setError(description, 'Please provide a meaningful campaign description (avoid URLs, test content, or placeholder text)') || hasErrors;
+      // } 
+      else if (!hasMinimumMeaningfulContent(description.value, 5)) {
         hasErrors = setError(description, 'Campaign description must contain at least 5 meaningful words') || hasErrors;
       } else {
         setError(description, '');
@@ -605,9 +965,11 @@
         hasErrors = setError(targetAudience, 'Target audience description contains inappropriate content') || hasErrors;
       } else if (isVagueContent(targetAudience.value, 'target audience')) {
         hasErrors = setError(targetAudience, 'Please provide a meaningful target audience description (avoid URLs, test content, or placeholder text)') || hasErrors;
-      } else if (!hasMinimumMeaningfulContent(targetAudience.value, 3)) {
-        hasErrors = setError(targetAudience, 'Target audience description must contain at least 3 meaningful words') || hasErrors;
-      } else {
+      }
+      // else if (!hasMinimumMeaningfulContent(targetAudience.value, 3)) {
+      //  hasErrors = setError(targetAudience, 'Target audience description must contain at least 3 meaningful words') || hasErrors;
+      // }
+      else {
         setError(targetAudience, '');
       }
 
@@ -655,12 +1017,105 @@
         hasErrors = setError(objectives, 'Campaign objectives must be 500 characters or less') || hasErrors;
       } else if (containsVulgarContent(objectives.value)) {
         hasErrors = setError(objectives, 'Campaign objectives contain inappropriate content') || hasErrors;
-      } else if (isVagueContent(objectives.value, 'objectives')) {
-        hasErrors = setError(objectives, 'Please provide meaningful campaign objectives (avoid URLs, test content, or placeholder text)') || hasErrors;
-      } else if (!hasMinimumMeaningfulContent(objectives.value, 4)) {
+      }
+      // else if (isVagueContent(objectives.value, 'objectives')) {
+      //    hasErrors = setError(objectives, 'Please provide meaningful campaign objectives (avoid URLs, test content, or placeholder text)') || hasErrors;
+      // }
+      else if (!hasMinimumMeaningfulContent(objectives.value, 4)) {
         hasErrors = setError(objectives, 'Campaign objectives must contain at least 4 meaningful words') || hasErrors;
       } else {
         setError(objectives, '');
+      }
+
+      // Products validation: at least 1, and validate fields per product
+      if (productItems.length === 0) {
+        hasErrors = true;
+        alert('Please add at least one product for the campaign.');
+      } else {
+        productItems.forEach((item, index) => {
+          // for each product block, validate required fields
+          const nameInput = item.querySelector('input[id*="[name]"]');
+          const categorySelect = item.querySelector('select[id*="[category]"]');
+          const targetQuantityInput = item.querySelector('input[id*="[target_quantity]"]');
+          const originalPriceInput = item.querySelector('input[id*="[original_price]"]');
+          const campaignPriceInput = item.querySelector('input[id*="[campaign_price]"]');
+          const descriptionInput = item.querySelector('textarea[id*="[description]"]');
+          const imageInput = item.querySelector('input[id*="[image]"]');
+
+          // Product name validation
+          if (!nameInput || !nameInput.value.trim()) {
+            hasErrors = setError(nameInput, 'Product name is required') || hasErrors;
+          } else if (containsVulgarContent(nameInput.value)) {
+            hasErrors = setError(nameInput, 'Product name contains inappropriate content') || hasErrors;
+          } else if (!hasMinimumMeaningfulContent(nameInput.value, 2)) {
+            hasErrors = setError(nameInput, 'Product name must contain at least 2 meaningful words') || hasErrors;
+          } else {
+            setError(nameInput, '');
+          }
+
+          // Category validation
+          if (!categorySelect || !categorySelect.value) {
+            hasErrors = setError(categorySelect, 'Please select a category') || hasErrors;
+          } else {
+            setError(categorySelect, '');
+          }
+
+          // Target quantity validation
+          if (!targetQuantityInput || !targetQuantityInput.value.trim()) {
+            hasErrors = setError(targetQuantityInput, 'Target quantity is required') || hasErrors;
+          } else if (parseInt(targetQuantityInput.value) < 0) {
+            hasErrors = setError(targetQuantityInput, 'Target quantity must be 0 or greater') || hasErrors;
+          } else {
+            setError(targetQuantityInput, '');
+          }
+          // Original price validation
+          const opVal = originalPriceInput && originalPriceInput.value !== '' ? parseFloat(originalPriceInput.value) : NaN;
+          if (!originalPriceInput || isNaN(opVal) || opVal <= 0) {
+            hasErrors = setError(originalPriceInput, 'Original price must be greater than 0') || hasErrors;
+          } else {
+            setError(originalPriceInput, '');
+          }
+
+          // Campaign price validation
+          const cpVal = campaignPriceInput && campaignPriceInput.value !== '' ? parseFloat(campaignPriceInput.value) : NaN;
+          if (!campaignPriceInput || isNaN(cpVal) || cpVal <= 0) {
+            hasErrors = setError(campaignPriceInput, 'Campaign price must be greater than 0') || hasErrors;
+          } else if (!isNaN(opVal) && cpVal >= opVal) {
+            hasErrors = setError(campaignPriceInput, 'Campaign price must be less than original price') || hasErrors;
+          } else {
+            setError(campaignPriceInput, '');
+          }
+
+          // Product description validation
+          if (!descriptionInput || !descriptionInput.value.trim()) {
+            hasErrors = setError(descriptionInput, 'Product description is required') || hasErrors;
+            // } else if (containsVulgarContent(descriptionInput.value)) {
+            //   hasErrors = setError(descriptionInput, 'Product description contains inappropriate content') || hasErrors;
+            // } else if (!hasMinimumMeaningfulContent(descriptionInput.value, 5)) {
+            //   hasErrors = setError(descriptionInput, 'Product description must contain at least 5 meaningful words') || hasErrors;
+            // }
+          } else {
+            setError(descriptionInput, '');
+          }
+
+          // Product image validation
+          if (!imageInput || !imageInput.files || !imageInput.files[0]) {
+            hasErrors = setError(imageInput, 'Product image is required') || hasErrors;
+          } else {
+            const imageFile = imageInput.files[0];
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(imageFile.type)) {
+              hasErrors = setError(imageInput, 'Please select a valid image file (JPG, PNG, or GIF)') || hasErrors;
+            }
+            // Validate file size (5MB)
+            else if (imageFile.size > 5 * 1024 * 1024) {
+              hasErrors = setError(imageInput, 'Image must be less than 5MB') || hasErrors;
+            } else {
+              setError(imageInput, '');
+            }
+          }
+        });
       }
 
       if (hasErrors) {

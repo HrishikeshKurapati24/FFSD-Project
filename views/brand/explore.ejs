@@ -422,10 +422,8 @@
   <button class="toggle-btn" onclick="openMenu()">☰</button>
   <div class="menu" id="navMenu">
     <span class="close-btn" onclick="closeMenu()">&times;</span>
-    <a href="/brand/collab">Collabs</a>
     <a href="/brand/recievedRequests">Collab requests</a>
     <a href="/brand/create_collab">Create Collab</a>
-    <a href="/brand/create_offer">Create Offer</a>
     <a href="/brand/signout">Sign Out</a>
   </div>
 
@@ -463,7 +461,8 @@
 
     <!-- Toggle Button -->
     <div class="toggle-container">
-      <button type="button" id="viewToggle" class="toggle-button" aria-pressed="false" aria-controls="influencerList" aria-label="Switch to grid view">Grid view</button>
+      <button type="button" id="viewToggle" class="toggle-button" aria-pressed="false" aria-controls="influencerList"
+        aria-label="Switch to grid view">Grid view</button>
       <span id="viewAnnouncer" class="visually-hidden" aria-live="polite"></span>
     </div>
 
@@ -621,52 +620,52 @@
               }
             }
 
-  // Accessible, persistent view toggle
-  document.addEventListener('DOMContentLoaded', function () {
-  (function () {
-    const containerId = 'influencerList';
-    const buttonId = 'viewToggle';
-    const param = 'view';
+            // Accessible, persistent view toggle
+            document.addEventListener('DOMContentLoaded', function () {
+              (function () {
+                const containerId = 'influencerList';
+                const buttonId = 'viewToggle';
+                const param = 'view';
 
-    const listEl = document.getElementById(containerId);
-    const btn = document.getElementById(buttonId);
-    const announce = document.getElementById('viewAnnouncer');
+                const listEl = document.getElementById(containerId);
+                const btn = document.getElementById(buttonId);
+                const announce = document.getElementById('viewAnnouncer');
 
-    if (!listEl || !btn) {
-      console.error('Required elements not found for view toggle');
-      return;
-    }
+                if (!listEl || !btn) {
+                  console.error('Required elements not found for view toggle');
+                  return;
+                }
 
-    const url = (typeof URL !== 'undefined' && window.location) ? new URL(window.location.href) : null;
-    const saved = (function () { try { return localStorage.getItem(`${containerId}:view`); } catch (e) { return null; } })();
-    const fromUrl = url ? url.searchParams.get(param) : null;
-    const initial = (fromUrl || saved || 'list');
+                const url = (typeof URL !== 'undefined' && window.location) ? new URL(window.location.href) : null;
+                const saved = (function () { try { return localStorage.getItem(`${containerId}:view`); } catch (e) { return null; } })();
+                const fromUrl = url ? url.searchParams.get(param) : null;
+                const initial = (fromUrl || saved || 'list');
 
-    function setModeClass(mode) {
-      listEl.classList.remove('grid', 'list');
-      listEl.classList.add(mode);
-    }
+                function setModeClass(mode) {
+                  listEl.classList.remove('grid', 'list');
+                  listEl.classList.add(mode);
+                }
 
-    function apply(mode) {
-      setModeClass(mode);
-      const isGrid = mode === 'grid';
-      btn.setAttribute('aria-pressed', String(isGrid));
-      btn.textContent = isGrid ? 'List view' : 'Grid view';
-      btn.setAttribute('aria-label', isGrid ? 'Switch to list view' : 'Switch to grid view');
+                function apply(mode) {
+                  setModeClass(mode);
+                  const isGrid = mode === 'grid';
+                  btn.setAttribute('aria-pressed', String(isGrid));
+                  btn.textContent = isGrid ? 'List view' : 'Grid view';
+                  btn.setAttribute('aria-label', isGrid ? 'Switch to list view' : 'Switch to grid view');
 
-      if (announce) announce.textContent = isGrid ? 'Grid view' : 'List view';
-      try { localStorage.setItem(`${containerId}:view`, mode); } catch (e) { }
-    }
+                  if (announce) announce.textContent = isGrid ? 'Grid view' : 'List view';
+                  try { localStorage.setItem(`${containerId}:view`, mode); } catch (e) { }
+                }
 
-    apply(initial);
+                apply(initial);
 
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      const next = listEl.classList.contains('grid') ? 'list' : 'grid';
-      apply(next);
-    });
-  })();
-});
+                btn.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  const next = listEl.classList.contains('grid') ? 'list' : 'grid';
+                  apply(next);
+                });
+              })();
+            });
           </script>
 </body>
 
