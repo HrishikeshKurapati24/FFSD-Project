@@ -40,6 +40,24 @@
             background: #0b5ed7;
             border-color: #0b5ed7;
         }
+
+        /* Additional styling for new elements */
+        .content-hashtags .badge {
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+
+        .product-details li {
+            margin-bottom: 4px;
+        }
+
+        .product-details .badge {
+            font-size: 0.75rem;
+        }
+
+        .content-stats small {
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 
@@ -95,7 +113,7 @@
                         <%= campaign && campaign.description ? campaign.description : '' %>
                     </p>
                     <div class="campaign-dates">
-                        <small class="text-muted">
+                        <small>
                             <i class="fas fa-calendar-alt me-1"></i>
                             <% if (campaign && campaign.start_date && campaign.end_date) { %>
                                 <%= new Date(campaign.start_date).toLocaleDateString() %> - <%= new
@@ -211,21 +229,77 @@
                                                                 <%= product.category %>
                                                             </li>
                                                             <% } %>
-                                                                <li><strong>Stock:</strong>
-                                                                    <%= computedAvailableStock %> available
-                                                                </li>
-                                                                <% if (product && product.special_instructions) { %>
-                                                                    <li><strong>Note:</strong>
-                                                                        <%= product.special_instructions %>
+
+                                                                <% if (product && product.is_digital) { %>
+                                                                    <li><strong>Type:</strong>
+                                                                        <span class="badge bg-info">Digital
+                                                                            Product</span>
                                                                     </li>
                                                                     <% } %>
+
+                                                                        <li><strong>Stock:</strong>
+                                                                            <%= computedAvailableStock %> available
+                                                                        </li>
+
+                                                                        <% if (product && product.delivery_info &&
+                                                                            product.delivery_info.estimated_days) { %>
+                                                                            <li><strong>Delivery:</strong>
+                                                                                <%= product.delivery_info.estimated_days
+                                                                                    %> days
+                                                                                    <% if
+                                                                                        (product.delivery_info.shipping_cost
+                                                                                        &&
+                                                                                        product.delivery_info.shipping_cost>
+                                                                                        0) { %>
+                                                                                        (Shipping: $<%=
+                                                                                            product.delivery_info.shipping_cost
+                                                                                            %>)
+                                                                                            <% } else if
+                                                                                                (product.delivery_info.free_shipping_threshold)
+                                                                                                { %>
+                                                                                                (Free shipping over $<%=
+                                                                                                    product.delivery_info.free_shipping_threshold
+                                                                                                    %>)
+                                                                                                    <% } else { %>
+                                                                                                        (Free shipping)
+                                                                                                        <% } %>
+                                                                            </li>
+                                                                            <% } %>
+
+                                                                                <% if (product && product.tags &&
+                                                                                    product.tags.length> 0) { %>
+                                                                                    <li><strong>Tags:</strong>
+                                                                                        <%= product.tags.slice(0,
+                                                                                            3).join(', ') %>
+                                                                <% if (product.tags.length > 3) { %>...<% } %>
+                                                            </li>
+                                                        <% } %>
+                                                        
+                                                        <% if (product && product.specifications && Object.keys(product.specifications).length > 0) { %>
+                                                            <% Object.entries(product.specifications).slice(0, 2).forEach(function([key, value]) { %>
+                                                                <li><strong><%= key %>:</strong> <%= value %></li>
+                                                            <% }) %>
+                                                            <% if (Object.keys(product.specifications).length > 2) { %>
+                                                                <li><em>+<%= Object.keys(product.specifications).length - 2 %> more specifications</em></li>
+                                                            <% } %>
+                                                        <% } %>
+                                                        
+                                                        <% if (product && product.special_instructions) { %>
+                                                            <li><strong>Note:</strong>
+                                                                <%= product.special_instructions %>
+                                                            </li>
+                                                        <% } %>
                                                     </ul>
                                                 </div>
                                                 <div class="mt-auto product-actions">
                                                     <button class="btn btn-primary btn-sm" type="button"
-                                                        onclick="addToCart('<%= product._id %>', <%= computedAvailableStock %>)">
-                                                        <i class="fas fa-shopping-cart me-1"></i>Add to Cart
-                                                    </button>
+                                                        onclick="addToCart(' <%=product._id %>', <%=
+                                                                                                computedAvailableStock
+                                                                                                %>)">
+                                                                                                <i
+                                                                                                    class="fas fa-shopping-cart me-1"></i>Add
+                                                                                                to Cart
+                                                                                                </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -253,12 +327,13 @@
                                     const inf = item && item.influencer_id ? item.influencer_id : {};
                                     %>
                                     <div class="col-md-6 col-lg-4 mb-4 content-item"
-                                        data-search-text="<%- (item.title || '') + ' ' + (item.caption || '') + ' ' + ((inf && (inf.fullName || inf.displayName || inf.username)) || '') %>">
+                                        data-search-text="<%- (item.caption || '') + ' ' + ((inf && (inf.fullName || inf.displayName || inf.username)) || '') %>">
                                         <div class="content-card h-100 d-flex flex-column">
                                             <div class="content-image-container">
                                                 <% if (coverUrl) { %>
                                                     <img src="<%= coverUrl %>"
-                                                        alt="<%= item.title || 'Content image' %>" class="content-image"
+                                                        alt="<%= item.caption ? item.caption.substring(0, 50) + '...' : 'Content image' %>"
+                                                        class="content-image"
                                                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                     <div class="content-placeholder" style="display:none;"><i
                                                             class="fas fa-image"></i></div>
@@ -279,33 +354,52 @@
                                                     </span>
                                                 </div>
                                                 <h6 class="content-title">
-                                                    <%= item && item.title ? item.title : 'Post' %>
+                                                    <%= item && item.caption ? (item.caption.length> 60 ?
+                                                        item.caption.substring(0, 60) + '...' : item.caption) :
+                                                        'Influencer Post' %>
                                                 </h6>
                                                 <p class="content-caption">
                                                     <%= item && item.caption ? (item.caption.length> 140 ?
                                                         (item.caption.substring(0, 140) + '...') : item.caption) : '' %>
                                                 </p>
-                                                <div class="content-stats mt-auto mb-2">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-eye me-1"></i>
-                                                        <%= (item && item.performance_metrics &&
-                                                            item.performance_metrics.views) ?
-                                                            item.performance_metrics.views : 0 %> views
-                                                    </small>
-                                                </div>
-                                                <div class="content-actions">
-                                                    <button class="btn btn-outline-primary btn-sm me-2" type="button"
-                                                        onclick="viewContentDetails('<%= item._id %>')">
-                                                        <i class="fas fa-eye me-1"></i>View Content
-                                                    </button>
-                                                    <% if (item && item.attached_products &&
-                                                        item.attached_products.length> 0) { %>
-                                                        <button class="btn btn-primary btn-sm" type="button"
-                                                            onclick="shopFromContent('<%= item._id %>')">
-                                                            <i class="fas fa-shopping-bag me-1"></i>Shop Products
-                                                        </button>
-                                                        <% } %>
-                                                </div>
+
+                                                <% if (item && item.hashtags && item.hashtags.length> 0) { %>
+                                                    <div class="content-hashtags mb-2">
+                                                        <% item.hashtags.slice(0, 3).forEach(function(hashtag) { %>
+                                                            <span class="badge bg-light text-dark me-1">#<%= hashtag %>
+                                                            </span>
+                                                            <% }) %>
+                                                                <% if (item.hashtags.length> 3) { %>
+                                                                    <span class="text-muted small">+<%=
+                                                                            item.hashtags.length - 3 %> more</span>
+                                                                    <% } %>
+                                                    </div>
+                                                    <% } %>
+
+                                                        <div class="content-stats mt-auto mb-2">
+                                                            <small class="text-muted">
+                                                                <% if (item && item.published_at) { %>
+                                                                    <i class="fas fa-calendar me-1"></i>
+                                                                    <%= new Date(item.published_at).toLocaleDateString()
+                                                                        %>
+                                                                        <% } %>
+                                                                            <% if (item && item.media_urls &&
+                                                                                item.media_urls.length> 1) { %>
+                                                                                <i class="fas fa-images ms-2 me-1"></i>
+                                                                                <%= item.media_urls.length %> media
+                                                                                    <% } %>
+                                                            </small>
+                                                        </div>
+                                                        <div class="content-actions">
+                                                            <% if (item && item.attached_products &&
+                                                                item.attached_products.length> 0) { %>
+                                                                <button class="btn btn-primary btn-sm" type="button"
+                                                                    onclick="shopFromContent('<%= item._id %>')">
+                                                                    <i class="fas fa-shopping-bag me-1"></i>Shop
+                                                                    Products
+                                                                </button>
+                                                                <% } %>
+                                                        </div>
                                             </div>
                                         </div>
                                     </div>
@@ -405,15 +499,6 @@
 
 
 
-        function viewContentDetails(contentId) {
-            const card = Array.from(document.querySelectorAll('#content .content-item'))
-                .find(el => (el.innerHTML || '').includes(contentId));
-            if (!card) return;
-            // For simplicity in this rewrite, show basic message
-            const modalContent = document.getElementById('contentModalContent');
-            modalContent.innerHTML = '<div class="text-muted">Open the influencer post to view details.</div>';
-            new bootstrap.Modal(document.getElementById('contentModal')).show();
-        }
 
         function shopFromContent(contentId) {
             document.getElementById('products-tab').click();

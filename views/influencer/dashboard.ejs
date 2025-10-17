@@ -55,7 +55,7 @@
             data.products.forEach(product => {
               const option = document.createElement('option');
               option.value = product._id;
-              option.textContent = `${product.name} - ₹${product.campaign_price}`;
+              option.textContent = `${product.name} - $${product.campaign_price}`;
               productSelect.appendChild(option);
             });
           }

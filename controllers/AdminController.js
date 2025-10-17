@@ -485,7 +485,7 @@ const AnalyticsController = {
         }
     },
 
-    getCustomerAnalytics: async (req, res) => {
+    getCampaignAnalytics: async (req, res) => {
         try {
             console.log("Fetching campaign analytics...");
             const metrics = await AdminModel.AnalyticsModel.getCampaignAnalytics();

@@ -71,7 +71,7 @@ router.get('/dashboard', DashboardController.getDashboard);
 // Analytics routes
 router.get('/brand-analytics', AnalyticsController.getBrandAnalytics);
 router.get('/influencer-analytics', AnalyticsController.getInfluencerAnalytics);
-router.get('/customer-analytics', AnalyticsController.getCustomerAnalytics);
+router.get('/campaign-analytics', AnalyticsController.getCampaignAnalytics);
 
 // User Management routes
 router.get('/user_management', UserManagementController.getUserManagementPage);

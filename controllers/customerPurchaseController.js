@@ -117,12 +117,13 @@ class CustomerPurchaseController {
                 console.log('[Customer] Attached products per content:', attachedProductCounts);
             }
 
-            // 3) All active products tied to the campaign
+            // 3) All active products tied to the campaign with all relevant fields
             const products = await Product.find({
                 campaign_id: campaignId,
                 status: 'active'
             })
                 .populate('brand_id', 'brandName logoUrl')
+                .select('name description images original_price campaign_price discount_percentage category tags target_quantity sold_quantity is_digital delivery_info specifications status special_instructions created_at updated_at')
                 .lean();
 
             console.log('[Customer] Active products for campaign:', products.length);
