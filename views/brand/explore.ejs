@@ -6,401 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Explore Influencers - CollabSync</title>
   <link rel="stylesheet" href="/B2_index/B2_explore.css">
-  <style>
-    .influencer-list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    /* Grid view - changes the container to grid */
-    .influencer-list.grid {
-      display: grid !important;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .influencer-list.list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* Default list view - horizontal layout */
-    .influencer-item {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    /* Grid view - vertical layout */
-    .influencer-list.grid .influencer-item {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: flex-start !important;
-      width: 100% !important;
-    }
-
-    .toggle-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    .toggle-button {
-      padding: 10px 20px;
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .toggle-button:hover {
-      background-color: #3367d6;
-    }
-
-    /* A11y helpers */
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        transition: none !important;
-      }
-    }
-
-    /* Invite Modal Styles */
-    .invite-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    .invite-modal-content {
-      background: white;
-      max-width: 500px;
-      width: 90%;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-      position: relative;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateY(-50px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .invite-modal-close {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      font-size: 32px;
-      font-weight: bold;
-      color: #999;
-      cursor: pointer;
-      transition: color 0.3s;
-      line-height: 1;
-    }
-
-    .invite-modal-close:hover {
-      color: #333;
-    }
-
-    .invite-modal-title {
-      color: #4285f4;
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-      padding-right: 30px;
-    }
-
-    .invite-influencer-name {
-      color: #333;
-      font-size: 1.1rem;
-      font-weight: 500;
-      margin-bottom: 25px;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 6px;
-      border-left: 4px solid #4285f4;
-    }
-
-    .invite-form-group {
-      margin-bottom: 25px;
-    }
-
-    .invite-label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: 600;
-      color: #333;
-      font-size: 1rem;
-    }
-
-    .invite-select {
-      width: 100%;
-      padding: 12px 15px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      background: white;
-      color: #333;
-      cursor: pointer;
-      transition: all 0.3s;
-      outline: none;
-    }
-
-    .invite-select:hover {
-      border-color: #4285f4;
-    }
-
-    .invite-select:focus {
-      border-color: #4285f4;
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-    }
-
-    .invite-modal-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 30px;
-    }
-
-    .invite-btn-send {
-      flex: 1;
-      padding: 14px 20px;
-      background: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .invite-btn-send:hover {
-      background: #3367d6;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
-    }
-
-    .invite-btn-send:active {
-      transform: translateY(0);
-    }
-
-    .invite-btn-cancel {
-      flex: 1;
-      padding: 14px 20px;
-      background: white;
-      color: #333;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .invite-btn-cancel:hover {
-      background: #f8f9fa;
-      border-color: #999;
-    }
-
-    .invite-btn-cancel:active {
-      transform: scale(0.98);
-    }
-
-    .influencer-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 15px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    /* Default list view button styling */
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-left: 20px;
-    }
-
-    /* Grid view button styling */
-    .influencer-list.grid .button-group {
-      display: flex !important;
-      gap: 10px !important;
-      margin-top: auto !important;
-      justify-content: center !important;
-      margin-left: 0 !important;
-      padding-top: 12px !important;
-      width: 100% !important;
-    }
-
-    .influencer-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Default list view content */
-    .influencer-content {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex: 1;
-    }
-
-    /* Grid view content layout */
-    .influencer-list.grid .influencer-content {
-      display: flex !important;
-      flex-direction: column !important;
-      text-align: center !important;
-      gap: 15px !important;
-      flex: none !important;
-    }
-
-    .influencer-image {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #e0e0e0;
-    }
-
-    .influencer-info {
-      flex: 1;
-    }
-
-    .influencer-name {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-    }
-
-    .influencer-name h2 {
-      margin: 0;
-      font-size: 1.2em;
-      color: #333;
-    }
-
-    .verified-badge {
-      color: #4285f4;
-      font-size: 1.1em;
-    }
-
-    .influencer-details {
-      color: #666;
-      font-size: 0.9em;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 10px;
-    }
-
-    .invite-button,
-    .profile-button {
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      text-decoration: none;
-      text-align: center;
-      font-size: 0.9em;
-      transition: all 0.2s;
-    }
-
-    .invite-button {
-      background: #4285f4;
-      color: white;
-      border: none;
-      min-width: 80px;
-    }
-
-    .invite-button:hover {
-      background: #3367d6;
-    }
-
-    .profile-button {
-      background: white;
-      color: #4285f4;
-      border: 1px solid #4285f4;
-      min-width: 100px;
-    }
-
-    .profile-button:hover {
-      background: #f8f9fa;
-    }
-
-    @media (max-width: 768px) {
-      .influencer-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .influencer-content {
-        width: 100%;
-        margin-bottom: 15px;
-      }
-
-      .button-group {
-        width: 100%;
-        margin-left: 0;
-      }
-
-      .invite-button,
-      .profile-button {
-        flex: 1;
-      }
-    }
-  </style>
 </head>
 
 <body>
@@ -459,6 +64,47 @@
       <p>Connect with top influencers to elevate your brand's presence.</p>
     </div>
 
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search influencers..." value="<%= searchQuery || '' %>">
+          <button type="button" onclick="applyFilters()" class="search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        <div class="category-filter">
+          <select id="categoryFilter" onchange="applyFilters()">
+            <option value="all" <%= (selectedCategory === 'all') ? 'selected' : '' %>>All Categories</option>
+            <% if (categories && categories.length > 0) { %>
+              <% categories.forEach(category => { %>
+                <option value="<%= category %>" <%= (selectedCategory === category) ? 'selected' : '' %>>
+                  <%= category %>
+                </option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button type="button" onclick="clearFilters()" class="clear-btn">
+            <i class="fas fa-times"></i> Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info">
+      <p>Found <%= influencers ? influencers.length : 0 %> influencers
+        <% if (selectedCategory && selectedCategory !== 'all') { %>
+          in <strong><%= selectedCategory %></strong>
+        <% } %>
+        <% if (searchQuery) { %>
+          matching "<strong><%= searchQuery %></strong>"
+        <% } %>
+      </p>
+    </div>
+
     <!-- Toggle Button -->
     <div class="toggle-container">
       <button type="button" id="viewToggle" class="toggle-button" aria-pressed="false" aria-controls="influencerList"
@@ -485,8 +131,8 @@
                     <% } %>
                 </div>
                 <div class="influencer-details">
-                  <p><strong>Niche:</strong>
-                    <%= influencer.niche || 'Not specified' %>
+                  <p><strong>Categories:</strong>
+                    <%= influencer.categories || 'Not specified' %>
                   </p>
                   <p><strong>Followers:</strong>
                     <%= influencer.totalFollowers.toLocaleString() %>
@@ -494,10 +140,6 @@
                   <p><strong>Engagement Rate:</strong>
                     <%= influencer.avgEngagementRate.toFixed(2) %>%
                   </p>
-                  <% if (influencer.categories && influencer.categories.length> 0) { %>
-                    <p><strong>Categories:</strong>
-                      <%= influencer.categories.join(', ') %></p>
-                  <% } %>
                   <% if (influencer.audienceDemographics) { %>
                     <p><strong>Audience:</strong> <%= influencer.audienceDemographics.gender %>, <%= influencer.audienceDemographics.ageRange %></p>
                   <% } %>
@@ -665,6 +307,30 @@
                   apply(next);
                 });
               })();
+            });
+
+            // Filter functionality
+            function applyFilters() {
+              const search = document.getElementById('searchInput').value;
+              const category = document.getElementById('categoryFilter').value;
+              
+              const params = new URLSearchParams();
+              if (search) params.append('search', search);
+              if (category && category !== 'all') params.append('category', category);
+              
+              const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+              window.location.href = url;
+            }
+
+            function clearFilters() {
+              window.location.href = window.location.pathname;
+            }
+
+            // Allow Enter key to trigger search
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                applyFilters();
+              }
             });
           </script>
 </body>

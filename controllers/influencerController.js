@@ -1,7 +1,7 @@
 // controllers/influencerController.js
 const influencerModel = require('../models/influencerModel');
 const collaborationModel = require('../models/CollaborationModel');
-const brandModel = require('../models/brandModel');
+const { brandModel, SubscriptionService } = require('../models/brandModel');
 const path = require('path');
 const fs = require('fs');
 const { CampaignInfluencers } = require('../config/CampaignMongo');
@@ -17,7 +17,21 @@ const getInfluencerDashboard = async (req, res) => {
     }
 
     const influencerId = req.session.user.id;
+    const userType = 'influencer';
+    console.log('\n========== INFLUENCER DASHBOARD CONTROLLER ==========');
     console.log('Getting dashboard for influencer:', influencerId);
+    console.log('UserType:', userType);
+
+    // Check subscription expiry and get limits
+    console.log('\n--- Fetching subscription data ---');
+    const [subscriptionStatus, subscriptionLimits] = await Promise.all([
+      SubscriptionService.checkSubscriptionExpiry(influencerId, userType),
+      SubscriptionService.getSubscriptionLimitsWithUsage(influencerId, userType)
+    ]);
+    
+    console.log('\n--- Subscription data received ---');
+    console.log('subscriptionStatus:', JSON.stringify(subscriptionStatus, null, 2));
+    console.log('subscriptionLimits:', JSON.stringify(subscriptionLimits, null, 2));
 
     // Get influencer profile data
     const influencer = await influencerModel.getInfluencerById(influencerId);
@@ -118,6 +132,11 @@ const getInfluencerDashboard = async (req, res) => {
       }));
 
     // Render the dashboard with all data
+    console.log('\n--- Rendering dashboard with data ---');
+    console.log('Passing to EJS:');
+    console.log('  - subscriptionStatus.subscription.planId.name:', subscriptionStatus?.subscription?.planId?.name);
+    console.log('  - subscriptionLimits:', subscriptionLimits);
+    
     res.render('influencer/dashboard', {
       influencer: transformedInfluencer,
       stats,
@@ -126,8 +145,12 @@ const getInfluencerDashboard = async (req, res) => {
       brandInvites: brandInvites || [],
       sentRequests: sentRequests || [],
       recentCampaignHistory,
+      subscriptionStatus, // Subscription expiry and renewal info
+      subscriptionLimits, // Campaign and collaboration limits
       baseUrl: `${req.protocol}://${req.get('host')}`
     });
+    
+    console.log('========== INFLUENCER DASHBOARD CONTROLLER END ==========\n');
   } catch (error) {
     console.error('Error in getInfluencerDashboard:', error);
     res.status(500).render('error', {
@@ -155,9 +178,42 @@ const getInfluencerExplorePage = async (req, res) => {
 // Get brand explore page for influencer
 const getBrandExplorePage = async (req, res) => {
   try {
-    const brands = await require('../models/brandModel').getAllBrands();
+    const { category, search } = req.query;
+    const { BrandInfo } = require('../config/BrandMongo');
+    
+    // Build filter query
+    let filter = { status: 'active' };
+    
+    if (category && category !== 'all') {
+      filter.industry = { $regex: category, $options: 'i' };
+    }
+    
+    if (search) {
+      filter.$or = [
+        { brandName: { $regex: search, $options: 'i' } },
+        { industry: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const brands = await BrandInfo.find(filter)
+      .select('brandName username logoUrl bannerUrl industry location website mission tagline verified completedCampaigns influencerPartnerships avgCampaignRating primaryMarket influenceRegions')
+      .sort({ verified: -1, avgCampaignRating: -1, completedCampaigns: -1 })
+      .limit(50)
+      .lean();
+    
+    // Get all unique industries for filter dropdown (from brand signup)
+    const allIndustries = await BrandInfo.distinct('industry', { status: 'active' });
+    const categories = allIndustries.filter(Boolean);
+    const uniqueCategories = [...new Set(categories)].sort();
+    
     console.log('Controller sending brands to view:', brands);
-    res.render('influencer/explore', { brands: brands || [] });
+    res.render('influencer/explore', { 
+      brands: brands || [], 
+      categories: uniqueCategories,
+      selectedCategory: category || 'all',
+      searchQuery: search || ''
+    });
   } catch (err) {
     console.error('Controller error:', err);
     res.status(500).render('error', {
@@ -166,6 +222,7 @@ const getBrandExplorePage = async (req, res) => {
     });
   }
 };
+
 // Get brand profile page for influencer
 const getBrandProfilePage = async (req, res) => {
   try {

@@ -62,6 +62,7 @@ const DashboardController = {
             const { InfluencerInfo } = require("../config/InfluencerMongo");
             const { CampaignInfluencers } = require("../config/CampaignMongo");
             const { CampaignPayments } = require("../config/CampaignMongo");
+            const { Product } = require("../config/ProductMongo");
 
             // User/Brand/Influencer counts
             const [userCount, brandCount, influencerCount] = await Promise.all([
@@ -126,6 +127,21 @@ const DashboardController = {
                 { $group: { _id: null, avgAmount: { $avg: "$amount" } } }
             ]);
             const avgDealSize = avgDealSizeAgg[0]?.avgAmount || 0;
+
+            // Product Metrics
+            const productMetricsAgg = await Product.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalSoldQuantity: { $sum: "$sold_quantity" },
+                        avgProductPrice: { $avg: "$campaign_price" },
+                        totalProducts: { $sum: 1 }
+                    }
+                }
+            ]);
+            const totalSoldQuantity = productMetricsAgg[0]?.totalSoldQuantity || 0;
+            const avgProductPrice = productMetricsAgg[0]?.avgProductPrice || 0;
+            const totalProducts = productMetricsAgg[0]?.totalProducts || 0;
 
             // Recent Transactions (last 5 completed payments)
             const recentTransactionsRaw = await CampaignPayments.find({ status: "completed" })
@@ -322,7 +338,10 @@ const DashboardController = {
                 recentTransactions,
                 topBrands,
                 topInfluencers,
-                notifications
+                notifications,
+                totalSoldQuantity,
+                avgProductPrice,
+                totalProducts
             });
         } catch (error) {
             console.error("Error loading admin dashboard:", error);
@@ -736,6 +755,281 @@ const PaymentController = {
     }
 };
 
+const CustomerController = {
+    async getCustomerManagement(req, res) {
+        try {
+            const { Customer } = require('../config/ProductMongo');
+            const { CampaignInfo } = require('../config/CampaignMongo');
+            const { Product } = require('../config/ProductMongo');
+
+            // Get all customers with their purchase data
+            const customers = await Customer.find({})
+                .sort({ last_purchase_date: -1 })
+                .limit(100)
+                .lean();
+
+            // Get customer analytics
+            const totalCustomers = await Customer.countDocuments();
+            const activeCustomers = await Customer.countDocuments({
+                last_purchase_date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+            });
+
+            const totalRevenue = await Customer.aggregate([
+                { $group: { _id: null, total: { $sum: '$total_spent' } } }
+            ]);
+
+            const avgOrderValue = await Customer.aggregate([
+                { $match: { total_purchases: { $gt: 0 } } },
+                { $group: { _id: null, avg: { $avg: { $divide: ['$total_spent', '$total_purchases'] } } } }
+            ]);
+
+            // Get top customers by spending
+            const topCustomers = await Customer.find({})
+                .sort({ total_spent: -1 })
+                .limit(10)
+                .select('name email total_spent total_purchases last_purchase_date')
+                .lean();
+
+            // Get recent customers (last 30 days)
+            const recentCustomers = await Customer.find({
+                createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+            })
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .lean();
+
+            // Customer growth data (last 6 months)
+            const customerGrowthData = [];
+            const customerGrowthLabels = [];
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                
+                customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+                
+                const monthlyCustomers = await Customer.countDocuments({
+                    createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+                });
+                customerGrowthData.push(monthlyCustomers);
+            }
+
+            // Purchase trends (last 6 months)
+            const purchaseTrendData = [];
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                
+                const monthlyPurchases = await Customer.aggregate([
+                    {
+                        $match: {
+                            last_purchase_date: { $gte: startOfMonth, $lte: endOfMonth }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalPurchases: { $sum: '$total_purchases' },
+                            totalRevenue: { $sum: '$total_spent' }
+                        }
+                    }
+                ]);
+                
+                purchaseTrendData.push({
+                    purchases: monthlyPurchases[0]?.totalPurchases || 0,
+                    revenue: monthlyPurchases[0]?.totalRevenue || 0
+                });
+            }
+
+            const analytics = {
+                totalCustomers,
+                activeCustomers,
+                totalRevenue: totalRevenue[0]?.total || 0,
+                avgOrderValue: avgOrderValue[0]?.avg || 0,
+                customerGrowth: {
+                    labels: customerGrowthLabels,
+                    data: customerGrowthData
+                },
+                purchaseTrends: {
+                    labels: customerGrowthLabels,
+                    purchases: purchaseTrendData.map(d => d.purchases),
+                    revenue: purchaseTrendData.map(d => d.revenue)
+                }
+            };
+
+            res.render('admin/customer_management', {
+                customers,
+                topCustomers,
+                recentCustomers,
+                analytics,
+                user: res.locals.user || { name: 'Admin User' }
+            });
+        } catch (error) {
+            console.error('Error fetching customer management data:', error);
+            res.render('admin/customer_management', {
+                customers: [],
+                topCustomers: [],
+                recentCustomers: [],
+                analytics: {
+                    totalCustomers: 0,
+                    activeCustomers: 0,
+                    totalRevenue: 0,
+                    avgOrderValue: 0,
+                    customerGrowth: { labels: [], data: [] },
+                    purchaseTrends: { labels: [], purchases: [], revenue: [] }
+                },
+                user: res.locals.user || { name: 'Admin User' },
+                error: 'Failed to load customer data'
+            });
+        }
+    },
+
+    async getCustomerDetails(req, res) {
+        try {
+            const { id } = req.params;
+            const { Customer } = require('../config/ProductMongo');
+            const { ContentTracking } = require('../config/ProductMongo');
+
+            const customer = await Customer.findById(id).lean();
+            if (!customer) {
+                return res.status(404).json({ success: false, message: 'Customer not found' });
+            }
+
+            // Get customer's purchase history through ContentTracking
+            const purchaseHistory = await ContentTracking.find({ customer_email: customer.email })
+                .populate('product_id', 'name images campaign_price')
+                .populate('content_id', 'title')
+                .sort({ purchase_date: -1 })
+                .limit(50)
+                .lean();
+
+            res.json({
+                success: true,
+                customer: {
+                    ...customer,
+                    purchaseHistory
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching customer details:', error);
+            res.status(500).json({ success: false, message: 'Failed to fetch customer details' });
+        }
+    },
+
+    async updateCustomerStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { status, notes } = req.body;
+            const { Customer } = require('../config/ProductMongo');
+
+            const customer = await Customer.findByIdAndUpdate(
+                id,
+                {
+                    status: status,
+                    admin_notes: notes,
+                    updated_at: new Date()
+                },
+                { new: true }
+            );
+
+            if (!customer) {
+                return res.status(404).json({ success: false, message: 'Customer not found' });
+            }
+
+            res.json({ success: true, message: 'Customer status updated successfully', customer });
+        } catch (error) {
+            console.error('Error updating customer status:', error);
+            res.status(500).json({ success: false, message: 'Failed to update customer status' });
+        }
+    },
+
+    async getCustomerAnalytics(req, res) {
+        try {
+            const { Customer } = require('../config/ProductMongo');
+            const { ContentTracking } = require('../config/ProductMongo');
+
+            // Customer segmentation
+            const customerSegments = await Customer.aggregate([
+                {
+                    $bucket: {
+                        groupBy: '$total_spent',
+                        boundaries: [0, 100, 500, 1000, 5000, Infinity],
+                        default: 'Other',
+                        output: {
+                            count: { $sum: 1 },
+                            avgSpent: { $avg: '$total_spent' }
+                        }
+                    }
+                }
+            ]);
+
+            // Customer lifetime value distribution
+            const lifetimeValueData = await Customer.aggregate([
+                {
+                    $group: {
+                        _id: {
+                            $switch: {
+                                branches: [
+                                    { case: { $lt: ['$total_spent', 50] }, then: '$0-50' },
+                                    { case: { $lt: ['$total_spent', 200] }, then: '$50-200' },
+                                    { case: { $lt: ['$total_spent', 500] }, then: '$200-500' },
+                                    { case: { $lt: ['$total_spent', 1000] }, then: '$500-1000' }
+                                ],
+                                default: '$1000+'
+                            }
+                        },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { '_id': 1 } }
+            ]);
+
+            // Purchase frequency analysis
+            const purchaseFrequency = await Customer.aggregate([
+                {
+                    $group: {
+                        _id: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ['$total_purchases', 1] }, then: 'One-time' },
+                                    { case: { $lte: ['$total_purchases', 3] }, then: '2-3 purchases' },
+                                    { case: { $lte: ['$total_purchases', 10] }, then: '4-10 purchases' }
+                                ],
+                                default: '10+ purchases'
+                            }
+                        },
+                        count: { $sum: 1 }
+                    }
+                }
+            ]);
+
+            // Geographic distribution (if location data exists)
+            const geographicData = await Customer.aggregate([
+                { $match: { location: { $exists: true, $ne: null } } },
+                { $group: { _id: '$location', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 10 }
+            ]);
+
+            res.json({
+                success: true,
+                analytics: {
+                    customerSegments,
+                    lifetimeValueData,
+                    purchaseFrequency,
+                    geographicData
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching customer analytics:', error);
+            res.status(500).json({ success: false, message: 'Failed to fetch customer analytics' });
+        }
+    }
+};
+
 const CollaborationController = {
     async getAllCollaborations(req, res) {
         try {
@@ -782,4 +1076,4 @@ const CollaborationController = {
 
 // Make sure all controller functions/classes are closed above this line
 
-module.exports = { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController };
+module.exports = { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController };

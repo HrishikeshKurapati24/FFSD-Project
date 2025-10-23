@@ -416,6 +416,19 @@
   <div class="form-container">
     <h2 class="form-title"><i class="fa-solid fa-handshake"></i> Create New Campaign</h2>
 
+    <!-- Error Message Display -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+        <strong>Error:</strong> <%= error %>
+        <% if (typeof showUpgradeLink !== 'undefined' && showUpgradeLink) { %>
+          <br><br>
+          <a href="/subscription/manage" class="btn btn-primary" style="background-color: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 10px;">
+            <i class="fas fa-crown"></i> Upgrade Your Plan
+          </a>
+        <% } %>
+      </div>
+    <% } %>
+
     <form id="createCollabForm" method="POST" action="/brand/campaigns/create" enctype="multipart/form-data" novalidate>
       <div class="form-group">
         <label for="title">Campaign Title</label>

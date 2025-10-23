@@ -36,12 +36,58 @@ router.get('/home', brandController.getBrandDashboard);
 // Route for the influencer explore page
 router.get('/explore', async (req, res) => {
     try {
+        // Get query parameters for filtering
+        const { category, search } = req.query;
+        const searchQuery = search || '';
+        const selectedCategory = category || 'all';
+
+        // Build filter query
+        let filterQuery = {};
+        if (selectedCategory && selectedCategory !== 'all') {
+            filterQuery.categories = { $regex: selectedCategory, $options: 'i' };
+        }
+        if (searchQuery) {
+            filterQuery.$or = [
+                { fullName: { $regex: searchQuery, $options: 'i' } },
+                { displayName: { $regex: searchQuery, $options: 'i' } },
+                { categories: { $regex: searchQuery, $options: 'i' } }
+            ];
+        }
+
         // Get all influencers with their basic info
-        const influencers = await InfluencerInfo.find({})
-            .select('fullName profilePicUrl verified categories niche displayName')
+        const influencers = await InfluencerInfo.find(filterQuery)
+            .select('fullName profilePicUrl verified categories displayName')
             .lean();
 
-        // Get analytics data for all influencers
+        // Get all unique categories for the filter dropdown
+        const allInfluencers = await InfluencerInfo.find({}).select('categories').lean();
+        const categoriesSet = new Set();
+        allInfluencers.forEach(inf => {
+            if (inf.categories) {
+                // Handle both array and string formats
+                if (Array.isArray(inf.categories)) {
+                    // If it's an array, add each category
+                    inf.categories.forEach(cat => {
+                        if (cat && typeof cat === 'string') {
+                            categoriesSet.add(cat.trim());
+                        }
+                    });
+                } else if (typeof inf.categories === 'string') {
+                    // If it's a comma-separated string, split and add each one
+                    const cats = inf.categories.split(',').map(c => c.trim()).filter(Boolean);
+                    cats.forEach(cat => categoriesSet.add(cat));
+                }
+            }
+        });
+        const categories = Array.from(categoriesSet).sort();
+        
+        console.log('=== CATEGORIES DEBUG ===');
+        console.log('Total influencers found:', allInfluencers.length);
+        console.log('Sample influencer categories:', allInfluencers.slice(0, 3).map(i => ({ id: i._id, categories: i.categories })));
+        console.log('Extracted categories:', categories);
+        console.log('========================');
+
+        // Get analytics data for filtered influencers
         const influencerIds = influencers.map(inf => inf._id);
         const analyticsData = await InfluencerAnalytics.find({
             influencerId: { $in: influencerIds }
@@ -65,7 +111,6 @@ router.get('/explore', async (req, res) => {
                 profilePicUrl: influencer.profilePicUrl,
                 verified: influencer.verified,
                 categories: influencer.categories || [],
-                niche: influencer.niche,
                 totalFollowers: analytics.totalFollowers || 0,
                 avgEngagementRate: analytics.avgEngagementRate || 0,
                 audienceDemographics: analytics.audienceDemographics || {
@@ -81,7 +126,12 @@ router.get('/explore', async (req, res) => {
             };
         });
 
-        res.render('brand/explore', { influencers: enrichedInfluencers });
+        res.render('brand/explore', { 
+            influencers: enrichedInfluencers,
+            searchQuery,
+            selectedCategory,
+            categories
+        });
     } catch (error) {
         console.error('Error fetching influencers:', error);
         res.status(500).render('error', {
@@ -785,6 +835,15 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             }
         );
 
+        // Update subscription usage for influencer connection
+        const { SubscriptionService } = require('../models/brandModel');
+        try {
+            await SubscriptionService.updateUsage(brandId, 'brand', { influencersConnected: 1 });
+        } catch (usageError) {
+            console.error('Error updating subscription usage:', usageError);
+            // Continue even if usage update fails
+        }
+
         // Set success message in session
         req.session.successMessage = 'Campaign completed and payment processed successfully!';
 
@@ -1019,6 +1078,22 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
             });
         }
 
+        // Check subscription limits for campaign creation
+        const { SubscriptionService } = require('../models/brandModel');
+        try {
+            const limitCheck = await SubscriptionService.checkSubscriptionLimit(brandId, 'brand', 'create_campaign');
+            if (!limitCheck.allowed) {
+                return res.status(400).render('brand/Create_collab', {
+                    error: `Campaign limit reached: ${limitCheck.reason}. Please upgrade your plan to create more campaigns.`,
+                    formData: req.body,
+                    showUpgradeLink: true
+                });
+            }
+        } catch (subscriptionError) {
+            console.error('Subscription check error:', subscriptionError);
+            // Continue with campaign creation if subscription check fails (fallback)
+        }
+
         // Calculate duration from start and end dates
         const startDate = new Date(start_date);
         const endDate = new Date(end_date);
@@ -1159,6 +1234,14 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
 
         // Save campaign metrics
         await campaignMetrics.save();
+
+        // Update subscription usage for campaign creation
+        try {
+            await SubscriptionService.updateUsage(brandId, 'brand', { campaignsUsed: 1 });
+        } catch (usageError) {
+            console.error('Error updating subscription usage:', usageError);
+            // Continue even if usage update fails
+        }
 
         // Set success message in session
         req.session.successMessage = 'Campaign successfully created.';

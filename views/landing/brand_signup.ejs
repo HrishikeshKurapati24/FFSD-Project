@@ -626,10 +626,14 @@
           const result = await response.json();
           console.log('Response data:', result);
 
-          showMessage('Account created successfully! Redirecting to sign-in...', 'success');
+          showMessage('Account created successfully! Redirecting to plan selection...', 'success');
           // Redirect after successful registration
           setTimeout(() => {
-            window.location.href = '/signin';
+            if (result.redirectTo) {
+              window.location.href = result.redirectTo;
+            } else {
+              window.location.href = '/signin';
+            }
           }, 2000);
         } catch (error) {
           console.error('Error:', error);

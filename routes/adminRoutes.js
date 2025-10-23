@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController } = require('../controllers/AdminController');
+const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController } = require('../controllers/AdminController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
 
@@ -92,6 +92,12 @@ router.post('/payment_verification/update/:id', PaymentController.updatePaymentS
 router.get('/feedback_and_moderation', FeedbackController.getAllFeedback);
 router.get('/feedback_and_moderation/:id', FeedbackController.getFeedbackDetails);
 router.post('/feedback_and_moderation/update/:id', FeedbackController.updateFeedbackStatus);
+
+// Customer Management routes
+router.get('/customer-management', CustomerController.getCustomerManagement);
+router.get('/customer-details/:id', CustomerController.getCustomerDetails);
+router.put('/customer-status/:id', CustomerController.updateCustomerStatus);
+router.get('/customer-analytics', CustomerController.getCustomerAnalytics);
 
 // Settings route
 router.get('/settings', (req, res) => {

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Management - CollabSync</title>
+    <link rel="stylesheet" href="/subscription/subscription.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+            <nav>
+                <ul>
+                    <li><a href="/<%= userType %>/home">Dashboard</a></li>
+                    <li><a href="/<%= userType %>/profile">Profile</a></li>
+                    <li><a href="/subscription/manage" class="active">Subscription</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-crown"></i> Subscription Management</h1>
+            <p>Manage your CollabSync subscription and billing</p>
+        </div>
+
+        <!-- Current Subscription -->
+        <div class="current-subscription">
+            <h2>Current Subscription</h2>
+            <% if (currentSubscription) { %>
+                <div class="subscription-card active">
+                    <div class="plan-header">
+                        <h3><%= currentSubscription.planId.name %></h3>
+                        <div class="price">
+                            $<%= currentSubscription.billingCycle === 'monthly' ? currentSubscription.planId.price.monthly : currentSubscription.planId.price.yearly %>
+                            <span>/<%= currentSubscription.billingCycle === 'monthly' ? 'month' : 'year' %></span>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-status">
+                        <span class="status-badge <%= currentSubscription.status %>">
+                            <%= currentSubscription.status.toUpperCase() %>
+                        </span>
+                        <p>Expires: <%= new Date(currentSubscription.endDate).toLocaleDateString() %></p>
+                    </div>
+
+                    <div class="usage-section">
+                        <h4>Usage This Period</h4>
+                        <div class="usage-grid">
+                            <div class="usage-item">
+                                <span class="usage-label">Campaigns</span>
+                                <div class="usage-bar">
+                                    <% 
+                                        const maxCampaigns = currentSubscription.planId.features.maxCampaigns;
+                                        const usedCampaigns = currentSubscription.usage.campaignsUsed || 0;
+                                        const campaignPercent = maxCampaigns === -1 ? 0 : (usedCampaigns / maxCampaigns * 100);
+                                    %>
+                                    <div class="usage-progress" style="width: <%= campaignPercent %>%"></div>
+                                </div>
+                                <span class="usage-text"><%= usedCampaigns %>/<%= maxCampaigns === -1 ? 'Unlimited' : maxCampaigns %></span>
+                            </div>
+                            
+                            <div class="usage-item">
+                                <span class="usage-label">Collaborations</span>
+                                <div class="usage-bar">
+                                    <% 
+                                        const maxCollabs = userType === 'brand' ? currentSubscription.planId.features.maxInfluencers : currentSubscription.planId.features.maxBrands;
+                                        const usedCollabs = userType === 'brand' ? (currentSubscription.usage.influencersConnected || 0) : (currentSubscription.usage.brandsConnected || 0);
+                                        const collabPercent = maxCollabs === -1 ? 0 : (usedCollabs / maxCollabs * 100);
+                                    %>
+                                    <div class="usage-progress" style="width: <%= collabPercent %>%"></div>
+                                </div>
+                                <span class="usage-text"><%= usedCollabs %>/<%= maxCollabs === -1 ? 'Unlimited' : maxCollabs %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-features">
+                        <h4>Plan Features</h4>
+                        <ul>
+                            <% 
+                                const features = currentSubscription.planId.features;
+                                if (features.analytics) { %>
+                                    <li><i class="fas fa-check"></i> Basic Analytics</li>
+                            <% }
+                                if (features.advancedAnalytics) { %>
+                                    <li><i class="fas fa-check"></i> Advanced Analytics</li>
+                            <% }
+                                if (features.prioritySupport) { %>
+                                    <li><i class="fas fa-check"></i> Priority Support</li>
+                            <% }
+                                if (features.customBranding) { %>
+                                    <li><i class="fas fa-check"></i> Custom Branding</li>
+                            <% }
+                                if (features.apiAccess) { %>
+                                    <li><i class="fas fa-check"></i> API Access</li>
+                            <% }
+                                if (features.collaborationTools) { %>
+                                    <li><i class="fas fa-check"></i> Collaboration Tools</li>
+                            <% }
+                                if (features.bulkOperations) { %>
+                                    <li><i class="fas fa-check"></i> Bulk Operations</li>
+                            <% }
+                                if (features.exportData) { %>
+                                    <li><i class="fas fa-check"></i> Export Data</li>
+                            <% }
+                                if (features.socialMediaIntegration) { %>
+                                    <li><i class="fas fa-check"></i> Social Media Integration</li>
+                            <% }
+                                if (features.contentLibrary) { %>
+                                    <li><i class="fas fa-check"></i> Content Library</li>
+                            <% }
+                            %>
+                        </ul>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="no-subscription">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>No Active Subscription</h3>
+                    <p>Choose a plan below to get started with CollabSync premium features.</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Available Plans -->
+        <div class="available-plans">
+            <h2>Available Plans</h2>
+            <div class="billing-toggle">
+                <label class="toggle-switch">
+                    <input type="radio" name="billing" value="monthly" checked>
+                    <span>Monthly</span>
+                </label>
+                <label class="toggle-switch">
+                    <input type="radio" name="billing" value="yearly">
+                    <span>Yearly <span class="discount">Save 20%</span></span>
+                </label>
+            </div>
+
+            <div class="plans-grid">
+                <% availablePlans.forEach(plan => { %>
+                    <div class="plan-card <%= plan.name.toLowerCase() %>" data-plan-id="<%= plan._id %>">
+                        <div class="plan-header">
+                            <h3><%= plan.name %></h3>
+                            <div class="price">
+                                <span class="monthly-price">$<%= plan.price.monthly %><span>/month</span></span>
+                                <span class="yearly-price" style="display: none;">$<%= plan.price.yearly %><span>/year</span></span>
+                            </div>
+                        </div>
+
+                        <div class="plan-description">
+                            <p><%= plan.description %></p>
+                        </div>
+
+                        <div class="plan-features">
+                            <ul>
+                                <% 
+                                    const features = plan.features;
+                                    if (features.analytics) { %>
+                                        <li><i class="fas fa-check"></i> Basic Analytics</li>
+                                <% }
+                                    if (features.advancedAnalytics) { %>
+                                        <li><i class="fas fa-check"></i> Advanced Analytics</li>
+                                <% }
+                                    if (features.prioritySupport) { %>
+                                        <li><i class="fas fa-check"></i> Priority Support</li>
+                                <% }
+                                    if (features.customBranding) { %>
+                                        <li><i class="fas fa-check"></i> Custom Branding</li>
+                                <% }
+                                    if (features.apiAccess) { %>
+                                        <li><i class="fas fa-check"></i> API Access</li>
+                                <% }
+                                %>
+                            </ul>
+                        </div>
+
+                        <div class="plan-limits">
+                            <div class="limit-item">
+                                <span>Campaigns: <%= plan.features.maxCampaigns === -1 ? 'Unlimited' : plan.features.maxCampaigns %></span>
+                            </div>
+                            <div class="limit-item">
+                                <% 
+                                    const maxCollabs = userType === 'brand' ? plan.features.maxInfluencers : plan.features.maxBrands;
+                                %>
+                                <span>Collaborations: <%= maxCollabs === -1 ? 'Unlimited' : maxCollabs %></span>
+                            </div>
+                        </div>
+
+                        <button class="subscribe-btn" onclick="subscribeToPlan('<%= plan._id %>')">
+                            <% if (currentSubscription && currentSubscription.planId._id.toString() === plan._id.toString()) { %>
+                                Current Plan
+                            <% } else { %>
+                                Choose Plan
+                            <% } %>
+                        </button>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+
+        <!-- Billing History -->
+        <div class="billing-history">
+            <h2>Billing History</h2>
+            <div class="history-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Invoice</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="no-data">No billing history available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Billing toggle functionality
+        document.querySelectorAll('input[name="billing"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const isYearly = this.value === 'yearly';
+                document.querySelectorAll('.monthly-price').forEach(el => {
+                    el.style.display = isYearly ? 'none' : 'block';
+                });
+                document.querySelectorAll('.yearly-price').forEach(el => {
+                    el.style.display = isYearly ? 'block' : 'none';
+                });
+            });
+        });
+
+        // Subscribe to plan
+        async function subscribeToPlan(planId) {
+            const billingCycle = document.querySelector('input[name="billing"]:checked').value;
+            
+            try {
+                const response = await fetch('/subscription/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ planId, billingCycle })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Subscription created successfully!');
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Failed to create subscription');
+                }
+            } catch (error) {
+                console.error('Error subscribing to plan:', error);
+                alert('An error occurred while subscribing');
+            }
+        }
+    </script>
+</body>
+</html>
