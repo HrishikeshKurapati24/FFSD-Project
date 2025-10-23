@@ -1,5 +1,5 @@
 // controller/brandController.js
-const brandModel = require('../models/brandModel');
+const { brandModel, SubscriptionService } = require('../models/brandModel');
 const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploadError } = require('../utils/imageUpload');
 const { validationResult } = require('express-validator');
 
@@ -7,8 +7,48 @@ const brandController = {
   // Get explore page
   async getExplorePage(req, res) {
     try {
-      const brands = await brandModel.getAllBrands();
-      res.render('influencer/explore', { brands });
+      const { category, search } = req.query;
+      const searchQuery = search || '';
+      const selectedCategory = category || 'all';
+
+      // Get all brands first to extract categories
+      const allBrands = await brandModel.getAllBrands();
+      
+      // Extract unique industries (from brand signup)
+      const categoriesSet = new Set();
+      allBrands.forEach(brand => {
+        if (brand.industry && typeof brand.industry === 'string') {
+          categoriesSet.add(brand.industry.trim());
+        }
+      });
+      const categories = Array.from(categoriesSet).sort();
+
+      // Filter brands based on search and category
+      let filteredBrands = allBrands;
+      
+      if (selectedCategory && selectedCategory !== 'all') {
+        filteredBrands = filteredBrands.filter(brand => 
+          brand.industry && brand.industry.toLowerCase().includes(selectedCategory.toLowerCase())
+        );
+      }
+      
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        filteredBrands = filteredBrands.filter(brand => 
+          (brand.brandName && brand.brandName.toLowerCase().includes(searchLower)) ||
+          (brand.name && brand.name.toLowerCase().includes(searchLower)) ||
+          (brand.industry && brand.industry.toLowerCase().includes(searchLower)) ||
+          (brand.mission && brand.mission.toLowerCase().includes(searchLower)) ||
+          (brand.tagline && brand.tagline.toLowerCase().includes(searchLower))
+        );
+      }
+
+      res.render('influencer/explore', { 
+        brands: filteredBrands,
+        searchQuery,
+        selectedCategory,
+        categories
+      });
     } catch (err) {
       console.error('Error fetching brands:', err);
       res.status(500).render('error', {
@@ -293,11 +333,18 @@ const brandController = {
     try {
       // Get brand ID from session
       const brandId = req.session.user.id;
+      const userType = 'brand';
 
       // Get success message if exists
       const successMessage = req.session.successMessage;
       // Clear the message after getting it
       delete req.session.successMessage;
+
+      // Check subscription expiry and get limits
+      const [subscriptionStatus, subscriptionLimits] = await Promise.all([
+        SubscriptionService.checkSubscriptionExpiry(brandId, userType),
+        SubscriptionService.getSubscriptionLimitsWithUsage(brandId, userType)
+      ]);
 
       // Fetch all required data concurrently
       const [brand, stats, activeCampaigns, analytics, campaignRequests, recentCompletedCampaigns, completedProgressCampaigns] = await Promise.all([
@@ -396,7 +443,9 @@ const brandController = {
           }
         },
         successMessage, // Add success message to the template data
-        completedProgressCampaigns // Campaigns with 100% progress that need to be marked as completed
+        completedProgressCampaigns, // Campaigns with 100% progress that need to be marked as completed
+        subscriptionStatus, // Subscription expiry and renewal info
+        subscriptionLimits // Campaign and collaboration limits
       };
 
       res.render('brand/dashboard', { ...transformedData, recentCompletedCampaigns });

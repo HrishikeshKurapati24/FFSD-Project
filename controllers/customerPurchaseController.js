@@ -203,7 +203,10 @@ class CustomerPurchaseController {
             const { productId, quantity = 1 } = req.body;
             if (!productId) return res.status(400).json({ success: false, message: 'productId required' });
 
-            const product = await Product.findById(productId)
+            // Trim any whitespace from productId to prevent ObjectId casting errors
+            const trimmedProductId = productId.toString().trim();
+
+            const product = await Product.findById(trimmedProductId)
                 .select('status stock_quantity target_quantity sold_quantity')
                 .lean();
             if (!product || product.status !== 'active') {
@@ -219,7 +222,7 @@ class CustomerPurchaseController {
 
             // Include existing quantity already in cart for this product
             if (!Array.isArray(req.session.cart)) req.session.cart = [];
-            const existing = req.session.cart.find(i => i.productId === productId);
+            const existing = req.session.cart.find(i => i.productId === trimmedProductId);
             const existingQty = existing ? existing.quantity : 0;
             const remainingStock = Math.max(0, availableStock - existingQty);
 
@@ -227,7 +230,7 @@ class CustomerPurchaseController {
                 return res.status(400).json({ success: false, message: `Insufficient stock. Only ${remainingStock} left` });
             }
 
-            if (existing) existing.quantity += qty; else req.session.cart.push({ productId, quantity: qty });
+            if (existing) existing.quantity += qty; else req.session.cart.push({ productId: trimmedProductId, quantity: qty });
 
             return res.json({ success: true, message: 'Added to cart', cartCount: req.session.cart.reduce((s, i) => s + i.quantity, 0) });
         } catch (error) {
@@ -243,7 +246,10 @@ class CustomerPurchaseController {
         try {
             const { productId } = req.body;
             if (!productId) return res.status(400).json({ success: false, message: 'productId required' });
-            req.session.cart = (req.session.cart || []).filter(i => i.productId !== productId);
+
+            // Trim any whitespace from productId
+            const trimmedProductId = productId.toString().trim();
+            req.session.cart = (req.session.cart || []).filter(i => i.productId !== trimmedProductId);
             return res.json({ success: true, message: 'Removed from cart' });
         } catch (error) {
             console.error('Error removing from cart:', error);
@@ -272,7 +278,9 @@ class CustomerPurchaseController {
             let subtotal = 0;
             let maxDeliveryDays = 0;
             for (const line of cart) {
-                const product = await Product.findById(line.productId).populate('campaign_id', 'status').lean();
+                // Trim productId to handle any whitespace issues
+                const trimmedProductId = line.productId.toString().trim();
+                const product = await Product.findById(trimmedProductId).populate('campaign_id', 'status').lean();
                 if (!product || product.status !== 'active' || product.campaign_id?.status !== 'active') {
                     return res.status(400).json({ success: false, message: 'One or more products unavailable' });
                 }
@@ -296,7 +304,8 @@ class CustomerPurchaseController {
 
             // Decrement stock and track purchases
             for (const line of cart) {
-                const product = await Product.findById(line.productId);
+                const trimmedProductId = line.productId.toString().trim();
+                const product = await Product.findById(trimmedProductId);
                 if (product) {
                     if (product.target_quantity != null && product.sold_quantity != null) {
                         product.sold_quantity += line.quantity;

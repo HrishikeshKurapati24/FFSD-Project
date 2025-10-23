@@ -5,12 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Influencer Dashboard - CollabSync</title>
+  <link rel="stylesheet" href="/i_index/influencer_dashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Add Bootstrap CSS and JS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-  <link rel="stylesheet" href="/i_index/I_index.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Add menu functions before the body -->
   <script>
@@ -273,511 +274,567 @@
       </div>
     </div>
 
-    <!-- Dashboard Overview -->
-    <section class="dashboard">
-      <h2>Dashboard Overview</h2>
-      <div class="dashboard-items">
-        <div class="dashboard-item">
-          <h3>Active Collaborations</h3>
-          <p class="active-collabs-count">
-            <%= stats.activeCollaborations %>
-          </p>
-          <div class="progress-bar">
-            <div class="progress" style="--progress: <%= stats.completionPercentage %>%;"></div>
-          </div>
-          <small>
-            <%= stats.nearingCompletion %> nearing completion
-          </small>
-        </div>
-        <div class="dashboard-item">
-          <h3>Performance Score</h3>
-          <p class="performance-score">
-            <%= stats.performanceScore ? stats.performanceScore.toFixed(1) : '0.0' %>
-          </p>
-          <div class="rating-stars">
-            <% for(let i=0; i < 5; i++) { %>
-              <i class="fas fa-star <%= i < Math.floor(stats.avgRating || 0) ? 'active' : '' %>"></i>
-              <% } %>
-          </div>
-          <small>Average Rating: <%= stats.avgRating ? stats.avgRating.toFixed(1) : '0.0' %></small>
-        </div>
-        <div class="dashboard-item">
-          <h3>Earnings Overview</h3>
-          <p class="earnings-amount">$<%= stats.monthlyEarnings.toLocaleString() %>
-          </p>
-          <small class="<%= stats.earningsChange >= 0 ? 'positive' : 'negative' %>">
-            <%= stats.earningsChange>= 0 ? '+' : '' %><%= stats.earningsChange %>% from last month
-          </small>
-          <div class="total-earnings">
-            <span>Total Earnings:</span>
-            <span>$<%= stats.totalEarnings.toLocaleString() %></span>
-          </div>
-        </div>
-        <div class="dashboard-item">
-          <h3>Audience & Engagement</h3>
-          <p class="audience-count">
-            <%= stats.totalFollowers.toLocaleString() %>
-          </p>
-          <small>Total Followers</small>
-          <div class="engagement-rate">
-            <span>Avg. Engagement:</span>
-            <span>
-              <%= stats.avgEngagementRate %>%
-            </span>
-          </div>
-        </div>
+    <!-- Subscription Renewal Alert -->
+    <% if (typeof subscriptionStatus !=='undefined' && subscriptionStatus && (subscriptionStatus.expired ||
+      subscriptionStatus.needsRenewal)) { %>
+      <div
+        class="alert <%= subscriptionStatus.expired ? 'alert-danger' : 'alert-warning' %> alert-dismissible fade show"
+        role="alert"
+        style="margin: 20px 0; border-left: 4px solid <%= subscriptionStatus.expired ? '#ea4335' : '#ffc107' %>;">
+        <h4 class="alert-heading">
+          <i class="fas <%= subscriptionStatus.expired ? 'fa-exclamation-triangle' : 'fa-clock' %>"></i>
+          <%= subscriptionStatus.expired ? 'Subscription Expired' : 'Subscription Renewal Required' %>
+        </h4>
+        <p>
+          <%= subscriptionStatus.message %>
+        </p>
+        <% if (subscriptionStatus.expired) { %>
+          <p><strong>You are now on the Free plan with limited features:</strong></p>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Maximum 2 brand collaborations</li>
+            <li>Basic analytics only</li>
+          </ul>
+          <% } %>
+            <hr>
+            <a href="/subscription/manage" class="btn btn-primary">
+              <i class="fas fa-credit-card"></i>
+              <%= subscriptionStatus.expired ? 'Upgrade Now' : 'Renew Subscription' %>
+            </a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
-    </section>
+      <% } %>
 
-    <!-- Active Collaborations Section -->
-    <section class="active-collaborations">
-      <h2>Active Collaborations</h2>
-      <div class="collaborations-grid">
-        <% if (activeCollaborations && activeCollaborations.length> 0) { %>
-          <% activeCollaborations.forEach(collab=> { %>
-            <div class="collab-card" data-collab-id="<%= collab.id %>">
-              <div class="collab-header">
-                <img src="<%= collab.brand_logo %>" alt="<%= collab.brand_name %>" class="brand-logo">
-                <div class="collab-title">
-                  <h3>
-                    <%= collab.campaign_name %>
-                  </h3>
-                  <p class="brand-name">
-                    <%= collab.brand_name %>
+        <!-- Subscription Limits Section -->
+        <% if (typeof subscriptionLimits !=='undefined' && subscriptionLimits) { %>
+          <section class="dashboard">
+            <h2 class="section-header">Your Plan Limits</h2>
+            <div class="dashboard-container">
+
+              <div class="dashboard-card">
+                <h3>Current Plan</h3>
+                <div class="metric-value">
+                  <%= subscriptionStatus && subscriptionStatus.subscription && subscriptionStatus.subscription.planId ?
+                    subscriptionStatus.subscription.planId.name : 'Free' %>
+                </div>
+                <div class="metric-label">Your subscription plan</div>
+                <div class="trend-indicator trend-up">
+                  <i class="fas fa-crown"></i>
+                  <a href="/subscription/manage" style="color: inherit; text-decoration: none;">Manage Plan</a>
+                </div>
+              </div>
+            </div>
+          </section>
+          <% } %>
+
+            <!-- Dashboard Overview -->
+            <section class="dashboard">
+              <h2>Dashboard Overview</h2>
+              <div class="dashboard-items">
+                <div class="dashboard-item">
+                  <h3>Active Collaborations</h3>
+                  <p class="active-collabs-count">
+                    <%= stats.activeCollaborations %>
                   </p>
+                  <div class="progress-bar">
+                    <div class="progress" style="--progress: <%= stats.completionPercentage %>%;"></div>
+                  </div>
+                  <small>
+                    <%= stats.nearingCompletion %> nearing completion
+                  </small>
                 </div>
-              </div>
-
-              <div class="collab-progress">
-                <div class="progress-info">
-                  <span>Progress</span>
-                  <span>
-                    <%= collab.progress %>%
-                  </span>
+                <div class="dashboard-item">
+                  <h3>Performance Score</h3>
+                  <p class="performance-score">
+                    <%= stats.performanceScore ? stats.performanceScore.toFixed(1) : '0.0' %>
+                  </p>
+                  <div class="rating-stars">
+                    <% for(let i=0; i < 5; i++) { %>
+                      <i class="fas fa-star <%= i < Math.floor(stats.avgRating || 0) ? 'active' : '' %>"></i>
+                      <% } %>
+                  </div>
+                  <small>Average Rating: <%= stats.avgRating ? stats.avgRating.toFixed(1) : '0.0' %></small>
                 </div>
-                <div class="progress-bar">
-                  <div class="progress" style="--progress: <%= collab.progress %>%;"></div>
+                <div class="dashboard-item">
+                  <h3>Earnings Overview</h3>
+                  <p class="earnings-amount">$<%= stats.monthlyEarnings.toLocaleString() %>
+                  </p>
+                  <small class="<%= stats.earningsChange >= 0 ? 'positive' : 'negative' %>">
+                    <%= stats.earningsChange>= 0 ? '+' : '' %><%= stats.earningsChange %>% from last month
+                  </small>
+                  <div class="total-earnings">
+                    <span>Total Earnings:</span>
+                    <span>$<%= stats.totalEarnings.toLocaleString() %></span>
+                  </div>
                 </div>
-              </div>
-
-              <div class="collab-metrics">
-                <div class="metric">
-                  <span class="label">Duration</span>
-                  <span class="value">
-                    <%= collab.duration %> days
-                  </span>
-                </div>
-                <div class="metric">
-                  <span class="label">Budget</span>
-                  <span class="value">$<%= collab.budget.toLocaleString() %></span>
-                </div>
-              </div>
-
-              <div class="collab-analytics">
-                <h4>Performance Analytics</h4>
-                <div class="analytics-grid">
-                  <div class="analytics-item">
-                    <span class="label">Reach</span>
-                    <span class="value">
-                      <%= collab.reach.toLocaleString() %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Clicks</span>
-                    <span class="value">
-                      <%= collab.clicks.toLocaleString() %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Conversions</span>
-                    <span class="value">
-                      <%= collab.conversions.toLocaleString() %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Performance Score</span>
-                    <span class="value">
-                      <%= collab.performance_score %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Engagement</span>
-                    <span class="value">
-                      <%= collab.engagement_rate %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Impressions</span>
-                    <span class="value">
-                      <%= collab.impressions %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Revenue</span>
-                    <span class="value">
-                      <%= collab.revenue %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">ROI</span>
-                    <span class="value">
-                      <%= collab.roi %>
-                    </span>
-                  </div>
-                  <div class="analytics-item">
-                    <span class="label">Conversion Rate</span>
-                    <span class="value">
-                      <%= collab.engagement_rate %>%
+                <div class="dashboard-item">
+                  <h3>Audience & Engagement</h3>
+                  <p class="audience-count">
+                    <%= stats.totalFollowers.toLocaleString() %>
+                  </p>
+                  <small>Total Followers</small>
+                  <div class="engagement-rate">
+                    <span>Avg. Engagement:</span>
+                    <span>
+                      <%= stats.avgEngagementRate %>%
                     </span>
                   </div>
                 </div>
               </div>
+            </section>
 
-              <!-- ========================================
+            <!-- Active Collaborations Section -->
+            <section class="active-collaborations">
+              <h2>Active Collaborations</h2>
+              <div class="collaborations-grid">
+                <% if (activeCollaborations && activeCollaborations.length> 0) { %>
+                  <% activeCollaborations.forEach(collab=> { %>
+                    <div class="collab-card" data-collab-id="<%= collab.id %>">
+                      <div class="collab-header">
+                        <img src="<%= collab.brand_logo %>" alt="<%= collab.brand_name %>" class="brand-logo">
+                        <div class="collab-title">
+                          <h3>
+                            <%= collab.campaign_name %>
+                          </h3>
+                          <p class="brand-name">
+                            <%= collab.brand_name %>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="collab-progress">
+                        <div class="progress-info">
+                          <span>Progress</span>
+                          <span>
+                            <%= collab.progress %>%
+                          </span>
+                        </div>
+                        <div class="progress-bar">
+                          <div class="progress" style="--progress: <%= collab.progress %>%;"></div>
+                        </div>
+                      </div>
+
+                      <div class="collab-metrics">
+                        <div class="metric">
+                          <span class="label">Duration</span>
+                          <span class="value">
+                            <%= collab.duration %> days
+                          </span>
+                        </div>
+                        <div class="metric">
+                          <span class="label">Budget</span>
+                          <span class="value">$<%= collab.budget.toLocaleString() %></span>
+                        </div>
+                      </div>
+
+                      <div class="collab-analytics">
+                        <h4>Performance Analytics</h4>
+                        <div class="analytics-grid">
+                          <div class="analytics-item">
+                            <span class="label">Reach</span>
+                            <span class="value">
+                              <%= collab.reach.toLocaleString() %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Clicks</span>
+                            <span class="value">
+                              <%= collab.clicks.toLocaleString() %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Conversions</span>
+                            <span class="value">
+                              <%= collab.conversions.toLocaleString() %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Performance Score</span>
+                            <span class="value">
+                              <%= collab.performance_score %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Engagement</span>
+                            <span class="value">
+                              <%= collab.engagement_rate %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Impressions</span>
+                            <span class="value">
+                              <%= collab.impressions %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Revenue</span>
+                            <span class="value">
+                              <%= collab.revenue %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">ROI</span>
+                            <span class="value">
+                              <%= collab.roi %>
+                            </span>
+                          </div>
+                          <div class="analytics-item">
+                            <span class="label">Conversion Rate</span>
+                            <span class="value">
+                              <%= collab.engagement_rate %>%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- ========================================
                 SECTION 2: DYNAMIC REQUEST HANDLING & UI UPDATES
                 ======================================== -->
-              <!-- This section manages collaboration request interactions:
+                      <!-- This section manages collaboration request interactions:
                 - Accepts/rejects requests via Fetch API calls
                 - Updates UI state and button visibility dynamically
                 - Shows/hides request cards based on user actions
                 - Manages real-time status updates and page refreshes -->
 
-              <!-- Customer Shop URL Section -->
-              <div class="shop-url-section">
-                <div class="shop-url-header">
-                  <i class="fas fa-shopping-cart"></i>
-                  <span class="shop-url-label">Customer Shop Link</span>
-                </div>
-                <div class="shop-url-container">
-                  <input type="text" class="shop-url-input" id="shopUrl_<%= collab.campaign_id %>"
-                    value="<%= `${baseUrl}/customer/campaign/${collab.campaign_id}/shop` %>" readonly>
-                  <button class="btn btn-copy" onclick="copyShopUrl('<%= collab.campaign_id %>')"
-                    title="Copy to clipboard">
-                    <i class="fas fa-copy"></i>
-                  </button>
-                </div>
-                <div class="shop-url-note">
-                  <i class="fas fa-info-circle"></i>
-                  <span>Include this link in every post for this campaign</span>
-                </div>
-              </div>
+                      <!-- Customer Shop URL Section -->
+                      <div class="shop-url-section">
+                        <div class="shop-url-header">
+                          <i class="fas fa-shopping-cart"></i>
+                          <span class="shop-url-label">Customer Shop Link</span>
+                        </div>
+                        <div class="shop-url-container">
+                          <input type="text" class="shop-url-input" id="shopUrl_<%= collab.campaign_id %>"
+                            value="<%= `${baseUrl}/customer/campaign/${collab.campaign_id}/shop` %>" readonly>
+                          <button class="btn btn-copy" onclick="copyShopUrl('<%= collab.campaign_id %>')"
+                            title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                          </button>
+                        </div>
+                        <div class="shop-url-note">
+                          <i class="fas fa-info-circle"></i>
+                          <span>Include this link in every post for this campaign</span>
+                        </div>
+                      </div>
 
-              <div class="collab-actions">
-                <button class="update-progress-btn" onclick="updateCollabProgress('<%= collab.id %>')">
-                  <i class="fas fa-chart-line"></i>
-                  Update Progress
-                </button>
-              </div>
+                      <div class="collab-actions">
+                        <button class="update-progress-btn" onclick="updateCollabProgress('<%= collab.id %>')">
+                          <i class="fas fa-chart-line"></i>
+                          Update Progress
+                        </button>
+                      </div>
 
-              <div class="post-content-label"
-                style="font-weight: bold; color: #2d6cdf; font-size: 1.08rem; margin-top: 18px; margin-bottom: 7px; display: flex; align-items: center;">
-                <i class="fas fa-edit" style="margin-top: 8px; color: #4683ea; font-size: 1.1em;"></i>
-                Post content for this campaign
-              </div>
-              <div class="collab-actions">
-                <button class="update-progress-btn"
-                  onclick="openContentCreationModal('<%= collab.campaign_id %>', '<%= collab.campaign_title %>')">
-                  <i class="fas fa-chart-line"></i> Create Content
-                </button>
-              </div>
-            </div>
-            <% }); %>
-              <% } else { %>
-                <div class="no-collaborations">
-                  <p>No active collaborations at the moment</p>
-                  <a href="/influencer/<%= influencer%>/explore" class="explore-btn">Explore Opportunities</a>
-                </div>
-                <% } %>
-      </div>
-    </section>
-
-    <!-- Brand Invites Section -->
-    <section class="brand-invites">
-      <h2>Brand Invitations</h2>
-      <div class="invites-grid">
-        <% if (brandInvites && brandInvites.length> 0) { %>
-          <% brandInvites.forEach(invite=> { %>
-            <div class="invite-card">
-              <span class="invite-badge">New Invite</span>
-              <div class="invite-header">
-                <img src="<%= invite.brand_logo || '/images/default-brand.png' %>" alt="<%= invite.brand_name %>"
-                  class="brand-logo">
-                <div class="invite-info">
-                  <h3>
-                    <%= invite.campaign_title %>
-                  </h3>
-                  <p class="brand-name">
-                    <%= invite.brand_name %>
-                  </p>
-                  <% if (invite.brand_location) { %>
-                    <p class="brand-location"><i class="fas fa-map-marker-alt"></i>
-                      <%= invite.brand_location %>
-                    </p>
-                    <% } %>
-                </div>
-              </div>
-              <div class="invite-description">
-                <p>
-                  <%= invite.campaign_description || 'No description provided' %>
-                </p>
-              </div>
-              <div class="invite-details">
-                <div class="detail-row">
-                  <div class="detail-item">
-                    <i class="fas fa-dollar-sign"></i>
-                    <span class="label">Budget:</span>
-                    <span class="value">$<%= (invite.campaign_budget || 0).toLocaleString() %></span>
-                  </div>
-                  <div class="detail-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span class="label">Duration:</span>
-                    <span class="value">
-                      <%= invite.campaign_duration %> days
-                    </span>
-                  </div>
-                </div>
-                <% if (invite.campaign_id?.required_channels && invite.campaign_id.required_channels.length> 0) { %>
-                  <div class="detail-row">
-                    <div class="detail-item full-width">
-                      <i class="fas fa-share-alt"></i>
-                      <span class="label">Required Channels:</span>
-                      <div class="channel-badges">
-                        <% invite.campaign_id.required_channels.forEach(channel=> { %>
-                          <span class="channel-badge">
-                            <%= channel %>
-                          </span>
-                          <% }); %>
+                      <div class="post-content-label"
+                        style="font-weight: bold; color: #2d6cdf; font-size: 1.08rem; margin-top: 18px; margin-bottom: 7px; display: flex; align-items: center;">
+                        <i class="fas fa-edit" style="margin-top: 8px; color: #4683ea; font-size: 1.1em;"></i>
+                        Post content for this campaign
+                      </div>
+                      <div class="collab-actions">
+                        <button class="update-progress-btn"
+                          onclick="openContentCreationModal('<%= collab.campaign_id %>', '<%= collab.campaign_title %>')">
+                          <i class="fas fa-chart-line"></i> Create Content
+                        </button>
                       </div>
                     </div>
-                  </div>
-                  <% } %>
-                    <% if (invite.campaign_start_date && invite.campaign_end_date) { %>
-                      <div class="detail-row">
-                        <div class="detail-item">
-                          <i class="fas fa-calendar-check"></i>
-                          <span class="label">Start:</span>
-                          <span class="value">
-                            <%= new Date(invite.campaign_start_date).toLocaleDateString() %>
-                          </span>
-                        </div>
-                        <div class="detail-item">
-                          <i class="fas fa-calendar-times"></i>
-                          <span class="label">End:</span>
-                          <span class="value">
-                            <%= new Date(invite.campaign_end_date).toLocaleDateString() %>
-                          </span>
-                        </div>
-                      </div>
-                      <% } %>
-              </div>
-              <div class="invite-actions">
-                <button class="btn-accept"
-                  onclick="acceptBrandInvite('<%= invite._id %>', '<%= invite.campaign_title %>')">
-                  <i class="fas fa-check"></i> Accept Invitation
-                </button>
-                <button class="btn-decline"
-                  onclick="declineBrandInvite('<%= invite._id %>', '<%= invite.campaign_title %>')">
-                  <i class="fas fa-times"></i> Decline
-                </button>
-              </div>
-            </div>
-            <% }); %>
-              <% } else { %>
-                <div class="no-invites">
-                  <i class="fas fa-envelope-open"></i>
-                  <h3>No Brand Invitations</h3>
-                  <p>You don't have any brand invitations at the moment.</p>
-                </div>
-                <% } %>
-      </div>
-    </section>
-
-    <!-- Sent Requests Section -->
-    <section class="sent-requests">
-      <h2>Sent Requests</h2>
-      <div class="sent-requests-grid">
-        <% if (sentRequests && sentRequests.length> 0) { %>
-          <% sentRequests.forEach(request=> { %>
-            <div class="sent-request-card">
-              <span class="sent-badge">Awaiting Response</span>
-              <div class="sent-request-header">
-                <img src="<%= request.brand_logo || '/images/default-brand.png' %>" alt="<%= request.brand_name %>"
-                  class="brand-logo">
-                <div class="sent-request-info">
-                  <h3>
-                    <%= request.campaign_title %>
-                  </h3>
-                  <p class="brand-name">
-                    <%= request.brand_name %>
-                  </p>
-                  <% if (request.brand_location) { %>
-                    <p class="brand-location"><i class="fas fa-map-marker-alt"></i>
-                      <%= request.brand_location %>
-                    </p>
-                    <% } %>
-                </div>
-              </div>
-              <div class="sent-request-description">
-                <p>
-                  <%= request.campaign_description || 'No description provided' %>
-                </p>
-              </div>
-              <div class="sent-request-details">
-                <div class="detail-row">
-                  <div class="detail-item">
-                    <i class="fas fa-dollar-sign"></i>
-                    <span class="label">Budget:</span>
-                    <span class="value">$<%= (request.campaign_budget || 0).toLocaleString() %></span>
-                  </div>
-                  <div class="detail-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span class="label">Duration:</span>
-                    <span class="value">
-                      <%= request.campaign_duration %> days
-                    </span>
-                  </div>
-                </div>
-                <% if (request.required_channels && request.required_channels.length> 0) { %>
-                  <div class="detail-row">
-                    <div class="detail-item full-width">
-                      <i class="fas fa-share-alt"></i>
-                      <span class="label">Required Channels:</span>
-                      <div class="channel-badges">
-                        <% request.required_channels.forEach(channel=> { %>
-                          <span class="channel-badge">
-                            <%= channel %>
-                          </span>
-                          <% }); %>
-                      </div>
-                    </div>
-                  </div>
-                  <% } %>
-                    <% if (request.campaign_start_date && request.campaign_end_date) { %>
-                      <div class="detail-row">
-                        <div class="detail-item">
-                          <i class="fas fa-calendar-check"></i>
-                          <span class="label">Start:</span>
-                          <span class="value">
-                            <%= new Date(request.campaign_start_date).toLocaleDateString() %>
-                          </span>
-                        </div>
-                        <div class="detail-item">
-                          <i class="fas fa-calendar-times"></i>
-                          <span class="label">End:</span>
-                          <span class="value">
-                            <%= new Date(request.campaign_end_date).toLocaleDateString() %>
-                          </span>
-                        </div>
-                      </div>
-                      <% } %>
-              </div>
-              <div class="sent-request-actions">
-                <button class="btn-cancel-request"
-                  onclick="cancelSentRequest('<%= request._id %>', '<%= request.campaign_title %>')">
-                  <i class="fas fa-times-circle"></i> Cancel Request
-                </button>
-              </div>
-            </div>
-            <% }); %>
-              <% } else { %>
-                <div class="no-sent-requests">
-                  <i class="fas fa-paper-plane"></i>
-                  <h3>No Sent Requests</h3>
-                  <p>You haven't sent any collaboration requests yet. Explore campaigns to get started!</p>
-                </div>
-                <% } %>
-      </div>
-    </section>
-
-    <!-- Recent Campaign History Section -->
-    <section class="campaign-history-section" style="margin-top: 2rem;">
-      <h2>Recent Campaign History</h2>
-      <% if (recentCampaignHistory && recentCampaignHistory.length> 0) { %>
-        <div class="campaigns-grid"
-          style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-top:10px;">
-          <% recentCampaignHistory.forEach(campaign=> { %>
-            <div class="campaign-card"
-              style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.08);position:relative;display:flex;flex-direction:column;gap:12px;">
-              <span class="campaign-status"
-                style="position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:12px;background:#e6f4ea;color:#34a853;">
-                <%= campaign.status %>
-              </span>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <% if (campaign.brand_logo) { %>
-                  <img src="<%= campaign.brand_logo %>" alt="<%= campaign.brand_name %>"
-                    style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
-                  <% } %>
-                    <div style="flex:1;min-width:0;">
-                      <h3
-                        style="margin:0;font-size:18px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                        <%= campaign.title %>
-                      </h3>
-                      <% if (campaign.brand_name) { %>
-                        <div
-                          style="font-size:12px;color:#6c757d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                          <%= campaign.brand_name %>
+                    <% }); %>
+                      <% } else { %>
+                        <div class="no-collaborations">
+                          <p>No active collaborations at the moment</p>
+                          <a href="/influencer/<%= influencer%>/explore" class="explore-btn">Explore Opportunities</a>
                         </div>
                         <% } %>
-                    </div>
               </div>
-              <p style="margin:0;color:#666;">
-                <%= (campaign.description || '' ).substring(0, 120) %>...
-              </p>
-              <div class="campaign-metrics"
-                style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0;padding:10px;background:#f8f9fa;border-radius:8px;">
-                <div class="metric" style="text-align:center;">
-                  <div class="metric-value" style="font-weight:600;color:#4285f4;">
-                    <%= campaign.performance_score.toFixed(1) %>
-                  </div>
-                  <div class="metric-label" style="font-size:12px;color:#666;">Performance</div>
-                </div>
-                <div class="metric" style="text-align:center;">
-                  <div class="metric-value" style="font-weight:600;color:#4285f4;">
-                    <%= campaign.engagement_rate.toFixed(1) %>%
-                  </div>
-                  <div class="metric-label" style="font-size:12px;color:#666;">Engagement</div>
-                </div>
-                <div class="metric" style="text-align:center;">
-                  <div class="metric-value" style="font-weight:600;color:#4285f4;">
-                    <%= campaign.reach.toLocaleString() %>
-                  </div>
-                  <div class="metric-label" style="font-size:12px;color:#666;">Reach</div>
-                </div>
-              </div>
-              <div class="campaign-details"
-                style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:8px;border-top:1px solid #eee;">
-                <div class="detail-item" style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
-                  <i class="far fa-calendar" style="color:#4285f4;"></i>
-                  <span>
-                    <%= new Date(campaign.start_date || campaign.end_date).toLocaleDateString() %> - <%= new
-                        Date(campaign.end_date).toLocaleDateString() %>
-                  </span>
-                </div>
-                <div class="detail-item" style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
-                  <i class="fas fa-clock" style="color:#4285f4;"></i>
-                  <span>
-                    <%= campaign.duration || 0 %> days
-                  </span>
-                </div>
-                <div class="detail-item" style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
-                  <i class="fas fa-tag" style="color:#4285f4;"></i>
-                  <span>
-                    <%= (campaign.budget || 0).toLocaleString() %> budget
-                  </span>
-                </div>
-              </div>
-            </div>
-            <% }) %>
-        </div>
-        <% } %>
-          <div class="view-history" style="margin-top: 12px;">
-            <a href="/influencer/campaign-history" class="view-campaigns-btn"
-              style="display:inline-block;background:#007BFF;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;">View
-              All Campaigns</a>
-          </div>
-    </section>
+            </section>
 
-    <!-- <div>Check out all your completed campaigns!</div>
+            <!-- Brand Invites Section -->
+            <section class="brand-invites">
+              <h2>Brand Invitations</h2>
+              <div class="invites-grid">
+                <% if (brandInvites && brandInvites.length> 0) { %>
+                  <% brandInvites.forEach(invite=> { %>
+                    <div class="invite-card">
+                      <span class="invite-badge">New Invite</span>
+                      <div class="invite-header">
+                        <img src="<%= invite.brand_logo || '/images/default-brand.png' %>"
+                          alt="<%= invite.brand_name %>" class="brand-logo">
+                        <div class="invite-info">
+                          <h3>
+                            <%= invite.campaign_title %>
+                          </h3>
+                          <p class="brand-name">
+                            <%= invite.brand_name %>
+                          </p>
+                          <% if (invite.brand_location) { %>
+                            <p class="brand-location"><i class="fas fa-map-marker-alt"></i>
+                              <%= invite.brand_location %>
+                            </p>
+                            <% } %>
+                        </div>
+                      </div>
+                      <div class="invite-description">
+                        <p>
+                          <%= invite.campaign_description || 'No description provided' %>
+                        </p>
+                      </div>
+                      <div class="invite-details">
+                        <div class="detail-row">
+                          <div class="detail-item">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span class="label">Budget:</span>
+                            <span class="value">$<%= (invite.campaign_budget || 0).toLocaleString() %></span>
+                          </div>
+                          <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span class="label">Duration:</span>
+                            <span class="value">
+                              <%= invite.campaign_duration %> days
+                            </span>
+                          </div>
+                        </div>
+                        <% if (invite.campaign_id?.required_channels && invite.campaign_id.required_channels.length> 0)
+                          { %>
+                          <div class="detail-row">
+                            <div class="detail-item full-width">
+                              <i class="fas fa-share-alt"></i>
+                              <span class="label">Required Channels:</span>
+                              <div class="channel-badges">
+                                <% invite.campaign_id.required_channels.forEach(channel=> { %>
+                                  <span class="channel-badge">
+                                    <%= channel %>
+                                  </span>
+                                  <% }); %>
+                              </div>
+                            </div>
+                          </div>
+                          <% } %>
+                            <% if (invite.campaign_start_date && invite.campaign_end_date) { %>
+                              <div class="detail-row">
+                                <div class="detail-item">
+                                  <i class="fas fa-calendar-check"></i>
+                                  <span class="label">Start:</span>
+                                  <span class="value">
+                                    <%= new Date(invite.campaign_start_date).toLocaleDateString() %>
+                                  </span>
+                                </div>
+                                <div class="detail-item">
+                                  <i class="fas fa-calendar-times"></i>
+                                  <span class="label">End:</span>
+                                  <span class="value">
+                                    <%= new Date(invite.campaign_end_date).toLocaleDateString() %>
+                                  </span>
+                                </div>
+                              </div>
+                              <% } %>
+                      </div>
+                      <div class="invite-actions">
+                        <button class="btn-accept"
+                          onclick="acceptBrandInvite('<%= invite._id %>', '<%= invite.campaign_title %>')">
+                          <i class="fas fa-check"></i> Accept Invitation
+                        </button>
+                        <button class="btn-decline"
+                          onclick="declineBrandInvite('<%= invite._id %>', '<%= invite.campaign_title %>')">
+                          <i class="fas fa-times"></i> Decline
+                        </button>
+                      </div>
+                    </div>
+                    <% }); %>
+                      <% } else { %>
+                        <div class="no-invites">
+                          <i class="fas fa-envelope-open"></i>
+                          <h3>No Brand Invitations</h3>
+                          <p>You don't have any brand invitations at the moment.</p>
+                        </div>
+                        <% } %>
+              </div>
+            </section>
+
+            <!-- Sent Requests Section -->
+            <section class="sent-requests">
+              <h2>Sent Requests</h2>
+              <div class="sent-requests-grid">
+                <% if (sentRequests && sentRequests.length> 0) { %>
+                  <% sentRequests.forEach(request=> { %>
+                    <div class="sent-request-card">
+                      <span class="sent-badge">Awaiting Response</span>
+                      <div class="sent-request-header">
+                        <img src="<%= request.brand_logo || '/images/default-brand.png' %>"
+                          alt="<%= request.brand_name %>" class="brand-logo">
+                        <div class="sent-request-info">
+                          <h3>
+                            <%= request.campaign_title %>
+                          </h3>
+                          <p class="brand-name">
+                            <%= request.brand_name %>
+                          </p>
+                          <% if (request.brand_location) { %>
+                            <p class="brand-location"><i class="fas fa-map-marker-alt"></i>
+                              <%= request.brand_location %>
+                            </p>
+                            <% } %>
+                        </div>
+                      </div>
+                      <div class="sent-request-description">
+                        <p>
+                          <%= request.campaign_description || 'No description provided' %>
+                        </p>
+                      </div>
+                      <div class="sent-request-details">
+                        <div class="detail-row">
+                          <div class="detail-item">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span class="label">Budget:</span>
+                            <span class="value">$<%= (request.campaign_budget || 0).toLocaleString() %></span>
+                          </div>
+                          <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span class="label">Duration:</span>
+                            <span class="value">
+                              <%= request.campaign_duration %> days
+                            </span>
+                          </div>
+                        </div>
+                        <% if (request.required_channels && request.required_channels.length> 0) { %>
+                          <div class="detail-row">
+                            <div class="detail-item full-width">
+                              <i class="fas fa-share-alt"></i>
+                              <span class="label">Required Channels:</span>
+                              <div class="channel-badges">
+                                <% request.required_channels.forEach(channel=> { %>
+                                  <span class="channel-badge">
+                                    <%= channel %>
+                                  </span>
+                                  <% }); %>
+                              </div>
+                            </div>
+                          </div>
+                          <% } %>
+                            <% if (request.campaign_start_date && request.campaign_end_date) { %>
+                              <div class="detail-row">
+                                <div class="detail-item">
+                                  <i class="fas fa-calendar-check"></i>
+                                  <span class="label">Start:</span>
+                                  <span class="value">
+                                    <%= new Date(request.campaign_start_date).toLocaleDateString() %>
+                                  </span>
+                                </div>
+                                <div class="detail-item">
+                                  <i class="fas fa-calendar-times"></i>
+                                  <span class="label">End:</span>
+                                  <span class="value">
+                                    <%= new Date(request.campaign_end_date).toLocaleDateString() %>
+                                  </span>
+                                </div>
+                              </div>
+                              <% } %>
+                      </div>
+                      <div class="sent-request-actions">
+                        <button class="btn-cancel-request"
+                          onclick="cancelSentRequest('<%= request._id %>', '<%= request.campaign_title %>')">
+                          <i class="fas fa-times-circle"></i> Cancel Request
+                        </button>
+                      </div>
+                    </div>
+                    <% }); %>
+                      <% } else { %>
+                        <div class="no-sent-requests">
+                          <i class="fas fa-paper-plane"></i>
+                          <h3>No Sent Requests</h3>
+                          <p>You haven't sent any collaboration requests yet. Explore campaigns to get started!</p>
+                        </div>
+                        <% } %>
+              </div>
+            </section>
+
+            <!-- Recent Campaign History Section -->
+            <section class="campaign-history-section" style="margin-top: 2rem;">
+              <h2>Recent Campaign History</h2>
+              <% if (recentCampaignHistory && recentCampaignHistory.length> 0) { %>
+                <div class="campaigns-grid"
+                  style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-top:10px;">
+                  <% recentCampaignHistory.forEach(campaign=> { %>
+                    <div class="campaign-card"
+                      style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.08);position:relative;display:flex;flex-direction:column;gap:12px;">
+                      <span class="campaign-status"
+                        style="position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:12px;font-size:12px;background:#e6f4ea;color:#34a853;">
+                        <%= campaign.status %>
+                      </span>
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <% if (campaign.brand_logo) { %>
+                          <img src="<%= campaign.brand_logo %>" alt="<%= campaign.brand_name %>"
+                            style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                          <% } %>
+                            <div style="flex:1;min-width:0;">
+                              <h3
+                                style="margin:0;font-size:18px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                <%= campaign.title %>
+                              </h3>
+                              <% if (campaign.brand_name) { %>
+                                <div
+                                  style="font-size:12px;color:#6c757d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                  <%= campaign.brand_name %>
+                                </div>
+                                <% } %>
+                            </div>
+                      </div>
+                      <p style="margin:0;color:#666;">
+                        <%= (campaign.description || '' ).substring(0, 120) %>...
+                      </p>
+                      <div class="campaign-metrics"
+                        style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0;padding:10px;background:#f8f9fa;border-radius:8px;">
+                        <div class="metric" style="text-align:center;">
+                          <div class="metric-value" style="font-weight:600;color:#4285f4;">
+                            <%= campaign.performance_score.toFixed(1) %>
+                          </div>
+                          <div class="metric-label" style="font-size:12px;color:#666;">Performance</div>
+                        </div>
+                        <div class="metric" style="text-align:center;">
+                          <div class="metric-value" style="font-weight:600;color:#4285f4;">
+                            <%= campaign.engagement_rate.toFixed(1) %>%
+                          </div>
+                          <div class="metric-label" style="font-size:12px;color:#666;">Engagement</div>
+                        </div>
+                        <div class="metric" style="text-align:center;">
+                          <div class="metric-value" style="font-weight:600;color:#4285f4;">
+                            <%= campaign.reach.toLocaleString() %>
+                          </div>
+                          <div class="metric-label" style="font-size:12px;color:#666;">Reach</div>
+                        </div>
+                      </div>
+                      <div class="campaign-details"
+                        style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:8px;border-top:1px solid #eee;">
+                        <div class="detail-item"
+                          style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
+                          <i class="far fa-calendar" style="color:#4285f4;"></i>
+                          <span>
+                            <%= new Date(campaign.start_date || campaign.end_date).toLocaleDateString() %> - <%= new
+                                Date(campaign.end_date).toLocaleDateString() %>
+                          </span>
+                        </div>
+                        <div class="detail-item"
+                          style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
+                          <i class="fas fa-clock" style="color:#4285f4;"></i>
+                          <span>
+                            <%= campaign.duration || 0 %> days
+                          </span>
+                        </div>
+                        <div class="detail-item"
+                          style="display:flex;align-items:center;gap:6px;color:#666;font-size:12px;">
+                          <i class="fas fa-tag" style="color:#4285f4;"></i>
+                          <span>
+                            <%= (campaign.budget || 0).toLocaleString() %> budget
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <% }) %>
+                </div>
+                <% } %>
+                  <div class="view-history" style="margin-top: 12px;">
+                    <a href="/influencer/campaign-history" class="view-campaigns-btn"
+                      style="display:inline-block;background:#007BFF;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;">View
+                      All Campaigns</a>
+                  </div>
+            </section>
+
+            <!-- <div>Check out all your completed campaigns!</div>
     <a href="/influencer/campaign-history" class="view-campaigns-btn">View Completed Campaigns</a> -->
   </div>
 
@@ -961,1495 +1018,6 @@
       </form>
     </div>
   </div>
-
-  <style>
-    .progress-bar .progress {
-      height: 8px;
-      background: var(--primary-color);
-      border-radius: 4px;
-      width: var(--progress, 0%);
-    }
-
-    /* Update Progress Modal Styles */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
-    }
-
-    .metric-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .metric-group label {
-      font-weight: 500;
-      margin-bottom: 5px;
-      color: #333;
-    }
-
-    .metric-group input {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .metric-group input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-    }
-
-    .progress-input {
-      margin: 20px 0;
-      text-align: center;
-    }
-
-    .progress-input label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 10px;
-      color: #333;
-    }
-
-    .progress-input input[type="range"] {
-      width: 100%;
-      margin: 10px 0;
-    }
-
-    .progress-input span {
-      font-weight: 600;
-      color: var(--primary-color);
-      font-size: 16px;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #eee;
-    }
-
-    .btn-secondary {
-      padding: 10px 20px;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
-    }
-
-    .btn-primary {
-      padding: 10px 20px;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .btn-primary:hover {
-      background: #3367d6;
-    }
-
-    .dashboard-items {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .dashboard-item {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .dashboard-item h3 {
-      color: var(--dark-gray);
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-    }
-
-    .performance-score {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--primary-color);
-      margin: 0.5rem 0;
-    }
-
-    .rating-stars {
-      color: #ddd;
-      margin: 0.5rem 0;
-    }
-
-    .rating-stars .active {
-      color: #ffd700;
-    }
-
-    .earnings-amount {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--primary-color);
-      margin: 0.5rem 0;
-    }
-
-    .positive {
-      color: #28a745;
-    }
-
-    .negative {
-      color: #dc3545;
-    }
-
-    .total-earnings {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      color: var(--secondary-color);
-    }
-
-    .audience-count {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--primary-color);
-      margin: 0.5rem 0;
-    }
-
-    .engagement-rate {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      color: var(--secondary-color);
-    }
-
-    /* Brand Invites Section */
-    .brand-invites {
-      margin-top: 2rem;
-    }
-
-    .invites-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1rem;
-    }
-
-    .invite-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .invite-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.15);
-    }
-
-    .invite-badge {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: linear-gradient(135deg, #4285f4, #2e70e3);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.05);
-      }
-    }
-
-    .invite-header {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      padding-right: 100px;
-    }
-
-    .invite-header .brand-logo {
-      width: 60px;
-      height: 60px;
-      border-radius: 10px;
-      object-fit: cover;
-      border: 2px solid #f0f0f0;
-    }
-
-    .invite-info h3 {
-      color: #333;
-      font-size: 1.3rem;
-      margin-bottom: 0.3rem;
-      font-weight: 600;
-    }
-
-    .invite-info .brand-name {
-      color: #4285f4;
-      font-weight: 500;
-      margin-bottom: 0.2rem;
-    }
-
-    .invite-info .brand-location {
-      color: #666;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .invite-description {
-      margin: 1rem 0;
-      padding: 1rem;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border-left: 4px solid #4285f4;
-    }
-
-    .invite-description p {
-      color: #555;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .invite-details {
-      margin: 1rem 0;
-    }
-
-    .detail-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .detail-row .full-width {
-      grid-column: 1 / -1;
-    }
-
-    .invite-details .detail-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      background: #f8f9fa;
-      border-radius: 6px;
-    }
-
-    .invite-details .detail-item i {
-      color: #4285f4;
-      width: 20px;
-    }
-
-    .invite-details .label {
-      font-weight: 600;
-      color: #555;
-      font-size: 0.9rem;
-    }
-
-    .invite-details .value {
-      color: #333;
-      font-weight: 500;
-    }
-
-    .invite-details .channel-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .invite-details .channel-badge {
-      background: #4285f4;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 15px;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .invite-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid #eee;
-    }
-
-    .btn-accept,
-    .btn-decline {
-      flex: 1;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .btn-accept {
-      background: #4285f4;
-      color: white;
-    }
-
-    .btn-accept:hover {
-      background: #3367d6;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
-    }
-
-    .btn-decline {
-      background: white;
-      color: #666;
-      border: 2px solid #ddd;
-    }
-
-    .btn-decline:hover {
-      background: #f44336;
-      color: white;
-      border-color: #f44336;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
-    }
-
-    .no-invites {
-      text-align: center;
-      padding: 3rem;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .no-invites i {
-      font-size: 3rem;
-      color: #ddd;
-      margin-bottom: 1rem;
-    }
-
-    .no-invites h3 {
-      color: #666;
-      margin-bottom: 0.5rem;
-    }
-
-    .no-invites p {
-      color: #999;
-    }
-
-    /* Sent Requests Section */
-    .sent-requests {
-      margin-top: 2rem;
-    }
-
-    .sent-requests-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1rem;
-    }
-
-    .sent-request-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .sent-request-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .sent-badge {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: linear-gradient(135deg, #ff9800, #f57c00);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
-    }
-
-    .sent-request-header {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      padding-right: 140px;
-    }
-
-    .sent-request-header .brand-logo {
-      width: 60px;
-      height: 60px;
-      border-radius: 10px;
-      object-fit: cover;
-      border: 2px solid #f0f0f0;
-    }
-
-    .sent-request-info h3 {
-      color: #333;
-      font-size: 1.3rem;
-      margin-bottom: 0.3rem;
-      font-weight: 600;
-    }
-
-    .sent-request-info .brand-name {
-      color: #ff9800;
-      font-weight: 500;
-      margin-bottom: 0.2rem;
-    }
-
-    .sent-request-info .brand-location {
-      color: #666;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .sent-request-description {
-      margin: 1rem 0;
-      padding: 1rem;
-      background: #fff8f0;
-      border-radius: 8px;
-      border-left: 4px solid #ff9800;
-    }
-
-    .sent-request-description p {
-      color: #555;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    .sent-request-details {
-      margin: 1rem 0;
-    }
-
-    .sent-request-details .detail-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      background: #f8f9fa;
-      border-radius: 6px;
-    }
-
-    .sent-request-details .detail-item i {
-      color: #ff9800;
-      width: 20px;
-    }
-
-    .sent-request-details .label {
-      font-weight: 600;
-      color: #555;
-      font-size: 0.9rem;
-    }
-
-    .sent-request-details .value {
-      color: #333;
-      font-weight: 500;
-    }
-
-    .sent-request-details .channel-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .sent-request-details .channel-badge {
-      background: #ff9800;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 15px;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .sent-request-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid #eee;
-    }
-
-    .btn-cancel-request {
-      flex: 1;
-      padding: 12px 20px;
-      border: 2px solid #f44336;
-      background: white;
-      color: #f44336;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .btn-cancel-request:hover {
-      background: #f44336;
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
-    }
-
-    .no-sent-requests {
-      text-align: center;
-      padding: 3rem;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .no-sent-requests i {
-      font-size: 3rem;
-      color: #ddd;
-      margin-bottom: 1rem;
-    }
-
-    .no-sent-requests h3 {
-      color: #666;
-      margin-bottom: 0.5rem;
-    }
-
-    .no-sent-requests p {
-      color: #999;
-    }
-
-    .pending-requests {
-      margin-top: 2rem;
-    }
-
-    .requests-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1rem;
-    }
-
-    .request-card {
-      background: white;
-      border-radius: 10px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .request-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .brand-logo {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .request-info {
-      flex: 1;
-    }
-
-    .request-info h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      color: var(--dark-gray);
-    }
-
-    .brand-name {
-      color: var(--secondary-color);
-      margin: 0;
-    }
-
-    .request-date {
-      color: var(--secondary-color);
-      font-size: 0.9rem;
-    }
-
-    .request-details {
-      margin: 1rem 0;
-    }
-
-    .detail-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-
-    .channel-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .channel-badge {
-      background: var(--primary-color);
-      color: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 15px;
-      font-size: 0.8rem;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 15px;
-      font-size: 0.8rem;
-    }
-
-    .status-badge.pending {
-      background: #ffd700;
-      color: #856404;
-    }
-
-    .no-requests {
-      text-align: center;
-      padding: 3rem;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .no-requests i {
-      font-size: 3rem;
-      color: var(--secondary-color);
-      margin-bottom: 1rem;
-    }
-
-    .no-requests h3 {
-      color: var(--dark-gray);
-      margin-bottom: 0.5rem;
-    }
-
-    .no-requests p {
-      color: var(--secondary-color);
-    }
-
-    /* Modal Styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 600px;
-      border-radius: 10px;
-      position: relative;
-    }
-
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover {
-      color: black;
-    }
-
-    /* Content Creation Section Styles */
-    .content-creation-section {
-      margin: 2rem 0;
-      padding: 2rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 15px;
-      color: white;
-    }
-
-    .section-header h2 {
-      color: white;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-description {
-      color: rgba(255, 255, 255, 0.9);
-      margin-bottom: 2rem;
-      font-size: 1.1rem;
-    }
-
-    .content-creation-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .content-creation-card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border: 1px solid #e9ecef;
-    }
-
-    .content-creation-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .campaign-info h3 {
-      color: #2c3e50;
-      margin-bottom: 0.5rem;
-      font-size: 1.2rem;
-    }
-
-    .brand-name {
-      color: #6c757d;
-      margin-bottom: 1rem;
-      font-weight: 500;
-    }
-
-    .campaign-dates {
-      margin-bottom: 1rem;
-    }
-
-    .date-range {
-      color: #495057;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .content-actions {
-      display: flex;
-      gap: 0.75rem;
-      margin: 1rem 0 1.5rem 0;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .content-actions .btn {
-      flex: 1;
-      min-width: 140px;
-      padding: 0.75rem 1.25rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .content-actions .btn-primary {
-      background: #007BFF;
-      color: white;
-    }
-
-    .content-actions .btn-primary:hover {
-      background: #0056b3;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-    }
-
-    .update-progress-btn {
-      flex: 1;
-      min-width: 140px;
-      padding: 0.75rem 1.25rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      background: #007BFF;
-      color: white;
-    }
-
-    .update-progress-btn:hover {
-      background: #0056b3;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-    }
-
-    .content-actions .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .content-actions .btn-secondary:hover {
-      background: #5a6268;
-      transform: translateY(-2px);
-    }
-
-    .content-status {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .status-badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 15px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .status-active {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .status-completed {
-      background: #d1ecf1;
-      color: #0c5460;
-    }
-
-    .no-content-creation {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 3rem 1rem;
-    }
-
-    .empty-state {
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .empty-state i {
-      color: rgba(255, 255, 255, 0.7);
-      margin-bottom: 1rem;
-    }
-
-    .empty-state h3 {
-      color: white;
-      margin-bottom: 1rem;
-    }
-
-    .empty-state .btn {
-      margin-top: 1rem;
-      background: white;
-      color: #667eea;
-      padding: 0.75rem 2rem;
-      border-radius: 25px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .empty-state .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Content Creation Modal Styles */
-    #contentCreationModal .modal-content {
-      max-width: 700px;
-    }
-
-    .modal-body {
-      padding: 1rem 0;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: #495057;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ced4da;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: #007BFF;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    }
-
-    .checkbox-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 0.75rem;
-    }
-
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: 8px;
-      transition: background-color 0.3s ease;
-    }
-
-    .checkbox-item:hover {
-      background-color: #f8f9fa;
-    }
-
-    .checkbox-item input[type="checkbox"] {
-      margin-right: 0.5rem;
-      transform: scale(1.2);
-    }
-
-    .required {
-      color: #dc3545;
-      font-weight: bold;
-    }
-
-    .form-text {
-      font-size: 0.875rem;
-      color: #6c757d;
-      margin-top: 0.25rem;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: flex-end;
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 1px solid #e9ecef;
-    }
-
-    .form-actions .btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .form-actions .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .form-actions .btn-primary {
-      background: #007BFF;
-      color: white;
-    }
-
-    .form-actions .btn-success {
-      background: #28a745;
-      color: white;
-    }
-
-    .form-actions .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .campaign-details {
-      margin-top: 20px;
-    }
-
-    .progress-input {
-      margin: 20px 0;
-      text-align: center;
-    }
-
-    #progressSlider {
-      width: 100%;
-      height: 8px;
-      -webkit-appearance: none;
-      background: #e0e0e0;
-      border-radius: 4px;
-      outline: none;
-      margin: 15px 0;
-    }
-
-    #progressSlider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      background: var(--primary-color);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    #progressSlider::-webkit-slider-thumb:hover {
-      background: var(--secondary-color);
-      transform: scale(1.1);
-    }
-
-    #progressValue {
-      display: block;
-      font-size: 1.2em;
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-top: 10px;
-    }
-
-    .save-btn {
-      background-color: var(--primary-color);
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 500;
-      width: 100%;
-      margin-top: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .save-btn:hover {
-      background-color: var(--secondary-color);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .save-btn:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
-
-    .campaign-info {
-      padding: 20px;
-    }
-
-    .campaign-info h3 {
-      margin: 0 0 10px 0;
-      color: var(--dark-gray);
-      font-size: 1.5rem;
-    }
-
-    .brand-name {
-      color: var(--secondary-color);
-      margin-bottom: 20px;
-    }
-
-    .campaign-metrics {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .metric {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 5px;
-    }
-
-    .metric .label {
-      color: var(--secondary-color);
-      font-size: 0.9rem;
-    }
-
-    .metric .value {
-      font-weight: 600;
-      color: var(--primary-color);
-    }
-
-    .campaign-description {
-      margin-bottom: 20px;
-    }
-
-    .campaign-description h4 {
-      color: var(--dark-gray);
-      margin-bottom: 10px;
-    }
-
-    .campaign-dates {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .date {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 5px;
-    }
-
-    .campaign-performance {
-      margin-bottom: 20px;
-    }
-
-    .campaign-performance h4 {
-      color: var(--dark-gray);
-      margin-bottom: 10px;
-    }
-
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-    .campaign-deliverables {
-      margin-top: 20px;
-    }
-
-    .campaign-deliverables h4 {
-      color: var(--dark-gray);
-      margin-bottom: 10px;
-    }
-
-    .deliverables-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .deliverable-item {
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 5px;
-    }
-
-    .deliverable-item h5 {
-      margin: 0 0 10px 0;
-      color: var(--dark-gray);
-    }
-
-    .deliverable-status {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-    }
-
-    .status-badge {
-      padding: 5px 10px;
-      border-radius: 15px;
-      font-size: 0.8rem;
-      text-transform: capitalize;
-    }
-
-    .status-badge.pending {
-      background: #ffd700;
-      color: #856404;
-    }
-
-    .status-badge.active {
-      background: #28a745;
-      color: white;
-    }
-
-    .status-badge.completed {
-      background: #17a2b8;
-      color: white;
-    }
-
-    .status-badge.cancelled {
-      background: #dc3545;
-      color: white;
-    }
-
-    .due-date {
-      color: var(--secondary-color);
-      font-size: 0.9rem;
-    }
-
-    .campaign-header {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .campaign-header .brand-logo {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .campaign-header h3 {
-      margin: 0;
-      flex-grow: 1;
-    }
-
-    .campaign-header .brand-name {
-      margin: 0;
-    }
-
-    .update-progress-btn {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .update-progress-btn:hover {
-      background-color: var(--secondary-color);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .update-progress-btn:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
-
-    .update-progress-btn i {
-      font-size: 0.9rem;
-    }
-
-    /* Responsive tweaks for Recent Campaign History cards */
-    @media (max-width: 768px) {
-      .campaign-history-section {
-        margin-top: 1.25rem;
-      }
-
-      .campaign-history-section .campaigns-grid {
-        gap: 12px !important;
-      }
-
-      .campaign-history-section .campaign-card {
-        padding: 12px !important;
-        gap: 8px !important;
-      }
-
-      .campaign-history-section .campaign-metrics {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
-        padding: 8px !important;
-      }
-
-      .campaign-history-section .metric-value {
-        font-size: 0.9rem !important;
-      }
-
-      .campaign-history-section .metric-label {
-        font-size: 0.7rem !important;
-      }
-
-      .campaign-history-section .detail-item {
-        font-size: 0.7rem !important;
-        gap: 4px !important;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .campaign-history-section .campaigns-grid {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-      }
-
-      .campaign-history-section .campaign-metrics {
-        grid-template-columns: 1fr !important;
-        gap: 6px !important;
-        padding: 6px !important;
-      }
-
-      .campaign-history-section .campaign-card {
-        padding: 10px !important;
-      }
-
-      .campaign-history-section .metric-value {
-        font-size: 0.85rem !important;
-      }
-
-      .campaign-history-section .metric-label {
-        font-size: 0.68rem !important;
-      }
-    }
-
-    /* Shop URL Section Styles */
-    .shop-url-section {
-      margin: 1rem 0;
-      padding: 1rem;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border: 1px solid #e9ecef;
-    }
-
-    .shop-url-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .shop-url-header i {
-      color: #28a745;
-      font-size: 1rem;
-    }
-
-    .shop-url-label {
-      font-weight: 600;
-      color: #333;
-      font-size: 0.9rem;
-    }
-
-    .shop-url-container {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .shop-url-input {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #ced4da;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      background: white;
-      color: #495057;
-      font-family: 'Courier New', monospace;
-    }
-
-    .shop-url-input:focus {
-      outline: none;
-      border-color: #28a745;
-      box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
-    }
-
-    .btn-copy {
-      padding: 0.5rem 0.75rem;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 40px;
-    }
-
-    .btn-copy:hover {
-      background: #5a6268;
-    }
-
-    .btn-copy:active {
-      transform: scale(0.95);
-    }
-
-    .shop-url-note {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-      color: #6c757d;
-      font-style: italic;
-    }
-
-    .shop-url-note i {
-      color: #17a2b8;
-    }
-
-    /* Responsive adjustments for shop URL section */
-    @media (max-width: 768px) {
-      .shop-url-container {
-        flex-direction: column;
-      }
-
-      .btn-copy {
-        align-self: flex-start;
-        width: fit-content;
-      }
-    }
-  </style>
 
   <script>
     // ========================================

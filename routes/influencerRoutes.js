@@ -27,7 +27,7 @@ const path = require('path');
 const fs = require('fs/promises');
 const { InfluencerInfo, InfluencerAnalytics, InfluencerSocials } = require('../config/InfluencerMongo');
 const { CampaignMetrics } = require('../config/CampaignMongo');
-const brandModel = require('../models/brandModel');
+const { brandModel } = require('../models/brandModel');
 const { Message } = require('../config/MessageMongo');
 
 // Apply authentication middleware to all routes
@@ -542,6 +542,22 @@ router.post('/apply/:campaignId', async (req, res) => {
             });
         }
 
+        // Check subscription limits for brand connections
+        const { SubscriptionService } = require('../models/brandModel');
+        try {
+            const limitCheck = await SubscriptionService.checkSubscriptionLimit(influencerId, 'influencer', 'connect_brand');
+            if (!limitCheck.allowed) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Brand connection limit reached: ${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
+                    showUpgradeLink: true
+                });
+            }
+        } catch (subscriptionError) {
+            console.error('Subscription check error:', subscriptionError);
+            // Continue with application if subscription check fails (fallback)
+        }
+
         // Check if campaign exists
         const campaign = await CampaignInfo.findById(campaignId);
         if (!campaign) {
@@ -610,6 +626,14 @@ router.post('/apply/:campaignId', async (req, res) => {
         });
 
         await newApplication.save();
+
+        // Update subscription usage for brand connection
+        try {
+            await SubscriptionService.updateUsage(influencerId, 'influencer', { brandsConnected: 1 });
+        } catch (usageError) {
+            console.error('Error updating subscription usage:', usageError);
+            // Continue even if usage update fails
+        }
 
         // Store special message if provided
         if (specialMessage) {
@@ -836,6 +860,22 @@ router.post('/invite-brand', async (req, res) => {
             });
         }
 
+        // Check subscription limits for brand connections
+        const { SubscriptionService } = require('../models/brandModel');
+        try {
+            const limitCheck = await SubscriptionService.checkSubscriptionLimit(influencerId, 'influencer', 'connect_brand');
+            if (!limitCheck.allowed) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Brand connection limit reached: ${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
+                    showUpgradeLink: true
+                });
+            }
+        } catch (subscriptionError) {
+            console.error('Subscription check error:', subscriptionError);
+            // Continue with invitation if subscription check fails (fallback)
+        }
+
         // Validate input - only require the fields that influencer fills
         if (!brandId || !title || !description || !budget || !product_name || !required_channels || required_channels.length === 0) {
             return res.status(400).json({
@@ -930,6 +970,14 @@ router.post('/invite-brand', async (req, res) => {
         });
 
         await campaignInfluencer.save();
+
+        // Update subscription usage for brand connection
+        try {
+            await SubscriptionService.updateUsage(influencerId, 'influencer', { brandsConnected: 1 });
+        } catch (usageError) {
+            console.error('Error updating subscription usage:', usageError);
+            // Continue even if usage update fails
+        }
 
         res.json({
             success: true,

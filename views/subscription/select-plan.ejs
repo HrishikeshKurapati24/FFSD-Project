@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Plan - CollabSync</title>
+    <link rel="stylesheet" href="/subscription/subscription.css">
+    <link rel="stylesheet" href="/subscription/select-plan.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">CollabSync</div>
+        </div>
+    </header>
+
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h1>Welcome to CollabSync!</h1>
+        <p>Your account has been created successfully. Now choose the perfect plan for your needs.</p>
+    </div>
+
+    <div class="container">
+        <!-- Free Plan Notice -->
+        <div class="free-plan-notice">
+            <h3><i class="fas fa-gift"></i> Start with Our Free Plan</h3>
+            <p>You can start using CollabSync immediately with our free plan and upgrade anytime!</p>
+            <div class="free-limits">
+                <div class="free-limit-item">
+                    <strong>2</strong> Campaigns
+                </div>
+                <div class="free-limit-item">
+                    <strong>2</strong>
+                    <%= userType==='brand' ? 'Collaborations' : 'Brand Connections' %>
+                </div>
+                <div class="free-limit-item">
+                    <strong>Basic</strong> Analytics
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Plans -->
+        <div class="available-plans">
+            <h2>Upgrade to Premium Plans</h2>
+            <div class="billing-toggle">
+                <label class="toggle-switch">
+                    <input type="radio" name="billing" value="monthly" checked>
+                    <span>Monthly</span>
+                </label>
+                <label class="toggle-switch">
+                    <input type="radio" name="billing" value="yearly">
+                    <span>Yearly <span class="discount">Save 20%</span></span>
+                </label>
+            </div>
+
+            <div class="plans-grid">
+                <% availablePlans.forEach(plan=> { %>
+                    <div class="plan-card <%= plan.name.toLowerCase() %>" data-plan-id="<%= plan._id %>">
+                        <div class="plan-header">
+                            <h3>
+                                <%= plan.name %>
+                            </h3>
+                            <% if (plan.popularBadge) { %>
+                                <span class="popular-badge">Most Popular</span>
+                                <% } %>
+                                    <div class="price">
+                                        <span class="monthly-price">$<%= plan.price.monthly %><span>/month</span></span>
+                                        <span class="yearly-price" style="display: none;">$<%= plan.price.yearly %>
+                                                <span>/year</span></span>
+                                    </div>
+                        </div>
+
+                        <div class="plan-description">
+                            <p>
+                                <%= plan.description %>
+                            </p>
+                        </div>
+
+                        <div class="plan-features">
+                            <ul>
+                                <% if (userType==='brand' ) { %>
+                                    <li><i class="fas fa-check"></i>
+                                        <%= plan.features.maxCampaigns===-1 ? 'Unlimited' : plan.features.maxCampaigns
+                                            %> Campaigns
+                                    </li>
+                                    <li><i class="fas fa-check"></i>
+                                        <%= plan.features.maxInfluencers===-1 ? 'Unlimited' :
+                                            plan.features.maxInfluencers %> Influencer Connections
+                                    </li>
+                                    <% } else { %>
+                                        <li><i class="fas fa-check"></i>
+                                            <%= plan.features.maxBrands===-1 ? 'Unlimited' : plan.features.maxBrands %>
+                                                Brand Connections
+                                        </li>
+                                        <% } %>
+                                            <% if (plan.features.analytics) { %>
+                                                <li><i class="fas fa-check"></i> Basic Analytics</li>
+                                                <% } %>
+                                                    <% if (plan.features.advancedAnalytics) { %>
+                                                        <li><i class="fas fa-check"></i> Advanced Analytics</li>
+                                                        <% } %>
+                                                            <% if (plan.features.prioritySupport) { %>
+                                                                <li><i class="fas fa-check"></i> Priority Support</li>
+                                                                <% } %>
+                                                                    <% if (plan.features.customBranding) { %>
+                                                                        <li><i class="fas fa-check"></i> Custom Branding
+                                                                        </li>
+                                                                        <% } %>
+                                                                            <% if (plan.features.apiAccess) { %>
+                                                                                <li><i class="fas fa-check"></i> API
+                                                                                    Access</li>
+                                                                                <% } %>
+                            </ul>
+                        </div>
+
+                        <button class="subscribe-btn" onclick="subscribeToPlan('<%= plan._id %>')">
+                            Choose <%= plan.name %>
+                        </button>
+                    </div>
+                    <% }); %>
+            </div>
+        </div>
+
+        <!-- Skip Section -->
+        <div class="skip-section">
+            <h3>Not ready to upgrade?</h3>
+            <p>You can start with our free plan and upgrade anytime from your dashboard.</p>
+            <a href="/signin" class="skip-btn">
+                <i class="fas fa-arrow-right"></i> Continue with Free Plan
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Store user data from signup
+        const userData = {
+            userId: '<%= userId %>',
+            userType: '<%= userType %>'
+        };
+
+        // Billing toggle functionality
+        document.querySelectorAll('input[name="billing"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const isYearly = this.value === 'yearly';
+                document.querySelectorAll('.monthly-price').forEach(el => {
+                    el.style.display = isYearly ? 'none' : 'block';
+                });
+                document.querySelectorAll('.yearly-price').forEach(el => {
+                    el.style.display = isYearly ? 'block' : 'none';
+                });
+            });
+        });
+
+        // Subscribe to plan
+        async function subscribeToPlan(planId) {
+            const billingCycle = document.querySelector('input[name="billing"]:checked').value;
+
+            try {
+                const response = await fetch('/subscription/subscribe-after-signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        planId,
+                        billingCycle,
+                        userId: userData.userId,
+                        userType: userData.userType
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.redirectTo) {
+                        // Redirect to payment page for paid plans or signin for free plans
+                        window.location.href = result.redirectTo;
+                    } else {
+                        alert('Subscription created successfully! Redirecting to sign-in...');
+                        window.location.href = '/signin';
+                    }
+                } else {
+                    alert(result.message || 'Failed to create subscription');
+                }
+            } catch (error) {
+                console.error('Error subscribing to plan:', error);
+                alert('An error occurred while subscribing');
+            }
+        }
+    </script>
+</body>
+
+</html>

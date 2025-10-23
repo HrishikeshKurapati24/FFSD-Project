@@ -4,7 +4,672 @@ const { BrandInfo, BrandAnalytics, BrandVerification, BrandSocialLink } = requir
 const { CampaignInfo, CampaignMetrics, CampaignInfluencers } = require('../config/CampaignMongo');
 const { InfluencerInfo, InfluencerAnalytics } = require('../config/InfluencerMongo');
 const { BrandSocials } = require('../config/BrandMongo');
+const { SubscriptionPlan, UserSubscription, PaymentHistory } = require('../config/SubscriptionMongo');
 const mongoose = require('mongoose');
+
+// Subscription schemas moved to config/SubscriptionMongo.js
+
+// Transaction Schema
+const transactionSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    refPath: 'userType'
+  },
+  userType: {
+    type: String,
+    required: true,
+    enum: ['BrandInfo', 'InfluencerInfo']
+  },
+  subscriptionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserSubscription',
+    required: true
+  },
+  planId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubscriptionPlan',
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  currency: {
+    type: String,
+    default: 'USD'
+  },
+  billingCycle: {
+    type: String,
+    enum: ['monthly', 'yearly'],
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed', 'refunded'],
+    default: 'pending'
+  },
+  transactionId: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  paymentMethod: {
+    type: String,
+    default: 'credit_card'
+  },
+  cardDetails: {
+    last4: String,
+    brand: String,
+    expiryMonth: Number,
+    expiryYear: Number
+  },
+  billingAddress: String,
+  processingFee: {
+    type: Number,
+    default: 0
+  },
+  notes: String,
+  processedAt: Date,
+  refundedAt: Date
+}, {
+  timestamps: true
+});
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+// Subscription Service Class
+class SubscriptionService {
+  // Get all active plans for a user type
+  static async getPlansForUserType(userType) {
+    return await SubscriptionPlan.find({ 
+      userType: userType, 
+      isActive: true 
+    }).sort({ 'price.monthly': 1 });
+  }
+
+  // Get user's current subscription
+  static async getUserSubscription(userId, userType) {
+    try {
+      console.log(`\n========== [getUserSubscription] START ==========`);
+      console.log(`[SubscriptionService] Fetching subscription for userId: ${userId}, userType: ${userType}`);
+      console.log(`[SubscriptionService] userId type:`, typeof userId);
+      
+      // Convert userId to string for consistent comparison
+      const userIdString = userId.toString();
+      
+      // First, check ALL subscriptions for this user (for debugging)
+      const allUserSubs = await UserSubscription.find({ userId: userIdString }).populate('planId');
+      console.log(`[SubscriptionService] Total subscriptions found for user: ${allUserSubs.length}`);
+      allUserSubs.forEach((sub, index) => {
+        console.log(`  [${index + 1}] ID: ${sub._id}, Plan: ${sub.planId?.name}, Status: ${sub.status}, Created: ${sub.createdAt}`);
+      });
+      
+      // Find the LATEST active subscription (sort by createdAt descending)
+      let subscription = await UserSubscription.findOne({
+        userId: userIdString,
+        status: 'active'
+      })
+      .sort({ createdAt: -1 })  // Get the most recent one
+      .populate('planId');
+      
+      console.log(`[SubscriptionService] Query result:`, subscription ? 'FOUND' : 'NOT FOUND');
+      
+      if (subscription) {
+        console.log(`[SubscriptionService] Selected subscription:`, {
+          id: subscription._id,
+          userId: subscription.userId,
+          planName: subscription.planId?.name,
+          status: subscription.status,
+          createdAt: subscription.createdAt
+        });
+        
+        // Expire all OTHER active subscriptions for this user (keep only the latest one)
+        const otherActiveSubs = await UserSubscription.find({
+          userId: userIdString,
+          status: 'active',
+          _id: { $ne: subscription._id }
+        });
+        
+        if (otherActiveSubs.length > 0) {
+          console.log(`[SubscriptionService] Found ${otherActiveSubs.length} old active subscriptions, expiring them...`);
+          await UserSubscription.updateMany(
+            {
+              userId: userIdString,
+              status: 'active',
+              _id: { $ne: subscription._id }
+            },
+            { status: 'expired' }
+          );
+          console.log(`[SubscriptionService] Old subscriptions expired successfully`);
+        }
+      }
+      
+      // If no subscription exists, create a free one
+      if (!subscription) {
+        console.log(`[SubscriptionService] No active subscription found, creating free subscription...`);
+        
+        // Determine userType if not provided
+        if (!userType || userType === 'undefined') {
+          console.log(`[SubscriptionService] UserType not provided, determining from user data...`);
+          // Try to determine from the user's collection
+          const { BrandInfo } = require('../config/BrandMongo');
+          const { InfluencerInfo } = require('../config/InfluencerMongo');
+          
+          const brand = await BrandInfo.findById(userId);
+          const influencer = await InfluencerInfo.findById(userId);
+          
+          if (brand) {
+            userType = 'brand';
+            console.log(`[SubscriptionService] Determined userType: brand`);
+          } else if (influencer) {
+            userType = 'influencer';
+            console.log(`[SubscriptionService] Determined userType: influencer`);
+          } else {
+            console.error(`[SubscriptionService] Could not determine userType for userId: ${userId}`);
+            return null;
+          }
+        }
+        
+        subscription = await this.createDefaultFreeSubscription(userId, userType);
+        console.log(`[SubscriptionService] Free subscription created:`, subscription ? 'YES' : 'NO');
+      }
+      
+      return subscription;
+    } catch (error) {
+      console.error(`[SubscriptionService] Error in getUserSubscription:`, error);
+      return null;
+    }
+  }
+
+  // Create new subscription
+  static async createSubscription(subscriptionData) {
+    const subscription = new UserSubscription(subscriptionData);
+    return await subscription.save();
+  }
+
+  // Check if user can perform action based on subscription limits
+  static async checkSubscriptionLimit(userId, userType, action) {
+    const subscription = await this.getUserSubscription(userId, userType);
+    if (!subscription) return { allowed: false, reason: 'No active subscription' };
+
+    const plan = subscription.planId;
+    const usage = subscription.usage;
+
+    switch (action) {
+      case 'create_campaign':
+        if (plan.features.maxCampaigns === -1) return { allowed: true };
+        return {
+          allowed: usage.campaignsUsed < plan.features.maxCampaigns,
+          reason: usage.campaignsUsed >= plan.features.maxCampaigns ? `You have reached your limit of ${plan.features.maxCampaigns} campaigns` : null
+        };
+      
+      case 'connect_influencer':
+        if (plan.features.maxInfluencers === -1) return { allowed: true };
+        return {
+          allowed: usage.influencersConnected < plan.features.maxInfluencers,
+          reason: usage.influencersConnected >= plan.features.maxInfluencers ? `You have reached your limit of ${plan.features.maxInfluencers} influencer connections` : null
+        };
+      
+      case 'connect_brand':
+        if (plan.features.maxBrands === -1) return { allowed: true };
+        return {
+          allowed: usage.brandsConnected < plan.features.maxBrands,
+          reason: usage.brandsConnected >= plan.features.maxBrands ? `You have reached your limit of ${plan.features.maxBrands} brand connections` : null
+        };
+      
+      case 'upload_content':
+        return {
+          allowed: usage.uploadsThisMonth < plan.limits.monthlyUploads,
+          reason: usage.uploadsThisMonth >= plan.limits.monthlyUploads ? 'Monthly upload limit reached' : null
+        };
+      
+      default:
+        return { allowed: true };
+    }
+  }
+
+  // Update subscription usage
+  static async updateUsage(userId, userType, usageUpdate) {
+    // Map userType to schema format
+    const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+    return await UserSubscription.findOneAndUpdate(
+      { userId: userId, userType: mappedUserType, status: 'active' },
+      { $inc: { usage: usageUpdate } },
+      { new: true }
+    );
+  }
+
+  // Get subscription analytics
+  static async getSubscriptionAnalytics() {
+    const totalActive = await UserSubscription.countDocuments({ status: 'active' });
+    const totalRevenue = await PaymentHistory.aggregate([
+      { $match: { status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    
+    const planDistribution = await UserSubscription.aggregate([
+      { $match: { status: 'active' } },
+      { $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' } },
+      { $unwind: '$plan' },
+      { $group: { _id: '$plan.name', count: { $sum: 1 } } }
+    ]);
+
+    return {
+      totalActive,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      planDistribution
+    };
+  }
+
+  // Create default free subscription for new user
+  static async createDefaultFreeSubscription(userId, userType) {
+    try {
+      console.log(`[SubscriptionService] Creating free subscription for userId: ${userId}, userType: ${userType}`);
+      
+      // Find the free plan for the user type
+      const freePlan = await SubscriptionPlan.findOne({ 
+        userType: userType, 
+        name: 'Free',
+        isActive: true 
+      });
+      
+      console.log(`[SubscriptionService] Free plan found:`, freePlan ? `YES (${freePlan._id})` : 'NO');
+      
+      if (!freePlan) {
+        console.error(`[SubscriptionService] ERROR: Free plan not found for userType: ${userType}`);
+        throw new Error(`Free plan not found for user type: ${userType}`);
+      }
+
+      // Check if user already has a subscription
+      const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+      const existingSubscription = await UserSubscription.findOne({
+        userId: userId,
+        userType: mappedUserType
+      }).populate('planId');
+
+      if (existingSubscription) {
+        console.log(`[SubscriptionService] Existing subscription found, returning it`);
+        return existingSubscription;
+      }
+
+      // Create free subscription
+      const subscriptionData = {
+        userId: userId,
+        userType: mappedUserType,
+        planId: freePlan._id,
+        status: 'active',
+        billingCycle: 'monthly',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year for free plan
+        amount: 0,
+        usage: {
+          campaignsUsed: 0,
+          influencersConnected: 0,
+          brandsConnected: 0,
+          storageUsedGB: 0,
+          uploadsThisMonth: 0
+        }
+      };
+
+      console.log(`[SubscriptionService] Creating new free subscription with data:`, JSON.stringify(subscriptionData, null, 2));
+      const subscription = new UserSubscription(subscriptionData);
+      const savedSubscription = await subscription.save();
+      
+      // Populate the planId before returning
+      const populatedSubscription = await UserSubscription.findById(savedSubscription._id).populate('planId');
+      console.log(`[SubscriptionService] Free subscription created and populated successfully`);
+      
+      return populatedSubscription;
+    } catch (error) {
+      console.error('[SubscriptionService] Error creating default free subscription:', error);
+      throw error;
+    }
+  }
+
+  // Check subscription expiry and handle renewal
+  static async checkSubscriptionExpiry(userId, userType) {
+    try {
+      console.log(`\n========== [checkSubscriptionExpiry] START ==========`);
+      console.log(`[checkSubscriptionExpiry] userId: ${userId}, userType: ${userType}`);
+      
+      // Query by userId only to find the LATEST active subscription
+      const subscription = await UserSubscription.findOne({
+        userId: userId.toString(),
+        status: 'active'
+      })
+      .sort({ createdAt: -1 })  // Get the most recent one
+      .populate('planId');
+
+      console.log(`[checkSubscriptionExpiry] Found subscription:`, subscription ? {
+        id: subscription._id,
+        planName: subscription.planId?.name,
+        status: subscription.status,
+        endDate: subscription.endDate
+      } : 'NONE');
+
+      if (!subscription) {
+        return { expired: false, needsRenewal: false, subscription: null };
+      }
+
+      // Expire all OTHER active subscriptions for this user (keep only the latest one)
+      const otherActiveSubs = await UserSubscription.find({
+        userId: userId.toString(),
+        status: 'active',
+        _id: { $ne: subscription._id }  // Not equal to the current subscription
+      });
+      
+      if (otherActiveSubs.length > 0) {
+        console.log(`[checkSubscriptionExpiry] Found ${otherActiveSubs.length} old active subscriptions, expiring them...`);
+        await UserSubscription.updateMany(
+          {
+            userId: userId.toString(),
+            status: 'active',
+            _id: { $ne: subscription._id }
+          },
+          { status: 'expired' }
+        );
+        console.log(`[checkSubscriptionExpiry] Old subscriptions expired successfully`);
+      }
+
+      const now = new Date();
+      const endDate = new Date(subscription.endDate);
+      const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+
+      // Check if subscription has expired
+      if (now > endDate) {
+        // Move to expired status and create free subscription
+        await UserSubscription.findByIdAndUpdate(subscription._id, {
+          status: 'expired'
+        });
+
+        // Create free subscription
+        await this.createDefaultFreeSubscription(userId, userType);
+
+        return {
+          expired: true,
+          needsRenewal: true,
+          subscription: subscription,
+          message: 'Your subscription has expired. You have been moved to the free plan. Please renew to continue enjoying premium benefits.'
+        };
+      }
+
+      // Check if renewal notification is needed (7 days before expiry)
+      const needsRenewal = daysUntilExpiry <= 7 && daysUntilExpiry > 0;
+
+      return {
+        expired: false,
+        needsRenewal: needsRenewal,
+        subscription: subscription,
+        daysUntilExpiry: daysUntilExpiry,
+        message: needsRenewal ? `Your subscription expires in ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}. Please renew to continue enjoying premium benefits.` : null
+      };
+    } catch (error) {
+      console.error('Error checking subscription expiry:', error);
+      return { expired: false, needsRenewal: false, subscription: null };
+    }
+  }
+
+  // Get subscription limits with current usage
+  static async getSubscriptionLimitsWithUsage(userId, userType) {
+    try {
+      console.log(`[getSubscriptionLimitsWithUsage] Fetching for userId: ${userId}, userType: ${userType}`);
+      
+      const subscription = await this.getUserSubscription(userId, userType);
+      
+      if (!subscription || !subscription.planId) {
+        console.log(`[getSubscriptionLimitsWithUsage] No subscription or planId, returning default free limits`);
+        return {
+          campaigns: { limit: 2, used: 0, remaining: 2 },
+          collaborations: { limit: 2, used: 0, remaining: 2 }
+        };
+      }
+
+      const plan = subscription.planId;
+      const usage = subscription.usage || {};
+      
+      console.log(`[getSubscriptionLimitsWithUsage] Plan:`, plan.name);
+      console.log(`[getSubscriptionLimitsWithUsage] Usage:`, usage);
+
+      // Calculate campaign limits
+      const campaignLimit = plan.features.maxCampaigns === -1 ? 'Unlimited' : plan.features.maxCampaigns;
+      const campaignsUsed = usage.campaignsUsed || 0;
+      const campaignsRemaining = campaignLimit === 'Unlimited' ? 'Unlimited' : Math.max(0, campaignLimit - campaignsUsed);
+
+      // Calculate collaboration limits based on user type
+      let collaborationLimit, collaborationsUsed;
+      if (userType === 'brand') {
+        collaborationLimit = plan.features.maxInfluencers === -1 ? 'Unlimited' : plan.features.maxInfluencers;
+        collaborationsUsed = usage.influencersConnected || 0;
+      } else {
+        collaborationLimit = plan.features.maxBrands === -1 ? 'Unlimited' : plan.features.maxBrands;
+        collaborationsUsed = usage.brandsConnected || 0;
+      }
+      const collaborationsRemaining = collaborationLimit === 'Unlimited' ? 'Unlimited' : Math.max(0, collaborationLimit - collaborationsUsed);
+
+      const result = {
+        campaigns: {
+          limit: campaignLimit,
+          used: campaignsUsed,
+          remaining: campaignsRemaining
+        },
+        collaborations: {
+          limit: collaborationLimit,
+          used: collaborationsUsed,
+          remaining: collaborationsRemaining
+        }
+      };
+      
+      console.log(`[getSubscriptionLimitsWithUsage] Returning:`, JSON.stringify(result, null, 2));
+      return result;
+      
+    } catch (error) {
+      console.error('[getSubscriptionLimitsWithUsage] Error:', error);
+      return {
+        campaigns: { limit: 2, used: 0, remaining: 2 },
+        collaborations: { limit: 2, used: 0, remaining: 2 }
+      };
+    }
+  }
+
+  // Initialize default subscription plans
+  static async initializeDefaultPlans() {
+    const brandPlans = [
+      {
+        name: 'Free',
+        userType: 'brand',
+        price: { monthly: 0, yearly: 0 },
+        features: {
+          maxCampaigns: 2,
+          maxInfluencers: 2,
+          analytics: true,
+          advancedAnalytics: false,
+          prioritySupport: false,
+          customBranding: false,
+          apiAccess: false,
+          collaborationTools: true
+        },
+        limits: {
+          storageGB: 1,
+          monthlyUploads: 10,
+          teamMembers: 1
+        },
+        description: 'Perfect for trying out CollabSync with basic features',
+        isDefault: true
+      },
+      {
+        name: 'Basic',
+        userType: 'brand',
+        price: { monthly: 29, yearly: 290 },
+        features: {
+          maxCampaigns: 5,
+          maxInfluencers: 10,
+          analytics: true,
+          advancedAnalytics: false,
+          prioritySupport: false,
+          customBranding: false,
+          apiAccess: false,
+          collaborationTools: true
+        },
+        limits: {
+          storageGB: 5,
+          monthlyUploads: 50,
+          teamMembers: 2
+        },
+        description: 'Perfect for small businesses starting with influencer marketing'
+      },
+      {
+        name: 'Pro',
+        userType: 'brand',
+        price: { monthly: 79, yearly: 790 },
+        features: {
+          maxCampaigns: 25,
+          maxInfluencers: 50,
+          analytics: true,
+          advancedAnalytics: true,
+          prioritySupport: true,
+          customBranding: true,
+          apiAccess: false,
+          collaborationTools: true,
+          bulkOperations: true,
+          exportData: true
+        },
+        limits: {
+          storageGB: 25,
+          monthlyUploads: 200,
+          teamMembers: 5
+        },
+        description: 'Ideal for growing brands with multiple campaigns',
+        popularBadge: true
+      },
+      {
+        name: 'Premium',
+        userType: 'brand',
+        price: { monthly: 199, yearly: 1990 },
+        features: {
+          maxCampaigns: -1,
+          maxInfluencers: -1,
+          analytics: true,
+          advancedAnalytics: true,
+          prioritySupport: true,
+          customBranding: true,
+          apiAccess: true,
+          whiteLabel: true,
+          collaborationTools: true,
+          bulkOperations: true,
+          exportData: true,
+          socialMediaIntegration: true,
+          contentLibrary: true
+        },
+        limits: {
+          storageGB: 100,
+          monthlyUploads: 1000,
+          teamMembers: 15
+        },
+        description: 'For established brands with extensive influencer networks'
+      }
+    ];
+
+    const influencerPlans = [
+      {
+        name: 'Free',
+        userType: 'influencer',
+        price: { monthly: 0, yearly: 0 },
+        features: {
+          maxBrands: 2,
+          analytics: true,
+          advancedAnalytics: false,
+          prioritySupport: false,
+          collaborationTools: true
+        },
+        limits: {
+          storageGB: 1,
+          monthlyUploads: 10,
+          teamMembers: 1
+        },
+        description: 'Perfect for new influencers getting started',
+        isDefault: true
+      },
+      {
+        name: 'Basic',
+        userType: 'influencer',
+        price: { monthly: 19, yearly: 190 },
+        features: {
+          maxBrands: 5,
+          analytics: true,
+          advancedAnalytics: false,
+          prioritySupport: false,
+          collaborationTools: true
+        },
+        limits: {
+          storageGB: 2,
+          monthlyUploads: 25,
+          teamMembers: 1
+        },
+        description: 'Great for new influencers building their brand'
+      },
+      {
+        name: 'Pro',
+        userType: 'influencer',
+        price: { monthly: 49, yearly: 490 },
+        features: {
+          maxBrands: 25,
+          analytics: true,
+          advancedAnalytics: true,
+          prioritySupport: true,
+          collaborationTools: true,
+          bulkOperations: true,
+          exportData: true,
+          socialMediaIntegration: true
+        },
+        limits: {
+          storageGB: 15,
+          monthlyUploads: 100,
+          teamMembers: 3
+        },
+        description: 'Perfect for professional influencers',
+        popularBadge: true
+      },
+      {
+        name: 'Premium',
+        userType: 'influencer',
+        price: { monthly: 99, yearly: 990 },
+        features: {
+          maxBrands: -1,
+          analytics: true,
+          advancedAnalytics: true,
+          prioritySupport: true,
+          customBranding: true,
+          apiAccess: true,
+          collaborationTools: true,
+          bulkOperations: true,
+          exportData: true,
+          socialMediaIntegration: true,
+          contentLibrary: true,
+          dedicatedManager: true
+        },
+        limits: {
+          storageGB: 50,
+          monthlyUploads: 500,
+          teamMembers: 10
+        },
+        description: 'For top-tier influencers and agencies'
+      }
+    ];
+
+    try {
+      // Check if plans already exist
+      const existingPlans = await SubscriptionPlan.countDocuments();
+      if (existingPlans === 0) {
+        await SubscriptionPlan.insertMany([...brandPlans, ...influencerPlans]);
+        console.log('Default subscription plans initialized');
+      }
+    } catch (error) {
+      console.error('Error initializing subscription plans:', error);
+    }
+  }
+}
 
 class brandModel {
   // Get recommended brands for an influencer
@@ -622,4 +1287,11 @@ class brandModel {
   }
 }
 
-module.exports = brandModel;
+module.exports = {
+  brandModel,
+  SubscriptionService,
+  SubscriptionPlan,
+  UserSubscription,
+  Transaction,
+  PaymentHistory
+};

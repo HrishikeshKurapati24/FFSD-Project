@@ -7,504 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Explore Brands - CollabSync</title>
   <link rel="stylesheet" href="/i_index/I_explore.css">
-  <style>
-    .brand-list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .brand-list.grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    /* Explicit list mode for row layout */
-    .brand-list.list .brand-item {
-      display: flex;
-    }
-
-    .brand-list.grid .brand-item {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .toggle-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    .toggle-button {
-      padding: 10px 20px;
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .toggle-button:hover {
-      background-color: #3367d6;
-    }
-
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        transition: none !important;
-      }
-    }
-
-    .brand-logo-container {
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    .verified-badge {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: #4285f4;
-      color: white;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-    }
-
-    .brand-details {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .brand-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .brand-name {
-      color: #4285f4;
-      font-size: 1.4rem;
-      margin: 0;
-      font-weight: 600;
-    }
-
-    .brand-rating {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: #ffd700;
-      color: #333;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.9em;
-      font-weight: 600;
-    }
-
-    .brand-rating i {
-      color: #fff;
-    }
-
-    .brand-tagline {
-      color: #555;
-      font-size: 0.95em;
-      font-style: italic;
-      margin: 0;
-      line-height: 1.4;
-    }
-
-    .brand-info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      margin: 8px 0;
-    }
-
-    .info-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #666;
-      font-size: 0.9em;
-    }
-
-    .info-item i {
-      color: #4285f4;
-      font-size: 0.95em;
-      width: 16px;
-      flex-shrink: 0;
-    }
-
-    .info-item span {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .brand-mission {
-      color: #666;
-      font-size: 0.9em;
-      line-height: 1.5;
-      margin: 8px 0 0 0;
-      padding-top: 8px;
-      border-top: 1px solid #eee;
-    }
-
-    .profile-button {
-      display: inline-block;
-      padding: 10px 16px;
-      background-color: #ffffff;
-      color: #4285f4;
-      border: 2px solid #4285f4;
-      border-radius: 5px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      text-align: center;
-    }
-
-    .profile-button:hover {
-      background-color: #4285f4;
-      color: #ffffff;
-    }
-
-    /* Grid view specific adjustments */
-    .brand-list.grid .brand-info-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .brand-list.grid .brand-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    /* List view specific adjustments */
-    .brand-list.list .brand-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .brand-list.list .button-group {
-      flex-direction: column;
-      margin-top: 0;
-    }
-
-    @media (max-width: 768px) {
-      .brand-list.list .brand-item {
-        grid-template-columns: 1fr;
-      }
-
-      .brand-info-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .brand-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    /* Grid mode: push actions to bottom center of the card */
-    .brand-list.grid .button-group {
-      margin-top: auto;
-      justify-content: center;
-      width: 100%;
-      padding-top: 12px;
-    }
-
-    .invite-button,
-    .profile-button {
-      flex: 1;
-      /* Optional: makes both buttons equal width */
-    }
-
-    .invite-button {
-      padding: 8px 16px;
-      background: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.9em;
-    }
-
-    .invite-button:hover {
-      background: #3367d6;
-    }
-
-    /* Invite Modal Styles */
-    .invite-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    .invite-modal-content {
-      background: white;
-      max-width: 600px;
-      width: 100%;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-      position: relative;
-      animation: slideIn 0.3s ease;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateY(-50px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .invite-modal-close {
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      font-size: 32px;
-      font-weight: bold;
-      color: #999;
-      cursor: pointer;
-      transition: color 0.3s;
-      line-height: 1;
-    }
-
-    .invite-modal-close:hover {
-      color: #333;
-    }
-
-    .invite-modal-title {
-      color: #4285f4;
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-      padding-right: 30px;
-    }
-
-    .invite-brand-name {
-      color: #333;
-      font-size: 1.1rem;
-      font-weight: 500;
-      margin-bottom: 25px;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 6px;
-      border-left: 4px solid #4285f4;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #333;
-      font-size: 0.95rem;
-    }
-
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: all 0.3s;
-      outline: none;
-      box-sizing: border-box;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus {
-      border-color: #4285f4;
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-    }
-
-    .form-group input.error,
-    .form-group textarea.error {
-      border-color: #dc3545;
-      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-    }
-
-    .field-error {
-      color: #dc3545;
-      font-size: 0.875rem;
-      margin-top: 5px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .field-error::before {
-      content: "⚠";
-      font-size: 0.8rem;
-    }
-
-    .form-group textarea {
-      resize: vertical;
-      font-family: inherit;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-
-    .channel-checkboxes {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .channel-checkboxes label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-weight: normal;
-      padding: 8px;
-      border-radius: 6px;
-      transition: background 0.2s;
-    }
-
-    .channel-checkboxes label:hover {
-      background: #f8f9fa;
-    }
-
-    .channel-checkboxes input[type="checkbox"] {
-      width: auto;
-      cursor: pointer;
-    }
-
-    .invite-modal-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 30px;
-    }
-
-    .invite-btn-send {
-      flex: 1;
-      padding: 14px 20px;
-      background: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .invite-btn-send:hover {
-      background: #3367d6;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
-    }
-
-    .invite-btn-send:active {
-      transform: translateY(0);
-    }
-
-    .invite-btn-cancel {
-      flex: 1;
-      padding: 14px 20px;
-      background: white;
-      color: #333;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .invite-btn-cancel:hover {
-      background: #f8f9fa;
-      border-color: #999;
-    }
-
-    .invite-btn-cancel:active {
-      transform: scale(0.98);
-    }
-
-    @media (max-width: 768px) {
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-
-      .channel-checkboxes {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -536,6 +38,47 @@
     <div class="intro">
       <h1>Explore Brands</h1>
       <p>Connect with top brands to elevate your collaboration opportunities.</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search brands..." value="<%= searchQuery || '' %>">
+          <button type="button" onclick="applyFilters()" class="search-btn">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        <div class="category-filter">
+          <select id="categoryFilter" onchange="applyFilters()">
+            <option value="all" <%= (selectedCategory === 'all') ? 'selected' : '' %>>All Categories</option>
+            <% if (categories && categories.length > 0) { %>
+              <% categories.forEach(category => { %>
+                <option value="<%= category %>" <%= (selectedCategory === category) ? 'selected' : '' %>>
+                  <%= category %>
+                </option>
+              <% }); %>
+            <% } %>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button type="button" onclick="clearFilters()" class="clear-btn">
+            <i class="fas fa-times"></i> Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info">
+      <p>Found <%= brands ? brands.length : 0 %> brands
+        <% if (selectedCategory && selectedCategory !== 'all') { %>
+          in <strong><%= selectedCategory %></strong>
+        <% } %>
+        <% if (searchQuery) { %>
+          matching "<strong><%= searchQuery %></strong>"
+        <% } %>
+      </p>
     </div>
 
     <!-- ========================================
@@ -590,12 +133,11 @@
                 <% } %>
 
                   <div class="brand-info-grid">
-                    <% if (brand.categories && brand.categories.length> 0) { %>
+                    <% if (brand.industry) { %>
                       <div class="info-item">
                         <i class="fas fa-tags"></i>
                         <span>
-                          <%= brand.categories.slice(0, 2).join(', ') %><%= brand.categories.length > 2 ? ' +' +
-                            (brand.categories.length - 2) : '' %>
+                          <%= brand.industry %>
                         </span>
                       </div>
                       <% } %>
@@ -1167,7 +709,14 @@
           alert(`Invitation sent successfully to ${selectedBrandName}!`);
           closeInviteModal();
         } else {
-          alert('Failed to send invite: ' + (data.message || 'Unknown error'));
+          const errorMessage = data.message || 'Unknown error';
+          if (data.showUpgradeLink) {
+            if (confirm(errorMessage + '\n\nWould you like to upgrade your plan now?')) {
+              window.location.href = '/subscription/manage';
+            }
+          } else {
+            alert('Failed to send invite: ' + errorMessage);
+          }
         }
       } catch (error) {
         console.error('Error sending invite:', error);
@@ -1206,6 +755,30 @@
         if (announce) announce.textContent = isGrid ? 'Grid view' : 'List view';
       }
     })({ containerId: 'brandList', buttonId: 'viewToggle' });
+
+    // Filter functionality
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value;
+      const category = document.getElementById('categoryFilter').value;
+      
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (category && category !== 'all') params.append('category', category);
+      
+      const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.location.href = url;
+    }
+
+    function clearFilters() {
+      window.location.href = window.location.pathname;
+    }
+
+    // Allow Enter key to trigger search
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        applyFilters();
+      }
+    });
   </script>
 </body>
 

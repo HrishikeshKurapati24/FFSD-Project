@@ -7,139 +7,7 @@
     <title>User Management</title>
     <link rel="stylesheet" href="/admin/admin_dashboard.css" />
     <link rel="stylesheet" href="/admin/user_management.css" />
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <style>
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-radius: 8px;
-        }
-
-        .close-modal {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close-modal:hover {
-            color: black;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }
-
-        .btn-view-profile {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-
-        .btn-view-profile:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-secondary:hover {
-            background-color: #545b62;
-        }
-
-        .btn-approve {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-approve:hover {
-            background-color: #218838;
-        }
-
-        /* Profile Content Styles */
-        .profile-section {
-            margin-bottom: 20px;
-        }
-
-        .profile-section h3 {
-            color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
-
-        .profile-field {
-            display: flex;
-            margin-bottom: 10px;
-        }
-
-        .profile-field label {
-            font-weight: bold;
-            width: 150px;
-            color: #555;
-        }
-
-        .profile-field span {
-            color: #333;
-        }
-
-        .verified-badge {
-            background-color: #28a745;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
-
-        .unverified-badge {
-            background-color: #ffc107;
-            color: black;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 </head>
 
 <body>
@@ -214,7 +82,9 @@
             <div class="profile">
                 <div class="profile-icon" onclick="toggleProfileDropdown()">
                     <img src="/images/default-avatar.png" alt="Profile" id="profile-image" />
-                    <span id="user-name"><%= user.name %></span>
+                    <span id="user-name">
+                        <%= user.name %>
+                    </span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="profile-dropdown" id="profile-dropdown">
@@ -231,286 +101,383 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <% if (typeof error !== "undefined" && error) { %>
-        <div class="error-alert"><%= error %></div>
-        <% } %>
+        <% if (typeof error !=="undefined" && error) { %>
+            <div class="error-alert">
+                <%= error %>
+            </div>
+            <% } %>
 
-        <div class="container">
-            <h1>User Management</h1>
+                <div class="container">
+                    <h1>User Management</h1>
 
-            <!-- Tabs for Different Moderation Categories -->
-            <div class="tabs">
-                <button class="tab-button active" onclick="showTab('verifyRegistrations')">
-                    Verify Registrations
-                </button>
-                <button class="tab-button" onclick="showTab('flaggedContent')">
-                    Flagged Content
-                </button>
-                <button class="tab-button" onclick="showTab('suspiciousActivity')">
-                    Suspicious Activity
-                </button>
-                <!-- <button class="tab-button" onclick="showTab('userTypeRequests')">User Type Change
+                    <!-- Tabs for Different Moderation Categories -->
+                    <div class="tabs">
+                        <button class="tab-button active" onclick="showTab('verifyRegistrations')">
+                            Verify Registrations
+                        </button>
+                        <button class="tab-button" onclick="showTab('flaggedContent')">
+                            Flagged Content
+                        </button>
+                        <button class="tab-button" onclick="showTab('suspiciousActivity')">
+                            Suspicious Activity
+                        </button>
+                        <!-- <button class="tab-button" onclick="showTab('userTypeRequests')">User Type Change
                             Requests</button>
                         <button class="tab-button" onclick="showTab('profileImprovement')">Profile Improvement
                             Suggestions</button> -->
-            </div>
+                    </div>
 
-            <!-- Verify Registrations Tab -->
-            <div id="verifyRegistrations" class="tab-content">
-                <h2>Verify Registrations</h2>
+                    <!-- Verify Registrations Tab -->
+                    <div id="verifyRegistrations" class="tab-content">
+                        <h2>Verify Registrations</h2>
 
-                <!-- Influencer Registrations Section -->
-                <h3>Influencer Registrations</h3>
-                <% if (influencers && influencers.length > 0) { %>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Influencer Name</th>
-                            <th>Email</th>
-                            <th>Category</th>
-                            <th>Social Media Handles</th>
-                            <th>Audience Size</th>
-                            <th>Verified</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% influencers.forEach((influencer) => { %>
-                        <tr>
-                            <td><%= influencer.name || influencer.displayName || 'N/A' %></td>
-                            <td><%= influencer.email || 'N/A' %></td>
-                            <td><%= influencer.category || influencer.businessCategory || 'N/A' %></td>
-                            <td><%= influencer.social_handles || influencer.socialHandles || 'N/A' %></td>
-                            <td><%= influencer.audienceSize ? influencer.audienceSize.toLocaleString() : '0' %></td>
-                            <td>
-                                <% if (influencer.verified) { %>
-                                <span class="verified-badge">Verified</span>
-                                <% } else { %>
-                                <span class="unverified-badge">Unverified</span>
+                        <!-- Influencer Registrations Section -->
+                        <h3>Influencer Registrations</h3>
+                        <% if (influencers && influencers.length> 0) { %>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Influencer Name</th>
+                                        <th>Email</th>
+                                        <th>Category</th>
+                                        <th>Social Media Handles</th>
+                                        <th>Audience Size</th>
+                                        <th>Verified</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% influencers.forEach((influencer)=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= influencer.name || influencer.displayName || 'N/A' %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.email || 'N/A' %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.category || influencer.businessCategory || 'N/A' %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.social_handles || influencer.socialHandles || 'N/A' %>
+                                            </td>
+                                            <td>
+                                                <%= influencer.audienceSize ? influencer.audienceSize.toLocaleString()
+                                                    : '0' %>
+                                            </td>
+                                            <td>
+                                                <% if (influencer.verified) { %>
+                                                    <span class="verified-badge">Verified</span>
+                                                    <% } else { %>
+                                                        <span class="unverified-badge">Unverified</span>
+                                                        <% } %>
+                                            </td>
+                                            <td>
+                                                <button class="btn-view-profile"
+                                                    onclick="viewInfluencerProfile('<%= influencer._id || influencer.id %>')">View
+                                                    Profile</button>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                            <% } else { %>
+                                <p>No pending influencer registrations</p>
                                 <% } %>
-                            </td>
-                            <td>
-                                <button class="btn-view-profile" onclick="viewInfluencerProfile('<%= influencer._id || influencer.id %>')">View Profile</button>
-                            </td>
-                        </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
-                <% } else { %>
-                <p>No pending influencer registrations</p>
-                <% } %>
 
-                <!-- Verify Brand Registrations Section -->
-                <h3>Verify Brand Registrations</h3>
-                <% if (brands && brands.length > 0) { %>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Brand Name</th>
-                            <th>Email</th>
-                            <th>Website</th>
-                            <th>Industry</th>
-                            <th>Total Audience</th>
-                            <th>Verified</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% brands.forEach((brand) => { %>
-                        <tr>
-                            <td><%= brand.brandName || brand.name || 'N/A' %></td>
-                            <td><%= brand.email || 'N/A' %></td>
-                            <td><%= brand.website || 'N/A' %></td>
-                            <td><%= brand.industry || brand.businessCategory || brand.category || 'N/A' %></td>
-                            <td><%= brand.totalAudience ? brand.totalAudience.toLocaleString() : '0' %></td>
-                            <td>
-                                <% if (brand.verified) { %>
-                                <span class="verified-badge">Verified</span>
-                                <% } else { %>
-                                <span class="unverified-badge">Unverified</span>
-                                <% } %>
-                            </td>
-                            <td>
-                                <button class="btn-view-profile" onclick="viewBrandProfile('<%= brand._id || brand.id %>')">View Profile</button>
-                            </td>
-                        </tr>
-                        <% }); %>
-                    </tbody>
-                </table>
-                <% } else { %>
-                <p>No pending brand registrations</p>
-                <% } %>
-            </div>
+                                    <!-- Verify Brand Registrations Section -->
+                                    <h3>Verify Brand Registrations</h3>
+                                    <% if (brands && brands.length> 0) { %>
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Brand Name</th>
+                                                    <th>Email</th>
+                                                    <th>Website</th>
+                                                    <th>Industry</th>
+                                                    <th>Total Audience</th>
+                                                    <th>Verified</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% brands.forEach((brand)=> { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= brand.brandName || brand.name || 'N/A' %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.email || 'N/A' %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.website || 'N/A' %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.industry || brand.businessCategory ||
+                                                                brand.category || 'N/A' %>
+                                                        </td>
+                                                        <td>
+                                                            <%= brand.totalAudience ?
+                                                                brand.totalAudience.toLocaleString() : '0' %>
+                                                        </td>
+                                                        <td>
+                                                            <% if (brand.verified) { %>
+                                                                <span class="verified-badge">Verified</span>
+                                                                <% } else { %>
+                                                                    <span class="unverified-badge">Unverified</span>
+                                                                    <% } %>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn-view-profile"
+                                                                onclick="viewBrandProfile('<%= brand._id || brand.id %>')">View
+                                                                Profile</button>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                        <% } else { %>
+                                            <p>No pending brand registrations</p>
+                                            <% } %>
+                    </div>
 
-            <!-- Flagged Content -->
-            <div id="flaggedContent" class="tab-content">
-                <h2>Flagged Content for Review</h2>
-                
-                <!-- Filters for flagged content -->
-                <div class="filters" style="margin-bottom: 20px;">
-                    <input type="text" id="search-flagged" placeholder="Search flagged content..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
-                    <select id="content-type-filter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="all">All Content Types</option>
-                        <option value="post">Posts</option>
-                        <option value="comment">Comments</option>
-                        <option value="profile">Profile Content</option>
-                        <option value="message">Messages</option>
-                    </select>
-                    <select id="severity-filter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="all">All Severities</option>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
-                    </select>
-                </div>
+                    <!-- Flagged Content -->
+                    <div id="flaggedContent" class="tab-content">
+                        <h2>Flagged Content for Review</h2>
 
-                <% if (flaggedContent && flaggedContent.length > 0) { %>
-                <div class="flagged-content-grid" style="display: grid; gap: 15px;">
-                    <% flaggedContent.forEach((content, index) => { %>
-                    <div class="flagged-item" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #f9f9f9;">
-                        <div class="flagged-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h4 style="margin: 0; color: #333;">
-                                <i class="fas fa-flag" style="color: #dc3545; margin-right: 8px;"></i>
-                                <%= content.type || 'Content' %> Flagged
-                            </h4>
-                            <span class="severity-badge severity-<%= content.severity || 'medium' %>" style="padding: 4px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 500;">
-                                <%= (content.severity || 'medium').toUpperCase() %>
-                            </span>
+                        <!-- Filters for flagged content -->
+                        <div class="filters" style="margin-bottom: 20px;">
+                            <input type="text" id="search-flagged" placeholder="Search flagged content..."
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                            <select id="content-type-filter"
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="all">All Content Types</option>
+                                <option value="post">Posts</option>
+                                <option value="comment">Comments</option>
+                                <option value="profile">Profile Content</option>
+                                <option value="message">Messages</option>
+                            </select>
+                            <select id="severity-filter"
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="all">All Severities</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
                         </div>
-                        <div class="flagged-details">
-                            <p><strong>User:</strong> <%= content.userName || content.user || 'Unknown User' %></p>
-                            <p><strong>Reason:</strong> <%= content.reason || 'Inappropriate content' %></p>
-                            <p><strong>Reported by:</strong> <%= content.reportedBy || 'System' %></p>
-                            <p><strong>Date:</strong> <%= content.date ? new Date(content.date).toLocaleDateString() : new Date().toLocaleDateString() %></p>
-                            <% if (content.content) { %>
-                            <div class="content-preview" style="background: #fff; padding: 10px; border-radius: 4px; margin: 10px 0; max-height: 100px; overflow: hidden;">
-                                <strong>Content:</strong> <%= content.content.substring(0, 200) %><%= content.content.length > 200 ? '...' : '' %>
+
+                        <% if (flaggedContent && flaggedContent.length> 0) { %>
+                            <div class="flagged-content-grid" style="display: grid; gap: 15px;">
+                                <% flaggedContent.forEach((content, index)=> { %>
+                                    <div class="flagged-item"
+                                        style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #f9f9f9;">
+                                        <div class="flagged-header"
+                                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                            <h4 style="margin: 0; color: #333;">
+                                                <i class="fas fa-flag" style="color: #dc3545; margin-right: 8px;"></i>
+                                                <%= content.type || 'Content' %> Flagged
+                                            </h4>
+                                            <span class="severity-badge severity-<%= content.severity || 'medium' %>"
+                                                style="padding: 4px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 500;">
+                                                <%= (content.severity || 'medium' ).toUpperCase() %>
+                                            </span>
+                                        </div>
+                                        <div class="flagged-details">
+                                            <p><strong>User:</strong>
+                                                <%= content.userName || content.user || 'Unknown User' %>
+                                            </p>
+                                            <p><strong>Reason:</strong>
+                                                <%= content.reason || 'Inappropriate content' %>
+                                            </p>
+                                            <p><strong>Reported by:</strong>
+                                                <%= content.reportedBy || 'System' %>
+                                            </p>
+                                            <p><strong>Date:</strong>
+                                                <%= content.date ? new Date(content.date).toLocaleDateString() : new
+                                                    Date().toLocaleDateString() %>
+                                            </p>
+                                            <% if (content.content) { %>
+                                                <div class="content-preview"
+                                                    style="background: #fff; padding: 10px; border-radius: 4px; margin: 10px 0; max-height: 100px; overflow: hidden;">
+                                                    <strong>Content:</strong>
+                                                    <%= content.content.substring(0, 200) %>
+                                                        <%= content.content.length> 200 ? '...' : '' %>
+                                                </div>
+                                                <% } %>
+                                        </div>
+                                        <div class="flagged-actions"
+                                            style="margin-top: 15px; display: flex; gap: 10px;">
+                                            <button class="btn-action btn-view"
+                                                onclick="viewFlaggedContent('<%= content.id || index %>')"
+                                                style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-eye"></i> View Full
+                                            </button>
+                                            <button class="btn-action btn-approve"
+                                                onclick="approveFlaggedContent('<%= content.id || index %>')"
+                                                style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                            <button class="btn-action btn-remove"
+                                                onclick="removeFlaggedContent('<%= content.id || index %>')"
+                                                style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                            <button class="btn-action btn-warn"
+                                                onclick="warnUser('<%= content.userId || content.user %>')"
+                                                style="padding: 6px 12px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-exclamation-triangle"></i> Warn User
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <% }); %>
                             </div>
-                            <% } %>
-                        </div>
-                        <div class="flagged-actions" style="margin-top: 15px; display: flex; gap: 10px;">
-                            <button class="btn-action btn-view" onclick="viewFlaggedContent('<%= content.id || index %>')" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-eye"></i> View Full
-                            </button>
-                            <button class="btn-action btn-approve" onclick="approveFlaggedContent('<%= content.id || index %>')" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="btn-action btn-remove" onclick="removeFlaggedContent('<%= content.id || index %>')" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-trash"></i> Remove
-                            </button>
-                            <button class="btn-action btn-warn" onclick="warnUser('<%= content.userId || content.user %>')" style="padding: 6px 12px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-exclamation-triangle"></i> Warn User
-                            </button>
-                        </div>
+                            <% } else { %>
+                                <div class="no-data-message" style="text-align: center; padding: 40px; color: #666;">
+                                    <i class="fas fa-shield-alt"
+                                        style="font-size: 48px; color: #28a745; margin-bottom: 16px;"></i>
+                                    <p>No flagged content to review</p>
+                                    <p style="font-size: 0.9em; color: #999;">All content is currently compliant with
+                                        community guidelines.</p>
+                                </div>
+                                <% } %>
                     </div>
-                    <% }); %>
-                </div>
-                <% } else { %>
-                <div class="no-data-message" style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-shield-alt" style="font-size: 48px; color: #28a745; margin-bottom: 16px;"></i>
-                    <p>No flagged content to review</p>
-                    <p style="font-size: 0.9em; color: #999;">All content is currently compliant with community guidelines.</p>
-                </div>
-                <% } %>
-            </div>
 
-            <!-- Suspicious Activity -->
-            <div id="suspiciousActivity" class="tab-content">
-                <h2>Suspicious User Activity</h2>
-                
-                <!-- Filters for suspicious activity -->
-                <div class="filters" style="margin-bottom: 20px;">
-                    <input type="text" id="search-suspicious" placeholder="Search suspicious activity..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
-                    <select id="activity-type-filter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="all">All Activity Types</option>
-                        <option value="login">Suspicious Login</option>
-                        <option value="spam">Spam Behavior</option>
-                        <option value="fake_engagement">Fake Engagement</option>
-                        <option value="multiple_accounts">Multiple Accounts</option>
-                        <option value="payment_fraud">Payment Fraud</option>
-                    </select>
-                    <select id="risk-level-filter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="all">All Risk Levels</option>
-                        <option value="low">Low Risk</option>
-                        <option value="medium">Medium Risk</option>
-                        <option value="high">High Risk</option>
-                        <option value="critical">Critical Risk</option>
-                    </select>
-                </div>
+                    <!-- Suspicious Activity -->
+                    <div id="suspiciousActivity" class="tab-content">
+                        <h2>Suspicious User Activity</h2>
 
-                <% if (suspiciousUsers && suspiciousUsers.length > 0) { %>
-                <div class="suspicious-activity-grid" style="display: grid; gap: 15px;">
-                    <% suspiciousUsers.forEach((activity, index) => { %>
-                    <div class="suspicious-item" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fff8e1;">
-                        <div class="suspicious-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h4 style="margin: 0; color: #333;">
-                                <i class="fas fa-exclamation-triangle" style="color: #ff9800; margin-right: 8px;"></i>
-                                <%= activity.type || 'Suspicious Activity' %>
-                            </h4>
-                            <span class="risk-badge risk-<%= activity.riskLevel || 'medium' %>" style="padding: 4px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 500;">
-                                <%= (activity.riskLevel || 'medium').toUpperCase() %> RISK
-                            </span>
+                        <!-- Filters for suspicious activity -->
+                        <div class="filters" style="margin-bottom: 20px;">
+                            <input type="text" id="search-suspicious" placeholder="Search suspicious activity..."
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                            <select id="activity-type-filter"
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="all">All Activity Types</option>
+                                <option value="login">Suspicious Login</option>
+                                <option value="spam">Spam Behavior</option>
+                                <option value="fake_engagement">Fake Engagement</option>
+                                <option value="multiple_accounts">Multiple Accounts</option>
+                                <option value="payment_fraud">Payment Fraud</option>
+                            </select>
+                            <select id="risk-level-filter"
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="all">All Risk Levels</option>
+                                <option value="low">Low Risk</option>
+                                <option value="medium">Medium Risk</option>
+                                <option value="high">High Risk</option>
+                                <option value="critical">Critical Risk</option>
+                            </select>
                         </div>
-                        <div class="suspicious-details">
-                            <p><strong>User:</strong> <%= activity.userName || activity.user || 'Unknown User' %></p>
-                            <p><strong>Activity:</strong> <%= activity.description || activity.activity || 'Suspicious behavior detected' %></p>
-                            <p><strong>Detection Method:</strong> <%= activity.detectionMethod || 'Automated System' %></p>
-                            <p><strong>First Detected:</strong> <%= activity.firstDetected ? new Date(activity.firstDetected).toLocaleDateString() : new Date().toLocaleDateString() %></p>
-                            <p><strong>Occurrences:</strong> <%= activity.occurrences || 1 %></p>
-                            <% if (activity.ipAddress) { %>
-                            <p><strong>IP Address:</strong> <%= activity.ipAddress %></p>
-                            <% } %>
-                            <% if (activity.location) { %>
-                            <p><strong>Location:</strong> <%= activity.location %></p>
-                            <% } %>
-                        </div>
-                        <div class="suspicious-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-action btn-investigate" onclick="investigateUser('<%= activity.userId || activity.user %>')" style="padding: 6px 12px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-search"></i> Investigate
-                            </button>
-                            <button class="btn-action btn-suspend" onclick="suspendUser('<%= activity.userId || activity.user %>')" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-ban"></i> Suspend
-                            </button>
-                            <button class="btn-action btn-warn" onclick="warnUser('<%= activity.userId || activity.user %>')" style="padding: 6px 12px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-exclamation-triangle"></i> Warn
-                            </button>
-                            <button class="btn-action btn-whitelist" onclick="whitelistActivity('<%= activity.id || index %>')" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="fas fa-check"></i> Mark Safe
-                            </button>
-                        </div>
+
+                        <% if (suspiciousUsers && suspiciousUsers.length> 0) { %>
+                            <div class="suspicious-activity-grid" style="display: grid; gap: 15px;">
+                                <% suspiciousUsers.forEach((activity, index)=> { %>
+                                    <div class="suspicious-item"
+                                        style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fff8e1;">
+                                        <div class="suspicious-header"
+                                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                            <h4 style="margin: 0; color: #333;">
+                                                <i class="fas fa-exclamation-triangle"
+                                                    style="color: #ff9800; margin-right: 8px;"></i>
+                                                <%= activity.type || 'Suspicious Activity' %>
+                                            </h4>
+                                            <span class="risk-badge risk-<%= activity.riskLevel || 'medium' %>"
+                                                style="padding: 4px 12px; border-radius: 12px; font-size: 0.8em; font-weight: 500;">
+                                                <%= (activity.riskLevel || 'medium' ).toUpperCase() %> RISK
+                                            </span>
+                                        </div>
+                                        <div class="suspicious-details">
+                                            <p><strong>User:</strong>
+                                                <%= activity.userName || activity.user || 'Unknown User' %>
+                                            </p>
+                                            <p><strong>Activity:</strong>
+                                                <%= activity.description || activity.activity
+                                                    || 'Suspicious behavior detected' %>
+                                            </p>
+                                            <p><strong>Detection Method:</strong>
+                                                <%= activity.detectionMethod || 'Automated System' %>
+                                            </p>
+                                            <p><strong>First Detected:</strong>
+                                                <%= activity.firstDetected ? new
+                                                    Date(activity.firstDetected).toLocaleDateString() : new
+                                                    Date().toLocaleDateString() %>
+                                            </p>
+                                            <p><strong>Occurrences:</strong>
+                                                <%= activity.occurrences || 1 %>
+                                            </p>
+                                            <% if (activity.ipAddress) { %>
+                                                <p><strong>IP Address:</strong>
+                                                    <%= activity.ipAddress %>
+                                                </p>
+                                                <% } %>
+                                                    <% if (activity.location) { %>
+                                                        <p><strong>Location:</strong>
+                                                            <%= activity.location %>
+                                                        </p>
+                                                        <% } %>
+                                        </div>
+                                        <div class="suspicious-actions"
+                                            style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <button class="btn-action btn-investigate"
+                                                onclick="investigateUser('<%= activity.userId || activity.user %>')"
+                                                style="padding: 6px 12px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-search"></i> Investigate
+                                            </button>
+                                            <button class="btn-action btn-suspend"
+                                                onclick="suspendUser('<%= activity.userId || activity.user %>')"
+                                                style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-ban"></i> Suspend
+                                            </button>
+                                            <button class="btn-action btn-warn"
+                                                onclick="warnUser('<%= activity.userId || activity.user %>')"
+                                                style="padding: 6px 12px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-exclamation-triangle"></i> Warn
+                                            </button>
+                                            <button class="btn-action btn-whitelist"
+                                                onclick="whitelistActivity('<%= activity.id || index %>')"
+                                                style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                <i class="fas fa-check"></i> Mark Safe
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                            <% } else { %>
+                                <div class="no-data-message" style="text-align: center; padding: 40px; color: #666;">
+                                    <i class="fas fa-shield-alt"
+                                        style="font-size: 48px; color: #28a745; margin-bottom: 16px;"></i>
+                                    <p>No suspicious activity detected</p>
+                                    <p style="font-size: 0.9em; color: #999;">All user activities appear normal and
+                                        secure.</p>
+                                </div>
+                                <% } %>
                     </div>
-                    <% }); %>
-                </div>
-                <% } else { %>
-                <div class="no-data-message" style="text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-shield-alt" style="font-size: 48px; color: #28a745; margin-bottom: 16px;"></i>
-                    <p>No suspicious activity detected</p>
-                    <p style="font-size: 0.9em; color: #999;">All user activities appear normal and secure.</p>
-                </div>
-                <% } %>
-            </div>
 
-            <!-- User Type Change Requests -->
-            <div id="userTypeRequests" class="tab-content">
-                <h2>User Type Change Requests</h2>
-                <ul>
-                    <% userTypeRequests.forEach((request) => { %>
-                    <li><%= request %></li>
-                    <% }); %>
-                </ul>
-            </div>
+                    <!-- User Type Change Requests -->
+                    <div id="userTypeRequests" class="tab-content">
+                        <h2>User Type Change Requests</h2>
+                        <ul>
+                            <% userTypeRequests.forEach((request)=> { %>
+                                <li>
+                                    <%= request %>
+                                </li>
+                                <% }); %>
+                        </ul>
+                    </div>
 
-            <!-- Profile Improvement Suggestions -->
-            <div id="profileImprovement" class="tab-content">
-                <h2>Profile Improvement Suggestions</h2>
-                <ul>
-                    <% profileSuggestions.forEach((suggestion) => { %>
-                    <li><%= suggestion %></li>
-                    <% }); %>
-                </ul>
-            </div>
-        </div>
+                    <!-- Profile Improvement Suggestions -->
+                    <div id="profileImprovement" class="tab-content">
+                        <h2>Profile Improvement Suggestions</h2>
+                        <ul>
+                            <% profileSuggestions.forEach((suggestion)=> { %>
+                                <li>
+                                    <%= suggestion %>
+                                </li>
+                                <% }); %>
+                        </ul>
+                    </div>
+                </div>
     </div>
 
     <!-- Brand Profile Modal -->
@@ -523,7 +490,8 @@
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" onclick="closeBrandProfileModal()">Close</button>
-                <button type="button" class="btn-approve" id="approveBrandBtn" onclick="approveBrandFromModal()">Approve Brand</button>
+                <button type="button" class="btn-approve" id="approveBrandBtn" onclick="approveBrandFromModal()">Approve
+                    Brand</button>
             </div>
         </div>
     </div>
@@ -538,7 +506,8 @@
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" onclick="closeInfluencerProfileModal()">Close</button>
-                <button type="button" class="btn-approve" id="approveInfluencerBtn" onclick="approveInfluencerFromModal()">Approve Influencer</button>
+                <button type="button" class="btn-approve" id="approveInfluencerBtn"
+                    onclick="approveInfluencerFromModal()">Approve Influencer</button>
             </div>
         </div>
     </div>

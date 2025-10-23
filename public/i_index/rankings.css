@@ -1,0 +1,244 @@
+/* Customer Rankings Styles */
+
+:root {
+    --brand-blue: #0d6efd;
+    --brand-blue-600: #0b5ed7;
+    --text-black: #111111;
+    --muted: #6c757d;
+    --bg-light: #f5f7fb;
+    --border: #e6e9f0;
+    --white: #ffffff;
+    --primary-color: #4285f4;
+    --secondary-color: #34a853;
+    --accent-color: #ea4335;
+    --light-gray: #f8f9fa;
+    --dark-gray: #333;
+}
+
+body {
+    background: var(--bg-light);
+    color: var(--text-black);
+}
+
+/* Navbar styling */
+.navbar {
+    background: var(--white) !important;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 14px rgba(17, 17, 17, 0.06);
+}
+
+.navbar .btn-outline-primary {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+}
+
+.navbar .btn-outline-primary:hover {
+    background: var(--brand-blue);
+    color: var(--white);
+}
+
+/* Rankings Layout */
+.rankings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.rankings-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-black);
+    margin-bottom: 0.25rem;
+}
+
+.rankings-subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Rankings Cards */
+.rank-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(17, 17, 17, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.rank-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(17, 17, 17, 0.1);
+}
+
+/* Rankings List */
+.list-group-numbered .list-group-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    padding: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.list-group-numbered .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.list-group-numbered .list-group-item:hover {
+    background: #f8faff;
+}
+
+/* Avatar styling */
+.brand-avatar,
+.inf-avatar,
+.ranking-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 44px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    transition: transform 0.2s ease;
+}
+
+.ranking-avatar:hover {
+    transform: scale(1.1);
+}
+
+/* Rankings content */
+.rank-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-black);
+    margin-bottom: 0.25rem;
+}
+
+.rank-meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.metric-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(13, 110, 253, 0.08);
+    color: var(--brand-blue-600);
+    border: 1px solid rgba(13, 110, 253, 0.18);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.775rem;
+    font-weight: 600;
+}
+
+/* Filters */
+.filters-wrap {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+}
+
+.filters-wrap select.form-select {
+    min-width: 220px;
+    background-color: var(--white);
+    border-color: var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.filters-wrap select.form-select:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    outline: none;
+}
+
+.filters-wrap label {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .rankings-container {
+        padding: 1rem;
+    }
+
+    .rankings-section-title {
+        font-size: 1.25rem;
+    }
+
+    .filters-wrap {
+        padding: 0.75rem;
+    }
+
+    .filters-wrap select.form-select {
+        min-width: 180px;
+    }
+
+    .list-group-numbered .list-group-item {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .brand-avatar,
+    .inf-avatar,
+    .ranking-avatar {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+    }
+
+    .rank-name {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar .container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .navbar .nav {
+        margin: 0 auto;
+    }
+
+    .filters-wrap {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .filters-wrap select.form-select {
+        min-width: 100%;
+    }
+
+    .list-group-numbered .list-group-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .brand-avatar,
+    .inf-avatar,
+    .ranking-avatar {
+        align-self: center;
+        margin-bottom: 0.5rem;
+    }
+}

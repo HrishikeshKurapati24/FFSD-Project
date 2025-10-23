@@ -6,6 +6,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const influencerRoutes = require("./routes/influencerRoutes");
 const brandRoutes = require("./routes/brandRoutes");
 const customerRoutes = require("./routes/customerRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const { router: authRouter, isAuthenticated, isBrand, isInfluencer } = require('./routes/authRoutes');
 const path = require('path');
 const { connectDB, initializeAdminUsers } = require('./models/mongoDB');
@@ -230,9 +231,19 @@ app.post('/signup-form-brand', async (req, res) => {
             brandAnalytics.save()
         ]);
 
+        // Create default free subscription for the new brand
+        try {
+            const { SubscriptionService } = require('./models/brandModel');
+            await SubscriptionService.createDefaultFreeSubscription(brand._id, 'brand');
+        } catch (subscriptionError) {
+            console.error('Error creating default subscription for brand:', subscriptionError);
+            // Continue even if subscription creation fails
+        }
+
         res.status(201).json({
             message: 'Brand account created successfully',
-            brandId: brand._id
+            brandId: brand._id,
+            redirectTo: `/subscription/select-plan?userId=${brand._id}&userType=brand`
         });
     } catch (err) {
         console.error('Brand signup error:', err);
@@ -311,9 +322,19 @@ app.post('/signup-form-influencer', async (req, res) => {
             influencerAnalytics.save()
         ]);
 
+        // Create default free subscription for the new influencer
+        try {
+            const { SubscriptionService } = require('./models/brandModel');
+            await SubscriptionService.createDefaultFreeSubscription(influencer._id, 'influencer');
+        } catch (subscriptionError) {
+            console.error('Error creating default subscription for influencer:', subscriptionError);
+            // Continue even if subscription creation fails
+        }
+
         res.status(201).json({
             message: 'Influencer account created successfully',
-            influencerId: influencer._id
+            influencerId: influencer._id,
+            redirectTo: `/subscription/select-plan?userId=${influencer._id}&userType=influencer`
         });
     } catch (err) {
         console.error('Influencer signup error:', err);
@@ -329,6 +350,7 @@ app.use('/admin', adminRoutes);
 app.use('/influencer', influencerRoutes);
 app.use('/brand', brandRoutes);
 app.use('/customer', customerRoutes);
+app.use('/subscription', subscriptionRoutes);
 app.use('/auth', authRouter);
 
 // Error handling middleware
@@ -346,6 +368,10 @@ const initializeApp = async () => {
         // Connect to MongoDB
         await connectDB();
         console.log('✅ MongoDB connected successfully');
+
+        // Initialize subscription plans
+        const { SubscriptionService } = require('./models/brandModel');
+        await SubscriptionService.initializeDefaultPlans();
 
         console.log('✅ Application initialized successfully');
     } catch (error) {

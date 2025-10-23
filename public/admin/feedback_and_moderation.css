@@ -1,193 +1,67 @@
-/* General Styles */
-body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f9;
-    color: #333;
-}
-
-header {
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 10px 20px;
-}
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-}
-
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.search-bar {
-    position: relative;
-}
-
-.search-bar input {
-    padding: 8px 30px 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 200px;
-}
-
-.search-bar i {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-}
-
-.profile-icon img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.dropdown {
-    display: none;
-    position: absolute;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    padding: 10px;
-    z-index: 1000;
-}
-
-.dropdown a {
-    display: block;
-    padding: 8px 12px;
-    color: #333;
-    text-decoration: none;
-}
-
-.dropdown a:hover {
-    background-color: #f4f4f9;
-}
-
-.profile-icon:hover .dropdown {
-    display: block;
-}
-
-/* Feedback & Moderation Section */
-.feedback-moderation {
-    padding: 20px;
-}
-
-h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
-}
-
-.filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.filters input,
-.filters select,
-.filters button {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.filters button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
-.filters button:hover {
-    background-color: #0056b3;
-}
-
-/* Feedback Table */
-table {
+.feedback-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
-th,
-td {
-    padding: 10px;
-    border: 1px solid #ddd;
+.feedback-table th,
+.feedback-table td {
+    padding: 12px;
     text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
-th {
-    background-color: #f4f4f4;
+.feedback-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
 }
 
-.status {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 500;
 }
 
-.status.pending {
-    background-color: #ffcc00;
-    color: #333;
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
 }
 
-.status.resolved {
-    background-color: #28a745;
-    color: #fff;
+.status-reviewed {
+    background-color: #d4edda;
+    color: #155724;
 }
 
-.actions {
-    display: flex;
-    gap: 10px;
+.status-resolved {
+    background-color: #cce7ff;
+    color: #004085;
 }
 
-.actions button {
-    padding: 8px 12px;
+.btn-action {
+    padding: 6px 12px;
+    margin: 2px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 0.85em;
 }
 
-.actions button.view {
+.btn-view {
     background-color: #007bff;
-    color: #fff;
+    color: white;
 }
 
-.actions button.resolve {
+.btn-resolve {
     background-color: #28a745;
-    color: #fff;
+    color: white;
 }
 
-.actions button.warn {
-    background-color: #ffcc00;
-    color: #333;
-}
-
-.actions button.ban {
+.btn-delete {
     background-color: #dc3545;
-    color: #fff;
+    color: white;
 }
 
-/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -200,26 +74,51 @@ th {
 }
 
 .modal-content {
-    background-color: #fff;
-    margin: 10% auto;
+    background-color: #fefefe;
+    margin: 5% auto;
     padding: 20px;
-    width: 50%;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .close {
+    color: #aaa;
     float: right;
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: bold;
     cursor: pointer;
 }
 
-.modal-details p {
-    margin: 10px 0;
+.close:hover {
+    color: black;
 }
 
-.modal-actions {
+.filters {
     display: flex;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.error-alert {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
 }

@@ -267,3 +267,487 @@ nav ul li a:hover {
 .profile-button:hover {
   background-color: #0056b3;
 }
+
+/* Enhanced Influencer List Styles */
+.influencer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Grid view - changes the container to grid */
+.influencer-list.grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.influencer-list.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Default list view - horizontal layout */
+.influencer-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Grid view - vertical layout */
+.influencer-list.grid .influencer-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+}
+
+.influencer-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced Toggle Button */
+.toggle-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.toggle-button {
+  padding: 10px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-button:hover {
+  background-color: #3367d6;
+}
+
+/* A11y helpers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* Invite Modal Styles */
+.invite-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.invite-modal-content {
+  background: white;
+  max-width: 500px;
+  width: 90%;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.invite-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 32px;
+  font-weight: bold;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s;
+  line-height: 1;
+}
+
+.invite-modal-close:hover {
+  color: #333;
+}
+
+.invite-modal-title {
+  color: #4285f4;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-right: 30px;
+}
+
+.invite-influencer-name {
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 25px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #4285f4;
+}
+
+.invite-form-group {
+  margin-bottom: 25px;
+}
+
+.invite-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.invite-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.invite-select:hover {
+  border-color: #4285f4;
+}
+
+.invite-select:focus {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.invite-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.invite-btn-send {
+  flex: 1;
+  padding: 14px 20px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.invite-btn-send:hover {
+  background: #3367d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.invite-btn-send:active {
+  transform: translateY(0);
+}
+
+.invite-btn-cancel {
+  flex: 1;
+  padding: 14px 20px;
+  background: white;
+  color: #333;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.invite-btn-cancel:hover {
+  background: #f8f9fa;
+  border-color: #999;
+}
+
+.invite-btn-cancel:active {
+  transform: scale(0.98);
+}
+
+/* Default list view button styling */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-left: 20px;
+}
+
+/* Grid view button styling */
+.influencer-list.grid .button-group {
+  display: flex !important;
+  gap: 10px !important;
+  margin-top: auto !important;
+  justify-content: center !important;
+  margin-left: 0 !important;
+  padding-top: 12px !important;
+  width: 100% !important;
+}
+
+/* Default list view content */
+.influencer-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+/* Grid view content layout */
+.influencer-list.grid .influencer-content {
+  display: flex !important;
+  flex-direction: column !important;
+  text-align: center !important;
+  gap: 15px !important;
+  flex: none !important;
+}
+
+.influencer-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0e0e0;
+}
+
+.influencer-info {
+  flex: 1;
+}
+
+.influencer-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.influencer-name h2 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.verified-badge {
+  color: #4285f4;
+  font-size: 1.1em;
+}
+
+.influencer-details {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.invite-button,
+.profile-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.invite-button {
+  background: #4285f4;
+  color: white;
+  border: none;
+  min-width: 80px;
+}
+
+.invite-button:hover {
+  background: #3367d6;
+}
+
+.profile-button {
+  background: white;
+  color: #4285f4;
+  border: 1px solid #4285f4;
+  min-width: 100px;
+}
+
+.profile-button:hover {
+  background: #f8f9fa;
+}
+
+/* Filter Section Styles */
+.filter-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-right: none;
+  border-radius: 5px 0 0 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: #4285f4;
+}
+
+.search-btn {
+  padding: 10px 15px;
+  background: #4285f4;
+  color: white;
+  border: 2px solid #4285f4;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+  background: #3367d6;
+  border-color: #3367d6;
+}
+
+.category-filter select {
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.category-filter select:focus {
+  border-color: #4285f4;
+  outline: none;
+}
+
+.clear-btn {
+  padding: 10px 15px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.clear-btn:hover {
+  background: #545b62;
+}
+
+.results-info {
+  margin-bottom: 15px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  .influencer-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .influencer-content {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .button-group {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .invite-button,
+  .profile-button {
+    flex: 1;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    min-width: auto;
+  }
+
+  .category-filter select {
+    min-width: auto;
+  }
+}

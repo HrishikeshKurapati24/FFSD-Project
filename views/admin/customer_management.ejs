@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management - Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin/customer_management.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                CollabSync Admin
+            </div>
+            <nav class="admin-nav">
+                <a href="/admin/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="/admin/user-management"><i class="fas fa-users"></i> Users</a>
+                <a href="/admin/customer-management" class="active"><i class="fas fa-shopping-cart"></i> Customers</a>
+                <a href="/admin/analytics"><i class="fas fa-chart-bar"></i> Analytics</a>
+            </nav>
+            <div class="admin-user">
+                <span>Welcome, <%= user.name %></span>
+                <a href="/auth/signout" class="logout-btn"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-shopping-cart"></i> Customer Management</h1>
+            <p>Monitor and manage customer activities, purchases, and analytics</p>
+        </div>
+
+        <!-- Analytics Cards -->
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-content">
+                    <h3><%= analytics.totalCustomers.toLocaleString() %></h3>
+                    <p>Total Customers</p>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="card-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="card-content">
+                    <h3><%= analytics.activeCustomers.toLocaleString() %></h3>
+                    <p>Active Customers</p>
+                    <span class="trend">Last 30 days</span>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="card-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="card-content">
+                    <h3>$<%= analytics.totalRevenue.toLocaleString() %></h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            
+            <div class="analytics-card">
+                <div class="card-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="card-content">
+                    <h3>$<%= analytics.avgOrderValue.toFixed(2) %></h3>
+                    <p>Avg Order Value</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>Customer Growth</h3>
+                <canvas id="customerGrowthChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Purchase Trends</h3>
+                <canvas id="purchaseTrendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Customer Tables Section -->
+        <div class="tables-section">
+            <!-- Top Customers -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fas fa-crown"></i> Top Customers</h3>
+                    <button class="export-btn" onclick="exportTopCustomers()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="customers-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Total Spent</th>
+                                <th>Orders</th>
+                                <th>Last Purchase</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% topCustomers.forEach(customer => { %>
+                                <tr>
+                                    <td>
+                                        <div class="customer-info">
+                                            <div class="customer-avatar">
+                                                <%= customer.name ? customer.name.charAt(0).toUpperCase() : 'C' %>
+                                            </div>
+                                            <span><%= customer.name || 'Unknown Customer' %></span>
+                                        </div>
+                                    </td>
+                                    <td><%= customer.email %></td>
+                                    <td class="amount">$<%= customer.total_spent.toLocaleString() %></td>
+                                    <td><%= customer.total_purchases %></td>
+                                    <td><%= customer.last_purchase_date ? new Date(customer.last_purchase_date).toLocaleDateString() : 'Never' %></td>
+                                    <td>
+                                        <button class="action-btn view-btn" onclick="viewCustomerDetails('<%= customer._id %>')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit-btn" onclick="editCustomer('<%= customer._id %>')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Customers -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fas fa-clock"></i> Recent Customers</h3>
+                    <div class="table-filters">
+                        <select id="statusFilter" onchange="filterCustomers()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <input type="text" id="searchCustomers" placeholder="Search customers..." onkeyup="searchCustomers()">
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="customers-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Location</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <% recentCustomers.forEach(customer => { %>
+                                <tr data-customer-id="<%= customer._id %>">
+                                    <td>
+                                        <div class="customer-info">
+                                            <div class="customer-avatar">
+                                                <%= customer.name ? customer.name.charAt(0).toUpperCase() : 'C' %>
+                                            </div>
+                                            <span><%= customer.name || 'Unknown Customer' %></span>
+                                        </div>
+                                    </td>
+                                    <td><%= customer.email %></td>
+                                    <td><%= customer.phone || 'N/A' %></td>
+                                    <td><%= customer.location || 'N/A' %></td>
+                                    <td><%= customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'N/A' %></td>
+                                    <td>
+                                        <span class="status-badge <%= customer.status || 'active' %>">
+                                            <%= (customer.status || 'active').toUpperCase() %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="action-btn view-btn" onclick="viewCustomerDetails('<%= customer._id %>')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="action-btn edit-btn" onclick="editCustomer('<%= customer._id %>')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete-btn" onclick="deleteCustomer('<%= customer._id %>')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Details Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user"></i> Customer Details</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="customerModalBody">
+                <!-- Customer details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Customer Modal -->
+    <div id="editCustomerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Customer</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editCustomerForm">
+                    <div class="form-group">
+                        <label for="customerStatus">Status:</label>
+                        <select id="customerStatus" name="status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminNotes">Admin Notes:</label>
+                        <textarea id="adminNotes" name="notes" rows="4" placeholder="Add notes about this customer..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Customer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart initialization
+        const customerGrowthCtx = document.getElementById('customerGrowthChart').getContext('2d');
+        new Chart(customerGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: <%- JSON.stringify(analytics.customerGrowth.labels) %>,
+                datasets: [{
+                    label: 'New Customers',
+                    data: <%- JSON.stringify(analytics.customerGrowth.data) %>,
+                    borderColor: '#4285f4',
+                    backgroundColor: 'rgba(66, 133, 244, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const purchaseTrendsCtx = document.getElementById('purchaseTrendsChart').getContext('2d');
+        new Chart(purchaseTrendsCtx, {
+            type: 'bar',
+            data: {
+                labels: <%- JSON.stringify(analytics.purchaseTrends.labels) %>,
+                datasets: [{
+                    label: 'Purchases',
+                    data: <%- JSON.stringify(analytics.purchaseTrends.purchases) %>,
+                    backgroundColor: '#34a853'
+                }, {
+                    label: 'Revenue',
+                    data: <%- JSON.stringify(analytics.purchaseTrends.revenue) %>,
+                    backgroundColor: '#fbbc04',
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        position: 'left'
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Customer management functions
+        async function viewCustomerDetails(customerId) {
+            try {
+                const response = await fetch(`/admin/customer-details/${customerId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const customer = result.customer;
+                    document.getElementById('customerModalBody').innerHTML = `
+                        <div class="customer-details">
+                            <div class="detail-section">
+                                <h4>Basic Information</h4>
+                                <p><strong>Name:</strong> ${customer.name || 'N/A'}</p>
+                                <p><strong>Email:</strong> ${customer.email}</p>
+                                <p><strong>Phone:</strong> ${customer.phone || 'N/A'}</p>
+                                <p><strong>Location:</strong> ${customer.location || 'N/A'}</p>
+                            </div>
+                            <div class="detail-section">
+                                <h4>Purchase History</h4>
+                                <p><strong>Total Spent:</strong> $${customer.total_spent.toLocaleString()}</p>
+                                <p><strong>Total Orders:</strong> ${customer.total_purchases}</p>
+                                <p><strong>Last Purchase:</strong> ${customer.last_purchase_date ? new Date(customer.last_purchase_date).toLocaleDateString() : 'Never'}</p>
+                            </div>
+                            <div class="detail-section">
+                                <h4>Recent Purchases</h4>
+                                <div class="purchase-list">
+                                    ${customer.purchaseHistory && customer.purchaseHistory.length > 0 
+                                        ? customer.purchaseHistory.map(purchase => `
+                                            <div class="purchase-item">
+                                                <span>${purchase.product_id?.name || 'Unknown Product'}</span>
+                                                <span>$${purchase.product_id?.campaign_price || 0}</span>
+                                                <span>${new Date(purchase.purchase_date).toLocaleDateString()}</span>
+                                            </div>
+                                        `).join('')
+                                        : '<p>No recent purchases</p>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('customerModal').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching customer details:', error);
+                alert('Failed to load customer details');
+            }
+        }
+
+        function editCustomer(customerId) {
+            document.getElementById('editCustomerForm').dataset.customerId = customerId;
+            document.getElementById('editCustomerModal').style.display = 'block';
+        }
+
+        async function deleteCustomer(customerId) {
+            if (confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/admin/customer/${customerId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Customer deleted successfully');
+                        location.reload();
+                    } else {
+                        alert(result.message || 'Failed to delete customer');
+                    }
+                } catch (error) {
+                    console.error('Error deleting customer:', error);
+                    alert('Failed to delete customer');
+                }
+            }
+        }
+
+        // Form submission
+        document.getElementById('editCustomerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const customerId = this.dataset.customerId;
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(`/admin/customer-status/${customerId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: formData.get('status'),
+                        notes: formData.get('notes')
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Customer updated successfully');
+                    closeEditModal();
+                    location.reload();
+                } else {
+                    alert(result.message || 'Failed to update customer');
+                }
+            } catch (error) {
+                console.error('Error updating customer:', error);
+                alert('Failed to update customer');
+            }
+        });
+
+        // Modal functions
+        function closeModal() {
+            document.getElementById('customerModal').style.display = 'none';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editCustomerModal').style.display = 'none';
+        }
+
+        // Filter and search functions
+        function filterCustomers() {
+            const filter = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('#customersTableBody tr');
+            
+            rows.forEach(row => {
+                const status = row.querySelector('.status-badge').textContent.toLowerCase();
+                if (filter === 'all' || status.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function searchCustomers() {
+            const search = document.getElementById('searchCustomers').value.toLowerCase();
+            const rows = document.querySelectorAll('#customersTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(search)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function exportTopCustomers() {
+            // Simple CSV export
+            const data = [
+                ['Name', 'Email', 'Total Spent', 'Orders', 'Last Purchase']
+            ];
+            
+            <% topCustomers.forEach(customer => { %>
+                data.push([
+                    '<%= customer.name || "Unknown Customer" %>',
+                    '<%= customer.email %>',
+                    '<%= customer.total_spent %>',
+                    '<%= customer.total_purchases %>',
+                    '<%= customer.last_purchase_date ? new Date(customer.last_purchase_date).toLocaleDateString() : "Never" %>'
+                ]);
+            <% }); %>
+            
+            const csv = data.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'top_customers.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const customerModal = document.getElementById('customerModal');
+            const editModal = document.getElementById('editCustomerModal');
+            
+            if (event.target === customerModal) {
+                customerModal.style.display = 'none';
+            }
+            if (event.target === editModal) {
+                editModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
