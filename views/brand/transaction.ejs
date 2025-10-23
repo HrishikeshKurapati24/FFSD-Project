@@ -472,7 +472,7 @@
                                             <label for="amount">Amount (USD)</label>
                                             <input type="number" id="amount" name="amount" step="0.01" min="1"
                                                 max="<%= paymentMax || 0 %>"
-                                                placeholder="Up to <%= paymentDue?.replace('$', '') || '0' %>" required>
+                                                placeholder="Up to <%= paymentMax || '0' %>" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="paymentMethod">Payment Method</label>
