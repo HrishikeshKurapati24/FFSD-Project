@@ -1,0 +1,81 @@
+.welcome-section {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-bottom: 40px;
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.welcome-section p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.free-plan-notice {
+    background: #e8f5e8;
+    border: 2px solid #4caf50;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.free-plan-notice h3 {
+    color: #2e7d32;
+    margin-bottom: 10px;
+}
+
+.free-plan-notice p {
+    color: #388e3c;
+    margin-bottom: 15px;
+}
+
+.free-limits {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.free-limit-item {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.free-limit-item strong {
+    color: #2e7d32;
+}
+
+.skip-section {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.skip-btn {
+    background: #6c757d;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.skip-btn:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
