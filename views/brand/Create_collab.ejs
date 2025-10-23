@@ -5,388 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create collab</title>
-  <link rel="stylesheet" href="/i_index/I_index.css" />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      line-height: 1.6;
-    }
-
-    a {
-      text-decoration: none;
-    }
-
-    /* Header */
-    header {
-      background-color: #333;
-      color: #fff;
-      padding: 20px 0;
-    }
-
-    .header-container {
-      width: 80%;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 1.8rem;
-      font-weight: bold;
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-    }
-
-    nav ul li {
-      margin-left: 20px;
-    }
-
-    nav ul li a {
-      color: #fff;
-      font-size: 1rem;
-      transition: color 0.3s ease;
-    }
-
-    nav ul li a:hover {
-      color: #007BFF;
-    }
-
-    /* Menu styles */
-    .menu {
-      height: 100%;
-      width: 0;
-      position: fixed;
-      top: 0;
-      right: 0;
-      background-color: #333;
-      overflow-x: hidden;
-      transition: 0.3s;
-      padding-top: 60px;
-    }
-
-    .menu a {
-      padding: 10px 15px;
-      text-decoration: none;
-      font-size: 20px;
-      color: white;
-      display: block;
-      transition: 0.2s;
-    }
-
-    .menu a:hover {
-      background-color: #575757;
-    }
-
-    .toggle-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      font-size: 20px;
-      background-color: #007BFF;
-      color: white;
-      padding: 10px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 10px;
-      left: 15px;
-      font-size: 25px;
-      color: white;
-      cursor: pointer;
-    }
-
-    /* Form container and elements */
-    .form-container {
-      max-width: 800px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      padding: 35px;
-      transition: all 0.3s ease;
-    }
-
-    .form-container:hover {
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .form-title {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #007BFF;
-      font-size: 28px;
-      font-weight: 600;
-    }
-
-    .form-group {
-      margin-bottom: 25px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #555;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      background-color: #f9f9f9;
-    }
-
-    .form-control:focus {
-      border-color: #007BFF;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
-      background-color: white;
-    }
-
-    textarea.form-control {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .form-row .form-group {
-      flex: 1 1 calc(50% - 10px);
-      min-width: 200px;
-    }
-
-    /* Checkbox styling */
-    .checkbox-group {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      margin-right: 20px;
-      margin-bottom: 12px;
-      cursor: pointer;
-    }
-
-    input[type="checkbox"] {
-      margin-right: 8px;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border: 2px solid #ddd;
-      border-radius: 4px;
-      outline: none;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    input[type="checkbox"]:checked {
-      background-color: #007BFF;
-      border-color: #007BFF;
-    }
-
-    input[type="checkbox"]:checked:after {
-      content: '\2713';
-      font-size: 14px;
-      color: white;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    /* Button styling */
-    .btn-group {
-      display: flex;
-      gap: 15px;
-      margin-top: 30px;
-    }
-
-    .btn-group button {
-      flex: 1;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: 500;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: none;
-    }
-
-    .submit-btn {
-      background-color: #007BFF;
-      color: white;
-    }
-
-    .submit-btn:hover {
-      background-color: #0056b3;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
-    }
-
-    /* Product Section Styles */
-    .products-section {
-      margin: 30px 0;
-      padding: 25px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border: 1px solid #e9ecef;
-    }
-
-    .section-title {
-      color: #007BFF;
-      margin-bottom: 10px;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-description {
-      color: #6c757d;
-      margin-bottom: 20px;
-      font-size: 0.95rem;
-    }
-
-    .product-item {
-      background: white;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .product-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #e9ecef;
-    }
-
-    .product-header h4 {
-      color: #495057;
-      margin: 0;
-      font-size: 1.1rem;
-    }
-
-    .btn-remove-product {
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .btn-remove-product:hover {
-      background: #c82333;
-      transform: scale(1.1);
-    }
-
-    .btn-secondary {
-      background-color: #6c757d;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-
-    .btn-secondary:hover {
-      background-color: #5a6268;
-      transform: translateY(-2px);
-    }
-
-    .required {
-      color: #dc3545;
-      font-weight: bold;
-    }
-
-    .add-product-container {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    /* Footer */
-    footer {
-      background-color: #333;
-      color: #fff;
-      text-align: center;
-      padding: 20px 0;
-      margin-top: 30px;
-    }
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .header-container {
-        flex-direction: column;
-        padding: 10px 5%;
-      }
-
-      nav ul {
-        margin-top: 15px;
-      }
-
-      nav ul li {
-        margin-left: 15px;
-        margin-right: 15px;
-      }
-
-      .form-container {
-        padding: 25px 20px;
-        margin: 20px 15px;
-      }
-
-      .btn-group {
-        flex-direction: column;
-      }
-
-      .toggle-btn {
-        display: block;
-      }
-
-      .header nav {
-        display: none;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/i_index/brand_create_collab.css">
 </head>
 
 <body>
@@ -418,11 +38,11 @@
 
     <!-- Error Message Display -->
     <% if (typeof error !== 'undefined' && error) { %>
-      <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+      <div class="alert alert-danger">
         <strong>Error:</strong> <%= error %>
         <% if (typeof showUpgradeLink !== 'undefined' && showUpgradeLink) { %>
           <br><br>
-          <a href="/subscription/manage" class="btn btn-primary" style="background-color: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 10px;">
+          <a href="/subscription/manage" class="btn btn-upgrade">
             <i class="fas fa-crown"></i> Upgrade Your Plan
           </a>
         <% } %>
@@ -521,7 +141,7 @@
           <div class="product-item" data-index="0">
             <div class="product-header">
               <h4>Product 1</h4>
-              <button type="button" class="btn-remove-product" onclick="removeProduct(0)" style="display: none;">
+              <button type="button" class="btn-remove-product" onclick="removeProduct(0)">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </div>
@@ -581,10 +201,9 @@
                 <label for="products[0][image]">Product Image</label>
                 <input type="file" class="form-control" id="products[0][image]" name="products[0][image]"
                   accept="image/*" onchange="previewImage(this, 'preview-0')">
-                <div id="preview-0" class="image-preview" style="display: none; margin-top: 10px;">
-                  <img src="" alt="Product preview" style="max-width: 200px; max-height: 200px; border-radius: 5px;">
-                  <button type="button" onclick="removeImage('products[0][image]', 'preview-0')"
-                    style="margin-left: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                <div id="preview-0" class="image-preview">
+                  <img src="" alt="Product preview">
+                  <button type="button" onclick="removeImage('products[0][image]', 'preview-0')" class="btn-remove-image">
                     Remove
                   </button>
                 </div>
@@ -695,10 +314,9 @@
             <label for="products[${productIndex}][image]">Product Image</label>
             <input type="file" class="form-control" id="products[${productIndex}][image]" name="products[${productIndex}][image]" 
                    accept="image/*" onchange="previewImage(this, 'preview-${productIndex}')">
-            <div id="preview-${productIndex}" class="image-preview" style="display: none; margin-top: 10px;">
-              <img src="" alt="Product preview" style="max-width: 200px; max-height: 200px; border-radius: 5px;">
-              <button type="button" onclick="removeImage('products[${productIndex}][image]', 'preview-${productIndex}')" 
-                style="margin-left: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+            <div id="preview-${productIndex}" class="image-preview">
+              <img src="" alt="Product preview">
+              <button type="button" onclick="removeImage('products[${productIndex}][image]', 'preview-${productIndex}')" class="btn-remove-image">
                 Remove
               </button>
             </div>
@@ -719,7 +337,7 @@
       if (productIndex > 1) {
         const firstProduct = container.querySelector('[data-index="0"] .btn-remove-product');
         if (firstProduct) {
-          firstProduct.style.display = 'block';
+          firstProduct.classList.remove('hidden');
         }
       }
     }
@@ -742,7 +360,7 @@
         if (remainingProducts.length === 1) {
           const firstProduct = remainingProducts[0].querySelector('.btn-remove-product');
           if (firstProduct) {
-            firstProduct.style.display = 'none';
+            firstProduct.classList.add('hidden');
           }
         }
       }
@@ -779,11 +397,11 @@
         reader.onload = function (e) {
           const img = preview.querySelector('img');
           img.src = e.target.result;
-          preview.style.display = 'block';
+          preview.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
       } else {
-        preview.style.display = 'none';
+        preview.classList.add('hidden');
       }
     }
 
@@ -792,7 +410,7 @@
       const preview = document.getElementById(previewId);
 
       input.value = '';
-      preview.style.display = 'none';
+      preview.classList.add('hidden');
     }
 
     // Form validation with same styling as influencer profile modal
@@ -822,28 +440,17 @@
         el.textContent = message || '';
         if (message) {
           targetEl.setAttribute('aria-invalid', 'true');
-          el.style.display = 'block';
-          el.style.marginTop = '6px';
-          el.style.padding = '6px 8px';
-          el.style.borderRadius = '4px';
-          el.style.background = 'rgba(255, 77, 79, 0.12)';
-          el.style.border = '1px solid #ff4d4f';
-          el.style.color = '#b00020';
+          el.classList.remove('hidden');
+          el.classList.add('error-inline');
           if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
-            targetEl.style.outline = '2px solid #ff4d4f';
-            targetEl.style.outlineOffset = '1px';
+            targetEl.classList.add('error-input');
           }
         } else {
           targetEl.removeAttribute('aria-invalid');
-          el.style.display = '';
-          el.style.padding = '';
-          el.style.border = '';
-          el.style.background = '';
-          el.style.color = '';
-          el.style.borderRadius = '';
+          el.classList.add('hidden');
+          el.classList.remove('error-inline');
           if (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA' || targetEl.tagName === 'SELECT') {
-            targetEl.style.outline = '';
-            targetEl.style.outlineOffset = '';
+            targetEl.classList.remove('error-input');
           }
         }
         return Boolean(message);

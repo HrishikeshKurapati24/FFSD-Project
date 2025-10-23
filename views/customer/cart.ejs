@@ -9,37 +9,7 @@
     </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .navbar {
-            background: #ffffff !important;
-            border-bottom: 1px solid #e6e9f0;
-            box-shadow: 0 4px 14px rgba(17, 17, 17, .06);
-        }
-
-        .navbar .navbar-brand {
-            color: #111111;
-        }
-
-        .navbar .nav-link {
-            color: #6c757d;
-        }
-
-        .navbar .nav-link:hover,
-        .navbar .nav-link.active {
-            color: #0d6efd;
-            font-weight: 600;
-        }
-
-        .navbar .btn-outline-primary {
-            border-color: #0d6efd;
-            color: #0d6efd;
-        }
-
-        .navbar .btn-outline-primary:hover {
-            background: #0d6efd;
-            color: #ffffff;
-        }
-    </style>
+    <link rel="stylesheet" href="/i_index/cart.css">
 </head>
 
 <body>
@@ -54,31 +24,34 @@
         </div>
     </nav>
 
-    <div class="container my-4">
-        <h1 class="mb-4">Your Cart</h1>
+    <div class="container my-4 cart-container">
+        <h1 class="cart-title mb-4">Your Cart</h1>
 
         <% if (!items || items.length===0) { %>
-            <div class="alert alert-info">Your cart is empty.</div>
+            <div class="empty-cart">
+                <i class="fas fa-shopping-cart empty-cart-icon"></i>
+                <h3 class="empty-cart-title">Your cart is empty</h3>
+                <p class="empty-cart-text">Add some products to get started!</p>
+            </div>
             <% } else { %>
                 <div class="row">
                     <div class="col-lg-8">
                         <ul class="list-group mb-3">
                             <% items.forEach(item=> { %>
-                                <li class="list-group-item d-flex align-items-center">
-                                    <img src="<%= item.image %>" alt="<%= item.name %>" class="me-3"
-                                        style="width:64px;height:64px;object-fit:cover;">
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold">
+                                <li class="list-group-item d-flex align-items-center cart-item">
+                                    <img src="<%= item.image %>" alt="<%= item.name %>" class="me-3 cart-item-image">
+                                    <div class="flex-grow-1 cart-item-info">
+                                        <div class="cart-item-name">
                                             <%= item.name %>
                                         </div>
-                                        <small class="text-muted">Qty: <%= item.quantity %></small>
+                                        <small class="cart-item-quantity">Qty: <%= item.quantity %></small>
                                     </div>
                                     <div class="text-end">
-                                        <div class="fw-bold">$<%= item.lineTotal %>
+                                        <div class="cart-item-price">$<%= item.lineTotal %>
                                         </div>
                                         <form class="d-inline" method="post" action="/customer/cart/remove"
                                             onsubmit="return removeItem(event, '<%= item.productId %>')">
-                                            <button class="btn btn-sm btn-outline-danger mt-2">Remove</button>
+                                            <button class="btn btn-sm btn-outline-danger mt-2 cart-item-remove">Remove</button>
                                         </form>
                                     </div>
                                 </li>
@@ -86,28 +59,28 @@
                         </ul>
                     </div>
                     <div class="col-lg-4">
-                        <div class="card mb-3">
+                        <div class="card mb-3 summary-card">
                             <div class="card-body">
-                                <h5 class="card-title">Summary</h5>
-                                <div class="d-flex justify-content-between">
-                                    <span>Subtotal</span>
-                                    <span>$<%= subtotal %></span>
+                                <h5 class="summary-title">Summary</h5>
+                                <div class="summary-row">
+                                    <span class="summary-label">Subtotal</span>
+                                    <span class="summary-value">$<%= subtotal %></span>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Shipping</span>
-                                    <span>$<%= shipping %></span>
+                                <div class="summary-row">
+                                    <span class="summary-label">Shipping</span>
+                                    <span class="summary-value">$<%= shipping %></span>
                                 </div>
                                 <hr>
-                                <div class="d-flex justify-content-between fw-bold">
+                                <div class="summary-row summary-total">
                                     <span>Total</span>
                                     <span>$<%= total %></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card">
+                        <div class="card customer-details-card">
                             <div class="card-body">
-                                <h5 class="card-title">Customer Details</h5>
+                                <h5 class="customer-details-title">Customer Details</h5>
                                 <div class="mb-2">
                                     <label for="custName" class="form-label">Full Name</label>
                                     <input type="text" id="custName" class="form-control" placeholder="John Doe"
@@ -128,31 +101,33 @@
                                         placeholder="Street, City, ZIP">
                                 </div>
 
-                                <h6 class="mt-3">Payment Details</h6>
-                                <div class="mb-2">
-                                    <label for="cardNumber" class="form-label">Card Number</label>
-                                    <input type="text" id="cardNumber" class="form-control"
-                                        placeholder="4111 1111 1111 1111" inputmode="numeric">
+                                <div class="payment-section">
+                                    <h6 class="payment-title">Payment Details</h6>
+                                    <div class="mb-2">
+                                        <label for="cardNumber" class="form-label">Card Number</label>
+                                        <input type="text" id="cardNumber" class="form-control"
+                                            placeholder="4111 1111 1111 1111" inputmode="numeric">
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col">
+                                            <label for="expMonth" class="form-label">Exp. Month</label>
+                                            <input type="text" id="expMonth" class="form-control" placeholder="MM"
+                                                inputmode="numeric">
+                                        </div>
+                                        <div class="col">
+                                            <label for="expYear" class="form-label">Exp. Year</label>
+                                            <input type="text" id="expYear" class="form-control" placeholder="YYYY"
+                                                inputmode="numeric">
+                                        </div>
+                                        <div class="col">
+                                            <label for="cvv" class="form-label">CVV</label>
+                                            <input type="password" id="cvv" class="form-control" placeholder="123"
+                                                inputmode="numeric">
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary checkout-btn w-100 mt-3" onclick="checkout()"><i
+                                            class="fas fa-credit-card me-2"></i>Checkout</button>
                                 </div>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <label for="expMonth" class="form-label">Exp. Month</label>
-                                        <input type="text" id="expMonth" class="form-control" placeholder="MM"
-                                            inputmode="numeric">
-                                    </div>
-                                    <div class="col">
-                                        <label for="expYear" class="form-label">Exp. Year</label>
-                                        <input type="text" id="expYear" class="form-control" placeholder="YYYY"
-                                            inputmode="numeric">
-                                    </div>
-                                    <div class="col">
-                                        <label for="cvv" class="form-label">CVV</label>
-                                        <input type="password" id="cvv" class="form-control" placeholder="123"
-                                            inputmode="numeric">
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary w-100 mt-3" onclick="checkout()"><i
-                                        class="fas fa-credit-card me-2"></i>Checkout</button>
                             </div>
                         </div>
                     </div>
