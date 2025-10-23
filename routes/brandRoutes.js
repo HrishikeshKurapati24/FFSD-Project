@@ -558,14 +558,13 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
 
         // Calculate remaining budget: budget - sum(completed payments for this campaign)
         let remainingBudget = 0;
-        if (request?.campaign_id?._id) {
-            const paymentsAgg = await CampaignPayments.aggregate([
+        const paymentsAgg = await CampaignPayments.aggregate([
                 { $match: { campaign_id: request.campaign_id._id, status: 'completed' } },
                 { $group: { _id: '$campaign_id', total: { $sum: '$amount' } } }
             ]);
             const totalPaid = paymentsAgg?.[0]?.total || 0;
-            remainingBudget = Math.max(0, (request.campaign_id.budget || 0) - totalPaid);
-        }
+            remainingBudget = request.campaign_id.budget - totalPaid;
+            console.log(remainingBudget);
 
         // Format campaign dates
         const startDate = new Date(request.campaign_id.start_date).toLocaleDateString();

@@ -773,6 +773,37 @@
       loadCampaignContent(campaignId, campaignName);
     }
 
+    async function activateCampaign(campaignId) {
+      try {
+        const response = await fetch(`/brand/campaigns/${campaignId}/activate`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }
+        }); if (response.ok) { // Show success
+          // message const alert=document.createElement('div');
+          alert.className = 'alert alert-success alert-dismissible fade show';
+          alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; min-width: 300px;'
+            ; alert.innerHTML = `Campaign activated successfully! <button type="button"
+                                            class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+          document.body.appendChild(alert);
+
+          // Remove alert after 5 seconds
+          setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => alert.remove(), 150);
+          }, 5000);
+
+          // Reload the page after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          throw new Error('Failed to activate campaign');
+        }
+      } catch (error) {
+        console.error('Error activating campaign:', error);
+        alert('Failed to activate campaign. Please try again.');
+      }
+    }
+
     async function loadCampaignContent(campaignId, campaignName) {
       try {
         const response = await fetch(`/brand/campaigns/${campaignId}/pending-content`);
@@ -932,14 +963,19 @@
           <% } %>
 
             <!-- Subscription Renewal Alert -->
-            <% if (typeof subscriptionStatus !== 'undefined' && subscriptionStatus && (subscriptionStatus.expired || subscriptionStatus.needsRenewal)) { %>
-              <div class="alert <%= subscriptionStatus.expired ? 'alert-danger' : 'alert-warning' %> alert-dismissible fade show" role="alert"
+            <% if (typeof subscriptionStatus !=='undefined' && subscriptionStatus && (subscriptionStatus.expired ||
+              subscriptionStatus.needsRenewal)) { %>
+              <div
+                class="alert <%= subscriptionStatus.expired ? 'alert-danger' : 'alert-warning' %> alert-dismissible fade show"
+                role="alert"
                 style="margin: 20px 0; border-left: 4px solid <%= subscriptionStatus.expired ? '#ea4335' : '#ffc107' %>;">
                 <h4 class="alert-heading">
-                  <i class="fas <%= subscriptionStatus.expired ? 'fa-exclamation-triangle' : 'fa-clock' %>"></i> 
+                  <i class="fas <%= subscriptionStatus.expired ? 'fa-exclamation-triangle' : 'fa-clock' %>"></i>
                   <%= subscriptionStatus.expired ? 'Subscription Expired' : 'Subscription Renewal Required' %>
                 </h4>
-                <p><%= subscriptionStatus.message %></p>
+                <p>
+                  <%= subscriptionStatus.message %>
+                </p>
                 <% if (subscriptionStatus.expired) { %>
                   <p><strong>You are now on the Free plan with limited features:</strong></p>
                   <ul style="margin: 10px 0; padding-left: 20px;">
@@ -947,416 +983,422 @@
                     <li>Maximum 2 collaborations</li>
                     <li>Basic analytics only</li>
                   </ul>
-                <% } %>
-                <hr>
-                <a href="/subscription/manage" class="btn btn-primary">
-                  <i class="fas fa-credit-card"></i> <%= subscriptionStatus.expired ? 'Upgrade Now' : 'Renew Subscription' %>
-                </a>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  <% } %>
+                    <hr>
+                    <a href="/subscription/manage" class="btn btn-primary">
+                      <i class="fas fa-credit-card"></i>
+                      <%= subscriptionStatus.expired ? 'Upgrade Now' : 'Renew Subscription' %>
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
-            <% } %>
-
-            <!-- Welcome Section -->
-            <div class="intro">
-              <h1>Welcome, <%= brand.name %>
-              </h1>
-              <p>Powerful tools and real-time analytics to manage campaigns and grow your business.</p>
-
-              <!-- Performance Overview -->
-              <section class="dashboard">
-                <h2 class="section-header">Performance Overview</h2>
-                <div class="dashboard-container">
-                  <div class="dashboard-card">
-                    <h3>Active Campaigns</h3>
-                    <div class="metric-value">
-                      <%= stats.activeCampaigns %>
-                    </div>
-                    <div class="metric-label">Total running campaigns</div>
-                    <div class="trend-indicator trend-up">
-                      <i class="fas fa-arrow-up"></i>
-                      <%= stats.campaignGrowth %>% from last month
-                    </div>
-                  </div>
-
-                  <div class="dashboard-card">
-                    <h3>Engagement Rate</h3>
-                    <div class="metric-value">
-                      <%= stats.avgEngagement.toFixed(1) %>%
-                    </div>
-                    <div class="metric-label">Average across campaigns</div>
-                    <div class="trend-indicator <%= stats.engagementTrend >= 0 ? 'trend-up' : 'trend-down' %>">
-                      <% if (stats.engagementTrend>= 0) { %>
-                        <i class="fas fa-arrow-up"></i>
-                        <% } else { %>
-                          <i class="fas fa-arrow-down"></i>
-                          <% } %>
-                            <%= Math.abs(stats.engagementTrend) %>% change
-                    </div>
-                  </div>
-
-                  <div class="dashboard-card">
-                    <h3>Total Reach</h3>
-                    <div class="metric-value">
-                      <%= stats.totalReach.toLocaleString() %>
-                    </div>
-                    <div class="metric-label">Potential audience reached</div>
-                    <div class="trend-indicator trend-up">
-                      <i class="fas fa-arrow-up"></i>
-                      <%= stats.reachGrowth %>% growth
-                    </div>
-                  </div>
-
-                  <div class="dashboard-card">
-                    <h3>ROI</h3>
-                    <div class="metric-value">
-                      <%= stats.roi %>%
-                    </div>
-                    <div class="metric-label">Return on investment</div>
-                    <div class="trend-indicator <%= stats.roiTrend >= 0 ? 'trend-up' : 'trend-down' %>">
-                      <% if (stats.roiTrend>= 0) { %>
-                        <i class="fas fa-arrow-up"></i>
-                        <% } else { %>
-                          <i class="fas fa-arrow-down"></i>
-                          <% } %>
-                            <%= Math.abs(stats.roiTrend) %>% change
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <!-- Subscription Limits Section -->
-              <% if (typeof subscriptionLimits !== 'undefined' && subscriptionLimits) { %>
-                <section class="dashboard">
-                  <h2 class="section-header">Your Plan Limits</h2>
-                  <div class="dashboard-container">
-                    <div class="dashboard-card">
-                      <h3>Campaigns</h3>
-                      <div class="metric-value">
-                        <%= subscriptionLimits.campaigns.used %>/<%= subscriptionLimits.campaigns.limit %>
-                      </div>
-                      <div class="metric-label">Campaigns used this period</div>
-                      <div class="progress-container" style="margin-top: 10px;">
-                        <div class="progress-bar">
-                          <% 
-                            const campaignProgress = subscriptionLimits.campaigns.limit === 'Unlimited' ? 0 : (subscriptionLimits.campaigns.used / subscriptionLimits.campaigns.limit * 100);
-                            const campaignColor = subscriptionLimits.campaigns.remaining === 0 ? '#ea4335' : '#4285f4';
-                          %>
-                          <div class="progress-fill" style="width: <%= campaignProgress %>%; background-color: <%= campaignColor %>;"></div>
-                        </div>
-                      </div>
-                      <div class="trend-indicator <%= subscriptionLimits.campaigns.remaining === 0 ? 'trend-down' : 'trend-up' %>">
-                        <i class="fas <%= subscriptionLimits.campaigns.remaining === 0 ? 'fa-exclamation-triangle' : 'fa-check' %>"></i>
-                        <%= subscriptionLimits.campaigns.remaining === 0 ? 'Limit reached!' : subscriptionLimits.campaigns.remaining + ' remaining' %>
-                      </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                      <h3>Collaborations</h3>
-                      <div class="metric-value">
-                        <%= subscriptionLimits.collaborations.used %>/<%= subscriptionLimits.collaborations.limit %>
-                      </div>
-                      <div class="metric-label">Collaborations this period</div>
-                      <div class="progress-container" style="margin-top: 10px;">
-                        <div class="progress-bar">
-                          <% 
-                            const collabProgress = subscriptionLimits.collaborations.limit === 'Unlimited' ? 0 : (subscriptionLimits.collaborations.used / subscriptionLimits.collaborations.limit * 100);
-                            const collabColor = subscriptionLimits.collaborations.remaining === 0 ? '#ea4335' : '#4285f4';
-                          %>
-                          <div class="progress-fill" style="width: <%= collabProgress %>%; background-color: <%= collabColor %>;"></div>
-                        </div>
-                      </div>
-                      <div class="trend-indicator <%= subscriptionLimits.collaborations.remaining === 0 ? 'trend-down' : 'trend-up' %>">
-                        <i class="fas <%= subscriptionLimits.collaborations.remaining === 0 ? 'fa-exclamation-triangle' : 'fa-check' %>"></i>
-                        <%= subscriptionLimits.collaborations.remaining === 0 ? 'Limit reached!' : subscriptionLimits.collaborations.remaining + ' remaining' %>
-                      </div>
-                    </div>
-
-                    <div class="dashboard-card">
-                      <h3>Current Plan</h3>
-                      <div class="metric-value">
-                        <%= subscriptionStatus && subscriptionStatus.subscription && subscriptionStatus.subscription.planId ? subscriptionStatus.subscription.planId.name : 'Free' %>
-                      </div>
-                      <div class="metric-label">Your subscription plan</div>
-                      <div class="trend-indicator trend-up">
-                        <i class="fas fa-crown"></i>
-                        <a href="/subscription/manage" style="color: inherit; text-decoration: none;">Manage Plan</a>
-                      </div>
-                    </div>
-                  </div>
-                </section>
               <% } %>
 
-              <!-- Active Campaigns Section -->
-              <section class="campaigns-section">
-                <h2 class="section-header">Active Campaigns</h2>
-                <div class="campaign-list">
-                  <% if (activeCampaigns && activeCampaigns.length> 0) { %>
-                    <% activeCampaigns.forEach(campaign=> { %>
-                      <div class="campaign-card">
-                        <span
-                          class="campaign-status <%= campaign.status === 'active' ? 'status-active' : 'status-upcoming' %>">
-                          <%= campaign.status %>
-                        </span>
-                        <h3>
-                          <%= campaign.name %>
-                        </h3>
-                        <p>
-                          <%= campaign.description.substring(0, 80) %>...
-                        </p>
+                <!-- Welcome Section -->
+                <div class="intro">
+                  <h1>Welcome, <%= brand.name %>
+                  </h1>
+                  <p>Powerful tools and real-time analytics to manage campaigns and grow your business.</p>
 
-                        <!-- Campaign Progress -->
-                        <div class="progress-container">
-                          <div class="progress-info">
-                            <span>Progress</span>
-                            <span>
-                              <%= campaign.progress %>%
-                            </span>
-                          </div>
-                          <div class="progress-bar">
-                            <div class="progress-fill" style="--progress: <%= campaign.progress %>%;"></div>
-                          </div>
+                  <!-- Performance Overview -->
+                  <section class="dashboard">
+                    <h2 class="section-header">Performance Overview</h2>
+                    <div class="dashboard-container">
+                      <div class="dashboard-card">
+                        <h3>Active Campaigns</h3>
+                        <div class="metric-value">
+                          <%= stats.activeCampaigns %>
                         </div>
-
-                        <!-- Campaign Performance -->
-                        <div class="campaign-performance">
-                          <div class="performance-metric">
-                            <i class="fas fa-chart-line"></i>
-                            <div>
-                              <span class="metric-value">
-                                <%= campaign.engagement_rate.toFixed(1) %>%
-                              </span>
-                              <span class="metric-label">Engagement Rate</span>
-                            </div>
-                          </div>
-                          <div class="performance-metric">
-                            <i class="fas fa-users"></i>
-                            <div>
-                              <span class="metric-value">
-                                <%= campaign.reach.toLocaleString() %>
-                              </span>
-                              <span class="metric-label">Total Reach</span>
-                            </div>
-                          </div>
-                          <div class="performance-metric">
-                            <i class="fas fa-shopping-cart"></i>
-                            <div>
-                              <span class="metric-value">
-                                <%= campaign.conversion_rate %>%
-                              </span>
-                              <span class="metric-label">Conversion Rate</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Campaign Details -->
-                        <div class="campaign-meta">
-                          <div class="meta-item">
-                            <i class="far fa-calendar"></i>
-                            <span>Ends in <%= campaign.daysRemaining %> days</span>
-                          </div>
-                          <div class="meta-item">
-                            <i class="fas fa-users"></i>
-                            <span>
-                              <%= campaign.influencersCount %> influencers
-                            </span>
-                          </div>
-                          <div class="meta-item">
-                            <i class="fas fa-tag"></i>
-                            <span>
-                              <%= campaign.budget.toLocaleString() %> budget
-                            </span>
-                          </div>
-                        </div>
-
-                        <!-- Campaign Action Buttons -->
-                        <div class="campaign-actions">
-                          <button class="btn-review-content"
-                            onclick="openContentReviewModal('<%= campaign._id %>', '<%= campaign.name %>')">
-                            <i class="fas fa-eye"></i> Review Content
-                          </button>
-                          <button class="btn-end-campaign"
-                            onclick="endCampaign('<%= campaign._id %>', '<%= campaign.title %>')">
-                            <i class="fas fa-check-circle"></i> End Campaign
-                          </button>
+                        <div class="metric-label">Total running campaigns</div>
+                        <div class="trend-indicator trend-up">
+                          <i class="fas fa-arrow-up"></i>
+                          <%= stats.campaignGrowth %>% from last month
                         </div>
                       </div>
-                      <% }); %>
-                        <% } else { %>
-                          <div class="no-active-campaigns">
-                            <i class="fas fa-rocket"></i>
-                            <h3>No Active Campaigns</h3>
-                            <p>You don't have any active campaigns at the moment. Create a new campaign to get started!
-                            </p>
-                            <a href="/brand/create_collab" class="create-campaign-btn">Create Campaign</a>
-                          </div>
-                          <% } %>
-                </div>
-              </section>
 
-              <!-- Campaign Requests Section -->
-              <section class="campaign-requests-section">
-                <h2 class="section-header">Campaign Requests</h2>
-                <div class="campaign-requests-list">
-                  <% if (campaignRequests && campaignRequests.length> 0) { %>
-                    <% campaignRequests.forEach(request=> { %>
-                      <div class="campaign-request-card">
-                        <div class="request-header">
-                          <h3>
-                            <%= request.title %>
-                          </h3>
-                          <span class="request-status <%= request.status %>">
-                            <%= request.status %>
-                          </span>
+                      <div class="dashboard-card">
+                        <h3>Engagement Rate</h3>
+                        <div class="metric-value">
+                          <%= stats.avgEngagement.toFixed(1) %>%
                         </div>
-                        <p class="request-description">
-                          <%= request.description %>
-                        </p>
-                        <div class="request-details">
-                          <div class="detail-item">
-                            <i class="fas fa-calendar"></i>
-                            <span>Start: <%= new Date(request.start_date).toLocaleDateString() %></span>
-                          </div>
-                          <div class="detail-item">
-                            <i class="fas fa-clock"></i>
-                            <span>Duration: <%= request.duration %> days</span>
-                          </div>
-                          <div class="detail-item">
-                            <i class="fas fa-dollar-sign"></i>
-                            <span>Budget: $<%= request.budget %></span>
-                          </div>
-                          <div class="detail-item">
-                            <i class="fas fa-users"></i>
-                            <span>Accepted Influencers: <%= request.influencers_count || 0 %></span>
-                          </div>
-                          <div class="detail-item">
-                            <i class="fas fa-bullseye"></i>
-                            <span>Target: <%= request.target_audience %></span>
-                          </div>
-                          <div class="detail-item">
-                            <i class="fas fa-hashtag"></i>
-                            <span>Min Followers: <%= request.min_followers.toLocaleString() %></span>
-                          </div>
-                        </div>
-                        <div class="request-actions">
-                          <% if (request.status==='request' && request._id) { %>
-                            <!-- ========================================
-                        SECTION 1: DYNAMIC CAMPAIGN ACTIVATION & MODAL MANAGEMENT
-                        ======================================== -->
-                            <!-- This section dynamically manages campaign activation and modal display:
-                      - Activates campaigns via Fetch API calls and updates UI state
-                      - Shows/hides success/error alerts dynamically
-                      - Manages modal content loading and display
-                      - Updates button states and campaign status in real-time -->
-                            <button class="btn-activate" onclick="activateCampaign('<%= request._id %>')">
-                              Activate Campaign
-                            </button>
-                            <% } %>
-                              <% if (request._id) { %>
-                                <button class="btn-view" onclick="viewCampaignDetails('<%= request._id %>')">
-                                  View Details
-                                </button>
-                                <% } %>
+                        <div class="metric-label">Average across campaigns</div>
+                        <div class="trend-indicator <%= stats.engagementTrend >= 0 ? 'trend-up' : 'trend-down' %>">
+                          <% if (stats.engagementTrend>= 0) { %>
+                            <i class="fas fa-arrow-up"></i>
+                            <% } else { %>
+                              <i class="fas fa-arrow-down"></i>
+                              <% } %>
+                                <%= Math.abs(stats.engagementTrend) %>% change
                         </div>
                       </div>
-                      <% }); %>
-                        <% } else { %>
-                          <div class="no-campaign-requests">
-                            <i class="fas fa-inbox"></i>
-                            <h3>No Campaign Requests</h3>
-                            <p>You don't have any campaign requests at the moment.</p>
-                          </div>
-                          <% } %>
-                </div>
-              </section>
 
-              <section class="campaign-history-section">
-                <h2 class="section-header">Campaign History</h2>
-                <% if (recentCompletedCampaigns && recentCompletedCampaigns.length> 0) { %>
-                  <div class="campaign-list">
-                    <% recentCompletedCampaigns.slice(0, 3).forEach(campaign=> { %>
-                      <div class="campaign-card">
-                        <span class="campaign-status status-completed">completed</span>
-                        <h3>
-                          <%= campaign.name %>
-                        </h3>
-                        <p>
-                          <%= (campaign.description || '' ).substring(0, 100) %>...
-                        </p>
+                      <div class="dashboard-card">
+                        <h3>Total Reach</h3>
+                        <div class="metric-value">
+                          <%= stats.totalReach.toLocaleString() %>
+                        </div>
+                        <div class="metric-label">Potential audience reached</div>
+                        <div class="trend-indicator trend-up">
+                          <i class="fas fa-arrow-up"></i>
+                          <%= stats.reachGrowth %>% growth
+                        </div>
+                      </div>
 
-                        <div class="campaign-performance">
-                          <div class="performance-metric">
-                            <i class="fas fa-chart-line"></i>
-                            <div>
-                              <span class="metric-value">
-                                <%= (campaign.engagement_rate || 0).toFixed(1) %>%
-                              </span>
-                              <span class="metric-label">Engagement Rate</span>
+                      <div class="dashboard-card">
+                        <h3>ROI</h3>
+                        <div class="metric-value">
+                          <%= stats.roi %>%
+                        </div>
+                        <div class="metric-label">Return on investment</div>
+                        <div class="trend-indicator <%= stats.roiTrend >= 0 ? 'trend-up' : 'trend-down' %>">
+                          <% if (stats.roiTrend>= 0) { %>
+                            <i class="fas fa-arrow-up"></i>
+                            <% } else { %>
+                              <i class="fas fa-arrow-down"></i>
+                              <% } %>
+                                <%= Math.abs(stats.roiTrend) %>% change
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <!-- Subscription Limits Section -->
+                  <% if (typeof subscriptionLimits !=='undefined' && subscriptionLimits) { %>
+                    <section class="dashboard">
+                      <h2 class="section-header">Your Plan Limits</h2>
+                      <div class="dashboard-container">
+                        <div class="dashboard-card">
+                          <h3>Campaigns</h3>
+                          <div class="metric-value">
+                            <%= subscriptionLimits.campaigns.used %>/<%= subscriptionLimits.campaigns.limit %>
+                          </div>
+                          <div class="metric-label">Campaigns used this period</div>
+                          <div class="progress-container" style="margin-top: 10px;">
+                            <div class="progress-bar">
+                              <% const campaignProgress=subscriptionLimits.campaigns.limit==='Unlimited' ? 0 :
+                                (subscriptionLimits.campaigns.used / subscriptionLimits.campaigns.limit * 100); const
+                                campaignColor=subscriptionLimits.campaigns.remaining===0 ? '#ea4335' : '#4285f4' ; %>
+                                <div class="progress-fill"
+                                  style="width: <%= campaignProgress %>%; background-color: <%= campaignColor %>;">
+                                </div>
                             </div>
                           </div>
-                          <div class="performance-metric">
-                            <i class="fas fa-users"></i>
-                            <div>
-                              <span class="metric-value">
-                                <%= (campaign.reach || 0).toLocaleString() %>
-                              </span>
-                              <span class="metric-label">Total Reach</span>
-                            </div>
-                          </div>
-                          <div class="performance-metric">
-                            <i class="fas fa-shopping-cart"></i>
-                            <div>
-                              <span class="metric-value">
-                                <%= (campaign.conversion_rate || 0) %>%
-                              </span>
-                              <span class="metric-label">Conversion Rate</span>
-                            </div>
+                          <div
+                            class="trend-indicator <%= subscriptionLimits.campaigns.remaining === 0 ? 'trend-down' : 'trend-up' %>">
+                            <i
+                              class="fas <%= subscriptionLimits.campaigns.remaining === 0 ? 'fa-exclamation-triangle' : 'fa-check' %>"></i>
+                            <%= subscriptionLimits.campaigns.remaining===0 ? 'Limit reached!' :
+                              subscriptionLimits.campaigns.remaining + ' remaining' %>
                           </div>
                         </div>
 
-                        <div class="campaign-meta">
-                          <div class="meta-item">
-                            <i class="far fa-calendar-check"></i>
-                            <span>Ended on <%= new Date(campaign.end_date).toLocaleDateString() %></span>
+                        <div class="dashboard-card">
+                          <h3>Collaborations</h3>
+                          <div class="metric-value">
+                            <%= subscriptionLimits.collaborations.used %>/<%= subscriptionLimits.collaborations.limit %>
                           </div>
-                          <div class="meta-item">
-                            <i class="fas fa-users"></i>
-                            <span>
-                              <%= campaign.influencersCount || 0 %> influencers
-                            </span>
+                          <div class="metric-label">Collaborations this period</div>
+                          <div class="progress-container" style="margin-top: 10px;">
+                            <div class="progress-bar">
+                              <% const collabProgress=subscriptionLimits.collaborations.limit==='Unlimited' ? 0 :
+                                (subscriptionLimits.collaborations.used / subscriptionLimits.collaborations.limit *
+                                100); const collabColor=subscriptionLimits.collaborations.remaining===0 ? '#ea4335'
+                                : '#4285f4' ; %>
+                                <div class="progress-fill"
+                                  style="width: <%= collabProgress %>%; background-color: <%= collabColor %>;"></div>
+                            </div>
                           </div>
-                          <div class="meta-item">
-                            <i class="fas fa-tag"></i>
-                            <span>
-                              <%= (campaign.budget || 0).toLocaleString() %> budget
-                            </span>
-                          </div>
-                          <div class="meta-item">
-                            <i class="fas fa-clock"></i>
-                            <span>
-                              Duration: <%= campaign.duration || 0 %> days
-                            </span>
-                          </div>
-                          <div class="meta-item">
-                            <i class="fas fa-bullseye"></i>
-                            <span>
-                              Target: <%= campaign.target_audience || 'N/A' %>
-                            </span>
-                          </div>
-                          <div class="meta-item">
-                            <i class="fas fa-hashtag"></i>
-                            <span>
-                              Min Followers: <%= (campaign.min_followers || 0).toLocaleString() %>
-                            </span>
+                          <div
+                            class="trend-indicator <%= subscriptionLimits.collaborations.remaining === 0 ? 'trend-down' : 'trend-up' %>">
+                            <i
+                              class="fas <%= subscriptionLimits.collaborations.remaining === 0 ? 'fa-exclamation-triangle' : 'fa-check' %>"></i>
+                            <%= subscriptionLimits.collaborations.remaining===0 ? 'Limit reached!' :
+                              subscriptionLimits.collaborations.remaining + ' remaining' %>
                           </div>
                         </div>
 
-                        <% if (campaign.required_channels && campaign.required_channels.length> 0) { %>
-                          <div class="campaign-performance" style="margin-top: 10px; grid-template-columns: 1fr 1fr;">
-                            <div class="performance-metric">
-                              <i class="fas fa-bullhorn"></i>
-                              <div>
-                                <span class="metric-value">
-                                  <%= campaign.required_channels.join(', ') %></span>
+                        <div class="dashboard-card">
+                          <h3>Current Plan</h3>
+                          <div class="metric-value">
+                            <%= subscriptionStatus && subscriptionStatus.subscription &&
+                              subscriptionStatus.subscription.planId ? subscriptionStatus.subscription.planId.name
+                              : 'Free' %>
+                          </div>
+                          <div class="metric-label">Your subscription plan</div>
+                          <div class="trend-indicator trend-up">
+                            <i class="fas fa-crown"></i>
+                            <a href="/subscription/manage" style="color: inherit; text-decoration: none;">Manage
+                              Plan</a>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                    <% } %>
+
+                      <!-- Active Campaigns Section -->
+                      <section class="campaigns-section">
+                        <h2 class="section-header">Active Campaigns</h2>
+                        <div class="campaign-list">
+                          <% if (activeCampaigns && activeCampaigns.length> 0) { %>
+                            <% activeCampaigns.forEach(campaign=> { %>
+                              <div class="campaign-card">
+                                <span
+                                  class="campaign-status <%= campaign.status === 'active' ? 'status-active' : 'status-upcoming' %>">
+                                  <%= campaign.status %>
+                                </span>
+                                <h3>
+                                  <%= campaign.name %>
+                                </h3>
+                                <p>
+                                  <%= campaign.description.substring(0, 80) %>...
+                                </p>
+
+                                <!-- Campaign Progress -->
+                                <div class="progress-container">
+                                  <div class="progress-info">
+                                    <span>Progress</span>
+                                    <span>
+                                      <%= campaign.progress %>%
+                                    </span>
+                                  </div>
+                                  <div class="progress-bar">
+                                    <div class="progress-fill" style="--progress: <%= campaign.progress %>%;"></div>
+                                  </div>
+                                </div>
+
+                                <!-- Campaign Performance -->
+                                <div class="campaign-performance">
+                                  <div class="performance-metric">
+                                    <i class="fas fa-chart-line"></i>
+                                    <div>
+                                      <span class="metric-value">
+                                        <%= campaign.engagement_rate.toFixed(1) %>%
+                                      </span>
+                                      <span class="metric-label">Engagement Rate</span>
+                                    </div>
+                                  </div>
+                                  <div class="performance-metric">
+                                    <i class="fas fa-users"></i>
+                                    <div>
+                                      <span class="metric-value">
+                                        <%= campaign.reach.toLocaleString() %>
+                                      </span>
+                                      <span class="metric-label">Total Reach</span>
+                                    </div>
+                                  </div>
+                                  <div class="performance-metric">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <div>
+                                      <span class="metric-value">
+                                        <%= campaign.conversion_rate %>%
+                                      </span>
+                                      <span class="metric-label">Conversion Rate</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Campaign Details -->
+                                <div class="campaign-meta">
+                                  <div class="meta-item">
+                                    <i class="far fa-calendar"></i>
+                                    <span>Ends in <%= campaign.daysRemaining %> days</span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>
+                                      <%= campaign.influencersCount %> influencers
+                                    </span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>
+                                      <%= campaign.budget.toLocaleString() %> budget
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <!-- Campaign Action Buttons -->
+                                <div class="campaign-actions">
+                                  <button class="btn-review-content"
+                                    onclick="openContentReviewModal('<%= campaign._id %>', '<%= campaign.name %>')">
+                                    <i class="fas fa-eye"></i> Review Content
+                                  </button>
+                                  <button class="btn-end-campaign"
+                                    onclick="endCampaign('<%= campaign._id %>', '<%= campaign.title %>')">
+                                    <i class="fas fa-check-circle"></i> End Campaign
+                                  </button>
+                                </div>
+                              </div>
+                              <% }); %>
+                                <% } else { %>
+                                  <div class="no-active-campaigns">
+                                    <i class="fas fa-rocket"></i>
+                                    <h3>No Active Campaigns</h3>
+                                    <p>You don't have any active campaigns at the moment. Create a new campaign to get
+                                      started!
+                                    </p>
+                                    <a href="/brand/create_collab" class="create-campaign-btn">Create Campaign</a>
+                                  </div>
+                                  <% } %>
+                        </div>
+                      </section>
+
+                      <!-- Campaign Requests Section -->
+                      <section class="campaign-requests-section">
+                        <h2 class="section-header">Campaign Requests</h2>
+                        <div class="campaign-requests-list">
+                          <% if (campaignRequests && campaignRequests.length> 0) { %>
+                            <% campaignRequests.forEach(request=> { %>
+                              <div class="campaign-request-card">
+                                <div class="request-header">
+                                  <h3>
+                                    <%= request.title %>
+                                  </h3>
+                                  <span class="request-status <%= request.status %>">
+                                    <%= request.status %>
+                                  </span>
+                                </div>
+                                <p class="request-description">
+                                  <%= request.description %>
+                                </p>
+                                <div class="request-details">
+                                  <div class="detail-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>Start: <%= new Date(request.start_date).toLocaleDateString() %></span>
+                                  </div>
+                                  <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Duration: <%= request.duration %> days</span>
+                                  </div>
+                                  <div class="detail-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>Budget: $<%= request.budget %></span>
+                                  </div>
+                                  <div class="detail-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Accepted Influencers: <%= request.influencers_count || 0 %></span>
+                                  </div>
+                                  <div class="detail-item">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span>Target: <%= request.target_audience %></span>
+                                  </div>
+                                  <div class="detail-item">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>Min Followers: <%= request.min_followers.toLocaleString() %></span>
+                                  </div>
+                                </div>
+                                <div class="request-actions">
+                                  <% if (request.status==='request' && request._id) { %>
+                                    <button class="btn-activate" onclick="activateCampaign('<%= request._id %>')">
+                                      Activate Campaign
+                                    </button>
+                                    <% } %>
+                                      <% if (request._id) { %>
+                                        <button class="btn-view" onclick="viewCampaignDetails('<%= request._id %>')">
+                                          View Details
+                                        </button>
+                                        <% } %>
+                                </div>
+                              </div>
+                              <% }); %>
+                                <% } else { %>
+                                  <div class="no-campaign-requests">
+                                    <i class="fas fa-inbox"></i>
+                                    <h3>No Campaign Requests</h3>
+                                    <p>You don't have any campaign requests at the moment.</p>
+                                  </div>
+                                  <% } %>
+                        </div>
+                      </section>
+
+                      <section class="campaign-history-section">
+                        <h2 class="section-header">Campaign History</h2>
+                        <% if (recentCompletedCampaigns && recentCompletedCampaigns.length> 0) { %>
+                          <div class="campaign-list">
+                            <% recentCompletedCampaigns.slice(0, 3).forEach(campaign=> { %>
+                              <div class="campaign-card">
+                                <span class="campaign-status status-completed">completed</span>
+                                <h3>
+                                  <%= campaign.name %>
+                                </h3>
+                                <p>
+                                  <%= (campaign.description || '' ).substring(0, 100) %>...
+                                </p>
+
+                                <div class="campaign-performance">
+                                  <div class="performance-metric">
+                                    <i class="fas fa-chart-line"></i>
+                                    <div>
+                                      <span class="metric-value">
+                                        <%= (campaign.engagement_rate || 0).toFixed(1) %>%
+                                      </span>
+                                      <span class="metric-label">Engagement Rate</span>
+                                    </div>
+                                  </div>
+                                  <div class="performance-metric">
+                                    <i class="fas fa-users"></i>
+                                    <div>
+                                      <span class="metric-value">
+                                        <%= (campaign.reach || 0).toLocaleString() %>
+                                      </span>
+                                      <span class="metric-label">Total Reach</span>
+                                    </div>
+                                  </div>
+                                  <div class="performance-metric">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <div>
+                                      <span class="metric-value">
+                                        <%= (campaign.conversion_rate || 0) %>%
+                                      </span>
+                                      <span class="metric-label">Conversion Rate</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="campaign-meta">
+                                  <div class="meta-item">
+                                    <i class="far fa-calendar-check"></i>
+                                    <span>Ended on <%= new Date(campaign.end_date).toLocaleDateString() %></span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>
+                                      <%= campaign.influencersCount || 0 %> influencers
+                                    </span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>
+                                      <%= (campaign.budget || 0).toLocaleString() %> budget
+                                    </span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>
+                                      Duration: <%= campaign.duration || 0 %> days
+                                    </span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-bullseye"></i>
+                                    <span>
+                                      Target: <%= campaign.target_audience || 'N/A' %>
+                                    </span>
+                                  </div>
+                                  <div class="meta-item">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>
+                                      Min Followers: <%= (campaign.min_followers || 0).toLocaleString() %>
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <% if (campaign.required_channels && campaign.required_channels.length> 0) { %>
+                                  <div class="campaign-performance"
+                                    style="margin-top: 10px; grid-template-columns: 1fr 1fr;">
+                                    <div class="performance-metric">
+                                      <i class="fas fa-bullhorn"></i>
+                                      <div>
+                                        <span class="metric-value">
+                                          <%= campaign.required_channels.join(', ') %></span>
                             <span class="metric-label">Channels</span>
                           </div>
                         </div>
@@ -1409,7 +1451,6 @@
             </div>
             <div class="modal-body">
               <div id="contentList" class="content-list">
-                <!-- Content will be loaded dynamically -->
               </div>
             </div>
           </div>
@@ -1423,36 +1464,6 @@
         function closeMenu() {
           document.getElementById("navMenu").style.width = "0";
         }
-        async function activateCampaign(campaignId) {
-          try {
-            const response = await fetch(`/brand/campaigns/${campaignId}/activate`, {
-              method: ' POST', headers: { 'Content-Type': 'application/json' }
-            }); if (response.ok) { // Show success
-              // message const alert=document.createElement('div');
-              alert.className = 'alert alert-success alert-dismissible fade show';
-              alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; min-width: 300px;'
-                ; alert.innerHTML = `Campaign activated successfully! <button type="button"
-                                    class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-              document.body.appendChild(alert);
-
-              // Remove alert after 5 seconds
-              setTimeout(() => {
-                alert.classList.remove('show');
-                setTimeout(() => alert.remove(), 150);
-              }, 5000);
-
-              // Reload the page after a short delay
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
-            } else {
-              throw new Error('Failed to activate campaign');
-            }
-          } catch (error) {
-            console.error('Error activating campaign:', error);
-            alert('Failed to activate campaign. Please try again.');
-          }
-        }
 
         // ========================================
         // FUNCTIONALITY 2: CAMPAIGN DETAILS RETRIEVAL
@@ -1465,131 +1476,129 @@
         // - Manages conditional content rendering based on data availability
         async function viewCampaignDetails(campaignId) {
           try {
-            console.log('Viewing details for campaign:', campaignId);
-            if (!campaignId) {
-              console.error('No campaign ID provided');
-              alert('Invalid campaign ID');
-              return;
-            }
+            console.log(' Viewing details for campaign:', campaignId); if (!campaignId) {
+              console.error('No campaign ID provided'); alert('Invalid campaign ID'); return; } const response=await
+                                            fetch(`/brand/campaigns/${campaignId}/details`); if (!response.ok) {
+                const
+                errorData = await response.json(); console.error('Failed to fetch campaign details: ', response.status, errorData); throw new Error(errorData.error
+                || 'Failed to fetch campaign details');
+              } const data = await response.json();
+              console.log('Campaign details received:', data);
+                                            //========================================// SECTION 3: DYNAMIC MODAL
+                                            // CONTENT POPULATION //========================================-->
+              // This section dynamically populates modal content via Fetch API:
+              // - Fetches campaign details asynchronously from server
+              // - Builds HTML content dynamically using template literals
+              // - Updates modal innerHTML with fetched data
+              // - Creates Bootstrap modal instances programmatically
+              // - Manages conditional content rendering based on data availability
 
-            const response = await fetch(`/brand/campaigns/${campaignId}/details`);
-            if (!response.ok) {
-              const errorData = await response.json();
-              console.error('Failed to fetch campaign details:', response.status, errorData);
-              throw new Error(errorData.error || 'Failed to fetch campaign details');
-            }
+              // Create the modal content
+              const content = `
+                                            <div class="detail-section">
+                                              <h6>Campaign Overview</h6>
+                                              <div class="detail-grid">
+                                                <div class="detail-item">
+                                                  <i class="fas fa-calendar"></i>
+                                                  <strong>Start Date:</strong> ${new
+                  Date(data.start_date).toLocaleDateString()}
+                                                </div>
+                                                <div class="detail-item">
+                                                  <i class="fas fa-clock"></i>
+                                                  <strong>Duration:</strong> ${data.duration || 0} days
+                                                </div>
+                                                <div class="detail-item">
+                                                  <i class="fas fa-dollar-sign"></i>
+                                                  <strong>Budget:</strong> $${data.budget || 0}
+                                                </div>
+                                                <div class="detail-item">
+                                                  <i class="fas fa-users"></i>
+                                                  <strong>Accepted Influencers:</strong> ${data.accepted_influencers ||
+                0}
+                                                </div>
+                                              </div>
+                                            </div>
 
-            const data = await response.json();
-            console.log('Campaign details received:', data);
-            // ========================================
-            // SECTION 3: DYNAMIC MODAL CONTENT POPULATION
-            // ======================================== -->
-            // This section dynamically populates modal content via Fetch API:
-            // - Fetches campaign details asynchronously from server
-            // - Builds HTML content dynamically using template literals
-            // - Updates modal innerHTML with fetched data
-            // - Creates Bootstrap modal instances programmatically
-            // - Manages conditional content rendering based on data availability
+                                            <div class="detail-section">
+                                              <h6>Campaign Details</h6>
+                                              <div class="detail-grid">
+                                                <div class="detail-item">
+                                                  <i class="fas fa-bullseye"></i>
+                                                  <strong>Target Audience:</strong> ${data.target_audience || 'Not specified'}
+                                                </div>
+                                                <div class="detail-item">
+                                                  <i class="fas fa-hashtag"></i>
+                                                  <strong>Min Followers:</strong> ${(data.min_followers ||
+                                                  0).toLocaleString()}
+                                                </div>
+                                                <div class="detail-item">
+                                                  <i class="fas fa-list"></i>
+                                                  <strong>Required Channels:</strong> ${(data.required_channels ||
+                                                  []).join(',')
+                                                  || 'Not specified'}
+                                                </div>
+                                                <div class="detail-item">
+                                                  <i class="fas fa-bullseye"></i>
+                                                  <strong>Objectives:</strong> ${data.objectives || 'Not specified'}
+                                                </div>
+                                              </div >
+                                            </div >
 
-            // Create the modal content
-            const content = `
-                                    <div class="detail-section">
-                                      <h6>Campaign Overview</h6>
-                                      <div class="detail-grid">
-                                        <div class="detail-item">
-                                          <i class="fas fa-calendar"></i>
-                                          <strong>Start Date:</strong> ${new Date(data.start_date).toLocaleDateString()}
-                                        </div>
-                                        <div class="detail-item">
-                                          <i class="fas fa-clock"></i>
-                                          <strong>Duration:</strong> ${data.duration || 0} days
-                                        </div>
-                                        <div class="detail-item">
-                                          <i class="fas fa-dollar-sign"></i>
-                                          <strong>Budget:</strong> $${data.budget || 0}
-                                        </div>
-                                        <div class="detail-item">
-                                          <i class="fas fa-users"></i>
-                                          <strong>Accepted Influencers:</strong> ${data.accepted_influencers || 0}
-                                        </div>
-                                      </div>
-                                    </div>
+                <div class="detail-section">
+                  <h6>Description</h6>
+                  <p>${data.description || 'No description available'}</p>
+                </div>
 
-                                    <div class="detail-section">
-                                      <h6>Campaign Details</h6>
-                                      <div class="detail-grid">
-                                        <div class="detail-item">
-                                          <i class="fas fa-bullseye"></i>
-                                          <strong>Target Audience:</strong> ${data.target_audience || 'Not specified'}
-                                        </div>
-                                        <div class="detail-item">
-                                          <i class="fas fa-hashtag"></i>
-                                          <strong>Min Followers:</strong> ${(data.min_followers || 0).toLocaleString()}
-                                        </div>
-                                        <div class="detail-item">
-                                          <i class="fas fa-list"></i>
-                                          <strong>Required Channels:</strong> ${(data.required_channels || []).join(',')
-              || 'Not specified'}
-                                        </div>
-                                        <div class="detail-item">
-                                          <i class="fas fa-bullseye"></i>
-                                          <strong>Objectives:</strong> ${data.objectives || 'Not specified'}
-                                        </div>
-                                      </div>
-                                    </div>
+                                            ${
+                data.influencers && data.influencers.length > 0 ? `
+                                            <div class="detail-section">
+                                              <h6>Accepted Influencers</h6>
+                                              <div class="influencers-list">
+                                                ${data.influencers.map(influencer => `
+                                                <div class="influencer-card">
+                                                  <img src="${influencer.profilePicUrl || '/images/default-avatar.jpg'}"
+                                                    alt="${influencer.name}" class="influencer-avatar">
+                                                  <div class="influencer-name">${influencer.name}</div>
+                                                </div>
+                                                `).join('')}
+                                              </div>
+                                            </div>
+                                            ` : ''
+              }
+              `;
 
-                                    <div class="detail-section">
-                                      <h6>Description</h6>
-                                      <p>${data.description || 'No description available'}</p>
-                                    </div>
+                                            // Update modal content and show it
+                                            document.querySelector('.campaign-details-content').innerHTML = content;
 
-                                    ${data.influencers && data.influencers.length > 0 ? `
-                                    <div class="detail-section">
-                                      <h6>Accepted Influencers</h6>
-                                      <div class="influencers-list">
-                                        ${data.influencers.map(influencer => `
-                                        <div class="influencer-card">
-                                          <img src="${influencer.profilePicUrl || '/images/default-avatar.jpg'}"
-                                            alt="${influencer.name}" class="influencer-avatar">
-                                          <div class="influencer-name">${influencer.name}</div>
-                                        </div>
-                                        `).join('')}
-                                      </div>
-                                    </div>
-                                    ` : ''}
-                                    `;
+                                            // Get the modal element
+                                            const modalElement = document.getElementById('campaignDetailsModal');
+                                            if (!modalElement) {
+                                            throw new Error('Modal element not found');
+                                            }
 
-            // Update modal content and show it
-            document.querySelector('.campaign-details-content').innerHTML = content;
+                                            // Create a new Bootstrap modal instance
+                                            const modal = new bootstrap.Modal(modalElement);
 
-            // Get the modal element
-            const modalElement = document.getElementById('campaignDetailsModal');
-            if (!modalElement) {
-              throw new Error('Modal element not found');
-            }
+                                            // Show the modal
+                                            modal.show();
+                                            } catch (error) {
+                                            console.error('Error fetching campaign details:', error);
+                                            alert(error.message || 'Failed to load campaign details. Please try again.');
+                                            }
+                                            }
 
-            // Create a new Bootstrap modal instance
-            const modal = new bootstrap.Modal(modalElement);
+                                            // End Campaign function
+                                            async function endCampaign(campaignId, campaignTitle) {
+                                            if (!confirm(`Are you sure you want to end the campaign
+              "${campaignTitle}" ?\n\nThis
+                                            will mark it as completed and move it to campaign history.`)) {
+                                            return;
+                                            }
 
-            // Show the modal
-            modal.show();
-          } catch (error) {
-            console.error('Error fetching campaign details:', error);
-            alert(error.message || 'Failed to load campaign details. Please try again.');
-          }
-        }
-
-        // End Campaign function
-        async function endCampaign(campaignId, campaignTitle) {
-          if (!confirm(`Are you sure you want to end the campaign "${campaignTitle}"?\n\nThis
-                                    will mark it as completed and move it to campaign history.`)) {
-            return;
-          }
-
-          try {
-            const response = await fetch(`/brand/campaigns/${campaignId}/end`, {
+                                            try {
+                                            const response = await fetch(`/ brand / campaigns / ${ campaignId }/end`, {
               method: 'POST',
-              headers: {
+                headers: {
                 'Content-Type': 'application/json'
               }
             });
@@ -1610,7 +1619,8 @@
         }
 
         async function reviewContent(contentId, action) {
-          const feedback = prompt(`Please provide feedback for ${action === 'approve' ?
+          const feedback = prompt(`Please provide feedback for ${action === 'approve'
+            ?
             'approving' : 'rejecting'} this content:`);
 
           if (feedback === null) return; // User cancelled
@@ -1632,19 +1642,19 @@
             if (data.success) {
               alert(`Content ${action}d successfully!`);
               // Reload the content list
-              const contentItem = document.querySelector(`[data-content-id="${contentId}"]`);
+              const contentItem =
+                document.querySelector(`[data-content-id="${contentId}"]`);
               if (contentItem) {
                 const statusSpan = contentItem.querySelector('.content-status');
                 const actionsDiv = contentItem.querySelector('.content-actions');
 
                 statusSpan.textContent = action === 'approve' ? 'approved' : 'rejected';
-                statusSpan.className = `content-status status-${action === 'approve' ? 'approved' :
+                statusSpan.className = `content-status status-${action === 'approve' ?
+                  'approved' :
                   'rejected'}`;
 
                 actionsDiv.innerHTML = action === 'approve' ?
-                  '<span class="status-approved"><i class="fas fa-check-circle"></i> Approved</span>'
-                  :
-                  '<span class="status-rejected"><i class="fas fa-times-circle"></i> Rejected</span>';
+                  '<span class="status-approved"><i class="fas fa-check-circle"></i>Approved</span > ':'<span class="status-rejected"><i class="fas fa-times-circle"></i>Rejected</span > ';
               }
             } else {
               alert('Error: ' + data.message);
