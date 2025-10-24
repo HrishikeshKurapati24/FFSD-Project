@@ -1082,15 +1082,28 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
         try {
             const limitCheck = await SubscriptionService.checkSubscriptionLimit(brandId, 'brand', 'create_campaign');
             if (!limitCheck.allowed) {
+                // Check if subscription is expired
+                if (limitCheck.redirectToPayment) {
+                    return res.status(403).render('brand/Create_collab', {
+                        error: limitCheck.reason,
+                        formData: req.body,
+                        showRenewLink: true,
+                        renewUrl: '/subscription/manage'
+                    });
+                }
+                
                 return res.status(400).render('brand/Create_collab', {
-                    error: `Campaign limit reached: ${limitCheck.reason}. Please upgrade your plan to create more campaigns.`,
+                    error: `${limitCheck.reason}. Please upgrade your plan to create more campaigns.`,
                     formData: req.body,
                     showUpgradeLink: true
                 });
             }
         } catch (subscriptionError) {
             console.error('Subscription check error:', subscriptionError);
-            // Continue with campaign creation if subscription check fails (fallback)
+            return res.status(500).render('brand/Create_collab', {
+                error: 'Unable to verify subscription. Please try again later.',
+                formData: req.body
+            });
         }
 
         // Calculate duration from start and end dates
@@ -1370,13 +1383,16 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
             }))
         };
 
-        console.log('Sending campaign details:', campaignDetails);
-        res.json(campaignDetails);
+        console.log('Rendering campaign details page');
+        res.render('brand/campaign-details', {
+            campaign: campaignDetails,
+            user: req.session.user
+        });
     } catch (error) {
         console.error('Error fetching campaign details:', error);
-        res.status(500).json({
-            error: 'Failed to fetch campaign details',
-            details: error.message
+        res.status(500).render('error', {
+            message: 'Failed to fetch campaign details',
+            error: process.env.NODE_ENV === 'development' ? error : {}
         });
     }
 });
@@ -1409,11 +1425,17 @@ router.post('/campaigns/:campaignId/end', async (req, res) => {
         const productsSold = await Product.countDocuments({ campaign_id: new mongoose.Types.ObjectId(campaignId) }) || 0;
         const campaignPrice = campaign.budget || 0;
         const revenue = productsSold * campaignPrice || 0;
-        await CampaignMetrics.findByIdAndUpdate(campaign._id, { $set: { revenue: revenue } });
+        await CampaignMetrics.findOneAndUpdate(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId) },
+            { $set: { revenue: revenue } }
+        );
 
         // Update campaign metrics roi to revenue / budget
         const roi = revenue / (campaign.budget || 0) || 0;
-        await CampaignMetrics.findByIdAndUpdate(campaign._id, { $set: { roi: roi } });
+        await CampaignMetrics.findOneAndUpdate(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId) },
+            { $set: { roi: roi } }
+        );
 
         // Update campaign status to completed
         campaign.status = 'completed';

@@ -387,6 +387,21 @@ const startServer = async () => {
         app.listen(PORT, () => {
             console.log(`✅ Server is running on port ${PORT}`);
         });
+
+        // Schedule periodic subscription expiry check (every hour)
+        const { SubscriptionService } = require('./models/brandModel');
+        
+        // Run immediately on startup
+        console.log('🔍 Running initial subscription expiry check...');
+        await SubscriptionService.checkAndExpireSubscriptions();
+        
+        // Then run every hour
+        setInterval(async () => {
+            console.log('🔍 Running scheduled subscription expiry check...');
+            await SubscriptionService.checkAndExpireSubscriptions();
+        }, 60 * 60 * 1000); // 1 hour in milliseconds
+        
+        console.log('✅ Subscription expiry checker scheduled (runs every hour)');
     } catch (err) {
         console.error('❌ Error starting server:', err);
         process.exit(1);

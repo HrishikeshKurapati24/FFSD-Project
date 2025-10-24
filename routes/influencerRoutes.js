@@ -547,15 +547,28 @@ router.post('/apply/:campaignId', async (req, res) => {
         try {
             const limitCheck = await SubscriptionService.checkSubscriptionLimit(influencerId, 'influencer', 'connect_brand');
             if (!limitCheck.allowed) {
+                // Check if subscription is expired
+                if (limitCheck.redirectToPayment) {
+                    return res.status(403).json({
+                        success: false,
+                        message: limitCheck.reason,
+                        expired: true,
+                        redirectUrl: '/subscription/manage'
+                    });
+                }
+                
                 return res.status(400).json({
                     success: false,
-                    message: `Brand connection limit reached: ${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
+                    message: `${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
                     showUpgradeLink: true
                 });
             }
         } catch (subscriptionError) {
             console.error('Subscription check error:', subscriptionError);
-            // Continue with application if subscription check fails (fallback)
+            return res.status(500).json({
+                success: false,
+                message: 'Unable to verify subscription. Please try again later.'
+            });
         }
 
         // Check if campaign exists
@@ -579,6 +592,15 @@ router.post('/apply/:campaignId', async (req, res) => {
                 existingApplication.status = 'active';
                 existingApplication.applied_at = new Date();
                 await existingApplication.save();
+
+                // Update influencer subscription usage
+                try {
+                    const { SubscriptionService } = require('../models/brandModel');
+                    await SubscriptionService.updateUsage(influencerId, 'influencer', { campaignsUsed: 1 });
+                } catch (usageError) {
+                    console.error('Error updating influencer subscription usage:', usageError);
+                    // Continue even if usage update fails
+                }
 
                 // Store special message if provided
                 if (specialMessage) {

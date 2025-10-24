@@ -7,7 +7,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    enum: ['Free', 'Basic', 'Pro', 'Premium', 'Enterprise']
+    enum: ['Free', 'Basic', 'Premium']
   },
   userType: {
     type: String,
@@ -26,19 +26,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
     advancedAnalytics: { type: Boolean, default: false },
     prioritySupport: { type: Boolean, default: false },
     customBranding: { type: Boolean, default: false },
-    apiAccess: { type: Boolean, default: false },
-    whiteLabel: { type: Boolean, default: false },
-    dedicatedManager: { type: Boolean, default: false },
-    bulkOperations: { type: Boolean, default: false },
-    exportData: { type: Boolean, default: false },
-    socialMediaIntegration: { type: Boolean, default: false },
-    contentLibrary: { type: Boolean, default: false },
     collaborationTools: { type: Boolean, default: false }
-  },
-  limits: {
-    storageGB: { type: Number, default: 1 },
-    monthlyUploads: { type: Number, default: 10 },
-    teamMembers: { type: Number, default: 1 }
   },
   isActive: { type: Boolean, default: true },
   description: String,
@@ -82,20 +70,9 @@ const userSubscriptionSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  nextBillingDate: Date,
   amount: {
     type: Number,
     required: true
-  },
-  paymentMethod: {
-    type: String,
-    enum: ['credit_card', 'paypal', 'bank_transfer', 'stripe'],
-    default: 'credit_card'
-  },
-  paymentDetails: {
-    transactionId: String,
-    paymentGateway: String,
-    lastFourDigits: String
   },
   usage: {
     campaignsUsed: { type: Number, default: 0 },
@@ -103,15 +80,6 @@ const userSubscriptionSchema = new mongoose.Schema({
     brandsConnected: { type: Number, default: 0 },
     storageUsedGB: { type: Number, default: 0 },
     uploadsThisMonth: { type: Number, default: 0 }
-  },
-  autoRenew: {
-    type: Boolean,
-    default: true
-  },
-  trialEndsAt: Date,
-  isTrialActive: {
-    type: Boolean,
-    default: false
   }
 }, {
   timestamps: true
@@ -155,7 +123,16 @@ const paymentHistorySchema = new mongoose.Schema({
   paymentGateway: String,
   description: String,
   invoiceUrl: String,
-  paidAt: Date
+  paidAt: Date,
+  cardDetails: {
+    cardName: String,
+    last4: String,
+    brand: String,
+    expiryMonth: Number,
+    expiryYear: Number,
+    encryptedCardNumber: String  // Encrypted full card number for auto-fill
+  },
+  billingAddress: String
 }, {
   timestamps: true
 });

@@ -40,7 +40,12 @@
     <% if (typeof error !== 'undefined' && error) { %>
       <div class="alert alert-danger">
         <strong>Error:</strong> <%= error %>
-        <% if (typeof showUpgradeLink !== 'undefined' && showUpgradeLink) { %>
+        <% if (typeof showRenewLink !== 'undefined' && showRenewLink) { %>
+          <br><br>
+          <a href="<%= renewUrl || '/subscription/manage' %>" class="btn btn-warning">
+            <i class="fas fa-sync-alt"></i> Renew Your Subscription
+          </a>
+        <% } else if (typeof showUpgradeLink !== 'undefined' && showUpgradeLink) { %>
           <br><br>
           <a href="/subscription/manage" class="btn btn-upgrade">
             <i class="fas fa-crown"></i> Upgrade Your Plan

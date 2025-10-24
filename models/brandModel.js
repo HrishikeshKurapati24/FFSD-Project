@@ -122,8 +122,18 @@ class SubscriptionService {
           userId: subscription.userId,
           planName: subscription.planId?.name,
           status: subscription.status,
+          endDate: subscription.endDate,
           createdAt: subscription.createdAt
         });
+        
+        // Check if subscription has expired based on end date
+        const now = new Date();
+        if (subscription.endDate && new Date(subscription.endDate) < now) {
+          console.log(`[SubscriptionService] Subscription has expired (endDate: ${subscription.endDate}), updating status...`);
+          subscription.status = 'expired';
+          await UserSubscription.findByIdAndUpdate(subscription._id, { status: 'expired' });
+          console.log(`[SubscriptionService] Subscription status updated to 'expired'`);
+        }
         
         // Expire all OTHER active subscriptions for this user (keep only the latest one)
         const otherActiveSubs = await UserSubscription.find({
@@ -146,9 +156,27 @@ class SubscriptionService {
         }
       }
       
-      // If no subscription exists, create a free one
+      // If no active subscription exists, check if user had an expired one
       if (!subscription) {
-        console.log(`[SubscriptionService] No active subscription found, creating free subscription...`);
+        console.log(`[SubscriptionService] No active subscription found`);
+        
+        // Check if user has any expired subscriptions
+        const expiredSubscription = await UserSubscription.findOne({
+          userId: userIdString,
+          status: 'expired'
+        })
+        .sort({ createdAt: -1 })
+        .populate('planId');
+        
+        if (expiredSubscription) {
+          console.log(`[SubscriptionService] User has expired subscription. Cannot create free subscription.`);
+          console.log(`[SubscriptionService] User must renew their subscription to continue.`);
+          // Return the expired subscription so the system knows the user needs to renew
+          return expiredSubscription;
+        }
+        
+        // Only create free subscription for NEW users (no previous subscriptions)
+        console.log(`[SubscriptionService] New user detected, creating free subscription...`);
         
         // Determine userType if not provided
         if (!userType || userType === 'undefined') {
@@ -192,7 +220,28 @@ class SubscriptionService {
   // Check if user can perform action based on subscription limits
   static async checkSubscriptionLimit(userId, userType, action) {
     const subscription = await this.getUserSubscription(userId, userType);
-    if (!subscription) return { allowed: false, reason: 'No active subscription' };
+    if (!subscription) return { allowed: false, reason: 'No subscription found. Please contact support.' };
+
+    // Check if subscription status is expired
+    if (subscription.status === 'expired') {
+      return { 
+        allowed: false, 
+        reason: 'Your subscription has expired. Please renew your subscription to continue.',
+        redirectToPayment: true
+      };
+    }
+
+    // Check if subscription is expired by date
+    const now = new Date();
+    if (subscription.endDate && new Date(subscription.endDate) < now) {
+      // Update subscription status to expired
+      await UserSubscription.findByIdAndUpdate(subscription._id, { status: 'expired' });
+      return { 
+        allowed: false, 
+        reason: 'Your subscription has expired. Please renew your subscription to continue.',
+        redirectToPayment: true
+      };
+    }
 
     const plan = subscription.planId;
     const usage = subscription.usage;
@@ -232,13 +281,70 @@ class SubscriptionService {
 
   // Update subscription usage
   static async updateUsage(userId, userType, usageUpdate) {
+    console.log(`\n[updateUsage] Starting update for userId: ${userId}, userType: ${userType}`);
+    console.log(`[updateUsage] Input usageUpdate:`, usageUpdate);
+    
     // Map userType to schema format
     const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
-    return await UserSubscription.findOneAndUpdate(
+    console.log(`[updateUsage] Mapped userType: ${mappedUserType}`);
+    
+    // Transform usageUpdate to nested format: { campaignsUsed: 1 } -> { 'usage.campaignsUsed': 1 }
+    const nestedUpdate = {};
+    for (const [key, value] of Object.entries(usageUpdate)) {
+      nestedUpdate[`usage.${key}`] = value;
+    }
+    console.log(`[updateUsage] Nested update object:`, nestedUpdate);
+    
+    const result = await UserSubscription.findOneAndUpdate(
       { userId: userId, userType: mappedUserType, status: 'active' },
-      { $inc: { usage: usageUpdate } },
+      { $inc: nestedUpdate },
       { new: true }
     );
+    
+    console.log(`[updateUsage] Update result:`, result ? {
+      id: result._id,
+      usage: result.usage
+    } : 'NULL');
+    
+    return result;
+  }
+
+  // Check and expire all subscriptions that have passed their end date
+  static async checkAndExpireSubscriptions() {
+    try {
+      const now = new Date();
+      console.log(`[SubscriptionService] Checking for expired subscriptions at ${now}`);
+      
+      // Find all active subscriptions where endDate has passed
+      const expiredSubscriptions = await UserSubscription.find({
+        status: 'active',
+        endDate: { $lt: now }
+      });
+      
+      if (expiredSubscriptions.length > 0) {
+        console.log(`[SubscriptionService] Found ${expiredSubscriptions.length} expired subscriptions, updating...`);
+        
+        // Update all expired subscriptions to 'expired' status
+        const result = await UserSubscription.updateMany(
+          {
+            status: 'active',
+            endDate: { $lt: now }
+          },
+          {
+            $set: { status: 'expired' }
+          }
+        );
+        
+        console.log(`[SubscriptionService] Updated ${result.modifiedCount} subscriptions to expired status`);
+        return result.modifiedCount;
+      } else {
+        console.log(`[SubscriptionService] No expired subscriptions found`);
+        return 0;
+      }
+    } catch (error) {
+      console.error('[SubscriptionService] Error checking expired subscriptions:', error);
+      return 0;
+    }
   }
 
   // Get subscription analytics
@@ -509,44 +615,15 @@ class SubscriptionService {
           advancedAnalytics: false,
           prioritySupport: false,
           customBranding: false,
-          apiAccess: false,
           collaborationTools: true
         },
-        limits: {
-          storageGB: 5,
-          monthlyUploads: 50,
-          teamMembers: 2
-        },
-        description: 'Perfect for small businesses starting with influencer marketing'
-      },
-      {
-        name: 'Pro',
-        userType: 'brand',
-        price: { monthly: 79, yearly: 790 },
-        features: {
-          maxCampaigns: 25,
-          maxInfluencers: 50,
-          analytics: true,
-          advancedAnalytics: true,
-          prioritySupport: true,
-          customBranding: true,
-          apiAccess: false,
-          collaborationTools: true,
-          bulkOperations: true,
-          exportData: true
-        },
-        limits: {
-          storageGB: 25,
-          monthlyUploads: 200,
-          teamMembers: 5
-        },
-        description: 'Ideal for growing brands with multiple campaigns',
+        description: 'Perfect for small businesses starting with influencer marketing',
         popularBadge: true
       },
       {
         name: 'Premium',
         userType: 'brand',
-        price: { monthly: 199, yearly: 1990 },
+        price: { monthly: 99, yearly: 990 },
         features: {
           maxCampaigns: -1,
           maxInfluencers: -1,
@@ -554,18 +631,7 @@ class SubscriptionService {
           advancedAnalytics: true,
           prioritySupport: true,
           customBranding: true,
-          apiAccess: true,
-          whiteLabel: true,
-          collaborationTools: true,
-          bulkOperations: true,
-          exportData: true,
-          socialMediaIntegration: true,
-          contentLibrary: true
-        },
-        limits: {
-          storageGB: 100,
-          monthlyUploads: 1000,
-          teamMembers: 15
+          collaborationTools: true
         },
         description: 'For established brands with extensive influencer networks'
       }
@@ -602,57 +668,20 @@ class SubscriptionService {
           prioritySupport: false,
           collaborationTools: true
         },
-        limits: {
-          storageGB: 2,
-          monthlyUploads: 25,
-          teamMembers: 1
-        },
-        description: 'Great for new influencers building their brand'
-      },
-      {
-        name: 'Pro',
-        userType: 'influencer',
-        price: { monthly: 49, yearly: 490 },
-        features: {
-          maxBrands: 25,
-          analytics: true,
-          advancedAnalytics: true,
-          prioritySupport: true,
-          collaborationTools: true,
-          bulkOperations: true,
-          exportData: true,
-          socialMediaIntegration: true
-        },
-        limits: {
-          storageGB: 15,
-          monthlyUploads: 100,
-          teamMembers: 3
-        },
-        description: 'Perfect for professional influencers',
+        description: 'Great for new influencers building their brand',
         popularBadge: true
       },
       {
         name: 'Premium',
         userType: 'influencer',
-        price: { monthly: 99, yearly: 990 },
+        price: { monthly: 49, yearly: 490 },
         features: {
           maxBrands: -1,
           analytics: true,
           advancedAnalytics: true,
           prioritySupport: true,
           customBranding: true,
-          apiAccess: true,
-          collaborationTools: true,
-          bulkOperations: true,
-          exportData: true,
-          socialMediaIntegration: true,
-          contentLibrary: true,
-          dedicatedManager: true
-        },
-        limits: {
-          storageGB: 50,
-          monthlyUploads: 500,
-          teamMembers: 10
+          collaborationTools: true
         },
         description: 'For top-tier influencers and agencies'
       }

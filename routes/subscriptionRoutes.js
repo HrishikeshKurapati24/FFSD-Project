@@ -13,7 +13,12 @@ router.get('/select-plan', async (req, res) => {
             return res.redirect('/signin');
         }
         
-        const availablePlans = await SubscriptionService.getPlansForUserType(userType);
+        const allPlans = await SubscriptionService.getPlansForUserType(userType);
+        
+        // Filter to only show Free, Basic, and Premium plans (exclude Pro and Enterprise)
+        const availablePlans = allPlans.filter(plan => 
+            ['Free', 'Basic', 'Premium'].includes(plan.name)
+        );
         
         res.render('subscription/select-plan', {
             availablePlans,
@@ -115,11 +120,72 @@ router.get('/payment', async (req, res) => {
             return res.redirect('/subscription/select-plan');
         }
         
+        // Fetch user's last payment details to pre-fill the form
+        const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+        let lastPaymentDetails = null;
+        
+        try {
+            const { PaymentHistory } = require('../config/SubscriptionMongo');
+            const { Transaction } = require('../models/brandModel');
+            
+            // Try to get the last payment from PaymentHistory
+            let lastPayment = await PaymentHistory.findOne({
+                userId: userId,
+                userType: mappedUserType,
+                status: 'success'
+            })
+            .sort({ createdAt: -1 })
+            .lean();
+            
+            // If not found in PaymentHistory, try Transaction
+            if (!lastPayment) {
+                lastPayment = await Transaction.findOne({
+                    userId: userId,
+                    userType: mappedUserType,
+                    status: 'completed'
+                })
+                .sort({ createdAt: -1 })
+                .lean();
+            }
+            
+            // Extract relevant details if payment found
+            if (lastPayment) {
+                const { decrypt } = require('../utils/encryption');
+                
+                // Decrypt card number if available
+                let decryptedCardNumber = null;
+                if (lastPayment.cardDetails?.encryptedCardNumber) {
+                    decryptedCardNumber = decrypt(lastPayment.cardDetails.encryptedCardNumber);
+                }
+                
+                // Format expiry date if available
+                let expiryDate = null;
+                if (lastPayment.cardDetails?.expiryMonth && lastPayment.cardDetails?.expiryYear) {
+                    const month = String(lastPayment.cardDetails.expiryMonth).padStart(2, '0');
+                    const year = String(lastPayment.cardDetails.expiryYear).padStart(2, '0');
+                    expiryDate = `${month}/${year}`;
+                }
+                
+                lastPaymentDetails = {
+                    cardName: lastPayment.cardDetails?.cardName || null,
+                    cardNumber: decryptedCardNumber,
+                    expiryDate: expiryDate,
+                    last4: lastPayment.cardDetails?.last4 || null,
+                    billingAddress: lastPayment.billingAddress || null
+                };
+                console.log('Found previous payment details for user:', userId);
+            }
+        } catch (fetchError) {
+            console.error('Error fetching last payment details:', fetchError);
+            // Continue without pre-filled data
+        }
+        
         res.render('subscription/payment', {
             userId,
             userType,
             selectedPlan,
-            billingCycle
+            billingCycle,
+            lastPaymentDetails
         });
     } catch (error) {
         console.error('Error loading payment page:', error);
@@ -195,28 +261,47 @@ router.post('/process-payment', async (req, res) => {
         
         const subscription = await SubscriptionService.createSubscription(subscriptionData);
         
-        // Create transaction record
-        const { Transaction } = require('../models/brandModel');
-        const transaction = new Transaction({
+        // Extract card details for storage
+        const { encrypt } = require('../utils/encryption');
+        const last4 = cardData.cardNumber.slice(-4);
+        const [expiryMonth, expiryYear] = cardData.expiryDate.split('/').map(v => parseInt(v, 10));
+        
+        // Encrypt the full card number for secure storage
+        const encryptedCardNumber = encrypt(cardData.cardNumber);
+        
+        // Create payment history record
+        const { PaymentHistory } = require('../config/SubscriptionMongo');
+        const paymentRecord = new PaymentHistory({
+            subscriptionId: subscription._id,
             userId,
             userType: userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
-            subscriptionId: subscription._id,
-            planId,
             amount,
-            billingCycle,
-            status: 'completed',
+            currency: 'USD',
+            status: 'success',
+            paymentMethod: 'credit_card',
             transactionId,
+            paymentGateway: 'simulated',
+            description: `${selectedPlan.name} Plan - ${billingCycle} subscription`,
+            paidAt: new Date(),
             cardDetails: {
-                last4: cardData.cardNumber.slice(-4),
+                cardName: cardData.cardName,
+                last4: last4,
                 brand: detectCardBrand(cardData.cardNumber),
-                expiryMonth: parseInt(cardData.expiryDate.split('/')[0]),
-                expiryYear: parseInt('20' + cardData.expiryDate.split('/')[1])
+                expiryMonth: expiryMonth,
+                expiryYear: expiryYear,
+                encryptedCardNumber: encryptedCardNumber
             },
-            billingAddress: cardData.billingAddress,
-            processedAt: new Date()
+            billingAddress: cardData.billingAddress
         });
         
-        await transaction.save();
+        await paymentRecord.save();
+        
+        console.log('✅ Payment history record created:', {
+            id: paymentRecord._id,
+            amount,
+            status: 'success',
+            transactionId
+        });
         
         res.json({
             success: true,
@@ -234,6 +319,19 @@ router.post('/process-payment', async (req, res) => {
         });
     }
 });
+
+// Detect card brand from card number
+function detectCardBrand(cardNumber) {
+    const number = cardNumber.replace(/\s/g, '');
+    
+    if (/^4/.test(number)) return 'Visa';
+    if (/^5[1-5]/.test(number)) return 'Mastercard';
+    if (/^3[47]/.test(number)) return 'American Express';
+    if (/^6(?:011|5)/.test(number)) return 'Discover';
+    if (/^35/.test(number)) return 'JCB';
+    
+    return 'Unknown';
+}
 
 // Simulate payment processing (replace with real payment gateway)
 async function simulatePaymentProcessing(cardData, amount) {
@@ -283,19 +381,24 @@ router.get('/payment-success', async (req, res) => {
             return res.redirect('/signin');
         }
         
-        // Get transaction details
-        const { Transaction } = require('../models/brandModel');
-        const transaction = await Transaction.findOne({ transactionId })
-            .populate('planId')
+        // Get payment details from PaymentHistory
+        const { PaymentHistory } = require('../config/SubscriptionMongo');
+        const payment = await PaymentHistory.findOne({ transactionId })
+            .populate({
+                path: 'subscriptionId',
+                populate: { path: 'planId' }
+            })
             .lean();
         
-        if (!transaction) {
+        if (!payment || !payment.subscriptionId || !payment.subscriptionId.planId) {
+            console.error('Payment or plan not found for transactionId:', transactionId);
             return res.redirect('/signin');
         }
         
         // Generate feature list based on plan
         const features = [];
-        const plan = transaction.planId;
+        const plan = payment.subscriptionId.planId;
+        const billingCycle = payment.subscriptionId.billingCycle;
         
         if (plan.features.maxCampaigns === -1) {
             features.push('Unlimited Campaigns');
@@ -329,9 +432,9 @@ router.get('/payment-success', async (req, res) => {
         
         res.render('subscription/payment-success', {
             planName: plan.name,
-            billingCycle: transaction.billingCycle,
-            amount: transaction.amount,
-            transactionId: transaction.transactionId,
+            billingCycle: billingCycle,
+            amount: payment.amount,
+            transactionId: payment.transactionId,
             features
         });
         
@@ -348,7 +451,12 @@ router.use(isAuthenticated);
 router.get('/plans/:userType', async (req, res) => {
     try {
         const { userType } = req.params;
-        const plans = await SubscriptionService.getPlansForUserType(userType);
+        const allPlans = await SubscriptionService.getPlansForUserType(userType);
+        
+        // Filter to only show Free, Basic, and Premium plans (exclude Pro and Enterprise)
+        const plans = allPlans.filter(plan => 
+            ['Free', 'Basic', 'Premium'].includes(plan.name)
+        );
         
         res.json({
             success: true,
@@ -400,19 +508,31 @@ router.post('/subscribe', async (req, res) => {
             });
         }
         
+        // Check if existing subscription is expired - redirect to payment
+        if (existingSubscription && (existingSubscription.status === 'expired' || new Date(existingSubscription.endDate) < new Date())) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your subscription has expired. Please complete payment to renew.',
+                redirectToPayment: true,
+                paymentUrl: `/subscription/payment?userId=${userId}&userType=${userType}&planId=${planId}&billingCycle=${billingCycle}`
+            });
+        }
+        
         const subscriptionData = {
             userId,
-            userType,
+            userType: userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
             planId,
             billingCycle,
             status: 'active',
             startDate: new Date(),
             endDate: new Date(Date.now() + (billingCycle === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000),
+            amount: 0,
             usage: {
-                campaigns: 0,
-                collaborations: 0,
-                analytics: 0,
-                support: 0
+                campaignsUsed: 0,
+                influencersConnected: 0,
+                brandsConnected: 0,
+                storageUsedGB: 0,
+                uploadsThisMonth: 0
             }
         };
         
@@ -483,6 +603,12 @@ router.get('/manage', async (req, res) => {
         console.log('=== SUBSCRIPTION MANAGE PAGE ===');
         console.log('Session user:', req.session.user);
         
+        // Check if user is authenticated
+        if (!req.session || !req.session.user || !req.session.user.id) {
+            console.log('No session found, redirecting to signin');
+            return res.redirect('/auth/signin');
+        }
+        
         const userId = req.session.user.id;
         let userType = req.session.user.role || req.session.user.userType;
         
@@ -507,10 +633,100 @@ router.get('/manage', async (req, res) => {
         
         console.log(`Fetching subscription for userId: ${userId}, userType: ${userType}`);
         
-        const [currentSubscription, availablePlans] = await Promise.all([
+        // Map userType for database query
+        const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+        
+        // Fetch payment history and transaction data with error handling
+        let paymentHistory = [];
+        let transactionHistory = [];
+        try {
+            console.log('\n========== FETCHING PAYMENT & TRANSACTION HISTORY ==========');
+            const { PaymentHistory } = require('../config/SubscriptionMongo');
+            const { Transaction } = require('../models/brandModel');
+            
+            console.log('Query params:', {
+                userId: userId,
+                userType: mappedUserType
+            });
+            
+            // Fetch PaymentHistory records
+            const totalPayments = await PaymentHistory.countDocuments({ 
+                userId: userId,
+                userType: mappedUserType 
+            });
+            console.log('Total PaymentHistory records found:', totalPayments);
+            
+            paymentHistory = await PaymentHistory.find({ 
+                userId: userId,
+                userType: mappedUserType 
+            })
+            .populate({
+                path: 'subscriptionId',
+                populate: { path: 'planId' }
+            })
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .lean();
+            
+            console.log('PaymentHistory records fetched:', paymentHistory.length);
+            
+            // Fetch Transaction records
+            const totalTransactions = await Transaction.countDocuments({ 
+                userId: userId,
+                userType: mappedUserType 
+            });
+            console.log('Total Transaction records found:', totalTransactions);
+            
+            transactionHistory = await Transaction.find({ 
+                userId: userId,
+                userType: mappedUserType 
+            })
+            .populate('planId')
+            .populate('subscriptionId')
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .lean();
+            
+            console.log('Transaction records fetched:', transactionHistory.length);
+            
+            // Combine and deduplicate both sources
+            const combinedHistory = [...paymentHistory, ...transactionHistory];
+            
+            // Sort by date (newest first)
+            combinedHistory.sort((a, b) => {
+                const dateA = new Date(a.createdAt || a.processedAt || a.paidAt);
+                const dateB = new Date(b.createdAt || b.processedAt || b.paidAt);
+                return dateB - dateA;
+            });
+            
+            // Limit to 10 most recent
+            paymentHistory = combinedHistory.slice(0, 10);
+            
+            console.log('Combined history records:', paymentHistory.length);
+            if (paymentHistory.length > 0) {
+                console.log('Sample record:', {
+                    id: paymentHistory[0]._id,
+                    amount: paymentHistory[0].amount,
+                    status: paymentHistory[0].status,
+                    planName: paymentHistory[0].subscriptionId?.planId?.name || paymentHistory[0].planId?.name,
+                    date: paymentHistory[0].createdAt || paymentHistory[0].processedAt
+                });
+            }
+            console.log('=============================================\n');
+        } catch (paymentError) {
+            console.error('❌ Error fetching payment/transaction history:', paymentError);
+            paymentHistory = []; // Ensure it's always an array
+        }
+        
+        const [currentSubscription, allPlans] = await Promise.all([
             SubscriptionService.getUserSubscription(userId, userType),
             SubscriptionService.getPlansForUserType(userType)
         ]);
+        
+        // Filter to only show Free, Basic, and Premium plans (exclude Pro and Enterprise)
+        const availablePlans = allPlans.filter(plan => 
+            ['Free', 'Basic', 'Premium'].includes(plan.name)
+        );
         
         console.log('Current subscription:', currentSubscription ? {
             id: currentSubscription._id,
@@ -518,10 +734,60 @@ router.get('/manage', async (req, res) => {
             status: currentSubscription.status
         } : 'NULL');
         console.log('Available plans:', availablePlans.length);
+        console.log('Payment history records:', paymentHistory.length);
+        
+        // Log usage details
+        if (currentSubscription && currentSubscription.usage) {
+            console.log('\n========== USAGE DETAILS ==========');
+            console.log('Usage Object:', currentSubscription.usage);
+            
+            // Campaigns usage
+            const maxCampaigns = currentSubscription.planId?.features?.maxCampaigns;
+            const usedCampaigns = currentSubscription.usage.campaignsUsed || 0;
+            console.log('Campaigns Usage:', {
+                used: usedCampaigns,
+                limit: maxCampaigns === -1 ? 'Unlimited' : maxCampaigns,
+                percentage: maxCampaigns === -1 ? 0 : ((usedCampaigns / maxCampaigns) * 100).toFixed(1) + '%'
+            });
+            
+            // Collaborations usage (influencers or brands)
+            if (userType === 'brand') {
+                const maxInfluencers = currentSubscription.planId?.features?.maxInfluencers;
+                const usedInfluencers = currentSubscription.usage.influencersConnected || 0;
+                console.log('Collaborations (Influencers) Usage:', {
+                    used: usedInfluencers,
+                    limit: maxInfluencers === -1 ? 'Unlimited' : maxInfluencers,
+                    percentage: maxInfluencers === -1 ? 0 : ((usedInfluencers / maxInfluencers) * 100).toFixed(1) + '%'
+                });
+            } else {
+                const maxBrands = currentSubscription.planId?.features?.maxBrands;
+                const usedBrands = currentSubscription.usage.brandsConnected || 0;
+                console.log('Collaborations (Brands) Usage:', {
+                    used: usedBrands,
+                    limit: maxBrands === -1 ? 'Unlimited' : maxBrands,
+                    percentage: maxBrands === -1 ? 0 : ((usedBrands / maxBrands) * 100).toFixed(1) + '%'
+                });
+            }
+            
+            // Other usage metrics
+            console.log('Storage Usage:', {
+                used: currentSubscription.usage.storageUsedGB || 0,
+                limit: currentSubscription.planId?.limits?.storageGB || 0,
+                unit: 'GB'
+            });
+            console.log('Monthly Uploads:', {
+                used: currentSubscription.usage.uploadsThisMonth || 0,
+                limit: currentSubscription.planId?.limits?.monthlyUploads || 0
+            });
+            console.log('===================================\n');
+        } else {
+            console.log('\n⚠️ No usage data found in subscription');
+        }
         
         res.render('subscription/manage', {
             currentSubscription,
             availablePlans,
+            paymentHistory,
             userType,
             user: req.session.user
         });
@@ -532,6 +798,84 @@ router.get('/manage', async (req, res) => {
         res.status(500).render('error', {
             message: 'Failed to load subscription management',
             error: { status: 500, details: error.message }
+        });
+    }
+});
+
+// Route to recalculate usage from existing data
+router.post('/recalculate-usage', isAuthenticated, async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+        const userType = req.session.user.role || req.session.user.userType;
+        
+        console.log(`[recalculate-usage] Starting for userId: ${userId}, userType: ${userType}`);
+        
+        const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+        const { CampaignInfo, CampaignInfluencers } = require('../config/CampaignMongo');
+        const { UserSubscription } = require('../config/SubscriptionMongo');
+        const mongoose = require('mongoose');
+        
+        if (userType === 'brand') {
+            // Count total campaigns for this brand
+            const campaignCount = await CampaignInfo.countDocuments({
+                brand_id: new mongoose.Types.ObjectId(userId)
+            });
+            
+            // Count total influencer connections
+            const influencerCount = await CampaignInfluencers.distinct('influencer_id', {
+                campaign_id: { $in: await CampaignInfo.find({ brand_id: new mongoose.Types.ObjectId(userId) }).distinct('_id') }
+            }).then(ids => ids.length);
+            
+            console.log(`[recalculate-usage] Found ${campaignCount} campaigns and ${influencerCount} influencers`);
+            
+            // Update the subscription usage
+            await UserSubscription.findOneAndUpdate(
+                { userId: userId, userType: mappedUserType, status: 'active' },
+                { 
+                    $set: { 
+                        'usage.campaignsUsed': campaignCount,
+                        'usage.influencersConnected': influencerCount
+                    }
+                }
+            );
+        } else {
+            // For influencers, count campaigns participated in and unique brands
+            const campaignIds = await CampaignInfluencers.distinct('campaign_id', {
+                influencer_id: new mongoose.Types.ObjectId(userId)
+            });
+            
+            const campaignCount = campaignIds.length;
+            
+            // Get unique brand IDs from campaigns
+            const campaigns = await CampaignInfo.find({
+                _id: { $in: campaignIds }
+            }).distinct('brand_id');
+            
+            const brandCount = campaigns.length;
+            
+            console.log(`[recalculate-usage] Found ${campaignCount} campaigns and ${brandCount} unique brands`);
+            
+            await UserSubscription.findOneAndUpdate(
+                { userId: userId, userType: mappedUserType, status: 'active' },
+                { 
+                    $set: { 
+                        'usage.campaignsUsed': campaignCount,
+                        'usage.brandsConnected': brandCount 
+                    } 
+                }
+            );
+        }
+        
+        res.json({
+            success: true,
+            message: 'Usage recalculated successfully'
+        });
+    } catch (error) {
+        console.error('Error recalculating usage:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to recalculate usage',
+            error: error.message
         });
     }
 });
@@ -557,6 +901,27 @@ router.get('/test-status', isAuthenticated, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to check subscription status',
+            error: error.message
+        });
+    }
+});
+
+// Manual trigger to check and expire subscriptions (for testing/admin)
+router.post('/check-expired', isAuthenticated, async (req, res) => {
+    try {
+        console.log('[Manual Trigger] Checking for expired subscriptions...');
+        const expiredCount = await SubscriptionService.checkAndExpireSubscriptions();
+        
+        res.json({
+            success: true,
+            message: `Checked and updated ${expiredCount} expired subscription(s)`,
+            expiredCount
+        });
+    } catch (error) {
+        console.error('Error checking expired subscriptions:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to check expired subscriptions',
             error: error.message
         });
     }

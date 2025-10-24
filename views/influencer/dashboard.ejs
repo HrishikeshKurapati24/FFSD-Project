@@ -271,6 +271,22 @@
           </div>
           <div class="metric-label">Monthly Earnings</div>
         </div>
+        
+        <!-- Subscription Plan Card -->
+        <% if (typeof subscriptionStatus !=='undefined' && subscriptionStatus) { %>
+        <div class="metric-item">
+          <div class="metric-value">
+            <%= subscriptionStatus && subscriptionStatus.subscription && subscriptionStatus.subscription.planId ?
+              subscriptionStatus.subscription.planId.name : 'Free' %>
+          </div>
+          <div class="metric-label">Current Plan</div>
+          <div style="margin-top: 5px;">
+            <a href="/subscription/manage" style="color: #4285f4; font-size: 0.85em; text-decoration: none;">
+              <i class="fas fa-crown"></i> Manage Plan
+            </a>
+          </div>
+        </div>
+        <% } %>
       </div>
     </div>
 
@@ -303,28 +319,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
       <% } %>
-
-        <!-- Subscription Limits Section -->
-        <% if (typeof subscriptionLimits !=='undefined' && subscriptionLimits) { %>
-          <section class="dashboard">
-            <h2 class="section-header">Your Plan Limits</h2>
-            <div class="dashboard-container">
-
-              <div class="dashboard-card">
-                <h3>Current Plan</h3>
-                <div class="metric-value">
-                  <%= subscriptionStatus && subscriptionStatus.subscription && subscriptionStatus.subscription.planId ?
-                    subscriptionStatus.subscription.planId.name : 'Free' %>
-                </div>
-                <div class="metric-label">Your subscription plan</div>
-                <div class="trend-indicator trend-up">
-                  <i class="fas fa-crown"></i>
-                  <a href="/subscription/manage" style="color: inherit; text-decoration: none;">Manage Plan</a>
-                </div>
-              </div>
-            </div>
-          </section>
-          <% } %>
 
             <!-- Dashboard Overview -->
             <section class="dashboard">

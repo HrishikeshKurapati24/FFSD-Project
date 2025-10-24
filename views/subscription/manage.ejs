@@ -77,6 +77,9 @@
                                 <span class="usage-text"><%= usedCollabs %>/<%= maxCollabs === -1 ? 'Unlimited' : maxCollabs %></span>
                             </div>
                         </div>
+                        <button onclick="recalculateUsage()" style="margin-top: 15px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> Refresh Usage Data
+                        </button>
                     </div>
 
                     <div class="plan-features">
@@ -205,22 +208,65 @@
 
         <!-- Billing History -->
         <div class="billing-history">
-            <h2>Billing History</h2>
+            <h2><i class="fas fa-history"></i> Billing History</h2>
             <div class="history-table">
                 <table>
                     <thead>
                         <tr>
                             <th>Date</th>
                             <th>Plan</th>
+                            <th>Billing Cycle</th>
                             <th>Amount</th>
                             <th>Status</th>
-                            <th>Invoice</th>
+                            <th>Payment Method</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="5" class="no-data">No billing history available</td>
-                        </tr>
+                        <% if (paymentHistory && paymentHistory.length > 0) { %>
+                            <% paymentHistory.forEach(payment => { 
+                                // Determine if this is a PaymentHistory or Transaction record
+                                const isTransaction = payment.transactionId && !payment.paidAt;
+                                const planName = payment.subscriptionId?.planId?.name || payment.planId?.name || 'N/A';
+                                const billingCycle = payment.subscriptionId?.billingCycle || payment.billingCycle || 'N/A';
+                                const displayDate = payment.createdAt || payment.processedAt || payment.paidAt;
+                                const displayStatus = payment.status === 'completed' ? 'success' : payment.status;
+                            %>
+                                <tr>
+                                    <td><%= new Date(displayDate).toLocaleDateString() %></td>
+                                    <td>
+                                        <strong><%= planName %></strong>
+                                    </td>
+                                    <td>
+                                        <%= billingCycle === 'monthly' ? 'Monthly' : 
+                                            billingCycle === 'yearly' ? 'Yearly' : 
+                                            billingCycle %>
+                                    </td>
+                                    <td>
+                                        <strong>$<%= payment.amount.toFixed(2) %></strong>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge <%= displayStatus %>">
+                                            <%= displayStatus.toUpperCase() %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <% if (payment.paymentMethod) { %>
+                                            <i class="fas fa-credit-card"></i>
+                                            <%= payment.paymentMethod.replace('_', ' ').toUpperCase() %>
+                                        <% } else { %>
+                                            N/A
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="no-data">
+                                    <i class="fas fa-info-circle"></i>
+                                    No billing history available yet
+                                </td>
+                            </tr>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
@@ -245,6 +291,15 @@
         async function subscribeToPlan(planId) {
             const billingCycle = document.querySelector('input[name="billing"]:checked').value;
             
+            // Check if current subscription is expired or past end date
+            const isExpired = <%= currentSubscription && (currentSubscription.status === 'expired' || new Date(currentSubscription.endDate) < new Date()) ? 'true' : 'false' %>;
+            
+            if (isExpired) {
+                // Redirect to payment page for expired subscriptions
+                window.location.href = `/subscription/payment?userId=<%= user.id %>&userType=<%= userType %>&planId=${planId}&billingCycle=${billingCycle}`;
+                return;
+            }
+            
             try {
                 const response = await fetch('/subscription/subscribe', {
                     method: 'POST',
@@ -260,11 +315,40 @@
                     alert('Subscription created successfully!');
                     window.location.reload();
                 } else {
-                    alert(result.message || 'Failed to create subscription');
+                    // Check if we need to redirect to payment
+                    if (result.redirectToPayment && result.paymentUrl) {
+                        window.location.href = result.paymentUrl;
+                    } else {
+                        alert(result.message || 'Failed to create subscription');
+                    }
                 }
             } catch (error) {
                 console.error('Error subscribing to plan:', error);
                 alert('An error occurred while subscribing');
+            }
+        }
+
+        // Recalculate usage from existing data
+        async function recalculateUsage() {
+            try {
+                const response = await fetch('/subscription/recalculate-usage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Usage data refreshed successfully!');
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Failed to refresh usage data');
+                }
+            } catch (error) {
+                console.error('Error refreshing usage:', error);
+                alert('An error occurred while refreshing usage data');
             }
         }
     </script>

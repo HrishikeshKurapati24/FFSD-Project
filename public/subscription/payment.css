@@ -254,6 +254,39 @@ body {
     display: none;
 }
 
+.saved-payment-info {
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    color: #0c5460;
+}
+
+.saved-payment-info i {
+    color: #17a2b8;
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.saved-payment-info span {
+    font-size: 0.9rem;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.form-hint i {
+    margin-right: 5px;
+    color: #17a2b8;
+}
+
 @media (max-width: 768px) {
     .payment-container {
         grid-template-columns: 1fr;
