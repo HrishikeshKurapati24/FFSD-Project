@@ -1,6 +1,10 @@
 const { Admin } = require("../models/mongoDB");
 const { AdminModel } = require("../models/AdminModel");
 const bcrypt = require('bcrypt');
+const { BrandInfo } = require("../config/BrandMongo");
+const { InfluencerInfo } = require("../config/InfluencerMongo");
+const { CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
+const { Product, Customer, ContentTracking } = require("../config/ProductMongo");
 
 // Remove the broken import for FeedbackModel
 // const { FeedbackModel } = require("../models/FeedbackModel");
@@ -57,12 +61,6 @@ const DashboardController = {
 
     async getDashboard(req, res) {
         try {
-            const { Admin } = require("../models/mongoDB");
-            const { BrandInfo } = require("../config/BrandMongo");
-            const { InfluencerInfo } = require("../config/InfluencerMongo");
-            const { CampaignInfluencers } = require("../config/CampaignMongo");
-            const { CampaignPayments } = require("../config/CampaignMongo");
-            const { Product } = require("../config/ProductMongo");
 
             // User/Brand/Influencer counts
             const [userCount, brandCount, influencerCount] = await Promise.all([
@@ -356,8 +354,6 @@ const AnalyticsController = {
     getBrandAnalytics: async (req, res) => {
         try {
             console.log("Fetching brand analytics...");
-            const { BrandInfo } = require("../config/BrandMongo");
-            const { CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
 
             // Get basic metrics
             const totalBrands = await BrandInfo.countDocuments();
@@ -758,9 +754,6 @@ const PaymentController = {
 const CustomerController = {
     async getCustomerManagement(req, res) {
         try {
-            const { Customer } = require('../config/ProductMongo');
-            const { CampaignInfo } = require('../config/CampaignMongo');
-            const { Product } = require('../config/ProductMongo');
 
             // Get all customers with their purchase data
             const customers = await Customer.find({})
@@ -806,9 +799,9 @@ const CustomerController = {
                 date.setMonth(date.getMonth() - i);
                 const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
                 const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                
+
                 customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-                
+
                 const monthlyCustomers = await Customer.countDocuments({
                     createdAt: { $gte: startOfMonth, $lte: endOfMonth }
                 });
@@ -822,7 +815,7 @@ const CustomerController = {
                 date.setMonth(date.getMonth() - i);
                 const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
                 const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                
+
                 const monthlyPurchases = await Customer.aggregate([
                     {
                         $match: {
@@ -837,7 +830,7 @@ const CustomerController = {
                         }
                     }
                 ]);
-                
+
                 purchaseTrendData.push({
                     purchases: monthlyPurchases[0]?.totalPurchases || 0,
                     revenue: monthlyPurchases[0]?.totalRevenue || 0
@@ -890,8 +883,6 @@ const CustomerController = {
     async getCustomerDetails(req, res) {
         try {
             const { id } = req.params;
-            const { Customer } = require('../config/ProductMongo');
-            const { ContentTracking } = require('../config/ProductMongo');
 
             const customer = await Customer.findById(id).lean();
             if (!customer) {
@@ -923,7 +914,6 @@ const CustomerController = {
         try {
             const { id } = req.params;
             const { status, notes } = req.body;
-            const { Customer } = require('../config/ProductMongo');
 
             const customer = await Customer.findByIdAndUpdate(
                 id,
@@ -948,8 +938,6 @@ const CustomerController = {
 
     async getCustomerAnalytics(req, res) {
         try {
-            const { Customer } = require('../config/ProductMongo');
-            const { ContentTracking } = require('../config/ProductMongo');
 
             // Customer segmentation
             const customerSegments = await Customer.aggregate([

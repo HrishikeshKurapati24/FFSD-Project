@@ -148,36 +148,24 @@
             Let's get to work! Here are some key metrics and analytics to help you manage the platform effectively.
         </p>
 
-        <!-- Product Metrics Section -->
-        <div class="product-metrics-container">
-            <div class="product-metric-card">
-                <div class="metric-icon">
-                    <i class="fas fa-box-open"></i>
-                </div>
-                <div class="metric-content">
-                    <h3>Total Products Sold</h3>
-                    <p class="metric-value">
-                        <%= totalSoldQuantity.toLocaleString() %>
-                    </p>
-                    <p class="metric-description">Units sold across all campaigns</p>
-                </div>
-            </div>
-            <div class="product-metric-card">
-                <div class="metric-icon">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-                <div class="metric-content">
-                    <h3>Average Product Price</h3>
-                    <p class="metric-value">$<%= avgProductPrice.toFixed(2) %>
-                    </p>
-                    <p class="metric-description">Average price across <%= totalProducts %> products</p>
-                </div>
-            </div>
-        </div>
-
         <div class="stats-container">
+            <!-- Product Metrics Section -->
+            <div class="dashboard-card">
+                <h3>Total Products Sold</h3>
+                <p>
+                    <%= totalSoldQuantity.toLocaleString() %>
+                </p>
+                <p>Units sold across all campaigns</p>
+            </div>
+            <div class="dashboard-card">
+                <h3>Average Product Price</h3>
+                <p>$<%= avgProductPrice.toFixed(2) %>
+                </p>
+                <p>Average price across <%= totalProducts %> products</p>
+            </div>
+
             <% stats.filter(stat=> stat.label !== "Total Revenue").forEach(stat => { %>
-                <div class="stats-card">
+                <div class="dashboard-card">
                     <p>
                         <%= stat.label %>
                     </p>

@@ -82,7 +82,6 @@ const userSubscriptionSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  nextBillingDate: Date,
   amount: {
     type: Number,
     required: true
@@ -97,21 +96,9 @@ const userSubscriptionSchema = new mongoose.Schema({
     paymentGateway: String,
     lastFourDigits: String
   },
-  usage: {
-    campaignsUsed: { type: Number, default: 0 },
-    influencersConnected: { type: Number, default: 0 },
-    brandsConnected: { type: Number, default: 0 },
-    storageUsedGB: { type: Number, default: 0 },
-    uploadsThisMonth: { type: Number, default: 0 }
-  },
   autoRenew: {
     type: Boolean,
     default: true
-  },
-  trialEndsAt: Date,
-  isTrialActive: {
-    type: Boolean,
-    default: false
   }
 }, {
   timestamps: true

@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const session = require("express-session");
 const adminRoutes = require("./routes/adminRoutes");
@@ -14,6 +15,14 @@ const { BrandInfo, BrandSocials, BrandAnalytics } = require('./config/BrandMongo
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./config/InfluencerMongo');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+
+// CORS configuration
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow both frontend and backend origins
+    credentials: true, // Allow cookies and authorization headers
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+}));
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
