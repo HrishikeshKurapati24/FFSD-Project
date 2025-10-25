@@ -113,8 +113,11 @@ const validateProfileUpdate = [
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('Validation errors:', errors.array());
+            console.log('Request body:', req.body);
             return res.status(400).json({
                 success: false,
+                message: 'Validation failed',
                 errors: errors.array().reduce((acc, error) => {
                     acc[error.param] = error.msg;
                     return acc;
@@ -348,6 +351,11 @@ router.post('/profile/update/data', validateProfileUpdate, async (req, res) => {
 
     } catch (error) {
         console.error('Error updating influencer profile:', error);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
         return res.status(500).json({
             success: false,
             message: 'Error updating profile',
@@ -556,7 +564,7 @@ router.post('/apply/:campaignId', async (req, res) => {
                         redirectUrl: '/subscription/manage'
                     });
                 }
-                
+
                 return res.status(400).json({
                     success: false,
                     message: `${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,

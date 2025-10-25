@@ -80,7 +80,7 @@ router.get('/explore', async (req, res) => {
             }
         });
         const categories = Array.from(categoriesSet).sort();
-        
+
         console.log('=== CATEGORIES DEBUG ===');
         console.log('Total influencers found:', allInfluencers.length);
         console.log('Sample influencer categories:', allInfluencers.slice(0, 3).map(i => ({ id: i._id, categories: i.categories })));
@@ -126,7 +126,7 @@ router.get('/explore', async (req, res) => {
             };
         });
 
-        res.render('brand/explore', { 
+        res.render('brand/explore', {
             influencers: enrichedInfluencers,
             searchQuery,
             selectedCategory,
@@ -559,12 +559,12 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
         // Calculate remaining budget: budget - sum(completed payments for this campaign)
         let remainingBudget = 0;
         const paymentsAgg = await CampaignPayments.aggregate([
-                { $match: { campaign_id: request.campaign_id._id, status: 'completed' } },
-                { $group: { _id: '$campaign_id', total: { $sum: '$amount' } } }
-            ]);
-            const totalPaid = paymentsAgg?.[0]?.total || 0;
-            remainingBudget = request.campaign_id.budget - totalPaid;
-            console.log(remainingBudget);
+            { $match: { campaign_id: request.campaign_id._id, status: 'completed' } },
+            { $group: { _id: '$campaign_id', total: { $sum: '$amount' } } }
+        ]);
+        const totalPaid = paymentsAgg?.[0]?.total || 0;
+        remainingBudget = request.campaign_id.budget - totalPaid;
+        console.log(remainingBudget);
 
         // Format campaign dates
         const startDate = new Date(request.campaign_id.start_date).toLocaleDateString();
@@ -1091,7 +1091,7 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                         renewUrl: '/subscription/manage'
                     });
                 }
-                
+
                 return res.status(400).render('brand/Create_collab', {
                     error: `${limitCheck.reason}. Please upgrade your plan to create more campaigns.`,
                     formData: req.body,
@@ -1383,16 +1383,13 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
             }))
         };
 
-        console.log('Rendering campaign details page');
-        res.render('brand/campaign-details', {
-            campaign: campaignDetails,
-            user: req.session.user
-        });
+        console.log('Returning campaign details JSON');
+        res.json(campaignDetails);
     } catch (error) {
         console.error('Error fetching campaign details:', error);
-        res.status(500).render('error', {
-            message: 'Failed to fetch campaign details',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        res.status(500).json({
+            error: 'Failed to fetch campaign details',
+            message: error.message
         });
     }
 });
