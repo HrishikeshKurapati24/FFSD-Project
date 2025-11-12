@@ -3,46 +3,115 @@ const router = express.Router();
 const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController } = require('../controllers/AdminController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
-// Admin Auth Middleware
+dotenv.config();
+
+// Helper function to verify JWT token from cookie for admin
+const verifyAdminJWTFromCookie = (req) => {
+    try {
+        const token = req.cookies?.adminToken;
+
+        if (!token) {
+            return null;
+        }
+
+        // Verify JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Return admin info from token
+        return {
+            userId: decoded.userId,
+            userType: decoded.userType,
+            role: decoded.role
+        };
+    } catch (error) {
+        // Handle token expiration and other JWT errors
+        if (error.name === 'TokenExpiredError') {
+            console.log('Admin JWT token expired');
+            return null;
+        } else if (error.name === 'JsonWebTokenError') {
+            console.log('Invalid admin JWT token');
+            return null;
+        }
+        console.error('Admin JWT verification error:', error);
+        return null;
+    }
+};
+
+// Admin Auth Middleware (supports both session and JWT)
 const adminAuth = async (req, res, next) => {
     try {
-        // Check if user is logged in
-        if (!req.session.userId) {
-            if (req.xhr || req.headers.accept.includes('application/json')) {
+        let adminUser = null;
+        let userId = null;
+        let userRole = null;
+
+        // First check for session (for EJS pages)
+        if (req.session && req.session.userId) {
+            userId = req.session.userId;
+            userRole = req.session.role;
+        } else {
+            // If no session, check for JWT token in cookie (for React API)
+            const jwtAdmin = verifyAdminJWTFromCookie(req);
+            if (jwtAdmin) {
+                userId = jwtAdmin.userId;
+                userRole = jwtAdmin.role;
+            }
+        }
+
+        // If no authentication found
+        if (!userId) {
+            const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
+            if (isAPIRequest) {
                 return res.status(401).json({
                     success: false,
-                    message: 'Unauthorized'
+                    message: 'Unauthorized',
+                    error: 'Authentication required. Please sign in again.'
                 });
             }
             return res.redirect('/admin/login');
         }
 
-        // Verify admin role
-        const user = await Admin.findOne({ userId: req.session.userId });
-        if (!user || user.role !== 'admin') {
-            if (req.xhr || req.headers.accept.includes('application/json')) {
+        // Verify admin user exists and has admin role
+        adminUser = await Admin.findOne({ userId });
+        if (!adminUser || adminUser.role !== 'admin') {
+            const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
+            if (isAPIRequest) {
                 return res.status(403).json({
                     success: false,
-                    message: 'Forbidden'
+                    message: 'Forbidden',
+                    error: 'Access denied: Admin only'
                 });
             }
             return res.redirect('/admin/login');
         }
 
-        // Cache role in session
-        req.session.role = user.role;
+        // Cache role in session if not already set
+        if (!req.session.role) {
+            req.session.role = adminUser.role;
+            req.session.userId = adminUser.userId;
+        }
 
         // Add user data to all admin routes
-        res.locals.user = {
-            name: user.username || 'Admin',
-            role: user.role,
-            userId: user.userId
+        req.user = {
+            userId: adminUser.userId,
+            username: adminUser.username,
+            role: adminUser.role,
+            userType: 'admin'
         };
+
+        res.locals.user = {
+            name: adminUser.username || 'Admin',
+            role: adminUser.role,
+            userId: adminUser.userId
+        };
+
         next();
     } catch (error) {
-        console.error('Auth middleware error:', error);
-        if (req.xhr || req.headers.accept.includes('application/json')) {
+        console.error('Admin auth middleware error:', error);
+        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
+        if (isAPIRequest) {
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error'
@@ -54,13 +123,75 @@ const adminAuth = async (req, res, next) => {
 
 // Public routes
 router.get('/login', (req, res) => {
-    if (req.session.userId) {
+    // Check if user is already authenticated via session or JWT
+    if (req.session && req.session.userId) {
         return res.redirect('/admin/dashboard');
     }
+
+    // Check JWT token
+    const jwtAdmin = verifyAdminJWTFromCookie(req);
+    if (jwtAdmin) {
+        return res.redirect('/admin/dashboard');
+    }
+
     res.render('admin/login');
 });
 
 router.post('/login/verify', DashboardController.verifyUser);
+
+// Admin auth verification endpoint for React to check authentication status
+router.get('/verify', async (req, res) => {
+    try {
+        // First check for session (for EJS pages)
+        if (req.session && req.session.userId) {
+            const adminUser = await Admin.findOne({ userId: req.session.userId });
+            if (adminUser && adminUser.role === 'admin') {
+                return res.status(200).json({
+                    authenticated: true,
+                    user: {
+                        userId: adminUser.userId,
+                        username: adminUser.username,
+                        role: adminUser.role,
+                        userType: 'admin'
+                    }
+                });
+            }
+        }
+
+        // If no session, check for JWT token in cookie (for React API)
+        const jwtAdmin = verifyAdminJWTFromCookie(req);
+        if (jwtAdmin) {
+            const adminUser = await Admin.findOne({ userId: jwtAdmin.userId });
+            if (adminUser && adminUser.role === 'admin') {
+                // Optionally sync to session for compatibility
+                req.session.userId = adminUser.userId;
+                req.session.role = adminUser.role;
+
+                return res.status(200).json({
+                    authenticated: true,
+                    user: {
+                        userId: adminUser.userId,
+                        username: adminUser.username,
+                        role: adminUser.role,
+                        userType: 'admin'
+                    }
+                });
+            }
+        }
+
+        // Not authenticated
+        return res.status(401).json({
+            authenticated: false,
+            message: 'Not authenticated'
+        });
+    } catch (error) {
+        console.error('Admin auth verification error:', error);
+        return res.status(500).json({
+            authenticated: false,
+            message: 'Server error'
+        });
+    }
+});
 
 // Protected routes - require authentication
 router.use(adminAuth);
@@ -142,16 +273,41 @@ router.post('/reset-password', async (req, res) => {
 
 // Logout route
 router.get('/logout', (req, res) => {
+    // Clear session
     req.session.destroy((err) => {
         if (err) {
             console.error('Logout error:', err);
-            res.status(500).json({
-                success: false,
-                message: 'Error logging out'
+            const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+            if (isAPIRequest) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error logging out'
+                });
+            }
+            return res.redirect('/admin/login');
+        }
+
+        // Clear JWT cookie
+        res.clearCookie('adminToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/'
+        });
+
+        // Clear session cookie
+        res.clearCookie('session-id');
+
+        // Check if this is an API request (JSON) or page request (HTML)
+        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
+
+        if (isAPIRequest) {
+            return res.status(200).json({
+                success: true,
+                message: 'Logged out successfully'
             });
         } else {
-            res.clearCookie('session-id');
-            res.redirect('/admin/login');
+            return res.redirect('/admin/login');
         }
     });
 });

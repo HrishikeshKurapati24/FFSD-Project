@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import '../../styles/signin.css';
+import { useNavigate } from 'react-router-dom';
+import styles from '../../styles/signin.module.css';
+import { API_BASE_URL } from '../../services/api';
 
 const Signin = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -96,11 +99,12 @@ const Signin = () => {
 
         try {
             // Asynchronous authentication request
-            const response = await fetch('/auth/signin', {
+            const response = await fetch(`${API_BASE_URL}/auth/signin`, {
                 method: 'POST',
                 credentials: 'include', // Include cookies and authorization headers
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     email: formData.email.trim(),
@@ -108,19 +112,53 @@ const Signin = () => {
                 })
             });
 
-            const data = await response.json();
+            // Check if response is OK before trying to parse JSON
+            if (!response.ok) {
+                // Try to parse error response as JSON
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (parseError) {
+                    // If response is not JSON (e.g., 404 HTML page)
+                    errorData = {
+                        message: response.status === 404
+                            ? 'Server endpoint not found. Please check your backend server.'
+                            : `Server error: ${response.status} ${response.statusText}`
+                    };
+                }
 
-            if (response.ok) {
-                showMessage(data.message, 'success');
-                // Redirect after successful authentication
-                setTimeout(() => {
-                    window.location.href = data.redirectUrl;
-                }, 1500);
-            } else {
-                showMessage(data.message || 'Invalid credentials', 'error');
+                // Handle different error cases
+                if (response.status === 401 && errorData.error) {
+                    showMessage(errorData.error || 'Token expired. Please sign in again.', 'error');
+                } else {
+                    showMessage(errorData.message || 'Invalid credentials', 'error');
+                }
+                return;
             }
+
+            // Parse successful response
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                showMessage('Invalid response from server. Please try again.', 'error');
+                return;
+            }
+
+            showMessage(data.message || 'Sign-in successful', 'success');
+            // Token cookie is automatically set by backend
+            // Redirect after successful authentication
+            setTimeout(() => {
+                window.location.href = data.redirectUrl;
+            }, 1500);
         } catch (error) {
-            showMessage('An error occurred. Please try again.', 'error');
+            console.error('Signin error:', error);
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                showMessage('Unable to connect to server. Please check if the backend server is running.', 'error');
+            } else {
+                showMessage('An error occurred. Please try again.', 'error');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -129,24 +167,24 @@ const Signin = () => {
     const isFormValid = updateSubmitState();
 
     return (
-        <div className="signin-page">
-            <div className="orb orb-1"></div>
-            <div className="orb orb-2"></div>
+        <div className={styles['signin-page']}>
+            <div className={`${styles.orb} ${styles['orb-1']}`}></div>
+            <div className={`${styles.orb} ${styles['orb-2']}`}></div>
 
-            <div className="signin-container">
-                <div className="form-container">
-                    <div className="logo">CollabSync</div>
+            <div className={styles['signin-container']}>
+                <div className={styles['form-container']}>
+                    <div className={styles.logo}>CollabSync</div>
                     <h1>Welcome Back</h1>
                     <h2>Enter your credentials to access your account</h2>
 
                     <form onSubmit={handleSubmit}>
-                        <div className={`message ${message.type}`} style={{ display: message.text ? 'block' : 'none' }}>
+                        <div className={`${styles.message} ${styles[message.type]}`} style={{ display: message.text ? 'block' : 'none' }}>
                             {message.text}
                         </div>
 
-                        <div className="form-group">
+                        <div className={styles['form-group']}>
                             <label htmlFor="email">Email Address</label>
-                            <div className="input-wrapper">
+                            <div className={styles['input-wrapper']}>
                                 <input
                                     type="email"
                                     id="email"
@@ -156,12 +194,12 @@ const Signin = () => {
                                     onChange={handleInputChange}
                                     onBlur={handleBlur}
                                     required
-                                    className={errors.email ? 'invalid' : ''}
+                                    className={errors.email ? styles.invalid : ''}
                                     aria-invalid={errors.email ? 'true' : 'false'}
                                 />
                             </div>
                             <small
-                                className="error-text"
+                                className={styles['error-text']}
                                 aria-live="polite"
                                 style={{
                                     display: errors.email ? 'block' : 'none',
@@ -177,9 +215,9 @@ const Signin = () => {
                             </small>
                         </div>
 
-                        <div className="form-group">
+                        <div className={styles['form-group']}>
                             <label htmlFor="password">Password</label>
-                            <div className="input-wrapper">
+                            <div className={styles['input-wrapper']}>
                                 <input
                                     type="password"
                                     id="password"
@@ -189,12 +227,12 @@ const Signin = () => {
                                     onChange={handleInputChange}
                                     onBlur={handleBlur}
                                     required
-                                    className={errors.password ? 'invalid' : ''}
+                                    className={errors.password ? styles.invalid : ''}
                                     aria-invalid={errors.password ? 'true' : 'false'}
                                 />
                             </div>
                             <small
-                                className="error-text"
+                                className={styles['error-text']}
                                 aria-live="polite"
                                 style={{
                                     display: errors.password ? 'block' : 'none',
@@ -221,10 +259,17 @@ const Signin = () => {
                             {isSubmitting ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
+
+                    <a href="/role-selection" className={styles['back-link']} onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/');
+                    }}>
+                        Back to Home
+                    </a>
                 </div>
 
-                <div className="image-container">
-                    <div className="image-wrapper">
+                <div className={styles['image-container']}>
+                    <div className={styles['image-wrapper']}>
                         <img src="/Sign/SignUp_picture3.jpg" alt="Sign In Illustration" />
                     </div>
                 </div>

@@ -11,39 +11,212 @@ dotenv.config();
 
 const router = express.Router();
 
-// Middleware to check if user is authenticated
-const isAuthenticated = (req, res, next) => {
+// Helper function to verify JWT token from cookie
+const verifyJWTFromCookie = (req) => {
+  try {
+    const token = req.cookies?.token;
+
+    if (!token) {
+      return null;
+    }
+
+    // Verify JWT token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Return user info from token
+    return {
+      id: decoded.id,
+      userType: decoded.userType
+    };
+  } catch (error) {
+    // Handle token expiration and other JWT errors
+    if (error.name === 'TokenExpiredError') {
+      console.log('JWT token expired');
+      return null;
+    } else if (error.name === 'JsonWebTokenError') {
+      console.log('Invalid JWT token');
+      return null;
+    }
+    console.error('JWT verification error:', error);
+    return null;
+  }
+};
+
+// Middleware to check if user is authenticated (supports both session and JWT)
+const isAuthenticated = async (req, res, next) => {
+  // First check for session (for EJS pages)
   if (req.session && req.session.user) {
+    // Ensure req.user is set for consistency
+    req.user = req.session.user;
     return next();
   }
-  res.status(401).json({ message: 'Authentication required' });
+
+  // If no session, check for JWT token in cookie (for React API)
+  const jwtUser = verifyJWTFromCookie(req);
+
+  if (jwtUser) {
+    // Fetch user details from database to populate full user info
+    try {
+      let user;
+      if (jwtUser.userType === 'brand') {
+        user = await BrandInfo.findById(jwtUser.id).select('email displayName brandName').lean();
+      } else if (jwtUser.userType === 'influencer') {
+        user = await InfluencerInfo.findById(jwtUser.id).select('email displayName fullName').lean();
+      }
+
+      if (user) {
+        // Populate req.user with full user info
+        req.user = {
+          id: jwtUser.id,
+          email: user.email,
+          userType: jwtUser.userType,
+          displayName: user.displayName || user.brandName || user.fullName
+        };
+
+        // Optionally sync to session for compatibility
+        req.session.user = req.user;
+        return next();
+      }
+    } catch (error) {
+      console.error('Error fetching user from database:', error);
+    }
+  }
+
+  // Neither session nor valid JWT token found
+  // Check if this is an API request (JSON) or page request (HTML)
+  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+
+  if (isAPIRequest) {
+    return res.status(401).json({
+      message: 'Authentication required',
+      error: 'Token expired. Please sign in again.'
+    });
+  } else {
+    // For page requests, redirect to signin (EJS pages)
+    return res.redirect('/SignIn');
+  }
 };
 
 // Middleware to check if user is a brand
 const isBrand = (req, res, next) => {
-  if (req.session && req.session.user && req.session.user.userType === 'brand') {
+  const userType = req.session?.user?.userType || req.user?.userType;
+
+  if (userType === 'brand') {
     return next();
   }
-  res.status(403).json({ message: 'Access denied: Brands only' });
+
+  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+
+  if (isAPIRequest) {
+    return res.status(403).json({ message: 'Access denied: Brands only' });
+  } else {
+    return res.redirect('/SignIn');
+  }
 };
 
 // Middleware to check if user is an influencer
 const isInfluencer = (req, res, next) => {
-  if (req.session && req.session.user && req.session.user.userType === 'influencer') {
+  const userType = req.session?.user?.userType || req.user?.userType;
+
+  if (userType === 'influencer') {
     return next();
   }
-  res.status(403).json({ message: 'Access denied: Influencers only' });
+
+  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+
+  if (isAPIRequest) {
+    return res.status(403).json({ message: 'Access denied: Influencers only' });
+  } else {
+    return res.redirect('/SignIn');
+  }
 };
+
+// Auth verification endpoint for React to check authentication status
+router.get('/verify', async (req, res) => {
+  try {
+    // First check for session (for EJS pages)
+    if (req.session && req.session.user) {
+      return res.status(200).json({
+        authenticated: true,
+        user: req.session.user
+      });
+    }
+
+    // If no session, check for JWT token in cookie (for React API)
+    const jwtUser = verifyJWTFromCookie(req);
+
+    if (jwtUser) {
+      // Fetch user details from database to populate full user info
+      try {
+        let user;
+        if (jwtUser.userType === 'brand') {
+          user = await BrandInfo.findById(jwtUser.id).select('email displayName brandName').lean();
+        } else if (jwtUser.userType === 'influencer') {
+          user = await InfluencerInfo.findById(jwtUser.id).select('email displayName fullName').lean();
+        }
+
+        if (user) {
+          const userInfo = {
+            id: jwtUser.id,
+            email: user.email,
+            userType: jwtUser.userType,
+            displayName: user.displayName || user.brandName || user.fullName
+          };
+
+          // Optionally sync to session for compatibility
+          req.session.user = userInfo;
+
+          return res.status(200).json({
+            authenticated: true,
+            user: userInfo
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user from database:', error);
+      }
+    }
+
+    // Not authenticated
+    return res.status(401).json({
+      authenticated: false,
+      message: 'Not authenticated'
+    });
+  } catch (error) {
+    console.error('Auth verification error:', error);
+    return res.status(500).json({
+      authenticated: false,
+      message: 'Server error'
+    });
+  }
+});
 
 router.post('/logout', (req, res) => {
   // Clear session
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ message: 'Error logging out' });
+      const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+      if (isAPIRequest) {
+        return res.status(500).json({ message: 'Error logging out' });
+      }
+      return res.redirect('/');
     }
-    // Clear cookie
-    res.clearCookie('token', { httpOnly: true, path: '/' });
-    res.redirect('/');
+
+    // Clear JWT cookie
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/'
+    });
+
+    // Check if this is an API request (JSON) or page request (HTML)
+    const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+
+    if (isAPIRequest) {
+      return res.status(200).json({ message: 'Logged out successfully' });
+    } else {
+      return res.redirect('/');
+    }
   });
 });
 
@@ -95,7 +268,9 @@ router.post('/signin', async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: remember ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: remember ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
+      path: '/'
     };
 
     // Set cookie

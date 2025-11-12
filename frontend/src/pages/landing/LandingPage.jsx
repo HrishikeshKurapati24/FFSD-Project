@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import BrandsModal from '../../components/BrandsModal';
 import InfluencersModal from '../../components/InfluencersModal';
-import '../../styles/landing_page.css';
+import styles from '../../styles/landing_page.module.css';
 
 const LandingPage = () => {
     const [showBrandsModal, setShowBrandsModal] = useState(false);
@@ -16,11 +16,11 @@ const LandingPage = () => {
     };
 
     return (
-        <div className="landing-page">
+        <div className={styles['landing-page']}>
             {/* Header */}
             <header>
-                <div className="header-container">
-                    <div className="logo">CollabSync</div>
+                <div className={styles['header-container']}>
+                    <div className={styles.logo}>CollabSync</div>
                     <nav>
                         <ul>
                             <li><a href="/">Home</a></li>
@@ -33,60 +33,60 @@ const LandingPage = () => {
             </header>
 
             {/* Hero Section */}
-            <section className="hero">
+            <section className={styles.hero}>
                 <video autoPlay muted loop id="heroVideo">
                     <source src="/Lp_index/Anima_001.mp4" type="video/mp4" />
                 </video>
-                <div className="hero-content">
+                <div className={styles['hero-content']}>
                     <h1>Bridging Influencers, Brands & Customers</h1>
                     <p>
                         Your one-stop platform for authentic connections, strategic collaborations,
                         and sustainable growth in the digital ecosystem.
                     </p>
-                    <a href="/role-selection" className="btn-hero">Join Us Today</a>
+                    <a href="/role-selection" className={styles['btn-hero']}>Join Us Today</a>
                 </div>
             </section>
 
             {/* Benefits Section */}
-            <section className="benefits">
-                <h2 className="section-title">Who We Serve</h2>
-                <div className="benefits-container">
-                    <div className="benefit">
-                        <div className="benefit-icon">👑</div>
+            <section className={styles.benefits}>
+                <h2 className={styles['section-title']}>Who We Serve</h2>
+                <div className={styles['benefits-container']}>
+                    <div className={styles.benefit}>
+                        <div className={styles['benefit-icon']}>👑</div>
                         <h2>For Influencers</h2>
                         <p>
                             Showcase your authentic voice and reach to connect with brands that align
                             with your values. Manage campaigns, track performance metrics, and grow
                             your professional network all in one place.
                         </p>
-                        <a href="/influencer/Signup" className="button">I'm an Influencer</a>
+                        <a href="/influencer/Signup" className={styles.button}>I'm an Influencer</a>
                     </div>
-                    <div className="benefit">
-                        <div className="benefit-icon">🏢</div>
+                    <div className={styles.benefit}>
+                        <div className={styles['benefit-icon']}>🏢</div>
                         <h2>For Brands</h2>
                         <p>
                             Discover creators who truly resonate with your brand values and audience.
                             Launch data-driven campaigns, measure ROI with precision, and build lasting
                             relationships with influential voices in your industry.
                         </p>
-                        <a href="/brand/Signup" className="button">I'm a Brand</a>
+                        <a href="/brand/Signup" className={styles.button}>I'm a Brand</a>
                     </div>
-                    <div className="benefit">
-                        <div className="benefit-icon">👥</div>
+                    <div className={styles.benefit}>
+                        <div className={styles['benefit-icon']}>👥</div>
                         <h2>For Customers</h2>
                         <p>
                             Access exclusive deals from your favorite brands and influencers.
                             Participate in interactive live sessions, read authentic reviews,
                             and enjoy a direct line of communication with the creators you trust.
                         </p>
-                        <a href="/customer" className="button">I'm a Customer</a>
+                        <a href="/customer" className={styles.button}>I'm a Customer</a>
                     </div>
                 </div>
             </section>
 
             {/* Info Blocks Section */}
-            <section className="info-blocks">
-                <div className="info-block block-one">
+            <section className={styles['info-blocks']}>
+                <div className={`${styles['info-block']} ${styles['block-one']}`}>
                     <h2>Strategic Growth Through Authentic Connections</h2>
                     <p>
                         Our data-driven platform helps brands find the perfect influencer match
@@ -94,22 +94,22 @@ const LandingPage = () => {
                         Create more impactful content, measure real campaign results, and scale
                         your reach across multiple channels.
                     </p>
-                    <div className="stats">
-                        <div className="stat-item">
-                            <div className="stat-number">93%</div>
-                            <div className="stat-label">Higher Engagement</div>
+                    <div className={styles.stats}>
+                        <div className={styles['stat-item']}>
+                            <div className={styles['stat-number']}>93%</div>
+                            <div className={styles['stat-label']}>Higher Engagement</div>
                         </div>
-                        <div className="stat-item">
-                            <div className="stat-number">5.2x</div>
-                            <div className="stat-label">ROI Increase</div>
+                        <div className={styles['stat-item']}>
+                            <div className={styles['stat-number']}>5.2x</div>
+                            <div className={styles['stat-label']}>ROI Increase</div>
                         </div>
-                        <div className="stat-item">
-                            <div className="stat-number">10K+</div>
-                            <div className="stat-label">Active Creators</div>
+                        <div className={styles['stat-item']}>
+                            <div className={styles['stat-number']}>10K+</div>
+                            <div className={styles['stat-label']}>Active Creators</div>
                         </div>
                     </div>
                 </div>
-                <div className="info-block block-two">
+                <div className={`${styles['info-block']} ${styles['block-two']}`}>
                     <h2>Full-Service Campaign Management</h2>
                     <p>
                         Our expert team handles every aspect of your influencer campaigns.
@@ -118,30 +118,30 @@ const LandingPage = () => {
                         companies and fast-growing e-commerce brands maximize their influencer
                         marketing efforts since 2013.
                     </p>
-                    <div className="stats">
-                        <div className="stat-item">
-                            <div className="stat-number">1.2K+</div>
-                            <div className="stat-label">Brands Served</div>
+                    <div className={styles.stats}>
+                        <div className={styles['stat-item']}>
+                            <div className={styles['stat-number']}>1.2K+</div>
+                            <div className={styles['stat-label']}>Brands Served</div>
                         </div>
-                        <div className="stat-item">
-                            <div className="stat-number">15K+</div>
-                            <div className="stat-label">Campaigns Managed</div>
+                        <div className={styles['stat-item']}>
+                            <div className={styles['stat-number']}>15K+</div>
+                            <div className={styles['stat-label']}>Campaigns Managed</div>
                         </div>
-                        <div className="stat-item">
-                            <div className="stat-number">48hr</div>
-                            <div className="stat-label">Average Setup Time</div>
+                        <div className={styles['stat-item']}>
+                            <div className={styles['stat-number']}>48hr</div>
+                            <div className={styles['stat-label']}>Average Setup Time</div>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Three Blocks Section */}
-            <section className="three-blocks">
-                <div className="block">
-                    <div className="block-image">
+            <section className={styles['three-blocks']}>
+                <div className={styles.block}>
+                    <div className={styles['block-image']}>
                         <img src="/Lp_index/pic4-removebg.png" alt="Influencer Marketing" />
                     </div>
-                    <div className="block-text">
+                    <div className={styles['block-text']}>
                         <h2>For Influencers</h2>
                         <p>
                             As an influencer on CollabSync, you gain access to a curated marketplace
@@ -157,11 +157,11 @@ const LandingPage = () => {
                         </ul>
                     </div>
                 </div>
-                <div className="block reverse">
-                    <div className="block-image">
+                <div className={`${styles.block} ${styles.reverse}`}>
+                    <div className={styles['block-image']}>
                         <img src="/Lp_index/pic66-removebg.png" alt="Brand Partnerships" />
                     </div>
-                    <div className="block-text">
+                    <div className={styles['block-text']}>
                         <h2>For Brands</h2>
                         <p>
                             CollabSync provides brands with a data-driven approach to influencer
@@ -176,11 +176,11 @@ const LandingPage = () => {
                         </ul>
                     </div>
                 </div>
-                <div className="block">
-                    <div className="block-image">
+                <div className={styles.block}>
+                    <div className={styles['block-image']}>
                         <img src="/Lp_index/pic7.png" alt="Customer Engagement" />
                     </div>
-                    <div className="block-text">
+                    <div className={styles['block-text']}>
                         <h2>For Customers</h2>
                         <p>
                             As a customer on CollabSync, you're at the heart of a vibrant community
@@ -198,28 +198,28 @@ const LandingPage = () => {
             </section>
 
             {/* Partners Section */}
-            <section className="partners">
-                <div className="partners-content">
-                    <h2 className="section-title">Marketing Integrations and Social Partners</h2>
-                    <div className="partners-description">
+            <section className={styles.partners}>
+                <div className={styles['partners-content']}>
+                    <h2 className={styles['section-title']}>Marketing Integrations and Social Partners</h2>
+                    <div className={styles['partners-description']}>
                         Collaborate with leading marketing tools and social platforms to amplify
                         your reach and streamline your campaigns. Discover top influencers and
                         brands driving authentic connections.
                     </div>
-                    <div className="partners-logos">
-                        <div className="partner-logo">
+                    <div className={styles['partners-logos']}>
+                        <div className={styles['partner-logo']}>
                             <img src="/Lp_index/Brand_logo_01.png" alt="The Sunrise Shop" />
                         </div>
-                        <div className="partner-logo">
+                        <div className={styles['partner-logo']}>
                             <img src="/Lp_index/Brand_logo_02.jpg" alt="BCBP" />
                         </div>
-                        <div className="partner-logo">
+                        <div className={styles['partner-logo']}>
                             <img src="/Lp_index/Brand_logo_03.jpg" alt="Horizon" />
                         </div>
-                        <div className="partner-logo">
+                        <div className={styles['partner-logo']}>
                             <img src="/Lp_index/Brand_logo_05.jpg" alt="Canyon BBQ & Grill" />
                         </div>
-                        <div className="partner-logo">
+                        <div className={styles['partner-logo']}>
                             <img src="/Lp_index/Brand_logo_06.png" alt="Outrun" />
                         </div>
                     </div>
@@ -227,17 +227,17 @@ const LandingPage = () => {
             </section>
 
             {/* Explore Section */}
-            <section className="explore-section">
-                <div className="explore-container">
-                    <h2 className="section-title">Explore Our Platform</h2>
-                    <p className="explore-description">
+            <section className={styles['explore-section']}>
+                <div className={styles['explore-container']}>
+                    <h2 className={styles['section-title']}>Explore Our Platform</h2>
+                    <p className={styles['explore-description']}>
                         Discover the amazing brands and influencers who are part of our community
                     </p>
-                    <div className="explore-buttons">
-                        <button className="btn-explore" onClick={handleOpenBrandsModal}>
+                    <div className={styles['explore-buttons']}>
+                        <button className={styles['btn-explore']} onClick={handleOpenBrandsModal}>
                             <i className="fas fa-store me-2"></i>View All Brands
                         </button>
-                        <button className="btn-explore" onClick={handleOpenInfluencersModal}>
+                        <button className={styles['btn-explore']} onClick={handleOpenInfluencersModal}>
                             <i className="fas fa-users me-2"></i>View All Influencers
                         </button>
                     </div>
@@ -246,9 +246,9 @@ const LandingPage = () => {
 
             {/* Footer */}
             <footer>
-                <div className="footer-logo">CollabSync</div>
+                <div className={styles['footer-logo']}>CollabSync</div>
                 <p>&copy; 2025 CollabSync. All rights reserved.</p>
-                <div className="social-media">
+                <div className={styles['social-media']}>
                     <img src="/Lp_index/SocialMedia_logo_i.png" alt="Instagram" />
                     <img src="/Lp_index/SocialMedia_logo_y2.png" alt="YouTube" />
                     <img src="/Lp_index/SocialMedia_logo_l.png" alt="LinkedIn" />

@@ -40,12 +40,23 @@ router.use((req, res, next) => {
 router.use(isAuthenticated);
 router.use(isInfluencer);
 
-// Middleware to verify user is an influencer
+// Middleware to verify user is an influencer (supports both session and JWT)
 const verifyInfluencer = (req, res, next) => {
-    if (req.session.user && req.session.user.userType === 'influencer') {
+    const userType = req.session?.user?.userType || req.user?.userType;
+    
+    if (userType === 'influencer') {
+        // Ensure session has user for compatibility
+        if (!req.session.user && req.user) {
+            req.session.user = req.user;
+        }
         next();
     } else {
-        res.status(403).json({ message: 'Access denied: User is not an influencer' });
+        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+        if (isAPIRequest) {
+            return res.status(403).json({ message: 'Access denied: User is not an influencer' });
+        } else {
+            return res.redirect('/SignIn');
+        }
     }
 };
 

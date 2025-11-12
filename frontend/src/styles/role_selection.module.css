@@ -148,6 +148,22 @@
     background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
 }
 
+/* Back Link */
+.role-selection-page .back-link {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.role-selection-page .back-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
 /* 🖼️ Image Section */
 .role-selection-page .image-container {
     flex: 1;

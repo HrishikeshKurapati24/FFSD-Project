@@ -1,30 +1,42 @@
-/* Reset and Base Styles */
-* {
+.landing-page {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-body {
     font-family: 'Poppins', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f4;
     background: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center fixed;
-    background-size: cover;
     position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-body::before {
+/* Background image fixed to viewport */
+.landing-page::after {
     content: '';
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.1);
-    /* Subtle overlay to reduce background brightness */
+    width: 100vw;
+    height: 100vh;
+    background: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center;
+    background-size: cover;
     z-index: -2;
+    pointer-events: none;
+}
+
+.landing-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+    pointer-events: none;
 }
 
 /* Link styles - remove underlines across all pages */
@@ -117,7 +129,8 @@ nav ul li a:hover {
     overflow: hidden;
 }
 
-#heroVideo {
+/* Global ID - not scoped by CSS Modules */
+:global(#heroVideo) {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -131,6 +144,7 @@ nav ul li a:hover {
 }
 
 .hero-content {
+    color: #fff;
     z-index: 1;
     max-width: 800px;
     padding: 20px;

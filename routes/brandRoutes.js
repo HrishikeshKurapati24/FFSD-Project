@@ -17,14 +17,26 @@ const { Product } = require('../config/ProductMongo');
 router.use(isAuthenticated);
 router.use(isBrand);
 
-// Middleware to verify brand ID matches session
+// Middleware to verify brand ID matches session or JWT
 const verifyBrandId = (req, res, next) => {
-    if (req.session.user && req.session.user.id) {
+    // Check session first, then req.user (from JWT)
+    const userId = req.session?.user?.id || req.user?.id;
+    
+    if (userId) {
         // Add brand ID to request for use in routes
-        req.brandId = req.session.user.id;
+        req.brandId = userId;
+        // Also ensure session has user for compatibility
+        if (!req.session.user && req.user) {
+            req.session.user = req.user;
+        }
         next();
     } else {
-        res.status(403).json({ message: 'Access denied: Invalid brand ID' });
+        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+        if (isAPIRequest) {
+            return res.status(403).json({ message: 'Access denied: Invalid brand ID' });
+        } else {
+            return res.redirect('/SignIn');
+        }
     }
 };
 
@@ -1335,7 +1347,7 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
 router.get('/campaigns/:campaignId/details', async (req, res) => {
     try {
         const { campaignId } = req.params;
-        const brandId = req.session.user.id;
+        const brandId = req.brandId || req.session?.user?.id || req.user?.id;
 
         console.log('Fetching campaign details for:', { campaignId, brandId });
 

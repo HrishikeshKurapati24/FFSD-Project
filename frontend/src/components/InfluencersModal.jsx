@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useInfluencers } from '../hooks/useInfluencers';
-import '../styles/modal.css';
+import styles from '../styles/modal.module.css';
 
 const InfluencersModal = ({ isOpen, onClose }) => {
     const { influencers, loading, error, fetchInfluencers } = useInfluencers();
     const [searchTerm, setSearchTerm] = useState('');
 
-    console.log('InfluencersModal render - isOpen:', isOpen, 'influencers:', influencers, 'loading:', loading, 'error:', error);
-
     useEffect(() => {
-        console.log('InfluencersModal useEffect - isOpen:', isOpen);
         if (isOpen) {
-            console.log('Fetching influencers...');
             fetchInfluencers();
         }
     }, [isOpen]);
@@ -23,61 +19,39 @@ const InfluencersModal = ({ isOpen, onClose }) => {
     );
 
     if (!isOpen) {
-        console.log('InfluencersModal not open, returning null');
         return null;
     }
 
-    console.log('Rendering InfluencersModal with filteredInfluencers:', filteredInfluencers.length);
-
     return (
-        <div className="modal" onClick={onClose} style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-        }}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
-                backgroundColor: 'white',
-                padding: '20px',
-                borderRadius: '8px',
-                maxWidth: '800px',
-                width: '90%',
-                maxHeight: '80vh',
-                overflow: 'auto'
-            }}>
-                <div className="modal-header">
+        <div className={styles.modal} onClick={onClose}>
+            <div className={styles['modal-content']} onClick={(e) => e.stopPropagation()}>
+                <div className={styles['modal-header']}>
                     <h2>All Registered Influencers</h2>
-                    <span className="close" onClick={onClose}>&times;</span>
+                    <span className={styles.close} onClick={onClose}>&times;</span>
                 </div>
-                <div className="modal-body">
-                    <div className="search-container">
+                <div className={styles['modal-body']}>
+                    <div className={styles['search-container']}>
                         <input
                             type="text"
                             placeholder="Search influencers..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
+                            className={styles['search-input']}
                         />
                     </div>
-                    <div className="grid-container">
+                    <div className={styles['grid-container']}>
                         {loading && (
-                            <div className="loading">
+                            <div className={styles.loading}>
                                 <i className="fas fa-spinner fa-spin"></i> Loading influencers...
                             </div>
                         )}
                         {error && (
-                            <div className="text-center py-4">
+                            <div className={`${styles['text-center']} ${styles['py-4']}`}>
                                 <p>Error loading influencers. Please try again.</p>
                             </div>
                         )}
                         {!loading && !error && filteredInfluencers.length === 0 && (
-                            <div className="text-center py-4">
+                            <div className={`${styles['text-center']} ${styles['py-4']}`}>
                                 <p>No influencers found.</p>
                             </div>
                         )}
@@ -104,59 +78,62 @@ const InfluencerCard = ({ influencer }) => {
     const socialPlatforms = influencer.socialPlatforms || [];
 
     return (
-        <div className="influencer-card">
-            <div className="influencer-header">
+        <div className={styles['influencer-card']}>
+            <div className={styles['influencer-header']}>
                 <img
                     src={influencer.profilePicUrl || '/images/default-avatar.jpg'}
                     alt={influencer.fullName}
-                    className="influencer-avatar"
+                    className={styles['influencer-avatar']}
                     onError={(e) => {
                         e.currentTarget.src = '/images/default-avatar.jpg';
                     }}
                 />
-                <div className="influencer-info">
-                    <h3 className="influencer-name">{influencer.fullName}</h3>
-                    <p className="influencer-niche">{influencer.niche || 'General'}</p>
+                <div className={styles['influencer-info']}>
+                    <h3 className={styles['influencer-name']}>{influencer.fullName}</h3>
+                    <p className={styles['influencer-niche']}>{influencer.niche || 'General'}</p>
                 </div>
             </div>
 
-            <div className="stats-grid">
-                <div className="stat-item">
-                    <span className="stat-number">{influencer.totalFollowers.toLocaleString()}</span>
-                    <div className="stat-label">Total Followers</div>
+            <div className={styles['stats-grid']}>
+                <div className={styles['stat-item']}>
+                    <span className={styles['stat-number']}>{influencer.totalFollowers.toLocaleString()}</span>
+                    <div className={styles['stat-label']}>Total Followers</div>
                 </div>
-                <div className="stat-item">
-                    <span className="stat-number">{influencer.completedCollabs}</span>
-                    <div className="stat-label">Completed Collaborations</div>
+                <div className={styles['stat-item']}>
+                    <span className={styles['stat-number']}>{influencer.completedCollabs}</span>
+                    <div className={styles['stat-label']}>Completed Collaborations</div>
                 </div>
-                <div className="stat-item">
-                    <span className="stat-number">{influencer.avgRating.toFixed(1)}</span>
-                    <div className="stat-label">Rating</div>
+                <div className={styles['stat-item']}>
+                    <span className={styles['stat-number']}>{influencer.avgRating.toFixed(1)}</span>
+                    <div className={styles['stat-label']}>Rating</div>
                 </div>
-                <div className="stat-item">
-                    <span className="stat-number">{influencer.avgEngagementRate.toFixed(1)}%</span>
-                    <div className="stat-label">Engagement</div>
+                <div className={styles['stat-item']}>
+                    <span className={styles['stat-number']}>{influencer.avgEngagementRate.toFixed(1)}%</span>
+                    <div className={styles['stat-label']}>Engagement</div>
                 </div>
             </div>
 
-            <div className="categories">
+            <div className={styles.categories}>
                 <strong>Categories:</strong>
                 <div style={{ marginTop: '0.5rem' }}>
                     {influencer.categories.map(cat => (
-                        <span key={cat} className="category-tag">{cat}</span>
+                        <span key={cat} className={styles['category-tag']}>{cat}</span>
                     ))}
                 </div>
             </div>
 
             {socialPlatforms.length > 0 && (
-                <div className="categories">
+                <div className={styles.categories}>
                     <strong>Social Platforms:</strong>
-                    <div className="social-platforms">
-                        {socialPlatforms.map(platform => (
-                            <div key={platform} className={`platform-icon platform-${platform}`} title={platform}>
-                                <i className={platformIcons[platform] || 'fas fa-globe'}></i>
-                            </div>
-                        ))}
+                    <div className={styles['social-platforms']}>
+                        {socialPlatforms.map(platform => {
+                            const platformClass = `platform-${platform}`;
+                            return (
+                                <div key={platform} className={`${styles['platform-icon']} ${styles[platformClass] || ''}`} title={platform}>
+                                    <i className={platformIcons[platform] || 'fas fa-globe'}></i>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

@@ -21,7 +21,7 @@ const FeedbackModel = {
 const DashboardController = {
     async verifyUser(req, res) {
         try {
-            const { username, password } = req.body;
+            const { username, password, remember } = req.body;
 
             // Find admin user
             const user = await Admin.findOne({ username });
@@ -41,14 +41,46 @@ const DashboardController = {
                 });
             }
 
-            // Set session
+            // Generate JWT token
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign(
+                { 
+                    userId: user.userId, 
+                    userType: 'admin',
+                    role: user.role 
+                },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: remember ? '7d' : '1h'
+                }
+            );
+
+            // Set session (for EJS pages compatibility)
             req.session.userId = user.userId;
             req.session.role = user.role;
+
+            // Set cookie options
+            const cookieOptions = {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+                maxAge: remember ? 7 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000,
+                path: '/'
+            };
+
+            // Set JWT cookie
+            res.cookie('adminToken', token, cookieOptions);
 
             res.json({
                 success: true,
                 message: 'Login successful',
-                redirect: '/admin/dashboard'
+                redirect: '/admin/dashboard',
+                user: {
+                    userId: user.userId,
+                    username: user.username,
+                    role: user.role,
+                    userType: 'admin'
+                }
             });
         } catch (error) {
             console.error('Login error:', error);

@@ -422,6 +422,22 @@
   box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.15) !important;
 }
 
+/* Back Link */
+.signin-page .back-link {
+  display: block;
+  margin-top: 20px;
+  text-align: center;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.signin-page .back-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
 /* Responsive Design */
 @media (max-width: 968px) {
   .signin-page .signin-container {
