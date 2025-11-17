@@ -368,72 +368,7 @@ class SubscriptionService {
       planDistribution
     };
   }
-
-  // Create default free subscription for new user
-  static async createDefaultFreeSubscription(userId, userType) {
-    try {
-      console.log(`[SubscriptionService] Creating free subscription for userId: ${userId}, userType: ${userType}`);
-      
-      // Find the free plan for the user type
-      const freePlan = await SubscriptionPlan.findOne({ 
-        userType: userType, 
-        name: 'Free',
-        isActive: true 
-      });
-      
-      console.log(`[SubscriptionService] Free plan found:`, freePlan ? `YES (${freePlan._id})` : 'NO');
-      
-      if (!freePlan) {
-        console.error(`[SubscriptionService] ERROR: Free plan not found for userType: ${userType}`);
-        throw new Error(`Free plan not found for user type: ${userType}`);
-      }
-
-      // Check if user already has a subscription
-      const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
-      const existingSubscription = await UserSubscription.findOne({
-        userId: userId,
-        userType: mappedUserType
-      }).populate('planId');
-
-      if (existingSubscription) {
-        console.log(`[SubscriptionService] Existing subscription found, returning it`);
-        return existingSubscription;
-      }
-
-      // Create free subscription
-      const subscriptionData = {
-        userId: userId,
-        userType: mappedUserType,
-        planId: freePlan._id,
-        status: 'active',
-        billingCycle: 'monthly',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year for free plan
-        amount: 0,
-        usage: {
-          campaignsUsed: 0,
-          influencersConnected: 0,
-          brandsConnected: 0,
-          storageUsedGB: 0,
-          uploadsThisMonth: 0
-        }
-      };
-
-      console.log(`[SubscriptionService] Creating new free subscription with data:`, JSON.stringify(subscriptionData, null, 2));
-      const subscription = new UserSubscription(subscriptionData);
-      const savedSubscription = await subscription.save();
-      
-      // Populate the planId before returning
-      const populatedSubscription = await UserSubscription.findById(savedSubscription._id).populate('planId');
-      console.log(`[SubscriptionService] Free subscription created and populated successfully`);
-      
-      return populatedSubscription;
-    } catch (error) {
-      console.error('[SubscriptionService] Error creating default free subscription:', error);
-      throw error;
-    }
-  }
-
+  
   // Check subscription expiry and handle renewal
   static async checkSubscriptionExpiry(userId, userType) {
     try {

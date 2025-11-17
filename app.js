@@ -242,15 +242,6 @@ app.post('/signup-form-brand', async (req, res) => {
             brandAnalytics.save()
         ]);
 
-        // Create default free subscription for the new brand
-        try {
-            const { SubscriptionService } = require('./models/brandModel');
-            await SubscriptionService.createDefaultFreeSubscription(brand._id, 'brand');
-        } catch (subscriptionError) {
-            console.error('Error creating default subscription for brand:', subscriptionError);
-            // Continue even if subscription creation fails
-        }
-
         res.status(201).json({
             message: 'Brand account created successfully',
             brandId: brand._id,
@@ -332,15 +323,6 @@ app.post('/signup-form-influencer', async (req, res) => {
             influencerSocials.save(),
             influencerAnalytics.save()
         ]);
-
-        // Create default free subscription for the new influencer
-        try {
-            const { SubscriptionService } = require('./models/brandModel');
-            await SubscriptionService.createDefaultFreeSubscription(influencer._id, 'influencer');
-        } catch (subscriptionError) {
-            console.error('Error creating default subscription for influencer:', subscriptionError);
-            // Continue even if subscription creation fails
-        }
 
         res.status(201).json({
             message: 'Influencer account created successfully',
