@@ -1,0 +1,179 @@
+/* Scoped to .customer-analytics-page */
+.customerAnalyticsPage * {
+    box-sizing: border-box;
+  }
+  
+  .customerAnalyticsPage {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  .errorAlert {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .analyticsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .analyticsHeader h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .dateFilter select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  
+  .metricsOverview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .metricCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+  }
+  
+  .metricCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .metricCard h3 {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .metricValue {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  .metricChange {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  
+  .positive { color: #28a745; }
+  
+  .chartsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .chartCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .chartCard h3 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: #2c3e50;
+  }
+  
+  /* Demographics Grid */
+  .demographicsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .demographicItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  .ageRange {
+    width: 80px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .percentageBar {
+    flex: 1;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .bar {
+    height: 100%;
+    background: #2196F3;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  
+  .percentageValue {
+    width: 50px;
+    text-align: right;
+    color: #495057;
+    font-weight: 600;
+  }
+  
+  /* Gender Stats */
+  .genderStats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .genderStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .label {
+    color: #6c757d;
+    font-size: 0.85rem;
+  }
+  
+  .value {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+  
+  .noDataMessage {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    font-size: 1.1rem;
+  }

@@ -1,12 +1,76 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController } = require('../controllers/AdminController');
+const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController } = require('../controllers/AdminController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 
 dotenv.config();
+
+// Helper function to detect API requests
+const isAPIRequest = (req) => {
+    // Check explicit headers first
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+        return true;
+    }
+    if (req.xhr) {
+        return true;
+    }
+
+    // Get the full path (originalUrl includes the full path with query string)
+    const fullPath = req.originalUrl || req.url || req.path || '';
+    const pathOnly = fullPath.split('?')[0]; // Remove query string
+
+    if (pathOnly.startsWith('/api/')) {
+        return true;
+    }
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+        return true;
+    }
+
+    // Check origin/referer for React app
+    const origin = req.headers.origin || '';
+    const referer = req.headers.referer || '';
+    if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+        referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+        return true;
+    }
+
+    // For admin routes that are commonly called from React via fetch(), assume API request
+    // unless it's a direct browser navigation (has text/html in accept)
+    // Note: req.path is relative to the router mount point, so '/admin/dashboard' becomes '/dashboard'
+    const adminAPIRoutes = [
+        '/admin/verify', '/verify',
+        '/admin/dashboard', '/dashboard',
+        '/admin/user_management', '/user_management',
+        '/admin/customer-management', '/customer-management',
+        '/admin/collaboration_monitoring', '/collaboration_monitoring',
+        '/admin/payment_verification', '/payment_verification',
+        '/admin/feedback_and_moderation', '/feedback_and_moderation',
+        '/admin/brand-analytics', '/brand-analytics',
+        '/admin/influencer-analytics', '/influencer-analytics',
+        '/admin/campaign-analytics', '/campaign-analytics',
+        '/admin/notifications', '/notifications'
+    ];
+
+    const isAdminAPIRoute = adminAPIRoutes.some(route =>
+        pathOnly === route || pathOnly.startsWith(route + '/')
+    );
+
+    if (isAdminAPIRoute) {
+        // If explicitly requesting HTML (browser navigation), it's a page request
+        const acceptHeader = req.headers.accept || '';
+        if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+            return false;
+        }
+        // For fetch() calls from React, there's usually no Accept header or it doesn't include text/html
+        // So if it's one of these routes and not explicitly requesting HTML, treat as API request
+        return true;
+    }
+
+    return false;
+};
 
 // Helper function to verify JWT token from cookie for admin
 const verifyAdminJWTFromCookie = (req) => {
@@ -62,8 +126,8 @@ const adminAuth = async (req, res, next) => {
 
         // If no authentication found
         if (!userId) {
-            const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
-            if (isAPIRequest) {
+            // Check if this is an API request (JSON expected)
+            if (isAPIRequest(req)) {
                 return res.status(401).json({
                     success: false,
                     message: 'Unauthorized',
@@ -76,8 +140,8 @@ const adminAuth = async (req, res, next) => {
         // Verify admin user exists and has admin role
         adminUser = await Admin.findOne({ userId });
         if (!adminUser || adminUser.role !== 'admin') {
-            const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
-            if (isAPIRequest) {
+            // Check if this is an API request (JSON expected)
+            if (isAPIRequest(req)) {
                 return res.status(403).json({
                     success: false,
                     message: 'Forbidden',
@@ -110,8 +174,8 @@ const adminAuth = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Admin auth middleware error:', error);
-        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
-        if (isAPIRequest) {
+        // Check if this is an API request (JSON expected)
+        if (isAPIRequest(req)) {
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error'
@@ -140,8 +204,13 @@ router.get('/login', (req, res) => {
 router.post('/login/verify', DashboardController.verifyUser);
 
 // Admin auth verification endpoint for React to check authentication status
+// This route always returns JSON (never HTML) since it's an API endpoint
 router.get('/verify', async (req, res) => {
     try {
+        // ALWAYS return JSON for this endpoint - it's an API endpoint
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Accept', 'application/json');
+
         // First check for session (for EJS pages)
         if (req.session && req.session.userId) {
             const adminUser = await Admin.findOne({ userId: req.session.userId });
@@ -198,6 +267,19 @@ router.use(adminAuth);
 
 // Dashboard route
 router.get('/dashboard', DashboardController.getDashboard);
+
+// Notification routes - must be before other routes to avoid conflicts
+router.get('/notifications', (req, res, next) => {
+    console.log('[DEBUG] Notifications GET route hit:', {
+        method: req.method,
+        path: req.path,
+        originalUrl: req.originalUrl,
+        url: req.url,
+        baseUrl: req.baseUrl
+    });
+    next();
+}, NotificationController.getNotifications);
+router.post('/notifications/mark-all-read', NotificationController.markAllAsRead);
 
 // Analytics routes
 router.get('/brand-analytics', AnalyticsController.getBrandAnalytics);

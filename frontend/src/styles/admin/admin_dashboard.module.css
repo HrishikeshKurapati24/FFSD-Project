@@ -1,0 +1,663 @@
+/* Container - replaces body styles */
+.container {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #1a1a1a;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.container.darkMode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+.container.darkMode .navbar {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container.darkMode .card {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.container.darkMode .modalContent {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+}
+
+.container.darkMode input,
+.container.darkMode select,
+.container.darkMode textarea {
+    background-color: #3d3d3d;
+    color: #e0e0e0;
+    border: 1px solid #555;
+}
+
+.container.darkMode table {
+    background-color: #2d2d2d;
+}
+
+.container.darkMode table th {
+    background-color: #3d3d3d;
+    color: #e0e0e0;
+}
+
+.container.darkMode table td {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-bottom: 1px solid #555;
+}
+
+.container.darkMode .sidebar {
+    background-color: #2d2d2d;
+}
+
+.container.darkMode .sidebar a {
+    color: #e0e0e0;
+}
+
+.container.darkMode .sidebar a:hover {
+    background-color: #3d3d3d;
+}
+
+.container.darkMode .profileDropdown {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container.darkMode .profileDropdown a {
+    color: #e0e0e0;
+}
+
+.container.darkMode .profileDropdown a:hover {
+    background-color: #3d3d3d;
+}
+
+.container.darkMode .notificationsDropdown {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode toggle button */
+.darkModeToggle {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.darkModeToggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.container.darkMode .darkModeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Common navbar styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbarLeft {
+    display: flex;
+    align-items: center;
+}
+
+.heading {
+    flex: 1;
+    text-align: center;
+}
+
+.heading h1 {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: xx-large;
+    margin: 0;
+}
+
+.navbarRight {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Common card styles */
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Common button styles */
+.container button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.btnPrimary {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.btnPrimary:hover {
+    background-color: #0056b3;
+}
+
+.btnDanger {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+.btnDanger:hover {
+    background-color: #bd2130;
+}
+
+.btnSuccess {
+    background-color: #28a745;
+    color: #ffffff;
+}
+
+.btnSuccess:hover {
+    background-color: #218838;
+}
+
+/* Common table styles */
+.container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.container th,
+.container td {
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    text-align: left;
+}
+
+.container th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Status badges */
+.statusBadge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.statusBadge.active {
+    background-color: #e8f5e9;
+    color: #28a745;
+}
+
+.statusBadge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.statusBadge.inactive {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+/*Left navbar styles*/
+.menuBtn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001;
+    position: relative;
+    display: block;
+    color: #1a1a1a;
+}
+
+/*Sidebar styles*/
+.sidebar {
+    position: fixed;
+    left: -250px;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+    transition: left 0.3s ease;
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.menu {
+    flex: 1;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: block;
+}
+
+.list li {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    display: block;
+    min-height: 48px;
+    line-height: 48px;
+}
+
+.list li a {
+    color: #1a1a1a;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    box-sizing: border-box;
+    height: 100%;
+    min-height: 48px;
+}
+
+.list li:hover {
+    background-color: #f6f9ff;
+}
+
+.list li:hover a {
+    border-left: 4px solid #007bff;
+    padding-left: calc(1.5rem - 4px);
+}
+
+.list li.active {
+    background-color: #f6f9ff;
+}
+
+.list li.active a {
+    border-left: 4px solid #007bff;
+    padding-left: calc(1.5rem - 4px);
+    font-weight: 600;
+}
+
+.list li i {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.list li span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.closeBtn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1001;
+    color: #1a1a1a;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notifications {
+    position: relative;
+    cursor: pointer;
+    color: #495057;
+    transition: color 0.3s ease-in-out;
+}
+
+.profile {
+    position: relative;
+    cursor: pointer;
+    color: #495057;
+    transition: color 0.3s ease-in-out;
+}
+
+.notifications:hover,
+.profile:hover {
+    color: #007bff;
+}
+
+/* Dropdown Styling */
+.notificationsDropdown {
+    display: block;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    top: 50px;
+    right: 0;
+    width: 350px;
+    max-width: 90vw;
+    z-index: 1050;
+    border: 1px solid #dee2e6;
+}
+
+.profileDropdown {
+    display: block;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 5px;
+    top: 50px;
+    right: 0;
+    min-width: 120px;
+    z-index: 1050;
+    border: 1px solid #dee2e6;
+}
+
+.profileDropdown a {
+    display: block;
+    padding: 0.2em;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+}
+
+/* Removed - using conditional rendering instead */
+
+.mainContent {
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+    padding: 20px;
+}
+
+.mainContent.shifted {
+    margin-left: 250px;
+}
+
+/*Stats Container Styling*/
+.statsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.statsCard {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statsCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.statsCard h2 {
+    font-size: 1.8rem;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.green {
+    background-color: #e6f4ea;
+    color: #1e7e34;
+}
+
+.blue {
+    background-color: #e8f0fe;
+    color: #1967d2;
+}
+
+.red {
+    background-color: #fce8e6;
+    color: #d93025;
+}
+
+.yellow {
+    background-color: #fef7e0;
+    color: #b06000;
+}
+
+.analyticsContainer,
+.profilesContainer,
+.campaignContainer {
+    margin-bottom: 40px;
+}
+
+.analyticsCard,
+.profileCard,
+.campaignCard {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.analyticsGrid,
+.profilesGrid,
+.campaignGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Profile styles */
+.profile {
+    position: relative;
+}
+
+.profileIcon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: background-color 0.3s;
+}
+
+.profileIcon:hover {
+    background-color: #f0f0f0;
+}
+
+.profileIcon img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Notifications Styles */
+.notifications {
+    position: relative;
+}
+
+.notificationIcon {
+    position: relative;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.notificationBadge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ff4444;
+    color: white;
+    border-radius: 50%;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 18px;
+    text-align: center;
+}
+
+.notificationsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.notificationsHeader h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.notificationsList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notificationItem {
+    display: flex;
+    align-items: start;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s;
+}
+
+.notificationItem:hover {
+    background-color: #f8f9fa;
+}
+
+.notificationItem.unread {
+    background-color: #f0f7ff;
+}
+
+.notificationItem.read {
+    opacity: 0.7;
+}
+
+.notificationContent {
+    flex: 1;
+}
+
+.notificationTitle {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.notificationMessage {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.notificationTime {
+    font-size: 12px;
+    color: #999;
+}
+
+.notificationPriority {
+    margin-left: 8px;
+}
+
+.notificationPriority.high i {
+    color: #f44336;
+}
+
+.notificationPriority.medium i {
+    color: #ff9800;
+}
+
+.notificationPriority.low i {
+    color: #4caf50;
+}
+
+.markReadBtn {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 0.9rem;
+}
+
+.markReadBtn:hover {
+    color: #0056b3;
+}
+
+.noNotifications {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+}
+
+/* Add responsive styles */
+@media (max-width: 768px) {
+    .statsContainer {
+        padding: 1rem;
+    }
+
+    .analyticsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .navbar {
+        flex-direction: column;
+    }
+
+    .navbarRight {
+        margin-top: 1rem;
+    }
+}

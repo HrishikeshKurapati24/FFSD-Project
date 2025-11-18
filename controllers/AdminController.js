@@ -44,10 +44,10 @@ const DashboardController = {
             // Generate JWT token
             const jwt = require('jsonwebtoken');
             const token = jwt.sign(
-                { 
-                    userId: user.userId, 
+                {
+                    userId: user.userId,
                     userType: 'admin',
-                    role: user.role 
+                    role: user.role
                 },
                 process.env.JWT_SECRET,
                 {
@@ -92,6 +92,16 @@ const DashboardController = {
     },
 
     async getDashboard(req, res) {
+        // Always check if this is an API request first and set headers accordingly
+        const fullPath = req.originalUrl || req.url || req.path || '';
+        const pathOnly = fullPath.split('?')[0];
+        const isLikelyAPIRequest = pathOnly === '/admin/dashboard' || pathOnly === '/dashboard' ||
+            (!req.headers.accept || !req.headers.accept.includes('text/html'));
+
+        if (isLikelyAPIRequest) {
+            res.setHeader('Content-Type', 'application/json');
+        }
+
         try {
 
             // User/Brand/Influencer counts
@@ -280,35 +290,7 @@ const DashboardController = {
             }
 
             // Notifications - Generate based on current data
-            const notifications = [
-                {
-                    id: 1,
-                    type: 'collaboration',
-                    title: 'New Collaboration Request',
-                    message: `${pendingCollabs} collaboration requests are pending approval`,
-                    timestamp: new Date(),
-                    read: false,
-                    priority: 'high'
-                },
-                {
-                    id: 2,
-                    type: 'payment',
-                    title: 'Payment Verification Needed',
-                    message: 'Several payments require verification',
-                    timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-                    read: false,
-                    priority: 'medium'
-                },
-                {
-                    id: 3,
-                    type: 'user',
-                    title: 'New User Registrations',
-                    message: `${brandCount + influencerCount} new users registered this month`,
-                    timestamp: new Date(Date.now() - 7200000), // 2 hours ago
-                    read: true,
-                    priority: 'low'
-                }
-            ];
+            const notifications = await generateNotifications();
 
             // Stats array for dashboard cards
             const stats = [
@@ -356,25 +338,147 @@ const DashboardController = {
                 }
             ];
 
-            // Render the dashboard with dynamic data
-            res.render("admin/dashboard", {
-                user: res.locals.user,
-                stats,
-                analytics,
-                totalRevenue,
-                revenueGrowth,
-                avgDealSize,
-                activeCollabs,
-                recentTransactions,
-                topBrands,
-                topInfluencers,
-                notifications,
-                totalSoldQuantity,
-                avgProductPrice,
-                totalProducts
-            });
+            // Helper function to detect API requests
+            const isAPIRequest = (req) => {
+                // Check explicit headers first
+                if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                    return true;
+                }
+                if (req.xhr) {
+                    return true;
+                }
+
+                // Get the full path
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0]; // Remove query string
+
+                if (pathOnly.startsWith('/api/')) {
+                    return true;
+                }
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                    return true;
+                }
+
+                // Check origin/referer for React app
+                const origin = req.headers.origin || '';
+                const referer = req.headers.referer || '';
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                // For /admin/dashboard route, assume API request unless explicitly requesting HTML
+                // fetch() calls from React typically don't have Accept: text/html header
+                if (pathOnly === '/admin/dashboard' || pathOnly === '/dashboard') {
+                    // If explicitly requesting HTML (browser navigation), it's a page request
+                    const acceptHeader = req.headers.accept || '';
+                    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+                        return false;
+                    }
+                    // Otherwise, assume it's an API request from React (fetch call)
+                    return true;
+                }
+
+                return false;
+            };
+
+            // Check if this is an API request (JSON expected) or page request (HTML)
+            if (isAPIRequest(req)) {
+                // Set content type to JSON explicitly
+                res.setHeader('Content-Type', 'application/json');
+                // Return JSON for API requests (React frontend)
+                return res.status(200).json({
+                    success: true,
+                    stats,
+                    analytics,
+                    totalRevenue,
+                    revenueGrowth,
+                    avgDealSize,
+                    activeCollabs,
+                    recentTransactions,
+                    topBrands,
+                    topInfluencers,
+                    notifications,
+                    totalSoldQuantity,
+                    avgProductPrice,
+                    totalProducts,
+                    user: res.locals.user
+                });
+            } else {
+                // Render HTML for page requests (EJS views)
+                return res.render("admin/dashboard", {
+                    user: res.locals.user,
+                    stats,
+                    analytics,
+                    totalRevenue,
+                    revenueGrowth,
+                    avgDealSize,
+                    activeCollabs,
+                    recentTransactions,
+                    topBrands,
+                    topInfluencers,
+                    notifications,
+                    totalSoldQuantity,
+                    avgProductPrice,
+                    totalProducts
+                });
+            }
         } catch (error) {
             console.error("Error loading admin dashboard:", error);
+            // Helper function to detect API requests
+            const isAPIRequest = (req) => {
+                // Check explicit headers first
+                if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                    return true;
+                }
+                if (req.xhr) {
+                    return true;
+                }
+
+                // Get the full path
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0]; // Remove query string
+
+                if (pathOnly.startsWith('/api/')) {
+                    return true;
+                }
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                    return true;
+                }
+
+                // Check origin/referer for React app
+                const origin = req.headers.origin || '';
+                const referer = req.headers.referer || '';
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                // For /admin/dashboard route, assume API request unless explicitly requesting HTML
+                // fetch() calls from React typically don't have Accept: text/html header
+                if (pathOnly === '/admin/dashboard' || pathOnly === '/dashboard') {
+                    // If explicitly requesting HTML (browser navigation), it's a page request
+                    const acceptHeader = req.headers.accept || '';
+                    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+                        return false;
+                    }
+                    // Otherwise, assume it's an API request from React (fetch call)
+                    return true;
+                }
+
+                return false;
+            };
+
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                // Set content type to JSON explicitly
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    message: "Failed to load dashboard",
+                    error: error.message
+                });
+            }
             res.status(500).render("error", { message: "Failed to load dashboard" });
         }
     }
@@ -386,6 +490,49 @@ const AnalyticsController = {
     getBrandAnalytics: async (req, res) => {
         try {
             console.log("Fetching brand analytics...");
+
+            // Helper function to detect API requests
+            // For analytics routes, default to API request unless explicitly requesting HTML
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                // Analytics routes - default to API unless explicitly requesting HTML
+                const analyticsRoutes = [
+                    '/admin/brand-analytics', '/brand-analytics',
+                    '/admin/influencer-analytics', '/influencer-analytics',
+                    '/admin/campaign-analytics', '/campaign-analytics'
+                ];
+
+                const isAnalyticsRoute = analyticsRoutes.some(route =>
+                    pathOnly === route.toLowerCase() || pathOnly.startsWith(route.toLowerCase() + '/')
+                );
+
+                if (isAnalyticsRoute) {
+                    // Only treat as page request if explicitly requesting HTML and NOT JSON
+                    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+                        return false;
+                    }
+                    // Default to API request for analytics routes
+                    return true;
+                }
+
+                // For other routes, check standard API indicators
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return false;
+            };
 
             // Get basic metrics
             const totalBrands = await BrandInfo.countDocuments();
@@ -445,11 +592,87 @@ const AnalyticsController = {
                 activeGrowth: 3, // Mock data
                 highestCollabBrand,
                 mostActiveBrand,
-                topBrands
+                topBrands,
+                monthlyGrowth: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    data: [120, 135, 142, 158, 167, 185],
+                    newBrands: [15, 18, 12, 22, 19, 25]
+                },
+                revenueData: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    data: [125000, 142000, 138000, 165000, 178000, 195000],
+                    expenses: [85000, 95000, 92000, 108000, 115000, 125000]
+                },
+                topCategories: [
+                    { name: 'Fashion & Beauty', percentage: 28, count: 45 },
+                    { name: 'Technology', percentage: 22, count: 35 },
+                    { name: 'Food & Beverage', percentage: 18, count: 29 },
+                    { name: 'Lifestyle', percentage: 16, count: 26 },
+                    { name: 'Health & Fitness', percentage: 16, count: 25 }
+                ],
+                brandPerformance: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    avgEngagement: [4.2, 4.5, 4.8, 4.3, 5.1, 5.4],
+                    avgROI: [2.1, 2.3, 2.7, 2.5, 2.9, 3.2],
+                    campaignSuccess: [78, 82, 85, 80, 88, 92]
+                },
+                collaborationTrends: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    totalCollabs: [145, 162, 178, 195, 210, 235],
+                    completedCollabs: [120, 138, 152, 168, 185, 205],
+                    avgDuration: [14, 16, 15, 18, 17, 19]
+                }
             };
 
             console.log("Metrics received:", metrics);
 
+            // Force API detection for analytics routes - check path first
+            const fullPath = req.originalUrl || req.url || req.path || '';
+            const pathOnly = fullPath.split('?')[0].toLowerCase();
+            const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+
+            console.log("=== BRAND ANALYTICS API DETECTION ===");
+            console.log("Path:", pathOnly);
+            console.log("Accept header:", acceptHeader);
+            console.log("Origin:", req.headers.origin);
+            console.log("Referer:", req.headers.referer);
+
+            // For analytics routes, ALWAYS return JSON unless it's a direct browser navigation
+            // (browser navigation has text/html in Accept header without application/json)
+            const isAnalyticsRoute = pathOnly.includes('brand-analytics') ||
+                pathOnly.includes('influencer-analytics') ||
+                pathOnly.includes('campaign-analytics');
+
+            // Only render HTML if it's explicitly a browser navigation (has text/html but NOT application/json)
+            const isBrowserNavigation = acceptHeader.includes('text/html') && !acceptHeader.includes('application/json');
+
+            console.log("Is analytics route:", isAnalyticsRoute);
+            console.log("Is browser navigation:", isBrowserNavigation);
+            console.log("Is API request (function):", isAPIRequest(req));
+
+            // For analytics routes, default to JSON API response
+            if (isAnalyticsRoute && !isBrowserNavigation) {
+                console.log("✓ Returning JSON response for brand analytics (analytics route, not browser nav)");
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...metrics
+                });
+            }
+
+            // Also check the isAPIRequest function as fallback
+            if (isAPIRequest(req)) {
+                console.log("✓ Returning JSON response for brand analytics (isAPIRequest returned true)");
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...metrics
+                });
+            }
+
+            console.log("✗ Rendering HTML for brand analytics (browser navigation)");
+
+            // Render HTML for page requests
             const chartData = {
                 brandGrowthData: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr'],
@@ -472,6 +695,44 @@ const AnalyticsController = {
             });
         } catch (error) {
             console.error('Error in getBrandAnalytics:', error);
+            // Helper function to detect API requests (same logic as above)
+            const isAPIRequest = (req) => {
+                if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                    return true;
+                }
+                if (req.xhr) {
+                    return true;
+                }
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0];
+                if (pathOnly.startsWith('/api/')) {
+                    return true;
+                }
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                    return true;
+                }
+                const origin = req.headers.origin || '';
+                const referer = req.headers.referer || '';
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+                const adminAnalyticsRoutes = [
+                    '/admin/brand-analytics', '/brand-analytics',
+                    '/admin/influencer-analytics', '/influencer-analytics',
+                    '/admin/campaign-analytics', '/campaign-analytics'
+                ];
+                return adminAnalyticsRoutes.some(route => pathOnly === route || pathOnly.startsWith(route + '/'));
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load brand analytics',
+                    message: error.message
+                });
+            }
             res.render('admin/analytics/brand-analytics', {
                 metrics: null,
                 error: 'Failed to load brand analytics'
@@ -482,8 +743,118 @@ const AnalyticsController = {
     getInfluencerAnalytics: async (req, res) => {
         try {
             console.log("Fetching influencer analytics...");
+
+            // Helper function to detect API requests
+            // For analytics routes, default to API request unless explicitly requesting HTML
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                // Analytics routes - default to API unless explicitly requesting HTML
+                const analyticsRoutes = [
+                    '/admin/brand-analytics', '/brand-analytics',
+                    '/admin/influencer-analytics', '/influencer-analytics',
+                    '/admin/campaign-analytics', '/campaign-analytics'
+                ];
+
+                const isAnalyticsRoute = analyticsRoutes.some(route =>
+                    pathOnly === route.toLowerCase() || pathOnly.startsWith(route.toLowerCase() + '/')
+                );
+
+                if (isAnalyticsRoute) {
+                    // Only treat as page request if explicitly requesting HTML and NOT JSON
+                    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+                        return false;
+                    }
+                    // Default to API request for analytics routes
+                    return true;
+                }
+
+                // For other routes, check standard API indicators
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return false;
+            };
+
             const metrics = await AdminModel.AnalyticsModel.getInfluencerAnalytics();
             console.log("Metrics received:", metrics);
+
+            const performanceData = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                engagement: [4.2, 4.5, 4.8, 4.3, 5.1, 5.4],
+                collaborations: [45, 52, 48, 61, 58, 67],
+                reach: [125000, 142000, 138000, 156000, 162000, 178000]
+            };
+
+            const categoryBreakdown = [
+                { name: 'Fashion & Beauty', percentage: 35, count: 450 },
+                { name: 'Technology', percentage: 25, count: 320 },
+                { name: 'Lifestyle', percentage: 20, count: 260 },
+                { name: 'Food & Travel', percentage: 15, count: 195 },
+                { name: 'Fitness', percentage: 5, count: 65 }
+            ];
+
+            const engagementTrends = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                instagram: [4.2, 4.5, 4.8, 4.3, 5.1, 5.4],
+                youtube: [3.8, 4.1, 3.9, 4.4, 4.7, 4.9],
+                tiktok: [6.5, 7.2, 7.8, 7.1, 8.2, 8.6]
+            };
+
+            const followerGrowth = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                totalFollowers: [2.1, 2.3, 2.5, 2.7, 2.9, 3.2],
+                monthlyGrowth: [8.5, 12.3, 9.8, 11.2, 7.4, 10.1]
+            };
+
+            const topInfluencers = [
+                { name: 'Sarah Johnson', engagement: 8.5, followers: 125000 },
+                { name: 'Mike Chen', engagement: 7.2, followers: 98000 },
+                { name: 'Emma Davis', engagement: 6.8, followers: 156000 },
+                { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000 },
+                { name: 'Lisa Wang', engagement: 7.9, followers: 142000 }
+            ];
+
+            const analyticsData = {
+                ...metrics,
+                performanceData,
+                categoryBreakdown,
+                engagementTrends,
+                followerGrowth,
+                topInfluencers
+            };
+
+            if (!metrics) {
+                throw new Error('No metrics data received');
+            }
+
+            // Check if this is an API request
+            const isAPI = isAPIRequest(req);
+            console.log("Final decision: isAPIRequest =", isAPI);
+
+            if (isAPI) {
+                console.log("Returning JSON response for influencer analytics");
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...analyticsData
+                });
+            }
+
+            console.log("Rendering HTML for influencer analytics");
+
+            // Render HTML for page requests
             const performance_analytic = {
                 performanceChartData: {
                     labels: ['January', 'February', 'March', 'April', 'May'],
@@ -513,18 +884,51 @@ const AnalyticsController = {
                 }
             };
 
-
-            if (!metrics) {
-                throw new Error('No metrics data received');
-            }
-
             res.render('admin/analytics/influencer-analytics', {
-                metrics,
+                metrics: analyticsData,
                 error: null,
                 performance_analytic
             });
         } catch (error) {
             console.error('Error in getInfluencerAnalytics:', error);
+            // Helper function to detect API requests (same logic as above)
+            const isAPIRequest = (req) => {
+                if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                    return true;
+                }
+                if (req.xhr) {
+                    return true;
+                }
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0];
+                if (pathOnly.startsWith('/api/')) {
+                    return true;
+                }
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                    return true;
+                }
+                const origin = req.headers.origin || '';
+                const referer = req.headers.referer || '';
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+                const adminAnalyticsRoutes = [
+                    '/admin/brand-analytics', '/brand-analytics',
+                    '/admin/influencer-analytics', '/influencer-analytics',
+                    '/admin/campaign-analytics', '/campaign-analytics'
+                ];
+                return adminAnalyticsRoutes.some(route => pathOnly === route || pathOnly.startsWith(route + '/'));
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load influencer analytics',
+                    message: error.message
+                });
+            }
             res.render('admin/analytics/influencer-analytics', {
                 metrics: null,
                 error: 'Failed to load influencer analytics'
@@ -535,6 +939,50 @@ const AnalyticsController = {
     getCampaignAnalytics: async (req, res) => {
         try {
             console.log("Fetching campaign analytics...");
+
+            // Helper function to detect API requests
+            // For analytics routes, default to API request unless explicitly requesting HTML
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                // Analytics routes - default to API unless explicitly requesting HTML
+                const analyticsRoutes = [
+                    '/admin/brand-analytics', '/brand-analytics',
+                    '/admin/influencer-analytics', '/influencer-analytics',
+                    '/admin/campaign-analytics', '/campaign-analytics'
+                ];
+
+                const isAnalyticsRoute = analyticsRoutes.some(route =>
+                    pathOnly === route.toLowerCase() || pathOnly.startsWith(route.toLowerCase() + '/')
+                );
+
+                if (isAnalyticsRoute) {
+                    // Only treat as page request if explicitly requesting HTML and NOT JSON
+                    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+                        return false;
+                    }
+                    // Default to API request for analytics routes
+                    return true;
+                }
+
+                // For other routes, check standard API indicators
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return false;
+            };
+
             const metrics = await AdminModel.AnalyticsModel.getCampaignAnalytics();
             console.log("Metrics received:", metrics);
 
@@ -545,28 +993,87 @@ const AnalyticsController = {
 
             // Static data for Engagement Trends
             const engagementTrendsData = {
-                labels: ['January', 'February', 'March', 'April', 'May'],
-                engagementRates: [25, 30, 28, 35, 40], // Mock values
-                reach: [1000, 1500, 1300, 1700, 2000]  // Mock values
+                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                engagementRates: [25, 30, 28, 35, 40, 42], // Mock values
+                reach: [1000, 1500, 1300, 1700, 2000, 2200]  // Mock values
             };
 
+            const topCampaigns = [
+                { name: 'Summer Collection Launch', brand: 'Fashion Brand', startDate: '2024-01-15', endDate: '2024-02-15', status: 'Completed', engagementRate: 8.5 },
+                { name: 'Tech Product Review', brand: 'Tech Company', startDate: '2024-02-01', endDate: '2024-02-28', status: 'Active', engagementRate: 7.2 },
+                { name: 'Fitness Challenge', brand: 'Fitness Brand', startDate: '2024-01-20', endDate: '2024-03-20', status: 'Active', engagementRate: 9.1 }
+            ];
+
+            const analyticsData = {
+                ...metrics,
+                campaignTypesData,
+                engagementTrendsData,
+                topCampaigns
+            };
 
             if (!metrics) {
                 throw new Error('No metrics data received');
             }
 
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...analyticsData
+                });
+            }
+
+            // Render HTML for page requests
             res.render('admin/analytics/campaign-analytics', {
-                metrics,
+                metrics: analyticsData,
                 camp: {
                     campaignTypesData,
                     engagementTrendsData,
                 },
                 error: null,
-
             });
 
         } catch (error) {
-            console.error('Error in getCustomerAnalytics:', error);
+            console.error('Error in getCampaignAnalytics:', error);
+            // Helper function to detect API requests (same logic as above)
+            const isAPIRequest = (req) => {
+                if (req.headers.accept && req.headers.accept.includes('application/json')) {
+                    return true;
+                }
+                if (req.xhr) {
+                    return true;
+                }
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0];
+                if (pathOnly.startsWith('/api/')) {
+                    return true;
+                }
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+                    return true;
+                }
+                const origin = req.headers.origin || '';
+                const referer = req.headers.referer || '';
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+                const adminAnalyticsRoutes = [
+                    '/admin/brand-analytics', '/brand-analytics',
+                    '/admin/influencer-analytics', '/influencer-analytics',
+                    '/admin/campaign-analytics', '/campaign-analytics'
+                ];
+                return adminAnalyticsRoutes.some(route => pathOnly === route || pathOnly.startsWith(route + '/'));
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load campaign analytics',
+                    message: error.message
+                });
+            }
             res.render('admin/analytics/campaign-analytics', {
                 metrics: null,
                 error: 'Failed to load campaign analytics'
@@ -580,15 +1087,63 @@ const AnalyticsController = {
 const FeedbackController = {
     async getAllFeedback(req, res) {
         try {
+            // Helper function to detect API requests
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return pathOnly === '/admin/feedback_and_moderation' || pathOnly === '/feedback_and_moderation';
+            };
+
             const feedbacks = await FeedbackModel.getAllFeedback();
+            const data = { feedbacks: feedbacks || [] };
+
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render HTML for page requests
             res.render("admin/feedback_and_moderation", {
-                feedbacks: feedbacks || [],
+                ...data,
                 user: {
                     name: 'Admin User'
                 }
             });
         } catch (error) {
             console.error("Error fetching feedback:", error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    req.xhr ||
+                    (req.originalUrl || req.url || '').includes('/feedback_and_moderation');
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load feedback',
+                    message: error.message
+                });
+            }
+
             res.render("admin/feedback_and_moderation", {
                 feedbacks: [],
                 user: {
@@ -628,6 +1183,43 @@ const FeedbackController = {
 const UserManagementController = {
     async getUserManagementPage(req, res) {
         try {
+            // Helper function to detect API requests
+            // For user_management route, default to API request unless explicitly requesting HTML
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+                
+                // Check if this is the user_management route
+                const isUserManagementRoute = pathOnly === '/admin/user_management' || 
+                                             pathOnly === '/user_management' ||
+                                             pathOnly.includes('user_management');
+                
+                if (isUserManagementRoute) {
+                    // Only treat as page request if explicitly requesting HTML and NOT JSON
+                    if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+                        return false;
+                    }
+                    // Default to API request for user_management routes
+                    return true;
+                }
+                
+                // Standard API detection for other routes
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+                
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+                
+                return false;
+            };
+
             let influencers = await AdminModel.UserManagementModel.getInfluencers();
             let brands = await AdminModel.UserManagementModel.getBrands();
 
@@ -658,17 +1250,46 @@ const UserManagementController = {
             const userTypeRequests = [];
             const profileSuggestions = [];
 
-            res.render("admin/user_management", {
+            const data = {
                 influencers,
                 brands,
                 flaggedContent,
                 suspiciousUsers,
                 userTypeRequests,
-                profileSuggestions,
+                profileSuggestions
+            };
+
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render HTML for page requests
+            res.render("admin/user_management", {
+                ...data,
                 user: res.locals.user || { name: 'Admin User' }
             });
         } catch (error) {
             console.error("Error in getUserManagementPage:", error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    req.xhr ||
+                    (req.originalUrl || req.url || '').includes('/user_management');
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load user management data',
+                    message: error.message
+                });
+            }
+
             res.render("admin/user_management", {
                 influencers: [],
                 brands: [],
@@ -734,6 +1355,27 @@ const UserManagementController = {
 const PaymentController = {
     async getAllPayments(req, res) {
         try {
+            // Helper function to detect API requests
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return pathOnly === '/admin/payment_verification' || pathOnly === '/payment_verification';
+            };
+
             let payments = await AdminModel.PaymentModel.getAllPayments();
 
             // Map payments to ensure brand and influencer names are correctly set
@@ -743,12 +1385,39 @@ const PaymentController = {
                 influencer: payment.influencer || ''
             }));
 
+            const data = { payments };
+
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render HTML for page requests
             res.render("admin/payment_verification", {
-                payments,
+                ...data,
                 user: res.locals.user || { name: 'Admin User' }
             });
         } catch (error) {
             console.error("Error fetching payments:", error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    req.xhr ||
+                    (req.originalUrl || req.url || '').includes('/payment_verification');
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load payments',
+                    message: error.message
+                });
+            }
+
             res.render("admin/payment_verification", {
                 payments: [],
                 user: res.locals.user || { name: 'Admin User' },
@@ -885,15 +1554,65 @@ const CustomerController = {
                 }
             };
 
-            res.render('admin/customer_management', {
+            const data = {
                 customers,
                 topCustomers,
                 recentCustomers,
-                analytics,
+                analytics
+            };
+
+            // Helper function to detect API requests
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return pathOnly === '/admin/customer-management' || pathOnly === '/customer-management';
+            };
+
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render HTML for page requests
+            res.render('admin/customer_management', {
+                ...data,
                 user: res.locals.user || { name: 'Admin User' }
             });
         } catch (error) {
             console.error('Error fetching customer management data:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    req.xhr ||
+                    (req.originalUrl || req.url || '').includes('/customer-management');
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load customer data',
+                    message: error.message
+                });
+            }
+
             res.render('admin/customer_management', {
                 customers: [],
                 topCustomers: [],
@@ -1053,6 +1772,27 @@ const CustomerController = {
 const CollaborationController = {
     async getAllCollaborations(req, res) {
         try {
+            // Helper function to detect API requests
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                const fullPath = req.originalUrl || req.url || req.path || '';
+                const pathOnly = fullPath.split('?')[0].toLowerCase();
+
+                if (acceptHeader.includes('application/json')) return true;
+                if (req.xhr) return true;
+                if (pathOnly.startsWith('/api/')) return true;
+                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
+
+                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
+                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
+                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+                    return true;
+                }
+
+                return pathOnly === '/admin/collaboration_monitoring' || pathOnly === '/collaboration_monitoring';
+            };
+
             let collaborations = await AdminModel.CollaborationModel.getAllCollaborations();
 
             // Map collaborations to ensure brand and influencer names are correctly set
@@ -1065,12 +1805,39 @@ const CollaborationController = {
                 }))
             }));
 
+            const data = { collaborations };
+
+            // Check if this is an API request
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render HTML for page requests
             res.render("admin/collaboration_monitoring", {
-                collaborations,
+                ...data,
                 user: res.locals.user || { name: 'Admin User' }
             });
         } catch (error) {
             console.error("Error fetching collaborations:", error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    req.xhr ||
+                    (req.originalUrl || req.url || '').includes('/collaboration_monitoring');
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to load collaborations',
+                    message: error.message
+                });
+            }
+
             res.render("admin/collaboration_monitoring", {
                 collaborations: [],
                 user: res.locals.user || { name: 'Admin User' },
@@ -1096,4 +1863,175 @@ const CollaborationController = {
 
 // Make sure all controller functions/classes are closed above this line
 
-module.exports = { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController };
+// Helper function to generate notifications (can be called from dashboard or notification endpoint)
+const generateNotifications = async () => {
+    try {
+        // Get pending collaborations count
+        const pendingCollabs = await CampaignInfluencers.countDocuments({ status: 'pending' });
+
+        // Get pending payments count
+        const pendingPayments = await CampaignPayments.countDocuments({ status: 'pending' });
+
+        // Get new users count (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const brandCount = await BrandInfo.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+        const influencerCount = await InfluencerInfo.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+
+        // Generate notifications based on current data
+        const notifications = [];
+
+        if (pendingCollabs > 0) {
+            notifications.push({
+                id: 1,
+                type: 'collaboration',
+                title: 'New Collaboration Request',
+                message: `${pendingCollabs} collaboration request${pendingCollabs > 1 ? 's are' : ' is'} pending approval`,
+                timestamp: new Date(),
+                read: false,
+                priority: 'high'
+            });
+        }
+
+        if (pendingPayments > 0) {
+            notifications.push({
+                id: 2,
+                type: 'payment',
+                title: 'Payment Verification Needed',
+                message: `${pendingPayments} payment${pendingPayments > 1 ? 's require' : ' requires'} verification`,
+                timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+                read: false,
+                priority: 'medium'
+            });
+        }
+
+        if (brandCount + influencerCount > 0) {
+            notifications.push({
+                id: 3,
+                type: 'user',
+                title: 'New User Registrations',
+                message: `${brandCount + influencerCount} new user${brandCount + influencerCount > 1 ? 's' : ''} registered this month`,
+                timestamp: new Date(Date.now() - 7200000), // 2 hours ago
+                read: false,
+                priority: 'low'
+            });
+        }
+
+        // If no notifications, add a default one
+        if (notifications.length === 0) {
+            notifications.push({
+                id: 4,
+                type: 'info',
+                title: 'All caught up!',
+                message: 'No pending actions required',
+                timestamp: new Date(),
+                read: true,
+                priority: 'low'
+            });
+        }
+
+        return notifications;
+    } catch (error) {
+        console.error('Error generating notifications:', error);
+        return [];
+    }
+};
+
+// Notification Controller
+const NotificationController = {
+    // Get all notifications for the admin
+    async getNotifications(req, res) {
+        try {
+            console.log('[DEBUG] NotificationController.getNotifications called:', {
+                method: req.method,
+                path: req.path,
+                originalUrl: req.originalUrl,
+                url: req.url,
+                baseUrl: req.baseUrl,
+                headers: {
+                    accept: req.headers.accept,
+                    origin: req.headers.origin,
+                    referer: req.headers.referer
+                }
+            });
+
+            // Generate notifications using the helper function
+            const notifications = await generateNotifications();
+
+            // This endpoint should always return JSON (it's an API endpoint)
+            res.setHeader('Content-Type', 'application/json');
+            return res.status(200).json({
+                success: true,
+                notifications: notifications || []
+            });
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
+                    req.xhr ||
+                    (req.originalUrl || req.url || '').includes('/notifications');
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to fetch notifications',
+                    message: error.message
+                });
+            }
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch notifications'
+            });
+        }
+    },
+
+    // Mark all notifications as read
+    async markAllAsRead(req, res) {
+        try {
+            // Check if this is an API request
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
+                return acceptHeader.includes('application/json') || req.xhr;
+            };
+
+            // In a real application, you would update the database here
+            // For now, we'll just return success since notifications are generated dynamically
+            // and the read state is managed on the frontend
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    message: 'All notifications marked as read'
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'All notifications marked as read'
+            });
+        } catch (error) {
+            console.error('Error marking notifications as read:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) || req.xhr;
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to mark notifications as read',
+                    message: error.message
+                });
+            }
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to mark notifications as read'
+            });
+        }
+    }
+};
+
+module.exports = { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController };

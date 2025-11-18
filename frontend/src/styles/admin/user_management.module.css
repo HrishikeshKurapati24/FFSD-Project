@@ -1,0 +1,447 @@
+/* Container */
+.container {
+    padding: 20px;
+}
+
+.container h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+}
+
+.tabButton {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.tabButton:hover {
+    color: #007bff;
+}
+
+.tabButton.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+}
+
+.tabContent {
+    padding: 20px 0;
+}
+
+.tabContent h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.tabContent h3 {
+    font-size: 20px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.tabContent table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.tabContent table th,
+.tabContent table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.tabContent table th {
+    background-color: #f4f4f4;
+    font-weight: 600;
+}
+
+/* Modal Styles */
+.modal {
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modalContent {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    position: relative;
+}
+
+.closeModal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+.closeModal:hover {
+    color: black;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.btnViewProfile {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.btnViewProfile:hover {
+    background-color: #0056b3;
+}
+
+.btnSecondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btnSecondary:hover {
+    background-color: #545b62;
+}
+
+.btnApprove {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btnApprove:hover {
+    background-color: #218838;
+}
+
+/* Profile Content Styles */
+.profileSection {
+    margin-bottom: 20px;
+}
+
+.profileSection h3 {
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.profileField {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.profileField label {
+    font-weight: bold;
+    width: 150px;
+    color: #555;
+}
+
+.profileField span {
+    color: #333;
+}
+
+.verifiedBadge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}
+
+.unverifiedBadge {
+    background-color: #ffc107;
+    color: black;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}
+
+/* Flagged Content Styles */
+.flaggedContentGrid {
+    display: grid;
+    gap: 15px;
+}
+
+.flaggedItem {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.flaggedHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.flaggedHeader h4 {
+    margin: 0;
+    color: #333;
+}
+
+.flaggedHeader h4 i {
+    color: #dc3545;
+    margin-right: 8px;
+}
+
+.severityBadge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.severityLow {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.severityMedium {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.severityHigh {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.severityCritical {
+    background-color: #f5c6cb;
+    color: #721c24;
+}
+
+.flaggedDetails p {
+    margin: 5px 0;
+}
+
+.contentPreview {
+    background: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    max-height: 100px;
+    overflow: hidden;
+}
+
+.flaggedActions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btnAction {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+}
+
+.btnView {
+    background: #007bff;
+    color: white;
+}
+
+.btnView:hover {
+    background: #0056b3;
+}
+
+.btnRemove {
+    background: #dc3545;
+    color: white;
+}
+
+.btnRemove:hover {
+    background: #c82333;
+}
+
+.btnWarn {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btnWarn:hover {
+    background: #e0a800;
+}
+
+/* Suspicious Activity Styles */
+.suspiciousActivityGrid {
+    display: grid;
+    gap: 15px;
+}
+
+.suspiciousItem {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background: #fff8e1;
+}
+
+.suspiciousHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.suspiciousHeader h4 {
+    margin: 0;
+    color: #333;
+}
+
+.suspiciousHeader h4 i {
+    color: #ff9800;
+    margin-right: 8px;
+}
+
+.riskBadge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.riskLow {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.riskMedium {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.riskHigh {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.riskCritical {
+    background-color: #f5c6cb;
+    color: #721c24;
+}
+
+.suspiciousDetails p {
+    margin: 5px 0;
+}
+
+.suspiciousActions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btnInvestigate {
+    background: #17a2b8;
+    color: white;
+}
+
+.btnInvestigate:hover {
+    background: #138496;
+}
+
+.btnSuspend {
+    background: #dc3545;
+    color: white;
+}
+
+.btnSuspend:hover {
+    background: #c82333;
+}
+
+.btnWhitelist {
+    background: #28a745;
+    color: white;
+}
+
+.btnWhitelist:hover {
+    background: #218838;
+}
+
+/* General Styles */
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.noDataMessage {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.noDataMessage i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #28a745;
+}
+
+.noDataMessage p {
+    margin: 5px 0;
+}
+
+.noDataMessage p:last-child {
+    font-size: 0.9em;
+    color: #999;
+}

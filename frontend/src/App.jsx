@@ -9,6 +9,20 @@ import BrandSignup from './pages/BrandSignup';
 import SelectPlan from './pages/subscription/SelectPlan';
 import Payment from './pages/subscription/Payment';
 import PaymentSuccess from './pages/subscription/PaymentSuccess';
+import Dashboard from './pages/admin/Dashboard';
+import BrandAnalytics from './pages/admin/analytics/BrandAnalytics';
+import CampaignAnalytics from './pages/admin/analytics/CampaignAnalytics';
+import InfluencerAnalytics from './pages/admin/analytics/InfluencerAnalytics';
+import FeedbackAndModeration from './pages/admin/FeedbackAndModeration';
+import PaymentVerification from './pages/admin/PaymentVerification';
+import Settings from './pages/admin/Settings';
+import UserManagement from './pages/admin/UserManagement';
+import CustomerManagement from './pages/admin/CustomerManagement';
+import CollaborationMonitoring from './pages/admin/CollaborationMonitoring';
+import Login from './pages/admin/Login';
+
+
+
 import Dashboard from './pages/influencer/Dashboard';
 import Campaigns from './pages/influencer/Campaigns';
 import CampaignDetails from './pages/influencer/CampaignDetails';
@@ -32,6 +46,17 @@ function App() {
           <Route path="/subscription/select-plan" element={<SelectPlan />} />
           <Route path="/subscription/payment" element={<Payment />} />
           <Route path="/subscription/payment-success" element={<PaymentSuccess />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
+          <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />
+          <Route path="/admin/influencer-analytics" element={<InfluencerAnalytics />} />
+          <Route path="/admin/feedback_and_moderation" element={<FeedbackAndModeration />} />
+          <Route path='/admin/collaboration_monitoring' element={<CollaborationMonitoring />} />
+          <Route path="/admin/user_management" element={<UserManagement />} />
+          <Route path="/admin/customer-management" element={<CustomerManagement />} />
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin/payment_verification" element={<PaymentVerification />} />
+          <Route path="/admin/settings" element={<Settings />} />
           {/* Influencer Routes */}
           <Route path="/influencer/home" element={<Dashboard />} />
           <Route path="/influencer/campaigns" element={<Campaigns />} />
