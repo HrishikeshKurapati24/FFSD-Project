@@ -1,0 +1,157 @@
+/* Scoped to .influencer-analytics-page */
+.influencerAnalyticsPage * {
+    box-sizing: border-box;
+  }
+  
+  .influencerAnalyticsPage {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  .errorAlert {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .analyticsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .analyticsHeader h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .dateFilter select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  
+  .metricsOverview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .metricCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+  }
+  
+  .metricCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .metricCard h3 {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .metricValue {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  .chartsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .chartCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .chartCard h3 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: #2c3e50;
+  }
+  
+  .categoryDistribution {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .categoryDistribution h3 {
+    margin: 0 0 1.5rem;
+    font-size: 1.3rem;
+    color: #2c3e50;
+  }
+  
+  .categoryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .categoryCard {
+    background: #f8f9fa;
+    padding: 1.25rem;
+    border-radius: 10px;
+    border-left: 4px solid #2196F3;
+  }
+  
+  .categoryCard h4 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  .categoryStats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+  }
+  
+  .label {
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  .value {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  .noDataMessage {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    font-size: 1.1rem;
+  }

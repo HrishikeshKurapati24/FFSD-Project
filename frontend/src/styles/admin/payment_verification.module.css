@@ -1,0 +1,189 @@
+/* Payment Verification Section */
+.paymentVerification {
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+.paymentVerification h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.filters button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+}
+
+.filters button:hover {
+    background-color: #0056b3;
+}
+
+/* Transaction Table */
+.paymentTable {
+    width: 100%;
+}
+
+.paymentTable table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.paymentTable th,
+.paymentTable td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.paymentTable th {
+    background-color: #f4f4f4;
+}
+
+.status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status.approved {
+    background-color: #e8f5e9;
+    color: #28a745;
+}
+
+.status.rejected {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+.status.failed {
+    background-color: #f8d7da;
+    color: #dc3545;
+}
+
+.btnAction {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+.btnView {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.btnView:hover {
+    background-color: #0056b3;
+}
+
+.btnApprove {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.btnApprove:hover {
+    background-color: #218838;
+}
+
+.btnReject {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.btnReject:hover {
+    background-color: #c82333;
+}
+
+/* Modal */
+.modal {
+    display: flex;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modalContent {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    width: 50%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+    font-weight: bold;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modalDetails {
+    margin: 20px 0;
+}
+
+.modalDetails p {
+    margin: 10px 0;
+}
+
+.modalActions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.noDataMessage {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.noDataMessage p {
+    font-size: 18px;
+}

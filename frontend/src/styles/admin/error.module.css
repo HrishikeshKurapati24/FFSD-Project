@@ -1,0 +1,19 @@
+.errorContainer {
+    text-align: center;
+    padding: 50px;
+}
+
+.errorCode {
+    font-size: 72px;
+    color: #dc3545;
+}
+
+.errorMessage {
+    font-size: 24px;
+    margin: 20px 0;
+}
+
+.backLink {
+    color: #007bff;
+    text-decoration: none;
+}
