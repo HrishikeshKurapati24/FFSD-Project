@@ -381,7 +381,11 @@ const InfluencerSignup = () => {
 
             setTimeout(() => {
                 if (result.redirectTo) {
-                    window.location.href = result.redirectTo;
+                    // Extract path from redirectTo URL if it's a full URL
+                    const redirectPath = result.redirectTo.startsWith('http')
+                        ? new URL(result.redirectTo).pathname + new URL(result.redirectTo).search
+                        : result.redirectTo;
+                    navigate(redirectPath);
                 } else {
                     navigate('/signin');
                 }

@@ -83,69 +83,70 @@
                     <i class="fas fa-info-circle"></i>
                     <span>We found your previous payment details. Fields have been pre-filled to save you time!</span>
                 </div>
-            <% } %>
+                <% } %>
 
-            <div class="error-message" id="errorMessage"></div>
+                    <div class="error-message" id="errorMessage"></div>
 
-            <form id="paymentForm">
-                <div class="form-group">
-                    <label for="cardNumber">Card Number</label>
-                    <input type="text" id="cardNumber" name="cardNumber" class="form-control"
-                        placeholder="1234 5678 9012 3456" maxlength="19"
-                        value="<%= lastPaymentDetails && lastPaymentDetails.cardNumber ? lastPaymentDetails.cardNumber : '' %>"
-                        required>
-                    <% if (lastPaymentDetails && lastPaymentDetails.cardNumber) { %>
-                        <small class="form-hint">
-                            <i class="fas fa-check-circle"></i> Auto-filled from your last payment
-                        </small>
-                    <% } %>
-                </div>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label for="cardNumber">Card Number</label>
+                            <input type="text" id="cardNumber" name="cardNumber" class="form-control"
+                                placeholder="1234 5678 9012 3456" maxlength="19"
+                                value="<%= lastPaymentDetails && lastPaymentDetails.cardNumber ? lastPaymentDetails.cardNumber : '' %>"
+                                required>
+                            <% if (lastPaymentDetails && lastPaymentDetails.cardNumber) { %>
+                                <small class="form-hint">
+                                    <i class="fas fa-check-circle"></i> Auto-filled from your last payment
+                                </small>
+                                <% } %>
+                        </div>
 
-                <div class="form-group">
-                    <label for="cardName">Cardholder Name</label>
-                    <input type="text" id="cardName" name="cardName" class="form-control" placeholder="John Doe"
-                        value="<%= lastPaymentDetails && lastPaymentDetails.cardName ? lastPaymentDetails.cardName : '' %>"
-                        required>
-                </div>
+                        <div class="form-group">
+                            <label for="cardName">Cardholder Name</label>
+                            <input type="text" id="cardName" name="cardName" class="form-control" placeholder="John Doe"
+                                value="<%= lastPaymentDetails && lastPaymentDetails.cardName ? lastPaymentDetails.cardName : '' %>"
+                                required>
+                        </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="expiryDate">Expiry Date</label>
-                        <input type="text" id="expiryDate" name="expiryDate" class="form-control" placeholder="MM/YY"
-                            maxlength="5"
-                            value="<%= lastPaymentDetails && lastPaymentDetails.expiryDate ? lastPaymentDetails.expiryDate : '' %>"
-                            required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expiryDate">Expiry Date</label>
+                                <input type="text" id="expiryDate" name="expiryDate" class="form-control"
+                                    placeholder="MM/YY" maxlength="5"
+                                    value="<%= lastPaymentDetails && lastPaymentDetails.expiryDate ? lastPaymentDetails.expiryDate : '' %>"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" name="cvv" class="form-control" placeholder="123"
+                                    maxlength="4" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="billingAddress">Billing Address</label>
+                            <input type="text" id="billingAddress" name="billingAddress" class="form-control"
+                                placeholder="123 Main St, City, State, ZIP"
+                                value="<%= lastPaymentDetails && lastPaymentDetails.billingAddress ? lastPaymentDetails.billingAddress : '' %>"
+                                required>
+                        </div>
+
+                        <div class="security-info">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Your payment information is encrypted and secure. We never store your card
+                                details.</span>
+                        </div>
+
+                        <button type="submit" class="payment-btn" id="paymentBtn">
+                            <i class="fas fa-lock"></i> Complete Payment - $<%= billingCycle==='monthly' ?
+                                selectedPlan.price.monthly : selectedPlan.price.yearly %>
+                        </button>
+                    </form>
+
+                    <div class="loading" id="loadingDiv">
+                        <div class="spinner"></div>
+                        <p>Processing your payment...</p>
                     </div>
-                    <div class="form-group">
-                        <label for="cvv">CVV</label>
-                        <input type="text" id="cvv" name="cvv" class="form-control" placeholder="123" maxlength="4"
-                            required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="billingAddress">Billing Address</label>
-                    <input type="text" id="billingAddress" name="billingAddress" class="form-control"
-                        placeholder="123 Main St, City, State, ZIP"
-                        value="<%= lastPaymentDetails && lastPaymentDetails.billingAddress ? lastPaymentDetails.billingAddress : '' %>"
-                        required>
-                </div>
-
-                <div class="security-info">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Your payment information is encrypted and secure. We never store your card details.</span>
-                </div>
-
-                <button type="submit" class="payment-btn" id="paymentBtn">
-                    <i class="fas fa-lock"></i> Complete Payment - $<%= billingCycle==='monthly' ?
-                        selectedPlan.price.monthly : selectedPlan.price.yearly %>
-                </button>
-            </form>
-
-            <div class="loading" id="loadingDiv">
-                <div class="spinner"></div>
-                <p>Processing your payment...</p>
-            </div>
         </div>
     </div>
 
@@ -277,13 +278,13 @@
             const currentDate = new Date();
             const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
             const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits of year
-            
+
             // Check if month is valid (1-12)
             if (month < 1 || month > 12) {
                 showError('Please enter a valid month (01-12)');
                 return false;
             }
-            
+
             // Check if card is expired
             if (year < currentYear || (year === currentYear && month < currentMonth)) {
                 showError('Card expiry date must be in the future');

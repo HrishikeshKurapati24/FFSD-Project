@@ -6,6 +6,9 @@ import RoleSelection from './pages/landing/RoleSelection';
 import Signin from './pages/landing/Signin';
 import InfluencerSignup from './pages/InfluencerSignup';
 import BrandSignup from './pages/BrandSignup';
+import SelectPlan from './pages/subscription/SelectPlan';
+import Payment from './pages/subscription/Payment';
+import PaymentSuccess from './pages/subscription/PaymentSuccess';
 import Dashboard from './pages/admin/Dashboard';
 import BrandAnalytics from './pages/admin/analytics/BrandAnalytics';
 import CampaignAnalytics from './pages/admin/analytics/CampaignAnalytics';
@@ -33,6 +36,9 @@ function App() {
           <Route path="/signin" element={<Signin />} />
           <Route path="/influencer/Signup" element={<InfluencerSignup />} />
           <Route path="/brand/Signup" element={<BrandSignup />} />
+          <Route path="/subscription/select-plan" element={<SelectPlan />} />
+          <Route path="/subscription/payment" element={<Payment />} />
+          <Route path="/subscription/payment-success" element={<PaymentSuccess />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
           <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />
