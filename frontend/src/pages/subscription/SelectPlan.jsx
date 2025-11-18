@@ -106,7 +106,7 @@ const SelectPlan = () => {
             alert('An error occurred while subscribing');
         } finally {
             setIsSubmitting(false);
-        }
+    }
     };
 
     if (loading) {
@@ -174,7 +174,7 @@ const SelectPlan = () => {
                                 checked={billingCycle === 'monthly'}
                                 onChange={handleBillingChange}
                             />
-                            <span>Monthly</span>
+                                <span>Monthly</span>
                         </label>
                         <label className={styles['toggle-switch']}>
                             <input 
@@ -206,25 +206,25 @@ const SelectPlan = () => {
                                         <span className={styles['yearly-price']} style={{ display: billingCycle === 'yearly' ? 'block' : 'none' }}>
                                             ${plan.price.yearly}<span>/year</span>
                                         </span>
-                                    </div>
-                                </div>
-
+                                        </div>
+                            </div>
+    
                                 <div className={styles['plan-description']}>
                                     <p>{plan.description}</p>
-                                </div>
-
+                            </div>
+    
                                 <div className={styles['plan-features']}>
-                                    <ul>
+                                <ul>
                                         {userType === 'brand' ? (
                                             <>
                                                 <li>
                                                     <i className="fas fa-check"></i>
                                                     {plan.features.maxCampaigns === -1 ? 'Unlimited' : plan.features.maxCampaigns} Campaigns
-                                                </li>
+                                        </li>
                                                 <li>
                                                     <i className="fas fa-check"></i>
                                                     {plan.features.maxInfluencers === -1 ? 'Unlimited' : plan.features.maxInfluencers} Influencer Connections
-                                                </li>
+                                        </li>
                                             </>
                                         ) : (
                                             <li>
@@ -247,17 +247,17 @@ const SelectPlan = () => {
                                         {plan.features.apiAccess && (
                                             <li><i className="fas fa-check"></i> API Access</li>
                                         )}
-                                    </ul>
-                                </div>
-
+                                </ul>
+                            </div>
+    
                                 <button 
                                     className={styles['subscribe-btn']}
                                     onClick={() => handleSubscribe(plan._id)}
                                     disabled={isSubmitting}
                                 >
                                     Choose {plan.name}
-                                </button>
-                            </div>
+                            </button>
+                        </div>
                         ))}
                     </div>
                 </div>

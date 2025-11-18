@@ -57,7 +57,7 @@ const Payment = () => {
                 if (data.success) {
                     setSelectedPlan(data.selectedPlan);
                     setLastPaymentDetails(data.lastPaymentDetails);
-                    
+
                     // Pre-fill form if last payment details exist
                     if (data.lastPaymentDetails) {
                         setFormData({
@@ -88,16 +88,16 @@ const Payment = () => {
     };
 
     const handleCardNumberChange = (e) => {
-        let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+    let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
         setFormData(prev => ({ ...prev, cardNumber: formattedValue }));
     };
 
     const handleExpiryDateChange = (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) {
-            value = value.substring(0, 2) + '/' + value.substring(2, 4);
-        }
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
         setFormData(prev => ({ ...prev, expiryDate: value }));
     };
 
@@ -146,69 +146,69 @@ const Payment = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
         setError('');
 
-        if (!validateForm()) {
-            return;
-        }
+    if (!validateForm()) {
+        return;
+    }
 
         setIsSubmitting(true);
         setShowForm(false);
 
-        try {
+    try {
             const amount = billingCycle === 'monthly' 
                 ? selectedPlan.price.monthly 
                 : selectedPlan.price.yearly;
 
-            const cardData = {
+        const cardData = {
                 cardNumber: formData.cardNumber.replace(/\s/g, ''),
                 cardName: formData.cardName,
                 expiryDate: formData.expiryDate,
                 cvv: formData.cvv,
                 billingAddress: formData.billingAddress
-            };
+        };
 
             const response = await fetch(`${API_BASE_URL}/subscription/process-payment`, {
-                method: 'POST',
+            method: 'POST',
                 credentials: 'include',
-                headers: {
+            headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                },
-                body: JSON.stringify({
+            },
+            body: JSON.stringify({
                     userId,
                     userType,
                     planId,
                     billingCycle,
                     amount,
-                    cardData
-                })
-            });
+                cardData
+            })
+        });
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (result.success) {
-                setTimeout(() => {
-                    if (result.redirectTo) {
+        if (result.success) {
+            setTimeout(() => {
+                if (result.redirectTo) {
                         const redirectPath = result.redirectTo.startsWith('http')
                             ? new URL(result.redirectTo).pathname + new URL(result.redirectTo).search
                             : result.redirectTo;
                         navigate(redirectPath);
-                    } else {
-                        alert('Payment successful! Your subscription has been activated.');
+                } else {
+                    alert('Payment successful! Your subscription has been activated.');
                         navigate('/signin?message=subscription-success');
-                    }
-                }, 2000);
-            } else {
-                throw new Error(result.message || 'Payment failed');
-            }
-        } catch (error) {
-            console.error('Payment error:', error);
+                }
+            }, 2000);
+        } else {
+            throw new Error(result.message || 'Payment failed');
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
             setError(error.message || 'Payment failed. Please try again.');
             setShowForm(true);
             setIsSubmitting(false);
-        }
+    }
     };
 
     if (loading) {
@@ -243,11 +243,11 @@ const Payment = () => {
 
     if (!selectedPlan) {
         return null;
-    }
+}
 
     const amount = billingCycle === 'monthly' ? selectedPlan.price.monthly : selectedPlan.price.yearly;
 
-    return (
+return (
         <div className={styles['payment-page']}>
             <div className={styles['payment-container']}>
                 {/* Order Summary */}
@@ -257,11 +257,11 @@ const Payment = () => {
                     <div className={styles['plan-details']}>
                         <div className={styles['plan-name']}>
                             {selectedPlan.name} Plan
-                        </div>
+                </div>
                         <div className={styles['plan-price']}>
                             ${amount}
                             <span>/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
-                        </div>
+                </div>
 
                         <ul className={styles['plan-features']}>
                             {userType === 'brand' ? (
@@ -269,17 +269,17 @@ const Payment = () => {
                                     <li>
                                         <i className="fas fa-check"></i>
                                         {selectedPlan.features.maxCampaigns === -1 ? 'Unlimited' : selectedPlan.features.maxCampaigns} Campaigns
-                                    </li>
+                        </li>
                                     <li>
                                         <i className="fas fa-check"></i>
                                         {selectedPlan.features.maxInfluencers === -1 ? 'Unlimited' : selectedPlan.features.maxInfluencers} Influencer Connections
-                                    </li>
+                        </li>
                                 </>
                             ) : (
                                 <li>
                                     <i className="fas fa-check"></i>
                                     {selectedPlan.features.maxBrands === -1 ? 'Unlimited' : selectedPlan.features.maxBrands} Brand Connections
-                                </li>
+                            </li>
                             )}
                             {selectedPlan.features.analytics && (
                                 <li><i className="fas fa-check"></i> Basic Analytics</li>
@@ -290,24 +290,24 @@ const Payment = () => {
                             {selectedPlan.features.prioritySupport && (
                                 <li><i className="fas fa-check"></i> Priority Support</li>
                             )}
-                        </ul>
-                    </div>
+                </ul>
+            </div>
 
                     <div className={styles['total-section']}>
                         <div className={styles['total-row']}>
-                            <span>Subtotal:</span>
+                    <span>Subtotal:</span>
                             <span>${amount}</span>
-                        </div>
-                        <div className={styles['total-row']}>
-                            <span>Tax:</span>
-                            <span>$0.00</span>
-                        </div>
-                        <div className={`${styles['total-row']} ${styles.final}`}>
-                            <span>Total:</span>
-                            <span>${amount}</span>
-                        </div>
-                    </div>
                 </div>
+                        <div className={styles['total-row']}>
+                    <span>Tax:</span>
+                    <span>$0.00</span>
+                </div>
+                        <div className={`${styles['total-row']} ${styles.final}`}>
+                    <span>Total:</span>
+                            <span>${amount}</span>
+                </div>
+            </div>
+        </div>
 
                 {/* Payment Form */}
                 <div className={styles['payment-form']}>
@@ -320,15 +320,15 @@ const Payment = () => {
                         }}
                     >
                         <i className="fas fa-arrow-left"></i> Back to Plans
-                    </a>
+            </a>
 
                     <h2><i className="fas fa-credit-card"></i> Payment Details</h2>
 
                     {lastPaymentDetails && lastPaymentDetails.cardName && (
                         <div className={styles['saved-payment-info']}>
                             <i className="fas fa-info-circle"></i>
-                            <span>We found your previous payment details. Fields have been pre-filled to save you time!</span>
-                        </div>
+                    <span>We found your previous payment details. Fields have been pre-filled to save you time!</span>
+                </div>
                     )}
 
                     {error && (
@@ -355,9 +355,9 @@ const Payment = () => {
                                 {lastPaymentDetails && lastPaymentDetails.cardNumber && (
                                     <small className={styles['form-hint']}>
                                         <i className="fas fa-check-circle"></i> Auto-filled from your last payment
-                                    </small>
+                        </small>
                                 )}
-                            </div>
+                </div>
 
                             <div className={styles['form-group']}>
                                 <label htmlFor="cardName">Cardholder Name</label>
@@ -371,7 +371,7 @@ const Payment = () => {
                                     onChange={handleInputChange}
                                     required
                                 />
-                            </div>
+                </div>
 
                             <div className={styles['form-row']}>
                                 <div className={styles['form-group']}>
@@ -387,7 +387,7 @@ const Payment = () => {
                                         onChange={handleExpiryDateChange}
                                         required
                                     />
-                                </div>
+                    </div>
                                 <div className={styles['form-group']}>
                                     <label htmlFor="cvv">CVV</label>
                                     <input
@@ -401,8 +401,8 @@ const Payment = () => {
                                         onChange={handleCvvChange}
                                         required
                                     />
-                                </div>
-                            </div>
+                    </div>
+                </div>
 
                             <div className={styles['form-group']}>
                                 <label htmlFor="billingAddress">Billing Address</label>
@@ -411,17 +411,17 @@ const Payment = () => {
                                     id="billingAddress"
                                     name="billingAddress"
                                     className={styles['form-control']}
-                                    placeholder="123 Main St, City, State, ZIP"
+                        placeholder="123 Main St, City, State, ZIP"
                                     value={formData.billingAddress}
                                     onChange={handleInputChange}
                                     required
                                 />
-                            </div>
+                </div>
 
                             <div className={styles['security-info']}>
                                 <i className="fas fa-shield-alt"></i>
-                                <span>Your payment information is encrypted and secure. We never store your card details.</span>
-                            </div>
+                    <span>Your payment information is encrypted and secure. We never store your card details.</span>
+                </div>
 
                             <button 
                                 type="submit" 
@@ -429,18 +429,18 @@ const Payment = () => {
                                 disabled={isSubmitting}
                             >
                                 <i className="fas fa-lock"></i> Complete Payment - ${amount}
-                            </button>
-                        </form>
+                </button>
+            </form>
                     ) : (
                         <div className={styles.loading}>
                             <div className={styles.spinner}></div>
-                            <p>Processing your payment...</p>
-                        </div>
+                <p>Processing your payment...</p>
+            </div>
                     )}
                 </div>
-            </div>
         </div>
-    );
+    </div>
+);
 };
 
 export default Payment;

@@ -75,7 +75,7 @@ const PaymentSuccess = () => {
                 }
                 return prev - 1;
             });
-        }, 1000);
+    }, 1000);
 
         return () => clearInterval(interval);
     }, [paymentData, navigate]);
@@ -93,7 +93,7 @@ const PaymentSuccess = () => {
     }
 
     if (error || !paymentData) {
-        return (
+    return (
             <div className={styles['payment-success-page']}>
                 <div className={styles['success-container']}>
                     <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>
@@ -115,42 +115,42 @@ const PaymentSuccess = () => {
             <div className={styles['success-container']}>
                 <div className={styles['success-icon']}>
                     <i className="fas fa-check"></i>
-                </div>
+            </div>
 
                 <h1 className={styles['success-title']}>Payment Successful!</h1>
                 <p className={styles['success-message']}>
                     Thank you for upgrading to {paymentData.planName}! Your subscription has been activated and you now have access to
-                    all premium features.
-                </p>
+                all premium features.
+            </p>
 
                 <div className={styles['transaction-details']}>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Plan:</span>
                         <span className={styles['detail-value']}>
                             {paymentData.planName}
-                        </span>
-                    </div>
+                    </span>
+                </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Billing Cycle:</span>
                         <span className={styles['detail-value']}>
                             {paymentData.billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                        </span>
-                    </div>
+                    </span>
+                </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Amount Paid:</span>
                         <span className={styles['detail-value']}>${paymentData.amount}</span>
-                    </div>
+                </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Transaction ID:</span>
                         <span className={styles['detail-value']}>
                             {paymentData.transactionId}
-                        </span>
-                    </div>
+                    </span>
+                </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Status:</span>
                         <span className={styles['detail-value']} style={{ color: '#28a745' }}>Active</span>
-                    </div>
                 </div>
+            </div>
 
                 <div className={styles['action-buttons']}>
                     <a 
@@ -162,8 +162,8 @@ const PaymentSuccess = () => {
                         }}
                     >
                         <i className="fas fa-sign-in-alt"></i>
-                        Continue to Dashboard
-                    </a>
+                    Continue to Dashboard
+                </a>
                     <a 
                         href="/subscription/manage"
                         className={`${styles.btn} ${styles['btn-secondary']}`}
@@ -173,24 +173,24 @@ const PaymentSuccess = () => {
                         }}
                     >
                         <i className="fas fa-cog"></i>
-                        Manage Subscription
-                    </a>
-                </div>
+                    Manage Subscription
+                </a>
+            </div>
 
                 {paymentData.features && paymentData.features.length > 0 && (
                     <div className={styles['features-preview']}>
                         <h3 className={styles['features-title']}>
                             <i className="fas fa-star"></i>
-                            Your New Features
-                        </h3>
+                    Your New Features
+                </h3>
                         <ul className={styles['features-list']}>
                             {paymentData.features.map((feature, index) => (
                                 <li key={index}>
                                     <i className="fas fa-check-circle"></i>
                                     {feature}
-                                </li>
+                        </li>
                             ))}
-                        </ul>
+                </ul>
                     </div>
                 )}
 

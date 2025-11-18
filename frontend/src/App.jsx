@@ -9,6 +9,13 @@ import BrandSignup from './pages/BrandSignup';
 import SelectPlan from './pages/subscription/SelectPlan';
 import Payment from './pages/subscription/Payment';
 import PaymentSuccess from './pages/subscription/PaymentSuccess';
+import Dashboard from './pages/influencer/Dashboard';
+import Campaigns from './pages/influencer/Campaigns';
+import CampaignDetails from './pages/influencer/CampaignDetails';
+import CampaignHistory from './pages/influencer/CampaignHistory';
+import Explore from './pages/influencer/Explore';
+import Profile from './pages/influencer/Profile';
+import BrandProfileView from './pages/influencer/BrandProfileView';
 
 function App() {
 
@@ -25,6 +32,15 @@ function App() {
           <Route path="/subscription/select-plan" element={<SelectPlan />} />
           <Route path="/subscription/payment" element={<Payment />} />
           <Route path="/subscription/payment-success" element={<PaymentSuccess />} />
+          {/* Influencer Routes */}
+          <Route path="/influencer/home" element={<Dashboard />} />
+          <Route path="/influencer/campaigns" element={<Campaigns />} />
+          <Route path="/influencer/collab/:id" element={<CampaignDetails />} />
+          <Route path="/influencer/campaign-history" element={<CampaignHistory />} />
+          <Route path="/influencer/explore" element={<Explore />} />
+          <Route path="/influencer/profile" element={<Profile />} />
+          <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
+          <Route path="/influencer/I_brand_profile/:id" element={<BrandProfileView />} />
         </Routes>
       </BrowserRouter>
     </>

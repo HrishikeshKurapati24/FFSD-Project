@@ -13,6 +13,12 @@ const getInfluencerDashboard = async (req, res) => {
     // Check if user is logged in
     if (!req.session.user || !req.session.user.id) {
       console.error('No user session found');
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
       return res.status(401).redirect('/login');
     }
 
@@ -37,6 +43,12 @@ const getInfluencerDashboard = async (req, res) => {
     const influencer = await influencerModel.getInfluencerById(influencerId);
     if (!influencer) {
       console.error('Influencer not found for ID:', influencerId);
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(404).json({
+          success: false,
+          message: 'Influencer not found'
+        });
+      }
       return res.status(404).render('error', {
         message: 'Influencer not found',
         error: { status: 404 }
@@ -131,13 +143,8 @@ const getInfluencerDashboard = async (req, res) => {
         duration: c.duration || 0
       }));
 
-    // Render the dashboard with all data
-    console.log('\n--- Rendering dashboard with data ---');
-    console.log('Passing to EJS:');
-    console.log('  - subscriptionStatus.subscription.planId.name:', subscriptionStatus?.subscription?.planId?.name);
-    console.log('  - subscriptionLimits:', subscriptionLimits);
-    
-    res.render('influencer/dashboard', {
+    // Prepare response data
+    const responseData = {
       influencer: transformedInfluencer,
       stats,
       activeCollaborations: activeCollaborations || [],
@@ -148,11 +155,33 @@ const getInfluencerDashboard = async (req, res) => {
       subscriptionStatus, // Subscription expiry and renewal info
       subscriptionLimits, // Campaign and collaboration limits
       baseUrl: `${req.protocol}://${req.get('host')}`
-    });
+    };
+
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.json({
+        success: true,
+        ...responseData
+      });
+    }
+
+    // Render the dashboard with all data
+    console.log('\n--- Rendering dashboard with data ---');
+    console.log('Passing to EJS:');
+    console.log('  - subscriptionStatus.subscription.planId.name:', subscriptionStatus?.subscription?.planId?.name);
+    console.log('  - subscriptionLimits:', subscriptionLimits);
+    
+    res.render('influencer/dashboard', responseData);
     
     console.log('========== INFLUENCER DASHBOARD CONTROLLER END ==========\n');
   } catch (error) {
     console.error('Error in getInfluencerDashboard:', error);
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error loading dashboard'
+      });
+    }
     res.status(500).render('error', {
       message: 'Error loading dashboard',
       error: process.env.NODE_ENV === 'development' ? error : {}
@@ -208,14 +237,30 @@ const getBrandExplorePage = async (req, res) => {
     const uniqueCategories = [...new Set(categories)].sort();
     
     console.log('Controller sending brands to view:', brands);
-    res.render('influencer/explore', { 
+    const responseData = {
       brands: brands || [], 
       categories: uniqueCategories,
       selectedCategory: category || 'all',
       searchQuery: search || ''
-    });
+    };
+
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.json({
+        success: true,
+        ...responseData
+      });
+    }
+
+    res.render('influencer/explore', responseData);
   } catch (err) {
     console.error('Controller error:', err);
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error fetching brands'
+      });
+    }
     res.status(500).render('error', {
       message: 'Error fetching brands',
       error: { status: 500 }
@@ -279,13 +324,29 @@ const getBrandProfilePage = async (req, res) => {
       }))
     }
 
-    // Render the brand profile page
-    res.render('influencer/brand_profile', {
+    const responseData = {
       brand: transformedBrand,
       influencer: req.session.user || {}
-    });
+    };
+
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.json({
+        success: true,
+        ...responseData
+      });
+    }
+
+    // Render the brand profile page
+    res.render('influencer/brand_profile', responseData);
   } catch (error) {
     console.error('Error fetching brand profile:', error);
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error loading brand profile'
+      });
+    }
     res.status(500).render('error', {
       message: 'Error loading brand profile',
       error: process.env.NODE_ENV === 'development' ? error : {}
@@ -354,10 +415,24 @@ const getInfluencerProfile = async (req, res) => {
       })) : []
     };
 
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.json({
+        success: true,
+        influencer: formattedInfluencer
+      });
+    }
+
     // Render the profile page with the influencer data
     res.render('influencer/profile', { influencer: formattedInfluencer });
   } catch (error) {
     console.error('Error in getInfluencerProfile:', error);
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error loading profile'
+      });
+    }
     res.status(500).render('error', {
       message: 'Error loading profile',
       error: process.env.NODE_ENV === 'development' ? error : {}
@@ -449,6 +524,12 @@ const getCampaignHistory = async (req, res) => {
 
     if (!influencerId) {
       console.error('No influencer ID found in session');
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Please log in to view campaign history'
+        });
+      }
       return res.status(401).render('error', {
         error: { status: 401 },
         message: 'Please log in to view campaign history'
@@ -459,7 +540,7 @@ const getCampaignHistory = async (req, res) => {
     const campaigns = await influencerModel.getCampaignHistory(influencerId);
     console.log('Retrieved campaigns:', campaigns.length);
 
-    res.render('influencer/campaign_history', {
+    const responseData = {
       campaigns: campaigns.map(campaign => ({
         // Pass-through and normalize for template
         title: campaign.campaign_name,
@@ -486,9 +567,25 @@ const getCampaignHistory = async (req, res) => {
         influencers_count: (campaign.influencers || []).length,
         status: campaign.status || 'completed'
       }))
-    });
+    };
+
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.json({
+        success: true,
+        ...responseData
+      });
+    }
+
+    res.render('influencer/campaign_history', responseData);
   } catch (error) {
     console.error('Error in getCampaignHistory controller:', error);
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error loading campaign history'
+      });
+    }
     res.status(500).render('error', {
       error: { status: 500 },
       message: 'Error loading campaign history'

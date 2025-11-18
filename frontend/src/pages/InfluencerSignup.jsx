@@ -41,144 +41,144 @@ const InfluencerSignup = () => {
     const [message, setMessage] = useState({ text: '', type: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Validation functions
+        // Validation functions
     const validateFullName = (value) => {
-        if (!value) return 'Full name is required';
-        if (value.length < 2) return 'Full name must be at least 2 characters';
-        if (value.length > 50) return 'Full name cannot exceed 50 characters';
-        if (!/^[a-zA-Z\s]+$/.test(value)) return 'Full name can only contain letters and spaces';
+            if (!value) return 'Full name is required';
+            if (value.length < 2) return 'Full name must be at least 2 characters';
+            if (value.length > 50) return 'Full name cannot exceed 50 characters';
+            if (!/^[a-zA-Z\s]+$/.test(value)) return 'Full name can only contain letters and spaces';
 
-        const vaguePatterns = [
-            /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
-            /^(user|admin|guest|temp|temporary)$/i,
-            /^(name|firstname|lastname|fullname)$/i,
+            const vaguePatterns = [
+                /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+                /^(user|admin|guest|temp|temporary)$/i,
+                /^(name|firstname|lastname|fullname)$/i,
             /^[a-z]{1,3}$/i,
             /^[0-9]+$/,
             /^(.)\1+$/
-        ];
+            ];
 
-        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
-            return 'Please enter a real name';
-        }
+            if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+                return 'Please enter a real name';
+            }
 
-        return '';
+            return '';
     };
 
     const validateEmail = (value) => {
-        const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/;
-        if (!value) return 'Email is required';
-        if (!emailRegex.test(value)) return 'Enter a valid email address';
+            const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/;
+            if (!value) return 'Email is required';
+            if (!emailRegex.test(value)) return 'Enter a valid email address';
 
-        const vagueEmailPatterns = [
-            /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)@/i,
-            /^(user|admin|guest|temp|temporary)@/i,
-            /^(email|mail|contact)@/i,
-            /@(test|testing|demo|sample|example|localhost|temp|temporary)\./i,
-            /@(test|testing|demo|sample|example)\.(com|org|net)$/i,
+            const vagueEmailPatterns = [
+                /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)@/i,
+                /^(user|admin|guest|temp|temporary)@/i,
+                /^(email|mail|contact)@/i,
+                /@(test|testing|demo|sample|example|localhost|temp|temporary)\./i,
+                /@(test|testing|demo|sample|example)\.(com|org|net)$/i,
             /^(.)\1+@/i,
             /@(.)\1+\./i
-        ];
+            ];
 
-        if (vagueEmailPatterns.some(pattern => pattern.test(value.trim()))) {
-            return 'Please enter a real email address';
-        }
+            if (vagueEmailPatterns.some(pattern => pattern.test(value.trim()))) {
+                return 'Please enter a real email address';
+            }
 
-        return '';
+            return '';
     };
 
     const validatePassword = (value) => {
-        if (!value) return 'Password is required';
-        if (value.length < 8) return 'Password must be at least 8 characters';
-        if (!/[0-9]/.test(value)) return 'Password must include at least one digit';
-        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must include at least one special character';
-        return '';
+            if (!value) return 'Password is required';
+            if (value.length < 8) return 'Password must be at least 8 characters';
+            if (!/[0-9]/.test(value)) return 'Password must include at least one digit';
+            if (!/[^A-Za-z0-9]/.test(value)) return 'Password must include at least one special character';
+            return '';
     };
 
     const validatePlatform = (value) => {
-        if (!value) return 'Please select a social media platform';
-        return '';
+            if (!value) return 'Please select a social media platform';
+            return '';
     };
 
     const validateSocialHandle = (value) => {
-        if (!value) return 'Social media handle is required';
-        if (value.length < 2) return 'Handle must be at least 2 characters';
-        if (value.length > 30) return 'Handle cannot exceed 30 characters';
-        if (!/^[a-zA-Z0-9_.@]+$/.test(value)) return 'Handle can only contain letters, numbers, dots, underscores, and @';
+            if (!value) return 'Social media handle is required';
+            if (value.length < 2) return 'Handle must be at least 2 characters';
+            if (value.length > 30) return 'Handle cannot exceed 30 characters';
+            if (!/^[a-zA-Z0-9_.@]+$/.test(value)) return 'Handle can only contain letters, numbers, dots, underscores, and @';
 
-        const vaguePatterns = [
-            /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
-            /^(user|admin|guest|temp|temporary)$/i,
-            /^(handle|username|social|media)$/i,
+            const vaguePatterns = [
+                /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+                /^(user|admin|guest|temp|temporary)$/i,
+                /^(handle|username|social|media)$/i,
             /^[a-z]{1,2}$/i,
             /^[0-9]+$/,
             /^(.)\1+$/,
             /^@?$/,
             /^@[a-z]{1,2}$/i
-        ];
+            ];
 
-        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
-            return 'Please enter a real social media handle';
-        }
+            if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+                return 'Please enter a real social media handle';
+            }
 
-        return '';
+            return '';
     };
 
     const validateAudience = (value) => {
-        if (!value) return 'Audience size is required';
-        const num = parseInt(value, 10);
-        if (isNaN(num)) return 'Audience size must be a valid number';
-        if (num < 100) return 'Audience size should be at least 100 followers';
-        if (num > 1000000000) return 'Audience size cannot exceed 1 billion';
-        return '';
+            if (!value) return 'Audience size is required';
+            const num = parseInt(value, 10);
+            if (isNaN(num)) return 'Audience size must be a valid number';
+            if (num < 100) return 'Audience size should be at least 100 followers';
+            if (num > 1000000000) return 'Audience size cannot exceed 1 billion';
+            return '';
     };
 
     const validateNiche = (value) => {
-        if (!value) return 'Niche/Category is required';
-        if (value.length < 2) return 'Niche must be at least 2 characters';
-        if (value.length > 50) return 'Niche cannot exceed 50 characters';
+            if (!value) return 'Niche/Category is required';
+            if (value.length < 2) return 'Niche must be at least 2 characters';
+            if (value.length > 50) return 'Niche cannot exceed 50 characters';
 
-        const vaguePatterns = [
-            /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
-            /^(niche|category|type|kind|sort)$/i,
-            /^(general|other|misc|miscellaneous)$/i,
+            const vaguePatterns = [
+                /^(test|testing|demo|sample|example|asdf|qwerty|123|abc|xyz)$/i,
+                /^(niche|category|type|kind|sort)$/i,
+                /^(general|other|misc|miscellaneous)$/i,
             /^[a-z]{1,2}$/i,
             /^[0-9]+$/,
             /^(.)\1+$/,
-            /^(stuff|things|random|whatever)$/i
-        ];
+                /^(stuff|things|random|whatever)$/i
+            ];
 
-        if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
-            return 'Please enter a specific or valid niche';
-        }
+            if (vaguePatterns.some(pattern => pattern.test(value.trim()))) {
+                return 'Please enter a specific or valid niche';
+            }
 
-        return '';
+            return '';
     };
 
     const validatePhone = (value) => {
-        if (!value) return 'Contact number is required';
+            if (!value) return 'Contact number is required';
 
-        const digitsOnly = value.replace(/\D/g, '');
+            const digitsOnly = value.replace(/\D/g, '');
 
-        if (digitsOnly.length < 10) return 'Phone number must have at least 10 digits';
-        if (digitsOnly.length > 15) return 'Phone number cannot exceed 15 digits';
+            if (digitsOnly.length < 10) return 'Phone number must have at least 10 digits';
+            if (digitsOnly.length > 15) return 'Phone number cannot exceed 15 digits';
 
-        const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-        if (!phoneRegex.test(value)) return 'Please enter a valid phone number format';
+            const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+            if (!phoneRegex.test(value)) return 'Please enter a valid phone number format';
 
-        const vaguePhonePatterns = [
+            const vaguePhonePatterns = [
             /^(\d)\1{9,}$/,
             /^123456789\d*$/,
             /^000000000\d*$/,
             /^111111111\d*$/,
             /^(\d{3})\1{2,}$/,
             /^(\d{2})\1{4,}$/
-        ];
+            ];
 
-        if (vaguePhonePatterns.some(pattern => pattern.test(digitsOnly))) {
-            return 'Please enter a real phone number, not a test or placeholder number';
-        }
+            if (vaguePhonePatterns.some(pattern => pattern.test(digitsOnly))) {
+                return 'Please enter a real phone number, not a test or placeholder number';
+            }
 
-        return '';
+            return '';
     };
 
     const setFieldError = (field, errorMsg) => {
@@ -330,17 +330,17 @@ const InfluencerSignup = () => {
             phone: phoneMsg
         });
 
-        const hasErrors = Boolean(fullNameMsg || emailMsg || passwordMsg || platformMsg ||
-            socialHandleMsg || audienceMsg || nicheMsg || phoneMsg);
+            const hasErrors = Boolean(fullNameMsg || emailMsg || passwordMsg || platformMsg ||
+                socialHandleMsg || audienceMsg || nicheMsg || phoneMsg);
 
-        if (hasErrors) {
-            showMessage('Please fix all errors before submitting', 'error');
+            if (hasErrors) {
+                showMessage('Please fix all errors before submitting', 'error');
             setIsSubmitting(false);
-            return;
-        }
+                return;
+            }
 
-        try {
-            const data = {
+            try {
+                const data = {
                 fullName: formData.fullName.trim(),
                 email: formData.email.trim(),
                 password: formData.password,
@@ -352,16 +352,16 @@ const InfluencerSignup = () => {
             };
 
             const response = await fetch(`${API_BASE_URL}/signup-form-influencer`, {
-                method: 'POST',
+                    method: 'POST',
                 credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
+                    headers: {
+                        'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                },
-                body: JSON.stringify(data),
-            });
+                    },
+                    body: JSON.stringify(data),
+                });
 
-            if (!response.ok) {
+                if (!response.ok) {
                 let errorData;
                 try {
                     errorData = await response.json();
@@ -373,27 +373,27 @@ const InfluencerSignup = () => {
                     };
                 }
                 throw new Error(errorData.message || 'Failed to create account');
-            }
+                }
 
-            const result = await response.json();
+                const result = await response.json();
 
-            showMessage('Account created successfully! Redirecting to plan selection...', 'success');
+                showMessage('Account created successfully! Redirecting to plan selection...', 'success');
 
-            setTimeout(() => {
-                if (result.redirectTo) {
+                setTimeout(() => {
+                    if (result.redirectTo) {
                     // Extract path from redirectTo URL if it's a full URL
                     const redirectPath = result.redirectTo.startsWith('http')
                         ? new URL(result.redirectTo).pathname + new URL(result.redirectTo).search
                         : result.redirectTo;
                     navigate(redirectPath);
-                } else {
+                    } else {
                     navigate('/signin');
-                }
-            }, 2000);
-        } catch (error) {
-            console.error('Error:', error);
-            showMessage(error.message || 'An error occurred. Please try again.', 'error');
-        } finally {
+                    }
+                }, 2000);
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage(error.message || 'An error occurred. Please try again.', 'error');
+            } finally {
             setIsSubmitting(false);
         }
     };

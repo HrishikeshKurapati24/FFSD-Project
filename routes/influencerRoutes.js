@@ -448,12 +448,28 @@ router.get('/collab', async (req, res) => {
             };
         });
 
-        res.render('influencer/collaborations', {
+        const responseData = {
             collabs: collabs,
             influencer: influencerId
-        });
+        };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                ...responseData
+            });
+        }
+
+        res.render('influencer/collaborations', responseData);
     } catch (error) {
         console.error('Error fetching campaign requests:', error);
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error loading campaign requests'
+            });
+        }
         res.status(500).render('error', {
             message: 'Error loading campaign requests',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -532,9 +548,25 @@ router.get('/collab/:id', async (req, res) => {
 
         const isEligible = unmetRequirements.length === 0;
 
-        res.render('influencer/collaboration_details', { collab, applicationStatus, isEligible, unmetRequirements });
+        const responseData = { collab, applicationStatus, isEligible, unmetRequirements };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                ...responseData
+            });
+        }
+
+        res.render('influencer/collaboration_details', responseData);
     } catch (error) {
         console.error('Error fetching collaboration details:', error);
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error loading collaboration details'
+            });
+        }
         res.status(500).render('error', {
             message: 'Error loading collaboration details',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -1042,6 +1074,12 @@ router.get('/brand_profile/:id', async (req, res) => {
         const brand = await brandModel.getBrandById(brandId);
 
         if (!brand) {
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Brand not found'
+                });
+            }
             return res.status(404).render('error', {
                 error: { status: 404 },
                 message: 'Brand not found'
@@ -1172,11 +1210,27 @@ router.get('/brand_profile/:id', async (req, res) => {
             }))
         };
 
-        res.render('influencer/brand_profile', {
+        const responseData = {
             brand: transformedBrand
-        });
+        };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                ...responseData
+            });
+        }
+
+        res.render('influencer/brand_profile', responseData);
     } catch (error) {
         console.error('Error fetching brand profile:', error);
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error loading brand profile'
+            });
+        }
         res.status(500).render('error', {
             error: { status: 500 },
             message: 'Error loading brand profile'
