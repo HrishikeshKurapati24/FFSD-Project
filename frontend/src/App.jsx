@@ -20,7 +20,10 @@ import UserManagement from './pages/admin/UserManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
 import CollaborationMonitoring from './pages/admin/CollaborationMonitoring';
 import Login from './pages/admin/Login';
-
+import AllCampaigns from './pages/customer/AllCampaigns';
+import CampaignShopping from './pages/customer/CampaignShopping';
+import Cart from './pages/customer/Cart.jsx';
+import Rankings from './pages/customer/Rankings';
 
 
 import Dashboard from './pages/influencer/Dashboard';
@@ -66,6 +69,10 @@ function App() {
           <Route path="/influencer/profile" element={<Profile />} />
           <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
           <Route path="/influencer/I_brand_profile/:id" element={<BrandProfileView />} />
+            <Route path="/customer" element={<AllCampaigns />} />
+          <Route path="/customer/campaign/:campaignId/shop" element={<CampaignShopping />} />
+          <Route path="/customer/cart" element={<Cart />} />
+          <Route path="/customer/rankings" element={<Rankings />} />
         </Routes>
       </BrowserRouter>
     </>

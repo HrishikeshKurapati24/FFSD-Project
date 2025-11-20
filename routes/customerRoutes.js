@@ -46,13 +46,13 @@ router.get('/', async (req, res) => {
             influencers: map.get(c._id.toString()) || []
         }));
 
-        res.render('customer/all-campaigns', {
+        res.json({
             campaigns: campaignsWithInfluencers,
             title: 'All Active Campaigns'
         });
     } catch (error) {
         console.error('Error fetching campaigns:', error);
-        res.render('error', {
+        res.status(500).json({
             message: 'Error loading campaigns',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });

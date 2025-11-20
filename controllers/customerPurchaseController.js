@@ -88,16 +88,14 @@ class CustomerPurchaseController {
             } : 'null');
 
             if (!campaign) {
-                return res.status(404).render('error', {
-                    message: 'Campaign not found',
-                    error: {}
+                return res.status(404).json({
+                    message: 'Campaign not found'
                 });
             }
 
             if (campaign.status !== 'active') {
-                return res.status(403).render('error', {
-                    message: 'Campaign is not active',
-                    error: {}
+                return res.status(403).json({
+                    message: 'Campaign is not active'
                 });
             }
 
@@ -136,7 +134,7 @@ class CustomerPurchaseController {
                 contentCount: content.length,
                 productsCount: products.length
             });
-            return res.render('customer/campaign-shopping', {
+            return res.json({
                 campaign: {
                     id: campaign._id,
                     title: campaign.title,
@@ -152,7 +150,7 @@ class CustomerPurchaseController {
             });
         } catch (error) {
             console.error('[Customer] Error fetching campaign shopping page:', error);
-            return res.status(500).render('error', {
+            return res.status(500).json({
                 message: 'Error loading campaign page',
                 error: process.env.NODE_ENV === 'development' ? error : {}
             });
@@ -188,10 +186,10 @@ class CustomerPurchaseController {
             const shipping = CustomerPurchaseController.roundTo3(subtotal * 0.05); // 5% shipping fee
             const total = CustomerPurchaseController.roundTo3(subtotal + shipping);
 
-            return res.render('customer/cart', { items, subtotal, shipping, total, title: 'Your Cart' });
+            return res.json({ items, subtotal, shipping, total, title: 'Your Cart' });
         } catch (error) {
             console.error('Error rendering cart:', error);
-            return res.status(500).render('error', { message: 'Error loading cart', error: {} });
+            return res.status(500).json({ message: 'Error loading cart', error: process.env.NODE_ENV === 'development' ? error : {} });
         }
     }
 
@@ -414,7 +412,7 @@ class CustomerPurchaseController {
             influencerRankings.sort((a, b) => (b[infSortKey] || 0) - (a[infSortKey] || 0));
             influencerRankings = influencerRankings.slice(0, 20);
 
-            return res.render('customer/rankings', {
+            return res.json({
                 brandRankings,
                 influencerRankings,
                 brandCategory: brandSortKey,
@@ -423,7 +421,7 @@ class CustomerPurchaseController {
             });
         } catch (error) {
             console.error('Error rendering rankings:', error);
-            return res.status(500).render('error', { message: 'Error loading rankings', error: {} });
+            return res.status(500).json({ message: 'Error loading rankings', error: process.env.NODE_ENV === 'development' ? error : {} });
         }
     }
 }
