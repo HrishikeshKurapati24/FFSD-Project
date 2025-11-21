@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import styles from '../../styles/payment.module.css';
+import styles from '../../styles/subscription/payment.module.css';
 import { API_BASE_URL } from '../../services/api';
 
 const Payment = () => {
@@ -29,16 +29,20 @@ const Payment = () => {
     });
 
     useEffect(() => {
-        if (!userId || !userType || !planId || !billingCycle) {
-            setError('Missing required parameters');
+        // Validate parameters - but allow backend to get userType from session if missing
+        if (!userId || !planId || !billingCycle) {
+            setError('Missing required parameters: userId, planId, or billingCycle');
             setLoading(false);
             return;
         }
 
+        // If userType is missing or undefined, still make the request - backend will get it from session
+        const userTypeParam = userType && userType !== 'undefined' && userType !== 'null' ? `&userType=${userType}` : '';
+
         const fetchPaymentData = async () => {
             try {
                 const response = await fetch(
-                    `${API_BASE_URL}/subscription/payment?userId=${userId}&userType=${userType}&planId=${planId}&billingCycle=${billingCycle}`,
+                    `${API_BASE_URL}/subscription/payment?userId=${userId}${userTypeParam}&planId=${planId}&billingCycle=${billingCycle}`,
                     {
                         method: 'GET',
                         credentials: 'include',
@@ -169,6 +173,20 @@ const Payment = () => {
                 billingAddress: formData.billingAddress
         };
 
+            // Only include userType in body if it's valid, backend will get from session if missing
+            const requestBody = {
+                    userId,
+                    planId,
+                    billingCycle,
+                    amount,
+                    cardData
+            };
+            
+            // Only add userType if it's not undefined/null
+            if (userType && userType !== 'undefined' && userType !== 'null') {
+                requestBody.userType = userType;
+            }
+
             const response = await fetch(`${API_BASE_URL}/subscription/process-payment`, {
             method: 'POST',
                 credentials: 'include',
@@ -176,14 +194,7 @@ const Payment = () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                    userId,
-                    userType,
-                    planId,
-                    billingCycle,
-                    amount,
-                cardData
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const result = await response.json();

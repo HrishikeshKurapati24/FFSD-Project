@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInfluencers } from '../hooks/useInfluencers';
-import styles from '../styles/modal.module.css';
+import styles from '../styles/landing/modal.module.css';
 
 const InfluencersModal = ({ isOpen, onClose }) => {
     const { influencers, loading, error, fetchInfluencers } = useInfluencers();

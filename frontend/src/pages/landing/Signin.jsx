@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../../styles/signin.module.css';
+import styles from '../../styles/landing/signin.module.css';
 import { API_BASE_URL } from '../../services/api';
+import { useBrand } from '../../contexts/BrandContext';
+import { useInfluencer } from '../../contexts/InfluencerContext';
 
 const Signin = () => {
     const navigate = useNavigate();
+    const { initializeBrand } = useBrand();
+    const { initializeInfluencer } = useInfluencer();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -148,6 +152,14 @@ const Signin = () => {
 
             showMessage(data.message || 'Sign-in successful', 'success');
             // Token cookie is automatically set by backend
+            // Initialize context with user data from response
+            if (data.user) {
+                if (data.user.userType === 'brand') {
+                    await initializeBrand(data.user);
+                } else if (data.user.userType === 'influencer') {
+                    await initializeInfluencer(data.user);
+                }
+            }
             // Redirect after successful authentication
             setTimeout(() => {
                 window.location.href = data.redirectUrl;

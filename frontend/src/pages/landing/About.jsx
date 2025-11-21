@@ -1,23 +1,12 @@
 import React from 'react';
-import styles from '../../styles/about.module.css';
+import styles from '../../styles/landing/about.module.css';
+import LandingNavbar from '../../components/landing/LandingNavbar';
+import LandingFooter from '../../components/landing/LandingFooter';
 
 const About = () => {
     return (
         <div className={styles['about-page']}>
-            {/* Header */}
-            <header>
-                <div className={styles['header-container']}>
-                    <div className={styles.logo}>CollabSync</div>
-                    <nav>
-                        <ul>
-                            <li><a href="/">Home</a></li>
-                            <li><a href="/role-selection">Sign Up</a></li>
-                            <li><a href="/signin">Sign In</a></li>
-                            <li><a href="/about" className={styles.active}>About</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </header>
+            <LandingNavbar />
 
             {/* Hero Section */}
             <section className={styles['about-hero']}>
@@ -249,30 +238,7 @@ const About = () => {
                 </section>
             </main>
 
-            {/* Footer */}
-            <footer>
-                <div className={styles['footer-content']}>
-                    <div className={styles['footer-logo']}>CollabSync</div>
-                    <p>&copy; 2025 CollabSync. All rights reserved.</p>
-                    <div className={styles['social-media']}>
-                        <a href="https://www.instagram.com/yourprofile" target="_blank" aria-label="Instagram">
-                            <img src="/Lp_index/SocialMedia_logo_i.png" alt="Instagram" />
-                        </a>
-                        <a href="https://www.youtube.com/channel/yourchannel" target="_blank" aria-label="YouTube">
-                            <img src="/Lp_index/SocialMedia_logo_y2.png" alt="YouTube" />
-                        </a>
-                        <a href="https://www.linkedin.com/in/yourprofile" target="_blank" aria-label="LinkedIn">
-                            <img src="/Lp_index/SocialMedia_logo_l.png" alt="LinkedIn" />
-                        </a>
-                        <a href="https://www.facebook.com/yourprofile" target="_blank" aria-label="Facebook">
-                            <img src="/Lp_index/SocialMedia_logo_f3.jpg" alt="Facebook" />
-                        </a>
-                        <a href="https://twitter.com/yourprofile" target="_blank" aria-label="Twitter">
-                            <img src="/Lp_index/SocialMedia_logo_t.png" alt="Twitter" />
-                        </a>
-                    </div>
-                </div>
-            </footer>
+            <LandingFooter />
         </div>
     );
 };

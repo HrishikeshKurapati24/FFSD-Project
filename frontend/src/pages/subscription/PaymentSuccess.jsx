@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import styles from '../../styles/payment-success.module.css';
+import styles from '../../styles/subscription/payment-success.module.css';
 import { API_BASE_URL } from '../../services/api';
 
 const PaymentSuccess = () => {

@@ -32,13 +32,13 @@ const campaignInfoSchema = new mongoose.Schema({
     end_date: {
         type: Date,
         required: false, // Will be filled by brand
-        validate: {
-            validator: function (value) {
-                if (!value || !this.start_date) return true; // Skip validation if either is null
-                return value > this.start_date;
-            },
-            message: 'End date must be after start date'
-        }
+        // validate: {
+        //     validator: function (value) {
+        //         if (!value || !this.start_date) return true; // Skip validation if either is null
+        //         return value > this.start_date;
+        //     },
+        //     message: 'End date must be after start date'
+        // }
     },
     duration: {
         type: Number,

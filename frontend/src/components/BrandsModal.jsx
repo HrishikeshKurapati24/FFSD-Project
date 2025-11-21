@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useBrands } from '../hooks/useBrands';
-import styles from '../styles/modal.module.css';
+import styles from '../styles/landing/modal.module.css';
 
 const BrandsModal = ({ isOpen, onClose }) => {
     const { brands, loading, error, fetchBrands } = useBrands();

@@ -183,7 +183,7 @@ const AdminNavbar = ({ user, notifications = [], onMarkAllAsRead, children }) =>
                             style={{ cursor: 'pointer' }}
                             aria-label="Profile menu"
                         >
-                            <img src="/images/default-avatar.png" alt="Profile" id="profile-image" />
+                            <img src="/images/default-avatar.jpg" alt="Profile" id="profile-image" />
                             <span id="user-name">{user?.name || user?.username || 'Admin'}</span>
                             <i className="fas fa-chevron-down"></i>
                         </div>

@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from '../../styles/all_campaigns.module.css';
+import styles from '../../styles/customer/all_campaigns.module.css';
 import { API_BASE_URL } from '../../services/api';
-import { useExternalAssets } from '../../hooks/useExternalAssets';
+import { useExternalAssets } from '../../hooks/useExternalAssets.js';
+import CustomerNavbar from '../../components/customer/CustomerNavbar';
 
 const EXTERNAL_ASSETS = {
     styles: [
@@ -125,60 +126,10 @@ const AllCampaigns = () => {
 
     return (
         <div className={styles.allCampaignsPage}>
-            <nav className={`navbar navbar-light bg-light ${styles.navbar}`}>
-                <div className="container-fluid d-flex justify-content-between align-items-center px-4">
-                    <div className="d-flex align-items-center">
-                        <Link
-                            to="/customer"
-                            className="navbar-brand fw-bold"
-                            aria-label="CollabSync home"
-                        >
-                            <i className="fas fa-shopping-bag me-2" aria-hidden="true" />
-                            CollabSync
-                        </Link>
-                        <ul className="nav ms-3">
-                            <li className="nav-item">
-                                <Link className="nav-link active" to="/customer" aria-current="page">
-                                    All Campaigns
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/customer/rankings">
-                                    Rankings
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="d-flex align-items-center">
-                        <div className="input-group me-3">
-                            <input
-                                type="text"
-                                id="campaign-search"
-                                className="form-control"
-                                placeholder="Search campaigns..."
-                                value={searchValue}
-                                onChange={handleSearchChange}
-                                aria-label="Search campaigns"
-                            />
-                            <button
-                                type="button"
-                                className={`btn btn-outline-secondary ${styles['btn-outline-secondary']}`}
-                                aria-label="Search icon"
-                            >
-                                <i className="fas fa-search" aria-hidden="true" />
-                            </button>
-                        </div>
-                        <Link
-                            className={`btn btn-primary ${styles['btn-primary']}`}
-                            to="/customer/cart"
-                            aria-label="Go to cart"
-                        >
-                            <i className="fas fa-shopping-cart me-2" aria-hidden="true" />
-                            Cart
-                        </Link>
-                    </div>
-                </div>
-            </nav>
+            <CustomerNavbar
+                searchValue={searchValue}
+                onSearchChange={handleSearchChange}
+            />
 
             <main className="container mt-4">
                 <div className="row">

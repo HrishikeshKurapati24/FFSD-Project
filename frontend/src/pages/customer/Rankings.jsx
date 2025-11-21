@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import styles from '../../styles/rankings.module.css';
+import styles from '../../styles/customer/rankings.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
+import CustomerNavbar from '../../components/customer/CustomerNavbar';
 
 const EXTERNAL_ASSETS = {
     styles: [
@@ -152,30 +153,7 @@ const Rankings = () => {
 
     return (
         <div className={styles.rankingsPage}>
-            <nav className={`navbar navbar-light ${styles.navbar}`}>
-                <div className="container d-flex align-items-center">
-                    <Link className="navbar-brand fw-bold" to="/customer" aria-label="CollabSync home">
-                        <i className="fas fa-shopping-bag me-2" aria-hidden="true" />
-                        CollabSync
-                    </Link>
-                    <ul className="nav me-auto">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/customer">
-                                All Campaigns
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link active" to="/customer/rankings">
-                                Rankings
-                            </Link>
-                        </li>
-                    </ul>
-                    <Link className="btn btn-primary" to="/customer/cart" aria-label="Go to cart">
-                        <i className="fas fa-shopping-cart me-2" aria-hidden="true" />
-                        Cart
-                    </Link>
-                </div>
-            </nav>
+            <CustomerNavbar />
 
             <div className={`container my-4 ${styles['rankings-container']}`}>
                 <div className={`d-flex align-items-center gap-2 flex-wrap ${styles['filters-wrap']}`}>

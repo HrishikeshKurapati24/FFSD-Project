@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import styles from '../../styles/select-plan.module.css';
+import styles from '../../styles/subscription/select-plan.module.css';
 import { API_BASE_URL } from '../../services/api';
 
 const SelectPlan = () => {

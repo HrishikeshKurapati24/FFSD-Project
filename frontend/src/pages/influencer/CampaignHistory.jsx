@@ -1,222 +1,174 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import styles from '../../styles/influencer_campaign_history.module.css';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import styles from '../../styles/influencer/campaign_history.module.css';
 import { API_BASE_URL } from '../../services/api';
+import { useExternalAssets } from '../../hooks/useExternalAssets';
+import InfluencerNavigation from '../../components/influencer/InfluencerNavigation';
+import CampaignHistoryHeader from '../../components/influencer/campaignHistory/CampaignHistoryHeader';
+import CampaignHistoryList from '../../components/influencer/campaignHistory/CampaignHistoryList';
+
+const EXTERNAL_ASSETS = {
+  styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'],
+  scripts: []
+};
+
+const formatNumber = (value) => {
+  const numericValue = Number(value || 0);
+  if (Number.isNaN(numericValue)) {
+    return '0';
+  }
+  if (numericValue >= 1_000_000) {
+    return `${(numericValue / 1_000_000).toFixed(1)}M`;
+  }
+  if (numericValue >= 1_000) {
+    return `${(numericValue / 1_000).toFixed(1)}K`;
+  }
+  return numericValue.toLocaleString();
+};
+
+const formatPercent = (value) => `${Number(value || 0).toFixed(1)}%`;
+
+const formatCurrency = (value) => {
+  const numericValue = Number(value || 0);
+  if (Number.isNaN(numericValue)) {
+    return '$0';
+  }
+  return `$${numericValue.toLocaleString()}`;
+};
+
+const formatDate = (value) => {
+  if (!value) {
+    return 'N/A';
+  }
+  try {
+    return new Date(value).toLocaleDateString();
+  } catch (error) {
+    return 'N/A';
+  }
+};
 
 const CampaignHistory = () => {
-    const navigate = useNavigate();
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [authenticated, setAuthenticated] = useState(false);
-    const [campaigns, setCampaigns] = useState([]);
+  useExternalAssets(EXTERNAL_ASSETS);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
 
-    // Verify authentication
-    useEffect(() => {
-        const verifyAuth = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
+  const fetchCampaignHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-                if (response.status === 401) {
-                    navigate('/signin');
-                    return;
-                }
+      const response = await fetch(`${API_BASE_URL}/influencer/campaign-history`, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
 
-                const data = await response.json();
-                if (data.authenticated) {
-                    setAuthenticated(true);
-                    fetchCampaignHistory();
-                } else {
-                    navigate('/signin');
-                }
-            } catch (error) {
-                console.error('Auth verification error:', error);
-                navigate('/signin');
-            }
-        };
+      if (response.status === 401) {
+        navigate('/signin');
+        return;
+      }
 
-        verifyAuth();
-    }, [navigate]);
+      if (!response.ok) {
+        throw new Error('Failed to load campaign history.');
+      }
 
-    // Fetch campaign history
-    const fetchCampaignHistory = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/influencer/campaign-history`, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (response.status === 401) {
-                navigate('/signin');
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch campaign history');
-            }
-
-            const data = await response.json();
-            if (data.success) {
-                setCampaigns(data.campaigns || []);
-            }
-        } catch (error) {
-            console.error('Error fetching campaign history:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className={styles['campaign-history-page']}>
-                <div style={{ padding: '20px', textAlign: 'center' }}>Loading campaign history...</div>
-            </div>
-        );
+      const data = await response.json();
+      if (data.success) {
+        setCampaigns(data.campaigns || []);
+      } else {
+        setError(data.message || 'Unable to load campaign history.');
+      }
+    } catch (err) {
+      console.error('Error fetching campaign history:', err);
+      setError(err.message || 'Unable to load campaign history.');
+    } finally {
+      setLoading(false);
     }
+  }, [navigate]);
 
+  useEffect(() => {
+    fetchCampaignHistory();
+  }, [fetchCampaignHistory]);
+
+  const handleSignOut = async (event) => {
+    event?.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/influencer/signout`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const data = await response.json();
+          if (data.success) {
+            window.location.href = '/signin';
+            return;
+          }
+        }
+      }
+    } catch (signOutError) {
+      console.error('Error during sign out:', signOutError);
+    }
+    window.location.href = '/signin';
+  };
+
+  const getBrandLogo = (logoPath) => {
+    if (!logoPath) {
+      return '/images/default-brand-logo.jpg';
+    }
+    return logoPath.startsWith('http') ? logoPath : `${API_BASE_URL}${logoPath}`;
+  };
+
+  if (loading) {
     return (
-        <div className={styles['campaign-history-page']}>
-            {/* Header */}
-            <header>
-                <div className={styles['header-container']}>
-                    <div className={styles['logo']}>CollabSync</div>
-                    <nav>
-                        <ul>
-                            <li><Link to="/influencer/home">Home</Link></li>
-                            <li><Link to="/influencer/explore">Explore Brands</Link></li>
-                            <li><Link to="/influencer/profile">My Profile</Link></li>
-                        </ul>
-                    </nav>
-                </div>
-            </header>
-
-            {/* Sidebar Navigation */}
-            <button className={styles['toggle-btn']} onClick={() => setMenuOpen(true)}>☰</button>
-            <div className={styles['menu']} style={{ width: menuOpen ? '250px' : '0' }}>
-                <span className={styles['close-btn']} onClick={() => setMenuOpen(false)}>&times;</span>
-                <Link to="/influencer/campaigns" onClick={() => setMenuOpen(false)}>Campaigns</Link>
-                <Link to="/influencer/signout" onClick={() => setMenuOpen(false)}>Sign Out</Link>
-            </div>
-
-            {/* Main Content */}
-            <div className={styles['container']}>
-                <div className={styles['campaigns-header']}>
-                    <h1>Campaign History</h1>
-                    <p>View and analyze your past campaign performances</p>
-                </div>
-
-                {/* Campaigns Grid */}
-                <div className={styles['campaigns-grid']}>
-                    {campaigns && campaigns.length > 0 ? (
-                        campaigns.map((campaign, idx) => (
-                            <div key={idx} className={styles['campaign-card']}>
-                                <span className={`${styles['campaign-status']} ${styles['status-completed']}`}>
-                                    {campaign.status}
-                                </span>
-                                <div className={styles['brand-info']}>
-                                    <Link 
-                                        to={`/influencer/I_brand_profile/${campaign.brand_id}`} 
-                                        className={styles['brand-link']}
-                                    >
-                                        <img 
-                                            src={campaign.brand_logo || '/images/default-brand.png'}
-                                            alt={campaign.brand_name} 
-                                            className={styles['brand-logo']} 
-                                        />
-                                        <span className={styles['brand-name']}>
-                                            {campaign.brand_name}
-                                        </span>
-                                    </Link>
-                                </div>
-                                <h3>{campaign.title}</h3>
-                                <p>{campaign.description}</p>
-
-                                <div className={styles['campaign-metrics']}>
-                                    <div className={styles['metric']}>
-                                        <span className={styles['metric-value']}>
-                                            {campaign.performance_score?.toFixed(1)}
-                                        </span>
-                                        <span className={styles['metric-label']}>Performance</span>
-                                    </div>
-                                    <div className={styles['metric']}>
-                                        <span className={styles['metric-value']}>
-                                            {campaign.engagement_rate?.toFixed(1)}%
-                                        </span>
-                                        <span className={styles['metric-label']}>Engagement</span>
-                                    </div>
-                                    <div className={styles['metric']}>
-                                        <span className={styles['metric-value']}>
-                                            {campaign.reach?.toLocaleString()}
-                                        </span>
-                                        <span className={styles['metric-label']}>Reach</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles['campaign-details']}>
-                                    <div className={styles['detail-item']}>
-                                        <i className="far fa-calendar"></i>
-                                        <span>Ended {new Date(campaign.end_date).toLocaleDateString()}</span>
-                                    </div>
-                                    <div className={styles['detail-item']}>
-                                        <i className="fas fa-users"></i>
-                                        <span>
-                                            {campaign.influencers_count} influencers(excluding you)
-                                        </span>
-                                    </div>
-                                    <div className={styles['detail-item']}>
-                                        <i className="fas fa-tag"></i>
-                                        <span>
-                                            {campaign.budget?.toLocaleString()} budget
-                                        </span>
-                                    </div>
-                                    <div className={styles['detail-item']}>
-                                        <i className="fas fa-chart-line"></i>
-                                        <span>
-                                            {campaign.conversion_rate}% conversion
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {campaign.influencers && campaign.influencers.length > 0 && (
-                                    <div className={styles['campaign-influencers']}>
-                                        <h4>Other Influencers in this Campaign</h4>
-                                        <div className={styles['influencer-list']}>
-                                            {campaign.influencers.map((influencer, infIdx) => (
-                                                <a 
-                                                    key={infIdx}
-                                                    className={styles['influencer-tag']} 
-                                                    href={`/brand/influencer_details/${influencer.id}`}
-                                                >
-                                                    <img 
-                                                        src={influencer.profilePicUrl || '/images/default-avatar.jpg'}
-                                                        alt={influencer.name}
-                                                    />
-                                                    <span>{influencer.name}</span>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        <div className={styles['no-campaigns']}>
-                            <i className="fas fa-history"></i>
-                            <h3>No Campaign History</h3>
-                            <p>You haven't completed any campaigns yet.</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+      <div className={styles['campaign-history-page']}>
+        <div className={styles['loading-state']}>Loading campaign history...</div>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className={styles['campaign-history-page']}>
+        <div className={styles['error-state']}>
+          <p>{error}</p>
+          <button type="button" onClick={fetchCampaignHistory}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles['campaign-history-page']}>
+      <InfluencerNavigation onSignOut={handleSignOut} />
+
+      <div className={styles.container}>
+        <CampaignHistoryHeader styles={styles} onRefresh={fetchCampaignHistory} />
+
+        <CampaignHistoryList
+          campaigns={campaigns}
+          styles={styles}
+          formatNumber={formatNumber}
+          formatPercent={formatPercent}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          getBrandLogo={getBrandLogo}
+        />
+      </div>
+    </div>
+  );
 };
 
 export default CampaignHistory;

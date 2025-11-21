@@ -15,10 +15,16 @@ router.use((req, res, next) => {
 // All campaigns listing page
 router.get('/', async (req, res) => {
     try {
+        // Show all active campaigns regardless of start_date
+        // Start date no longer restricts visibility - campaigns show up immediately when activated
+        // Only filter by end_date to hide campaigns that have ended
         const campaigns = await CampaignInfo.find({
             status: 'active',
-            start_date: { $lte: new Date() },
-            end_date: { $gte: new Date() }
+            $or: [
+                { end_date: { $gte: new Date() } },
+                { end_date: { $exists: false } },
+                { end_date: null }
+            ]
         }).populate('brand_id', 'brandName logoUrl').sort({ createdAt: -1 }).lean();
 
         // Fetch participating influencers per campaign (active/completed)

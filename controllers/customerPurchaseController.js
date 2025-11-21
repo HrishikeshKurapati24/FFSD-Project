@@ -260,8 +260,11 @@ class CustomerPurchaseController {
      */
     static async checkoutCart(req, res) {
         try {
-            const { customerInfo, paymentInfo } = req.body;
-            const cart = Array.isArray(req.session?.cart) ? req.session.cart : [];
+            const { customerInfo, paymentInfo, cart: cartFromBody } = req.body;
+            // Use cart from request body (context) if provided, otherwise fall back to session
+            const cart = Array.isArray(cartFromBody) && cartFromBody.length > 0
+                ? cartFromBody
+                : (Array.isArray(req.session?.cart) ? req.session.cart : []);
             if (cart.length === 0) return res.status(400).json({ success: false, message: 'Cart is empty' });
 
             // Validate minimal customer info

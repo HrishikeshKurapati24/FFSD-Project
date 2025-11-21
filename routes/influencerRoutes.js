@@ -607,7 +607,7 @@ router.post('/apply/:campaignId', async (req, res) => {
                         redirectUrl: '/subscription/manage'
                     });
                 }
-
+                
                 return res.status(400).json({
                     success: false,
                     message: `${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
