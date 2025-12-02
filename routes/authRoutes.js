@@ -1,6 +1,8 @@
 const express = require('express');
 const { BrandInfo } = require('../config/BrandMongo');
 const { InfluencerInfo } = require('../config/InfluencerMongo');
+const { Customer } = require('../config/CustomerMongo');
+const CustomerModel = require('../models/CustomerModel');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -62,6 +64,8 @@ const isAuthenticated = async (req, res, next) => {
         user = await BrandInfo.findById(jwtUser.id).select('email displayName brandName').lean();
       } else if (jwtUser.userType === 'influencer') {
         user = await InfluencerInfo.findById(jwtUser.id).select('email displayName fullName').lean();
+      } else if (jwtUser.userType === 'customer') {
+        user = await Customer.findById(jwtUser.id).select('email name').lean();
       }
 
       if (user) {
@@ -70,7 +74,7 @@ const isAuthenticated = async (req, res, next) => {
           id: jwtUser.id,
           email: user.email,
           userType: jwtUser.userType,
-          displayName: user.displayName || user.brandName || user.fullName
+          displayName: user.displayName || user.brandName || user.fullName || user.name
         };
 
         // Optionally sync to session for compatibility
@@ -131,6 +135,23 @@ const isInfluencer = (req, res, next) => {
   }
 };
 
+// Middleware to check if user is a customer
+const isCustomer = (req, res, next) => {
+  const userType = req.session?.user?.userType || req.user?.userType;
+
+  if (userType === 'customer') {
+    return next();
+  }
+
+  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+
+  if (isAPIRequest) {
+    return res.status(403).json({ message: 'Access denied: Customers only' });
+  } else {
+    return res.redirect('/signin');
+  }
+};
+
 // Auth verification endpoint for React to check authentication status
 router.get('/verify', async (req, res) => {
   try {
@@ -153,6 +174,8 @@ router.get('/verify', async (req, res) => {
           user = await BrandInfo.findById(jwtUser.id).select('email displayName brandName').lean();
         } else if (jwtUser.userType === 'influencer') {
           user = await InfluencerInfo.findById(jwtUser.id).select('email displayName fullName').lean();
+        } else if (jwtUser.userType === 'customer') {
+          user = await Customer.findById(jwtUser.id).select('email name').lean();
         }
 
         if (user) {
@@ -160,7 +183,7 @@ router.get('/verify', async (req, res) => {
             id: jwtUser.id,
             email: user.email,
             userType: jwtUser.userType,
-            displayName: user.displayName || user.brandName || user.fullName
+            displayName: user.displayName || user.brandName || user.fullName || user.name
           };
 
           // Optionally sync to session for compatibility
@@ -224,20 +247,37 @@ router.post('/signin', async (req, res) => {
   try {
     const { email, password, remember } = req.body;
 
-    // Try to find brand first
-    let user = await BrandInfo.findOne({ email });
+    // Try to find brand first (include password explicitly)
+    let user = await BrandInfo.findOne({ email }).select('+password');
     let userType = 'brand';
     let redirectUrl = '/brand/home';
 
     // If not found, try influencer
     if (!user) {
-      user = await InfluencerInfo.findOne({ email });
+      // Try influencer next (include password explicitly)
+      user = await InfluencerInfo.findOne({ email }).select('+password');
       userType = 'influencer';
       redirectUrl = '/influencer/home';
     }
 
+    // If not found, try customer
+    if (!user) {
+      // Customer schema hides password by default (select: false).
+      // Explicitly include password so we can compare hashes during signin.
+      user = await Customer.findOne({ email }).select('+password');
+      userType = 'customer';
+      redirectUrl = '/customer';
+    }
+
     // If no user found
     if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Defensive check: ensure we have a password hash to compare
+    if (!user.password) {
+      // Missing password hash — don't reveal details to client. Log for admin.
+      console.warn('Signin warning: missing password hash for user', { email, userType, id: user._id });
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
@@ -261,7 +301,7 @@ router.post('/signin', async (req, res) => {
       id: user._id,
       email: user.email,
       userType,
-      displayName: user.displayName || user.brandName || user.fullName
+      displayName: user.displayName || user.brandName || user.fullName || user.name
     };
 
     // Set cookie options
@@ -309,10 +349,51 @@ router.post('/signin', async (req, res) => {
 //   }
 // });
 
+// Customer signup route
+router.post('/customer/signup', async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    // Check if customer already exists
+    const existingCustomer = await Customer.findOne({ email: email.toLowerCase() });
+    if (existingCustomer) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    // Create new customer and let schema hooks hash the password
+    const newCustomer = new Customer({
+      name,
+      email: email.toLowerCase(),
+      password: password,
+      phone: phone || ''
+    });
+
+    const savedCustomer = await newCustomer.save();
+
+    // Return without password
+    const customerResponse = savedCustomer.toObject();
+    delete customerResponse.password;
+
+    res.status(201).json({
+      message: 'Signup successful! You can now sign in with your credentials.',
+      customer: customerResponse
+    });
+  } catch (err) {
+    console.error('Customer signup error:', err);
+    res.status(500).json({ message: err.message || 'Signup failed' });
+  }
+});
+
 // Export the router and middleware functions
 module.exports = {
   router,
   isAuthenticated,
   isBrand,
-  isInfluencer
+  isInfluencer,
+  isCustomer
 };

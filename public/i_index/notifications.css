@@ -1,0 +1,15 @@
+/* Notifications styles extracted from influencer dashboard */
+.notif-bell{background:transparent;border:none;cursor:pointer;font-size:18px;position:relative;color:#333}
+.notif-bell:focus{outline:none}
+.notif-count{position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;border-radius:12px;padding:2px 6px;font-size:11px}
+/* Notification modal */
+#notificationsModal{display:none;position:fixed;right:18px;top:64px;width:360px;max-height:70vh;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:1100;overflow:hidden}
+#notificationsModal .header{padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+#notificationsModal .list{overflow:auto;max-height:60vh;padding:8px}
+#notificationsModal .item{padding:10px;border-radius:6px;margin-bottom:8px;border:1px solid #f1f1f1;background:#fafafa}
+#notificationsModal .item.unread{background:#eef6ff;border-color:#dbeeff}
+#notificationsModal .item .title{font-weight:600;margin-bottom:6px}
+#notificationsModal .item .time{font-size:12px;color:#666}
+#notificationsModal .empty{padding:20px;text-align:center;color:#666}
+#notificationsModal .footer{padding:8px;border-top:1px solid #eee;text-align:right}
+#notificationsModal button{cursor:pointer}

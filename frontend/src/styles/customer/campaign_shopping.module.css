@@ -1,0 +1,285 @@
+/* Customer Campaign Shopping Styles */
+
+.campaignShoppingPage {
+    --primary-color: #4285f4;
+    --secondary-color: #34a853;
+    --accent-color: #ea4335;
+    --light-gray: #f8f9fa;
+    --dark-gray: #333;
+    --soft-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --soft-card-hover: 0 8px 22px rgba(0, 0, 0, 0.12);
+    --radius: 14px;
+}
+
+/* ------------------------------ */
+/* Campaign Header                */
+/* ------------------------------ */
+
+.campaign-header {
+    padding: 2rem 1.25rem;
+    background: linear-gradient(135deg, #1c2c48, #283b66);
+    color: white;
+    border-radius: 0 0 18px 18px;
+    box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.brand-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 18px;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+.campaign-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.brand-name {
+    opacity: 0.9;
+    font-size: 1.05rem;
+}
+
+.campaign-description {
+    margin-top: 0.75rem;
+    font-size: 1.05rem;
+    opacity: 0.92;
+    max-width: 650px;
+}
+
+.campaign-dates {
+    margin-top: 0.6rem;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.campaign-stats {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.stat-item {
+    text-align: center;
+    min-width: 70px;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+/* ------------------------------ */
+/* Tabs (Fixed Active Text Issue) */
+/* ------------------------------ */
+
+.campaignShoppingPage :global(.nav-tabs) {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.campaignShoppingPage :global(.nav-tabs .nav-link) {
+    border: none;
+    background: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.1rem;
+    border-radius: 10px 10px 0 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* ------------------------------ */
+/* Empty State                    */
+/* ------------------------------ */
+
+.campaignShoppingPage :global(.alert-info) {
+    background: #e5f4ff !important;
+    color: #0b74d4 !important;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    border: none;
+}
+
+/* ------------------------------ */
+/* Cards                          */
+/* ------------------------------ */
+
+.product-card,
+.content-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--soft-card);
+    transition: 0.25s ease;
+    overflow: hidden;
+}
+
+.product-card:hover,
+.content-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--soft-card-hover);
+}
+
+.product-image-container,
+.content-image-container {
+    height: 200px;
+    background: #f3f4f6;
+}
+
+.product-name,
+.content-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.product-description,
+.content-caption {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.product-pricing {
+    margin-bottom: 1rem;
+}
+
+.current-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.original-price {
+    font-size: 0.9rem;
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 0.5rem;
+}
+
+.product-details {
+    margin-bottom: 1rem;
+}
+
+.product-details li {
+    margin-bottom: 4px;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #dc3545;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.product-image-container {
+    position: relative;
+}
+
+.content-placeholder {
+    font-size: 3rem;
+    color: #ddd;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.product-image,
+.content-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.influencer-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+}
+
+.influencer-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.content-hashtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.content-stats small {
+    font-size: 0.8rem;
+}
+
+.content-actions,
+.product-actions {
+    margin-top: auto;
+}
+
+/* ------------------------------ */
+/* Buttons                        */
+/* ------------------------------ */
+
+.campaignShoppingPage :global(.btn-primary) {
+    background: var(--primary-color);
+    border-radius: 10px;
+    padding: 0.65rem 1.25rem;
+    box-shadow: 0 4px 14px rgba(66, 133, 244, 0.25);
+    color: white !important;
+    font-weight: 600;
+    transition: 0.25s;
+}
+
+.campaignShoppingPage :global(.btn-primary:hover) {
+    background: #2e70e3;
+    transform: translateY(-2px);
+}
+
+/* ------------------------------ */
+/* Responsive Layout              */
+/* ------------------------------ */
+
+@media (max-width: 768px) {
+    .campaign-header {
+        text-align: center;
+    }
+
+    .campaign-stats {
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+
+    .brand-logo {
+        width: 65px;
+        height: 65px;
+    }
+
+    .campaign-title {
+        font-size: 1.5rem;
+    }
+}

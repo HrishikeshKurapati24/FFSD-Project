@@ -297,7 +297,8 @@ customerSchema.index({ email: 1 }, { unique: true });
 const Product = mongoose.model('Product', productSchema);
 const CampaignContent = mongoose.model('CampaignContent', campaignContentSchema);
 const ContentTracking = mongoose.model('ContentTracking', contentTrackingSchema);
-const Customer = mongoose.model('Customer', customerSchema);
+// Use a distinct model name to avoid colliding with the main Customer model
+const Customer = mongoose.models.ProductCustomer || mongoose.model('ProductCustomer', customerSchema);
 
 module.exports = {
     Product,

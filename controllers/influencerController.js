@@ -5,7 +5,10 @@ const { brandModel, SubscriptionService } = require('../models/brandModel');
 const path = require('path');
 const fs = require('fs');
 const { CampaignInfluencers } = require('../config/CampaignMongo');
+const notificationController = require('./notificationController');
 const { mongoose } = require('mongoose');
+const { uploadToCloudinary } = require('../utils/cloudinary');
+const { InfluencerInfo } = require('../config/InfluencerMongo');
 
 // Get influencer dashboard data
 const getInfluencerDashboard = async (req, res) => {
@@ -440,6 +443,100 @@ const getInfluencerProfile = async (req, res) => {
   }
 };
 
+// Update influencer profile images
+const updateInfluencerImages = async (req, res) => {
+  try {
+    const influencerId = req.session.user.id;
+    if (!influencerId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Not authenticated' 
+      });
+    }
+
+    const { profilePic, bannerImage } = req.files || {};
+    const updateData = {};
+
+    // Handle profile picture upload
+    if (profilePic && profilePic.length > 0) {
+      try {
+        const profilePicUrl = await uploadToCloudinary(profilePic[0], 'influencer-profiles');
+        if (profilePicUrl) {
+          updateData.profilePicUrl = profilePicUrl;
+        }
+      } catch (error) {
+        console.error('Error uploading profile picture:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading profile picture: ' + error.message
+        });
+      }
+    }
+
+    // Handle banner image upload
+    if (bannerImage && bannerImage.length > 0) {
+      try {
+        const bannerUrl = await uploadToCloudinary(bannerImage[0], 'influencer-banners');
+        if (bannerUrl) {
+          updateData.bannerUrl = bannerUrl;
+        }
+      } catch (error) {
+        console.error('Error uploading banner image:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading banner image: ' + error.message
+        });
+      }
+    }
+
+    // Only update if we have new URLs
+    if (Object.keys(updateData).length > 0) {
+      try {
+        // Update influencer in database
+        const updatedInfluencer = await InfluencerInfo.findByIdAndUpdate(
+          influencerId,
+          { $set: updateData },
+          { new: true, runValidators: true }
+        );
+
+        if (!updatedInfluencer) {
+          return res.status(404).json({
+            success: false,
+            message: 'Influencer not found'
+          });
+        }
+
+        return res.json({
+          success: true,
+          message: 'Images updated successfully',
+          profile: {
+            profilePicUrl: updatedInfluencer.profilePicUrl || updatedInfluencer.profile_pic_url,
+            bannerUrl: updatedInfluencer.bannerUrl || updatedInfluencer.banner_url
+          }
+        });
+      } catch (error) {
+        console.error('Error updating influencer images in database:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Error updating images in database: ' + error.message
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'No images provided for update'
+      });
+    }
+  } catch (error) {
+    console.error('Error in updateInfluencerImages:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error updating images',
+      error: error.message
+    });
+  }
+};
+
 // Update influencer profile data
 const updateInfluencerData = async (req, res) => {
   try {
@@ -662,6 +759,28 @@ const updateProgress = async (req, res) => {
       }
 
       await metrics.save();
+    }
+
+    // Notify the brand that influencer updated progress
+    try {
+      const brandId = collab.campaign_id?.brand_id || (collab.campaign_id?._id ? collab.campaign_id._id : null);
+      const influencerId = req.session.user.id;
+      if (brandId) {
+        const influencerInfo = await influencerModel.getInfluencerById(influencerId);
+        await notificationController.createNotification({
+          recipientId: brandId,
+          recipientType: 'brand',
+          senderId: influencerId,
+          senderType: 'influencer',
+          type: 'progress_updated',
+          title: 'Campaign Progress Updated',
+          body: `${influencerInfo?.displayName || influencerInfo?.name || 'An influencer'} updated progress to ${progressValue}% for a campaign.`,
+          relatedId: collabId,
+          data: { collabId, progress: progressValue }
+        });
+      }
+    } catch (notifErr) {
+      console.error('Error creating progress notification:', notifErr);
     }
 
     res.json({

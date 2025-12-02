@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import styles from '../../styles/cart.module.css';
+import styles from '../../styles/customer/cart.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
+import { useCart } from '../../contexts/CartContext';
+import CustomerNavbar from '../../components/customer/CustomerNavbar';
 
 const EXTERNAL_ASSETS = {
     styles: [
@@ -12,21 +14,15 @@ const EXTERNAL_ASSETS = {
     scripts: ['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js']
 };
 
-const DEFAULT_PRODUCT_IMAGE = '/images/default-product.jpg';
+const DEFAULT_PRODUCT_IMAGE = '/images/default-product.png';
 
 const Cart = () => {
     useExternalAssets(EXTERNAL_ASSETS);
     const navigate = useNavigate();
-    const [cartData, setCartData] = useState({
-        items: [],
-        subtotal: 0,
-        shipping: 0,
-        total: 0,
-        title: 'Your Cart'
-    });
-    const [loading, setLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState('');
+    const { cartItems, subtotal, shipping, total, loading, error: cartError, removeFromCart, clearCart } = useCart();
     const [alert, setAlert] = useState({ type: '', message: '' });
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [customerName, setCustomerName] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -37,6 +33,38 @@ const Cart = () => {
         expYear: '',
         cvv: ''
     });
+
+    // Check authentication on mount
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated && data.user?.userType === 'customer') {
+                        setIsAuthenticated(true);
+                        setCustomerName(data.user?.displayName || '');
+                    } else {
+                        navigate('/signin');
+                    }
+                } else {
+                    navigate('/signin');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                navigate('/signin');
+            }
+        };
+
+        checkAuth();
+    }, [navigate]);
 
     const showAlert = useCallback((type, message) => {
         setAlert({ type, message });
@@ -53,82 +81,21 @@ const Cart = () => {
         return () => window.clearTimeout(timeout);
     }, [alert]);
 
-    const fetchCart = useCallback(async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/customer/cart`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Accept: 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Unable to load cart at the moment.');
-            }
-
-            const data = await response.json();
-            setCartData({
-                items: Array.isArray(data?.items) ? data.items : [],
-                subtotal: data?.subtotal ?? 0,
-                shipping: data?.shipping ?? 0,
-                total: data?.total ?? 0,
-                title: data?.title || 'Your Cart'
-            });
-            document.title = `${data?.title || 'Your Cart'} - CollabSync`;
-            setErrorMessage('');
-        } catch (error) {
-            console.error('Error loading cart:', error);
-            setErrorMessage(error.message || 'Unable to load cart at the moment.');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
+    // Set document title
     useEffect(() => {
-        let isMounted = true;
-
-        const loadCart = async () => {
-            if (!isMounted) {
-                return;
-            }
-            await fetchCart();
-        };
-
-        loadCart();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [fetchCart]);
+        document.title = 'Your Cart - CollabSync';
+    }, []);
 
     const handleRemoveItem = useCallback(
         async (productId) => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/customer/cart/remove`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json'
-                    },
-                    body: JSON.stringify({ productId })
-                });
-
-                const data = await response.json();
-                if (response.ok && data?.success) {
-                    showAlert('success', data?.message || 'Item removed');
-                    await fetchCart();
-                } else {
-                    throw new Error(data?.message || 'Failed to remove item');
-                }
-            } catch (error) {
-                console.error('Remove item error:', error);
-                showAlert('danger', error.message || 'Failed to remove item');
+            const result = await removeFromCart(productId);
+            if (result.success) {
+                showAlert('success', result.message || 'Item removed');
+            } else {
+                showAlert('danger', result.message || 'Failed to remove item');
             }
         },
-        [fetchCart, showAlert]
+        [removeFromCart, showAlert]
     );
 
     const handleInputChange = (event) => {
@@ -147,6 +114,12 @@ const Cart = () => {
             return;
         }
 
+        // Prepare cart items in the format expected by backend (from session structure)
+        const cartDataForBackend = items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity
+        }));
+
         const payload = {
             customerInfo: {
                 name: name.trim(),
@@ -159,7 +132,8 @@ const Cart = () => {
                 expMonth: expMonth.trim(),
                 expYear: expYear.trim(),
                 cvv: cvv.trim()
-            }
+            },
+            cart: cartDataForBackend // Send cart data from context since backend reads from session
         };
 
         try {
@@ -176,7 +150,8 @@ const Cart = () => {
             const data = await response.json();
             if (response.ok && data?.success) {
                 showAlert('success', data?.message || 'Payment completed successfully!');
-                await fetchCart();
+                // Clear cart in context after successful checkout
+                clearCart();
                 navigate('/customer');
             } else {
                 throw new Error(data?.message || 'Checkout failed');
@@ -187,39 +162,35 @@ const Cart = () => {
         }
     };
 
-    const items = useMemo(() => cartData.items || [], [cartData.items]);
+    const items = useMemo(() => cartItems || [], [cartItems]);
     const isEmpty = !items.length;
     const formatCurrency = (value) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
 
+    if (!isAuthenticated) {
+        return (
+            <div className={styles.cartPage}>
+                <CustomerNavbar />
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status" aria-label="Loading" />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.cartPage}>
-            <nav className={`navbar navbar-light bg-light ${styles.navbar}`}>
-                <div className="container d-flex align-items-center">
-                    <Link className="navbar-brand fw-bold" to="/" aria-label="CollabSync home">
-                        <i className="fas fa-shopping-bag me-2" aria-hidden="true" />
-                        CollabSync
-                    </Link>
-                    <ul className="nav me-auto">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/customer">
-                                All Campaigns
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/customer/rankings">
-                                Rankings
-                            </Link>
-                        </li>
-                    </ul>
+            <CustomerNavbar
+                rightAction={
                     <Link className="btn btn-outline-primary" to="/customer">
                         Continue Shopping
                     </Link>
-                </div>
-            </nav>
+                }
+                customerName={customerName}
+            />
 
             <div className={`container my-4 ${styles['cart-container']}`}>
-                <h1 className={`${styles['cart-title']} mb-4`}>{cartData.title}</h1>
+                <h1 className={`${styles['cart-title']} mb-4`}>Your Cart</h1>
 
                 {alert.message && (
                     <div className={`alert alert-${alert.type === 'success' ? 'success' : 'danger'}`} role="alert">
@@ -227,9 +198,9 @@ const Cart = () => {
                     </div>
                 )}
 
-                {errorMessage && (
+                {cartError && (
                     <div className="alert alert-danger" role="alert">
-                        {errorMessage}
+                        {cartError}
                     </div>
                 )}
 
@@ -289,19 +260,19 @@ const Cart = () => {
                                     <div className={styles['summary-row']}>
                                         <span className={styles['summary-label']}>Subtotal</span>
                                         <span className={styles['summary-value']}>
-                                            {formatCurrency(cartData.subtotal)}
+                                            {formatCurrency(subtotal)}
                                         </span>
                                     </div>
                                     <div className={styles['summary-row']}>
                                         <span className={styles['summary-label']}>Shipping</span>
                                         <span className={styles['summary-value']}>
-                                            {formatCurrency(cartData.shipping)}
+                                            {formatCurrency(shipping)}
                                         </span>
                                     </div>
                                     <hr />
                                     <div className={`${styles['summary-row']} ${styles['summary-total']}`}>
                                         <span>Total</span>
-                                        <span>{formatCurrency(cartData.total)}</span>
+                                        <span>{formatCurrency(total)}</span>
                                     </div>
                                 </div>
                             </div>

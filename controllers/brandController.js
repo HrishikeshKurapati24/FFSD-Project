@@ -3,6 +3,149 @@ const { brandModel, SubscriptionService } = require('../models/brandModel');
 const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploadError } = require('../utils/imageUpload');
 const { validationResult } = require('express-validator');
 
+const platformIconMap = {
+  instagram: 'instagram',
+  youtube: 'youtube',
+  tiktok: 'tiktok',
+  facebook: 'facebook',
+  twitter: 'twitter',
+  linkedin: 'linkedin'
+};
+
+const toArrayField = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
+      }
+    } catch (error) {
+      // Fall through to comma separated fallback
+    }
+    return value.split(',').map(item => item.trim()).filter(Boolean);
+  }
+  return [];
+};
+
+const buildSocialSummaries = (socialStats = []) => socialStats.map(stat => {
+  const platform = (stat.platform || 'link').toLowerCase();
+  const followers = Number(stat.followers || 0);
+  const avgLikes = stat.avgLikes !== undefined ? Number(stat.avgLikes) : Math.round(followers * 0.05);
+  const avgComments = stat.avgComments !== undefined ? Number(stat.avgComments) : Math.round(followers * 0.01);
+  const avgViews = stat.avgViews !== undefined
+    ? Number(stat.avgViews)
+    : (platform === 'youtube' ? Math.round(followers * 2) : Math.round(followers * 0.1));
+
+  return {
+    platform,
+    name: stat.platform ? stat.platform.charAt(0).toUpperCase() + stat.platform.slice(1) : 'Platform',
+    icon: platformIconMap[platform] || 'link',
+    followers,
+    avgLikes,
+    avgComments,
+    avgViews
+  };
+});
+
+const buildBestPosts = (topCampaigns = []) => topCampaigns.slice(0, 6).map(campaign => {
+  const reach = Number(campaign.reach || 0);
+  return {
+    id: campaign._id || campaign.id,
+    title: campaign.title || 'Campaign',
+    thumbnail: campaign.thumbnail || '/images/default-campaign.jpg',
+    platform: (campaign.platform || 'link').toLowerCase(),
+    likes: campaign.likes || Math.round(reach * 0.05),
+    comments: campaign.comments || Math.round(reach * 0.01),
+    views: campaign.views || reach,
+    url: campaign.url || '#'
+  };
+});
+
+const calculatePerformanceOverview = (brandData = {}, socialStats = []) => {
+  const totalFollowers = socialStats.reduce((sum, stat) => sum + Number(stat.followers || 0), 0);
+  const fallbackEngagement = socialStats.length
+    ? socialStats.reduce((sum, stat) => sum + Number(stat.engagementRate || 3), 0) / socialStats.length
+    : 3.5;
+  const avgEngagementRateValue = Number(brandData.avgEngagementRate ?? fallbackEngagement);
+  const avgEngagementRate = Number(avgEngagementRateValue.toFixed(1));
+
+  const reach = brandData.performanceMetrics?.reach || Math.floor(totalFollowers * (avgEngagementRate / 100) * 10);
+  const impressions = brandData.performanceMetrics?.impressions || Math.floor(reach * 3);
+  const engagement = brandData.performanceMetrics?.engagement || Math.floor(impressions * (avgEngagementRate / 100));
+  const conversionSeed = brandData.performanceMetrics?.conversionRate ?? brandData.conversionRate ?? 2.5;
+  const conversionRate = Number(Number(conversionSeed || 0).toFixed(1));
+
+  return {
+    totalFollowers,
+    avgEngagementRate,
+    performanceMetrics: {
+      reach,
+      impressions,
+      engagement,
+      conversionRate
+    }
+  };
+};
+
+const transformBrandProfile = (brandDoc, socialStats = [], topCampaigns = []) => {
+  if (!brandDoc) {
+    return null;
+  }
+  const brandData = brandDoc.toObject ? brandDoc.toObject() : brandDoc;
+  const categories = toArrayField(brandData.categories);
+  const languages = toArrayField(brandData.languages);
+  const socials = buildSocialSummaries(socialStats);
+  const bestPosts = buildBestPosts(topCampaigns);
+  const { totalFollowers, avgEngagementRate, performanceMetrics } = calculatePerformanceOverview(brandData, socialStats);
+
+  return {
+    ...brandData,
+    displayName: brandData.displayName || brandData.name || 'Unknown Brand',
+    fullName: brandData.fullName || brandData.displayName || brandData.name || 'Unknown Brand',
+    username: brandData.username || '',
+    bio: brandData.bio || brandData.mission || 'No description available',
+    profilePicUrl: brandData.logoUrl || brandData.profilePicUrl || '/images/default-brand.png',
+    totalFollowers,
+    avgEngagementRate,
+    completedCollabs: topCampaigns.length,
+    rating: brandData.rating || brandData.avgCampaignRating || 0,
+    socials,
+    bestPosts,
+    performanceMetrics,
+    audienceDemographics: {
+      gender: brandData.targetGender || 'Mixed',
+      ageRange: brandData.targetAgeRange || '18-45'
+    },
+    categories,
+    languages,
+    mission: brandData.mission || brandData.bio || '',
+    website: brandData.website || `https://${brandData.username || 'brand'}.com`,
+    location: brandData.location || '',
+    values: categories,
+    socialLinks: socials.map(social => ({
+      platform: social.platform,
+      url: `https://${social.platform}.com/${brandData.username || ''}`,
+      followers: social.followers
+    })),
+    topCampaigns: topCampaigns.map(campaign => ({
+      id: campaign.id || campaign._id,
+      title: campaign.title,
+      status: campaign.status || 'Active',
+      performance_score: campaign.performance_score || 0,
+      reach: campaign.reach || 0
+    }))
+  };
+};
+
+const buildCampaignHistoryPayload = (campaigns = []) => ({
+  campaigns,
+  summary: {
+    totalCampaigns: campaigns.length
+  }
+});
+
 const brandController = {
   // Get explore page
   async getExplorePage(req, res) {
@@ -13,7 +156,6 @@ const brandController = {
 
       // Get all brands first to extract categories
       const allBrands = await brandModel.getAllBrands();
-      
       // Extract unique industries (from brand signup)
       const categoriesSet = new Set();
       allBrands.forEach(brand => {
@@ -25,16 +167,15 @@ const brandController = {
 
       // Filter brands based on search and category
       let filteredBrands = allBrands;
-      
       if (selectedCategory && selectedCategory !== 'all') {
-        filteredBrands = filteredBrands.filter(brand => 
+        filteredBrands = filteredBrands.filter(brand =>
           brand.industry && brand.industry.toLowerCase().includes(selectedCategory.toLowerCase())
         );
       }
-      
+
       if (searchQuery) {
         const searchLower = searchQuery.toLowerCase();
-        filteredBrands = filteredBrands.filter(brand => 
+        filteredBrands = filteredBrands.filter(brand =>
           (brand.brandName && brand.brandName.toLowerCase().includes(searchLower)) ||
           (brand.name && brand.name.toLowerCase().includes(searchLower)) ||
           (brand.industry && brand.industry.toLowerCase().includes(searchLower)) ||
@@ -43,7 +184,7 @@ const brandController = {
         );
       }
 
-      res.render('influencer/explore', { 
+      res.render('influencer/explore', {
         brands: filteredBrands,
         searchQuery,
         selectedCategory,
@@ -71,65 +212,35 @@ const brandController = {
         });
       }
 
-      // Get additional data needed for the profile
       const socialStats = await brandModel.getSocialStats(brandId);
       const topCampaigns = await brandModel.getTopCampaigns(brandId);
-      const verificationStatus = await brandModel.getVerificationStatus(brandId);
+      const transformedBrand = transformBrandProfile(brand, socialStats, topCampaigns);
 
-      // Helper function to safely parse categories
-      const parseCategories = (categories) => {
-        if (!categories) return [];
-        if (Array.isArray(categories)) return categories;
-        if (typeof categories === 'string') {
-          try {
-            return JSON.parse(categories);
-          } catch (e) {
-            // If JSON parsing fails, try splitting by comma
-            return categories.split(',').map(cat => cat.trim()).filter(Boolean);
-          }
-        }
-        return [];
+      const responseData = {
+        success: true,
+        brand: transformedBrand
       };
 
-      // Transform brand data for the template
-      const transformedBrand = {
-        ...brand,
-        name: brand.displayName || brand.name,
-        username: brand.username,
-        description: brand.bio,
-        logoUrl: brand.logoUrl,
-        bannerUrl: brand.bannerUrl,
-        verified: brand.verified,
-        primaryMarket: brand.location,
-        values: parseCategories(brand.categories),
-        mission: brand.bio,
-        currentCampaign: 'Increase brand awareness and engagement',
-        socialLinks: socialStats.map(stat => ({
-          platform: stat.platform,
-          url: `https://${stat.platform}.com/${brand.username}`,
-          followers: stat.followers
-        })),
-        totalAudience: socialStats.reduce((sum, stat) => sum + stat.followers, 0),
-        website: `https://${brand.username}.com`,
-        targetAgeRange: brand.targetAgeRange,
-        targetGender: brand.targetGender,
-        completedCampaigns: topCampaigns.length,
-        influencerPartnerships: Math.round(topCampaigns.length * 2.5),
-        avgCampaignRating: brand.rating || 4.5,
-        topCampaigns: topCampaigns.map(campaign => ({
-          id: campaign.id,
-          title: campaign.title,
-          status: campaign.status || 'Active',
-          performance_score: campaign.performance_score || 0,
-          reach: campaign.reach || 0
-        }))
-      };
+      // Return JSON for API requests (React frontend)
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json(responseData);
+      }
 
+      // Render EJS for traditional requests (legacy support)
       res.render('brand/profile', {
         brand: transformedBrand
       });
     } catch (error) {
       console.error('Error fetching brand profile:', error);
+
+      // Return JSON for API requests
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error loading brand profile'
+        });
+      }
+
       res.status(500).render('error', {
         error: { status: 500 },
         message: 'Error loading brand profile'
@@ -448,9 +559,28 @@ const brandController = {
         subscriptionLimits // Campaign and collaboration limits
       };
 
+      // Return JSON for API requests (React frontend)
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json({
+          success: true,
+          ...transformedData,
+          recentCompletedCampaigns
+        });
+      }
+
+      // Render EJS for traditional requests
       res.render('brand/dashboard', { ...transformedData, recentCompletedCampaigns });
     } catch (error) {
       console.error('Error in getBrandDashboard:', error);
+
+      // Return JSON for API requests
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error loading dashboard'
+        });
+      }
+
       res.status(500).render('error', {
         status: 500,
         message: 'Error loading dashboard'
@@ -466,9 +596,19 @@ const brandController = {
 
       if (!brandId) {
         console.error('No brand ID found in session');
+        const errorMessage = 'Please log in to view campaign history';
+        
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+          return res.status(401).json({
+            success: false,
+            message: errorMessage
+          });
+        }
+        
         return res.status(401).render('error', {
           error: { status: 401 },
-          message: 'Please log in to view campaign history'
+          message: errorMessage
         });
       }
 
@@ -476,24 +616,43 @@ const brandController = {
       const campaigns = await brandModel.getCampaignHistory(brandId);
       console.log('Retrieved campaigns:', campaigns.length);
 
-      res.render('brand/campaign_history', {
-        campaigns: campaigns.map(campaign => ({
-          ...campaign,
-          performance_score: campaign.performance_score || 0,
-          engagement_rate: campaign.engagement_rate || 0,
-          reach: campaign.reach || 0,
-          conversion_rate: campaign.conversion_rate || 0,
-          influencers_count: campaign.influencers?.length || 0,
-          budget: campaign.budget || 0,
-          end_date: campaign.end_date,
-          status: campaign.status,
-          title: campaign.title,
-          description: campaign.description,
-          influencers: campaign.influencers || []
-        }))
-      });
+      const transformedCampaigns = campaigns.map(campaign => ({
+        ...campaign,
+        performance_score: campaign.performance_score || 0,
+        engagement_rate: campaign.engagement_rate || 0,
+        reach: campaign.reach || 0,
+        conversion_rate: campaign.conversion_rate || 0,
+        influencers_count: campaign.influencers?.length || 0,
+        budget: campaign.budget || 0,
+        end_date: campaign.end_date,
+        status: campaign.status,
+        title: campaign.title,
+        description: campaign.description,
+        influencers: campaign.influencers || []
+      }));
+      const historyPayload = buildCampaignHistoryPayload(transformedCampaigns);
+
+      // Return JSON for API requests (React frontend)
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json({
+          success: true,
+          ...historyPayload
+        });
+      }
+
+      // Render EJS for traditional requests
+      res.render('brand/campaign_history', historyPayload);
     } catch (error) {
       console.error('Error in getCampaignHistory controller:', error);
+      
+      // Return JSON for API requests
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error loading campaign history'
+        });
+      }
+
       res.status(500).render('error', {
         error: { status: 500 },
         message: 'Error loading campaign history'
@@ -501,5 +660,7 @@ const brandController = {
     }
   }
 };
+
+brandController.transformBrandProfileForClient = transformBrandProfile;
 
 module.exports = brandController;

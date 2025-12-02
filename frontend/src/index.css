@@ -5,6 +5,27 @@
     box-sizing: border-box;
 }
 
+/* Theme variables */
+:root {
+    --bg: #ffffff;
+    --fg: #0f172a; /* slate-900 */
+    --muted: #475569; /* slate-600 */
+    --card: #ffffff;
+    --border: #e2e8f0; /* slate-200 */
+    --brand: #0ea5e9; /* sky-500 */
+}
+
+.dark {
+    /* Deep Purple Theme */
+    --bg: #0f0c24; /* Deep purple background */
+    --fg: #f8f9fa; /* Light text for contrast */
+    --muted: #a8a8d1; /* Muted purple text */
+    --card: #1a1b3f; /* Dark purple cards */
+    --border: #2d2b50; /* Purple border */
+    --brand: #a78bfa; /* Purple accent */
+    --hover: rgba(167, 139, 250, 0.1); /* Hover effect */
+}
+
 html,
 body {
     margin: 0;
@@ -12,6 +33,9 @@ body {
     width: 100%;
     height: 100%;
     overflow-x: hidden;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -19,4 +43,171 @@ body {
     padding: 0;
     width: 100%;
     min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Dark mode overrides for common elements */
+.dark body,
+.dark #root {
+    background-color: var(--bg);
+    color: var(--fg);
+}
+
+.dark .container {
+    background-color: transparent;
+    color: var(--fg);
+}
+
+.dark .card,
+.dark .dashboard-card,
+.dark .campaign-card,
+.dark .brand-item,
+.dark .rank-card,
+.dark .invite-card,
+.dark .collab-card {
+    background-color: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.dark .navbar {
+    background-color: var(--card) !important;
+    border-color: var(--border);
+}
+
+.dark .navbar .navbar-brand,
+.dark .navbar .nav-link {
+    color: var(--fg);
+}
+
+.dark .btn-primary {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+}
+
+.dark .form-control,
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.dark .text-muted,
+.dark .muted {
+    color: var(--muted);
+}
+
+/* Dark mode for influencer pages */
+.dark .dashboard-page,
+.dark .explore-page,
+.dark .profile-page {
+    background-color: var(--bg) !important;
+    color: var(--fg) !important;
+}
+
+.dark .dashboard-page :global(.intro),
+.dark .explore-page :global(.intro) {
+    background-color: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.dark .dashboard-page :global(.dashboard-card),
+.dark .dashboard-page :global(.metric-item),
+.dark .dashboard-page :global(.collab-card),
+.dark .dashboard-page :global(.invite-card),
+.dark .explore-page :global(.filter-section),
+.dark .explore-page :global(.brand-item),
+.dark .explore-page :global(.invite-modal-content) {
+    background-color: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.dark .explore-page :global(.no-brands-message),
+.dark .explore-page :global(.no-brands-message h2) {
+    background-color: var(--bg);
+    color: var(--fg);
+}
+
+.dark .explore-page :global(.brand-name),
+.dark .explore-page :global(.brand-tagline),
+.dark .explore-page :global(.brand-mission) {
+    color: var(--fg);
+}
+
+.dark .explore-page :global(.info-item) {
+    color: var(--muted);
+}
+
+/* Dark mode for customer pages */
+.dark .rankingsPage,
+.dark .allCampaignsPage {
+    background-color: var(--bg) !important;
+    color: var(--fg) !important;
+}
+
+/* Dark mode for brand pages */
+.dark .brandDashboardPage,
+.dark .explorePageWrapper,
+.dark .profilePageWrapper,
+.dark .receivedRequestsPageWrapper,
+.dark .createCampaignPageWrapper {
+    background-color: var(--bg) !important;
+    color: var(--fg) !important;
+}
+
+.dark .rankingsPage :global(.rank-card),
+.dark .rankingsPage :global(.filters-wrap),
+.dark .allCampaignsPage :global(.campaign-card) {
+    background-color: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.dark .rankingsPage :global(.list-group-item) {
+    background-color: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.dark .rankingsPage :global(.list-group-item:hover) {
+    background-color: var(--bg);
+}
+
+/* Dark mode for modals */
+.dark .modal-content,
+.dark .modal-body {
+    background-color: var(--card);
+    color: var(--fg);
+}
+
+.dark .modal-header {
+    background-color: var(--card);
+    border-color: var(--border);
+    color: var(--fg);
+}
+
+/* Dark mode for buttons */
+.dark .btn-outline-secondary {
+    border-color: var(--border);
+    color: var(--fg);
+}
+
+.dark .btn-outline-secondary:hover {
+    background-color: var(--bg);
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+/* Optional utilities */
+.bg-surface { background-color: var(--bg); }
+.bg-card { background-color: var(--card); }
+.text-muted { color: var(--muted); }
+.border-default { border-color: var(--border); }
+a { color: var(--brand); }

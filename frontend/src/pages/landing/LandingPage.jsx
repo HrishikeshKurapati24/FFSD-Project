@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import BrandsModal from '../../components/BrandsModal';
 import InfluencersModal from '../../components/InfluencersModal';
-import styles from '../../styles/landing_page.module.css';
+import LandingNavbar from '../../components/landing/LandingNavbar';
+import LandingFooter from '../../components/landing/LandingFooter';
+import styles from '../../styles/landing/landing_page.module.css';
 
 const LandingPage = () => {
     const [showBrandsModal, setShowBrandsModal] = useState(false);
@@ -17,20 +19,7 @@ const LandingPage = () => {
 
     return (
         <div className={styles['landing-page']}>
-            {/* Header */}
-            <header>
-                <div className={styles['header-container']}>
-                    <div className={styles.logo}>CollabSync</div>
-                    <nav>
-                        <ul>
-                            <li><a href="/">Home</a></li>
-                            <li><a href="/role-selection">Sign Up</a></li>
-                            <li><a href="/signin">Sign In</a></li>
-                            <li><a href="/about">About</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </header>
+            <LandingNavbar />
 
             {/* Hero Section */}
             <section className={styles.hero}>
@@ -79,7 +68,7 @@ const LandingPage = () => {
                             Participate in interactive live sessions, read authentic reviews,
                             and enjoy a direct line of communication with the creators you trust.
                         </p>
-                        <a href="/customer" className={styles.button}>I'm a Customer</a>
+                        <a href="/customer/signup" className={styles.button}>I'm a Customer</a>
                     </div>
                 </div>
             </section>
@@ -244,18 +233,7 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer>
-                <div className={styles['footer-logo']}>CollabSync</div>
-                <p>&copy; 2025 CollabSync. All rights reserved.</p>
-                <div className={styles['social-media']}>
-                    <img src="/Lp_index/SocialMedia_logo_i.png" alt="Instagram" />
-                    <img src="/Lp_index/SocialMedia_logo_y2.png" alt="YouTube" />
-                    <img src="/Lp_index/SocialMedia_logo_l.png" alt="LinkedIn" />
-                    <img src="/Lp_index/SocialMedia_logo_f3.jpg" alt="Facebook" />
-                    <img src="/Lp_index/SocialMedia_logo_t.png" alt="Twitter" />
-                </div>
-            </footer>
+            <LandingFooter />
 
             {/* Modals */}
             <BrandsModal

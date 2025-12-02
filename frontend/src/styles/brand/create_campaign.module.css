@@ -1,0 +1,568 @@
+/* Brand Create Campaign Page - Scoped CSS Module */
+
+.createCampaignPageWrapper {
+    --primary-color: #4285f4;
+    --secondary-color: #34a853;
+    --accent-color: #ea4335;
+    --light-gray: #f8f9fa;
+    --dark-gray: #333;
+    --muted: #6c757d;
+    --border: #e6e9f0;
+    --white: #ffffff;
+    --danger: #dc3545;
+    --success: #28a745;
+    --warning: #ffc107;
+    --info: #17a2b8;
+  background-color: #f4f4f4;
+  min-height: 100vh;
+  width: 100%;
+    font-family: Arial, sans-serif;
+    color: #333;
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode styles */
+:global(.dark) .createCampaignPageWrapper {
+  background-color: var(--bg, #0b1220);
+  color: var(--fg, #e2e8f0);
+}
+
+/* Header */
+.createCampaignPageWrapper :global(header) {
+    background-color: #333;
+    color: #fff;
+    padding: 20px 0;
+  width: 100%;
+}
+
+.createCampaignPageWrapper :global(.header-container) {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 20px;
+  margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  position: relative;
+}
+
+.createCampaignPageWrapper :global(.logo) {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.createCampaignPageWrapper :global(nav ul) {
+    list-style: none;
+    display: flex;
+}
+
+.createCampaignPageWrapper :global(nav ul li) {
+    margin-left: 20px;
+}
+
+.createCampaignPageWrapper :global(nav ul li a) {
+    color: #fff;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+  text-decoration: none;
+}
+
+.createCampaignPageWrapper :global(nav ul li a:hover) {
+    color: var(--primary-color);
+}
+
+/* Toggle Button and Menu Styles */
+.createCampaignPageWrapper :global(.toggle-btn) {
+  font-size: 16px;
+  background-color: transparent;
+  color: white;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.createCampaignPageWrapper :global(.toggle-btn:hover) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.createCampaignPageWrapper :global(.menu) {
+  position: absolute;
+  top: calc(100% + 8px);
+    right: 0;
+  width: 200px;
+    background-color: #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.createCampaignPageWrapper :global(.menu.open) {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.createCampaignPageWrapper :global(.menu a) {
+  padding: 12px 20px;
+    text-decoration: none;
+  font-size: 14px;
+    color: white;
+    display: block;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.createCampaignPageWrapper :global(.menu a:last-child) {
+  border-bottom: none;
+}
+
+.createCampaignPageWrapper :global(.menu a:hover) {
+    background-color: #575757;
+}
+
+/* Form container and elements */
+.createCampaignPageWrapper :global(.form-container) {
+    max-width: 800px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 35px;
+    transition: all 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+:global(.dark) .createCampaignPageWrapper :global(.form-container) {
+    background: var(--card, #111827);
+    border-color: var(--border, #1f2937);
+    color: var(--fg, #e2e8f0);
+}
+
+.createCampaignPageWrapper :global(.form-container:hover) {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.createCampaignPageWrapper :global(.form-title) {
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.createCampaignPageWrapper :global(.form-group) {
+    margin-bottom: 25px;
+}
+
+.createCampaignPageWrapper :global(.form-group label) {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.createCampaignPageWrapper :global(.form-control) {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+.createCampaignPageWrapper :global(.form-control:focus) {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    background-color: white;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+:global(.dark) .createCampaignPageWrapper :global(.form-control:focus) {
+    background-color: var(--card, #111827);
+    color: var(--fg, #e2e8f0);
+    border-color: var(--brand, #38bdf8);
+}
+
+.createCampaignPageWrapper :global(textarea.form-control) {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.createCampaignPageWrapper :global(.form-row) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.createCampaignPageWrapper :global(.form-row .form-group) {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 200px;
+}
+
+/* Checkbox styling */
+.createCampaignPageWrapper :global(.checkbox-group) {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.createCampaignPageWrapper :global(.checkbox-item) {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    margin-bottom: 12px;
+    cursor: pointer;
+}
+
+.createCampaignPageWrapper :global(input[type="checkbox"]) {
+    margin-right: 8px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.3s ease;
+    position: relative;
+  cursor: pointer;
+}
+
+.createCampaignPageWrapper :global(input[type="checkbox"]:checked) {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.createCampaignPageWrapper :global(input[type="checkbox"]:checked:after) {
+    content: '\2713';
+    font-size: 14px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.createCampaignPageWrapper :global(.checkbox-item label) {
+  margin: 0;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+/* Button styling */
+.createCampaignPageWrapper :global(.btn-group) {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.createCampaignPageWrapper :global(.btn-group button) {
+    flex: 1;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.createCampaignPageWrapper :global(.submit-btn) {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.createCampaignPageWrapper :global(.submit-btn:hover:not(:disabled)) {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.createCampaignPageWrapper :global(.submit-btn:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.createCampaignPageWrapper :global(.btn-secondary) {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.createCampaignPageWrapper :global(.btn-secondary:hover) {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+.createCampaignPageWrapper :global(.btn-remove-product) {
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.createCampaignPageWrapper :global(.btn-remove-product:hover) {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+/* Product Section Styles */
+.createCampaignPageWrapper :global(.products-section) {
+    margin: 30px 0;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.createCampaignPageWrapper :global(.section-title) {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.createCampaignPageWrapper :global(.section-description) {
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.createCampaignPageWrapper :global(.product-item) {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+:global(.dark) .createCampaignPageWrapper :global(.product-item) {
+    background: var(--card, #111827);
+    border-color: var(--border, #1f2937);
+    color: var(--fg, #e2e8f0);
+}
+
+.createCampaignPageWrapper :global(.product-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.createCampaignPageWrapper :global(.product-header h4) {
+    color: #495057;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.createCampaignPageWrapper :global(.required) {
+    color: var(--danger);
+    font-weight: bold;
+}
+
+.createCampaignPageWrapper :global(.add-product-container) {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Image Preview */
+.createCampaignPageWrapper :global(.image-preview) {
+    margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.createCampaignPageWrapper :global(.image-preview img) {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.createCampaignPageWrapper :global(.btn-remove-image) {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+  font-size: 14px;
+}
+
+.createCampaignPageWrapper :global(.btn-remove-image:hover) {
+  background: #c82333;
+}
+
+/* Alert Messages */
+.createCampaignPageWrapper :global(.alert-danger) {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+}
+
+.createCampaignPageWrapper :global(.alert-danger .btn-upgrade) {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.createCampaignPageWrapper :global(.alert-danger .btn-upgrade:hover) {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.createCampaignPageWrapper :global(.alert-danger .btn-upgrade i) {
+    margin-right: 5px;
+}
+
+/* Error styling */
+.createCampaignPageWrapper :global(.error-inline) {
+  display: block;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: rgba(255, 77, 79, 0.12);
+    border: 1px solid #ff4d4f;
+    color: #b00020;
+    font-size: 0.875rem;
+}
+
+.createCampaignPageWrapper :global(.error-input) {
+  outline: 2px solid #ff4d4f !important;
+  outline-offset: 1px !important;
+  border-color: #ff4d4f !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .createCampaignPageWrapper :global(.header-container) {
+        flex-direction: column;
+        padding: 10px 5%;
+    }
+
+  .createCampaignPageWrapper :global(nav ul) {
+        margin-top: 15px;
+    }
+
+  .createCampaignPageWrapper :global(nav ul li) {
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+
+  .createCampaignPageWrapper :global(.form-container) {
+        padding: 25px 20px;
+        margin: 20px 15px;
+    }
+
+  .createCampaignPageWrapper :global(.btn-group) {
+        flex-direction: column;
+    }
+
+  .createCampaignPageWrapper :global(.toggle-btn) {
+        display: block;
+    }
+
+  .createCampaignPageWrapper :global(.form-row .form-group) {
+        flex: 1 1 100%;
+        min-width: auto;
+    }
+
+  .createCampaignPageWrapper :global(.checkbox-group) {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+  .createCampaignPageWrapper :global(.checkbox-item) {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+}
+
+/* Comprehensive Dark Mode Overrides for Create Campaign */
+:global(.dark) .createCampaignPageWrapper :global(.form-container),
+:global(.dark) .createCampaignPageWrapper :global(.form-section),
+:global(.dark) .createCampaignPageWrapper :global(.form-group),
+:global(.dark) .createCampaignPageWrapper :global(.form-control),
+:global(.dark) .createCampaignPageWrapper :global(.checkbox-item),
+:global(.dark) .createCampaignPageWrapper :global(.tag-container),
+:global(.dark) .createCampaignPageWrapper :global(.file-upload-label),
+:global(.dark) .createCampaignPageWrapper :global(.modal-content),
+:global(.dark) .createCampaignPageWrapper :global(.success-message),
+:global(.dark) .createCampaignPageWrapper :global(.error-message) {
+    background-color: var(--card, #111827) !important;
+    color: var(--fg, #e2e8f0) !important;
+    border-color: var(--border, #1f2937) !important;
+}
+
+:global(.dark) .createCampaignPageWrapper :global(.section-title),
+:global(.dark) .createCampaignPageWrapper :global(.form-group label),
+:global(.dark) .createCampaignPageWrapper :global(.form-label),
+:global(.dark) .createCampaignPageWrapper :global(h1),
+:global(.dark) .createCampaignPageWrapper :global(h2),
+:global(.dark) .createCampaignPageWrapper :global(h3) {
+    color: var(--fg, #e2e8f0) !important;
+}
+
+:global(.dark) .createCampaignPageWrapper :global(.form-text),
+:global(.dark) .createCampaignPageWrapper :global(.help-text),
+:global(.dark) .createCampaignPageWrapper :global(.error-message) {
+    color: var(--muted, #94a3b8) !important;
+}
+
+:global(.dark) .createCampaignPageWrapper :global(input),
+:global(.dark) .createCampaignPageWrapper :global(select),
+:global(.dark) .createCampaignPageWrapper :global(textarea) {
+    background-color: var(--card, #111827) !important;
+    color: var(--fg, #e2e8f0) !important;
+    border-color: var(--border, #1f2937) !important;
+}

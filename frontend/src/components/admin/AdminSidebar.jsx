@@ -35,21 +35,6 @@ const AdminSidebar = ({ isOpen, onClose }) => {
             path: '/admin/feedback_and_moderation',
             icon: 'fas fa-comments',
             label: 'Feedback & Moderation'
-        },
-        {
-            path: '/admin/brand-analytics',
-            icon: 'fas fa-building',
-            label: 'Brand Analytics'
-        },
-        {
-            path: '/admin/influencer-analytics',
-            icon: 'fas fa-star',
-            label: 'Influencer Analytics'
-        },
-        {
-            path: '/admin/campaign-analytics',
-            icon: 'fas fa-chart-line',
-            label: 'Campaign Analytics'
         }
     ];
 

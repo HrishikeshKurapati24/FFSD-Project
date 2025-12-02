@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Influencer Dashboard - CollabSync</title>
   <link rel="stylesheet" href="/i_index/influencer_dashboard.css">
+  <link rel="stylesheet" href="/i_index/notifications.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -232,8 +233,15 @@
           <li><a href="/influencer/profile">My Profile</a></li>
         </ul>
       </nav>
-    </div>
-  </header>
+        <!-- Notification bell -->
+        <div id="notifWrapper" style="display:flex;align-items:center;gap:12px;margin-left:12px;">
+          <button id="notifBell" class="notif-bell" title="Notifications" onclick="openNotifications()">
+            <i class="fas fa-bell"></i>
+            <span id="notifCount" class="notif-count" style="display:none">0</span>
+          </button>
+        </div>
+      </div>
+    </header>
 
   <!-- Sidebar Navigation (Right Side) -->
   <button class="toggle-btn" onclick="openMenu()">☰</button>
@@ -296,7 +304,7 @@
       <div
         class="alert <%= subscriptionStatus.expired ? 'alert-danger' : 'alert-warning' %> alert-dismissible fade show"
         role="alert"
-        style="margin: 20px 0; border-left: 4px solid <%= subscriptionStatus.expired ? '#ea4335' : '#ffc107' %>;">
+        style="margin: 20px 0; border-left: 4px solid <%= subscriptionStatus.expired ? '#ea4335' : '#ffc107' %>">
         <h4 class="alert-heading">
           <i class="fas <%= subscriptionStatus.expired ? 'fa-exclamation-triangle' : 'fa-clock' %>"></i>
           <%= subscriptionStatus.expired ? 'Subscription Expired' : 'Subscription Renewal Required' %>
@@ -1006,6 +1014,23 @@
     </div>
   </div>
 
+  <!-- Notifications Modal -->
+  <div id="notificationsModal" aria-hidden="true">
+    <div class="header">
+      <strong>Notifications</strong>
+      <div>
+        <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary" onclick="markAllRead()">Mark all read</button>
+        <button onclick="closeNotifications()" class="btn btn-sm btn-light">Close</button>
+      </div>
+    </div>
+    <div class="list" id="notificationsList">
+      <div class="empty">Loading…</div>
+    </div>
+    <div class="footer">
+      <small style="color:#666">Notifications are saved and can be viewed later.</small>
+    </div>
+  </div>
+
   <script>
     // ========================================
     // FUNCTIONALITY 3: COLLABORATION REQUEST HANDLING
@@ -1527,6 +1552,115 @@
         alert('Shop URL copied to clipboard!');
       }
     }
+
+    // ===== Notifications logic =====
+    const notificationsModal = document.getElementById('notificationsModal');
+    const notificationsList = document.getElementById('notificationsList');
+    const notifCountEl = document.getElementById('notifCount');
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Failed to load');
+        renderNotifications(data.notifications || []);
+      } catch (err) {
+        console.error('Error loading notifications:', err);
+        notificationsList.innerHTML = '<div class="empty">Failed to load notifications</div>';
+      }
+    }
+
+    function timeAgo(d) {
+      try {
+        const t = new Date(d);
+        const diff = Math.floor((Date.now() - t.getTime()) / 1000);
+        if (diff < 60) return diff + 's';
+        if (diff < 3600) return Math.floor(diff/60) + 'm';
+        if (diff < 86400) return Math.floor(diff/3600) + 'h';
+        return Math.floor(diff/86400) + 'd';
+      } catch(e){ return '' }
+    }
+
+    function renderNotifications(list) {
+      if (!Array.isArray(list) || list.length === 0) {
+        notificationsList.innerHTML = '<div class="empty">No notifications</div>';
+        notifCountEl.style.display = 'none';
+        return;
+      }
+      const unread = list.filter(n => !n.read).length;
+      if (unread > 0) {
+        notifCountEl.style.display = 'inline-block';
+        notifCountEl.textContent = unread;
+      } else {
+        notifCountEl.style.display = 'none';
+      }
+
+      notificationsList.innerHTML = '';
+      for (const n of list) {
+        const item = document.createElement('div');
+        item.className = 'item' + (n.read ? '' : ' unread');
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = n.title || n.type || 'Notification';
+        const body = document.createElement('div');
+        body.className = 'body';
+        body.textContent = n.body || '';
+        const time = document.createElement('div');
+        time.className = 'time';
+        time.textContent = timeAgo(n.createdAt || n.created_at || n.created) + ' ago';
+        const actions = document.createElement('div');
+        actions.style.marginTop = '8px';
+
+        const markBtn = document.createElement('button');
+        markBtn.className = 'btn btn-sm btn-outline-secondary';
+        markBtn.textContent = n.read ? 'Read' : 'Mark read';
+        markBtn.onclick = async () => {
+          try {
+            await fetch('/api/notifications/mark-read', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: n._id }), credentials: 'same-origin' });
+            item.classList.remove('unread');
+            markBtn.textContent = 'Read';
+            // update badge
+            const curr = parseInt(notifCountEl.textContent || '0') - 1;
+            if (curr > 0) { notifCountEl.textContent = curr; } else { notifCountEl.style.display = 'none'; }
+          } catch (err) { console.error('Mark read failed', err); }
+        };
+
+        actions.appendChild(markBtn);
+        item.appendChild(title);
+        item.appendChild(body);
+        item.appendChild(time);
+        item.appendChild(actions);
+        notificationsList.appendChild(item);
+      }
+    }
+
+    async function openNotifications() {
+      notificationsModal.style.display = 'block';
+      await loadNotifications();
+    }
+
+    function closeNotifications() { notificationsModal.style.display = 'none'; }
+
+    async function markAllRead() {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!data.success) throw new Error('Failed');
+        const ids = (data.notifications || []).filter(n => !n.read).map(n => n._id);
+        if (ids.length === 0) return;
+        await fetch('/api/notifications/mark-read', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ids }), credentials: 'same-origin' });
+        // reload and update
+        await loadNotifications();
+      } catch (err) {
+        console.error('Error marking all read', err);
+      }
+    }
+
+    // Load once on page load to show unread count
+    document.addEventListener('DOMContentLoaded', function () {
+      // Don't block other loads
+      setTimeout(() => { loadNotifications(); }, 500);
+    });
   </script>
 </body>
 

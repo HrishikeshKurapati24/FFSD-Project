@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import styles from '../../styles/rankings.module.css';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import styles from '../../styles/customer/rankings.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
+import CustomerNavbar from '../../components/customer/CustomerNavbar';
 
 const EXTERNAL_ASSETS = {
     styles: [
@@ -31,6 +32,7 @@ const INFLUENCER_OPTIONS = [
 
 const Rankings = () => {
     useExternalAssets(EXTERNAL_ASSETS);
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [brandCategory, setBrandCategory] = useState(searchParams.get('brandCategory') || 'revenue');
     const [influencerCategory, setInfluencerCategory] = useState(
@@ -41,6 +43,40 @@ const Rankings = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [pageTitle, setPageTitle] = useState('Rankings');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [customerName, setCustomerName] = useState('');
+
+    // Check authentication on mount
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated && data.user?.userType === 'customer') {
+                        setIsAuthenticated(true);
+                        setCustomerName(data.user?.displayName || '');
+                    } else {
+                        navigate('/signin');
+                    }
+                } else {
+                    navigate('/signin');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                navigate('/signin');
+            }
+        };
+
+        checkAuth();
+    }, [navigate]);
 
     const updateQueryParams = useCallback(
         (updates) => {
@@ -150,32 +186,20 @@ const Rankings = () => {
         }
     };
 
+    if (!isAuthenticated) {
+        return (
+            <div className={styles.rankingsPage}>
+                <CustomerNavbar />
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status" aria-label="Loading" />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.rankingsPage}>
-            <nav className={`navbar navbar-light ${styles.navbar}`}>
-                <div className="container d-flex align-items-center">
-                    <Link className="navbar-brand fw-bold" to="/customer" aria-label="CollabSync home">
-                        <i className="fas fa-shopping-bag me-2" aria-hidden="true" />
-                        CollabSync
-                    </Link>
-                    <ul className="nav me-auto">
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/customer">
-                                All Campaigns
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link className="nav-link active" to="/customer/rankings">
-                                Rankings
-                            </Link>
-                        </li>
-                    </ul>
-                    <Link className="btn btn-primary" to="/customer/cart" aria-label="Go to cart">
-                        <i className="fas fa-shopping-cart me-2" aria-hidden="true" />
-                        Cart
-                    </Link>
-                </div>
-            </nav>
+            <CustomerNavbar customerName={customerName} />
 
             <div className={`container my-4 ${styles['rankings-container']}`}>
                 <div className={`d-flex align-items-center gap-2 flex-wrap ${styles['filters-wrap']}`}>

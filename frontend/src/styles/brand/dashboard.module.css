@@ -1,0 +1,1373 @@
+/* Brand Dashboard Styles - Modern Design Enhancement */
+
+.brandDashboardPage {
+    --primary-color: #4285f4;
+    --primary-gradient: linear-gradient(135deg, #4285f4 0%, #3367d6 100%);
+    --secondary-color: #34a853;
+    --secondary-gradient: linear-gradient(135deg, #34a853 0%, #2e8e3e 100%);
+    --accent-color: #ea4335;
+    --accent-gradient: linear-gradient(135deg, #ea4335 0%, #d32f2f 100%);
+    --light-gray: #f8f9fa;
+    --dark-gray: #1a1a1a;
+    --muted: #6c757d;
+    --border: #e6e9f0;
+    --white: #ffffff;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    color: #1a1a1a;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode styles */
+:global(.dark) .brandDashboardPage {
+    background: var(--bg, #0b1220);
+    color: var(--fg, #e2e8f0);
+}
+
+/* Header Styles */
+.brandDashboardPage :global(header) {
+    background-color: #333;
+    color: #fff;
+    padding: 20px 0;
+    width: 100%;
+}
+
+.brandDashboardPage :global(.header-container) {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.brandDashboardPage :global(.logo) {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.brandDashboardPage :global(nav) {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.brandDashboardPage :global(nav ul) {
+    list-style: none;
+    display: flex;
+}
+
+.brandDashboardPage :global(nav ul li) {
+    margin-left: 20px;
+}
+
+.brandDashboardPage :global(nav ul li a) {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.brandDashboardPage :global(nav ul li a:hover) {
+    color: #007BFF;
+}
+
+.brandDashboardPage :global(.notification-bell) {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px;
+    width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.brandDashboardPage :global(.notification-bell:hover) {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Toggle Button and Menu Styles */
+.brandDashboardPage :global(.toggle-btn) {
+    font-size: 16px;
+    background-color: transparent;
+    color: white;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.brandDashboardPage :global(.toggle-btn:hover) {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.brandDashboardPage :global(.menu) {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 200px;
+    background-color: #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.brandDashboardPage :global(.menu.open) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.brandDashboardPage :global(.menu a) {
+    padding: 12px 20px;
+    text-decoration: none;
+    font-size: 14px;
+    color: white;
+    display: block;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brandDashboardPage :global(.menu a:last-child) {
+    border-bottom: none;
+}
+
+.brandDashboardPage :global(.menu a:hover) {
+    background-color: #575757;
+}
+
+/* Container */
+.brandDashboardPage :global(.container) {
+    width: 100%;
+    max-width: 1400px;
+    padding: 30px 20px;
+    margin: 0 auto;
+}
+
+/* Dashboard Cards - Enhanced */
+.brandDashboardPage :global(.dashboard-container) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin: 30px 0;
+}
+
+.brandDashboardPage :global(.dashboard-card) {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+:global(.dark) .brandDashboardPage :global(.dashboard-card) {
+    background: var(--card, #111827);
+    border-color: var(--border, #1f2937);
+    color: var(--fg, #e2e8f0);
+}
+
+.brandDashboardPage :global(.dashboard-card::before) {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.brandDashboardPage :global(.dashboard-card:hover::before) {
+    transform: scaleX(1);
+}
+
+.brandDashboardPage :global(.dashboard-card:hover) {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: rgba(66, 133, 244, 0.2);
+}
+
+.brandDashboardPage :global(.dashboard-card h3) {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.brandDashboardPage :global(.metric-value) {
+    font-size: 36px;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 16px 0 8px;
+    line-height: 1.2;
+}
+
+.brandDashboardPage :global(.metric-label) {
+    color: #6c757d;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.brandDashboardPage :global(.trend-indicator) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    width: fit-content;
+}
+
+.brandDashboardPage :global(.trend-up) {
+    color: var(--secondary-color);
+    background: rgba(52, 168, 83, 0.1);
+}
+
+.brandDashboardPage :global(.trend-down) {
+    color: var(--accent-color);
+    background: rgba(234, 67, 53, 0.1);
+}
+
+/* Section Headers - Enhanced */
+.brandDashboardPage :global(.section-header) {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin: 40px 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid transparent;
+    border-image: var(--primary-gradient) 1;
+    position: relative;
+    letter-spacing: -0.5px;
+}
+
+.brandDashboardPage :global(.section-header::after) {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: var(--primary-gradient);
+}
+
+/* Intro Section */
+.brandDashboardPage :global(.intro) {
+    margin-top: 30px;
+    margin-bottom: 40px;
+}
+
+.brandDashboardPage :global(.intro h1) {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.brandDashboardPage :global(.intro p) {
+    font-size: 16px;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+/* Progress Components - Enhanced */
+.brandDashboardPage :global(.progress-container) {
+    margin: 20px 0;
+    flex-grow: 0;
+}
+
+.brandDashboardPage :global(.progress-info) {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.brandDashboardPage :global(.progress-bar) {
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.brandDashboardPage :global(.progress-fill) {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.progress-fill::after) {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Campaign Cards - Enhanced */
+.brandDashboardPage :global(.campaign-list) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 28px;
+    margin: 30px 0;
+    padding: 0;
+}
+
+.brandDashboardPage :global(.campaign-card) {
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 420px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    border: 1px solid rgba(230, 233, 240, 0.8);
+    overflow: hidden;
+}
+
+:global(.dark) .brandDashboardPage :global(.campaign-card) {
+    background: var(--card, #111827);
+    border-color: var(--border, #1f2937);
+    color: var(--fg, #e2e8f0);
+}
+
+.brandDashboardPage :global(.campaign-card::after) {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(66, 133, 244, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.brandDashboardPage :global(.campaign-card:hover) {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.campaign-status) {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.status-active) {
+    background: var(--secondary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.status-upcoming) {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.status-completed) {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+}
+
+.brandDashboardPage :global(.status-request) {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.campaign-card h3) {
+    margin-top: 40px;
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: var(--dark-gray);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+}
+
+.brandDashboardPage :global(.campaign-card p) {
+    margin: 0;
+    color: #6c757d;
+    line-height: 1.6;
+    flex-grow: 0;
+    font-size: 14px;
+}
+
+/* Campaign Performance - Enhanced */
+.brandDashboardPage :global(.campaign-performance) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    flex-grow: 0;
+    border: 1px solid #e9ecef;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+:global(.dark) .brandDashboardPage :global(.campaign-performance) {
+    background: var(--card, #111827);
+    border-color: var(--border, #1f2937);
+    color: var(--fg, #e2e8f0);
+}
+
+.brandDashboardPage :global(.performance-metric) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.brandDashboardPage :global(.performance-metric:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.performance-metric i) {
+    font-size: 24px;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.brandDashboardPage :global(.performance-metric > div) {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.brandDashboardPage :global(.performance-metric .metric-value) {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin: 0;
+}
+
+.brandDashboardPage :global(.performance-metric .metric-label) {
+    font-size: 11px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Campaign Meta - Enhanced */
+.brandDashboardPage :global(.campaign-meta) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.brandDashboardPage :global(.meta-item) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.brandDashboardPage :global(.meta-item:hover) {
+    background: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.brandDashboardPage :global(.meta-item i) {
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+/* Campaign Actions - Enhanced */
+.brandDashboardPage :global(.campaign-actions) {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.brandDashboardPage :global(.btn-review-content),
+.brandDashboardPage :global(.btn-end-campaign) {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.btn-review-content) {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.btn-review-content:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(66, 133, 244, 0.4);
+}
+
+.brandDashboardPage :global(.btn-review-content:active) {
+    transform: translateY(0);
+}
+
+.brandDashboardPage :global(.btn-end-campaign) {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.btn-end-campaign:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(234, 67, 53, 0.4);
+}
+
+.brandDashboardPage :global(.btn-end-campaign:active) {
+    transform: translateY(0);
+}
+
+/* Campaign Requests - Enhanced */
+.brandDashboardPage :global(.campaign-requests-section) {
+    margin: 50px 0;
+}
+
+.brandDashboardPage :global(.campaign-requests-list) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 28px;
+    margin: 30px 0;
+}
+
+.brandDashboardPage :global(.campaign-request-card) {
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    border: 1px solid rgba(230, 233, 240, 0.8);
+}
+
+:global(.dark) .brandDashboardPage :global(.campaign-request-card) {
+    background: var(--card, #111827);
+    border-color: var(--border, #1f2937);
+    color: var(--fg, #e2e8f0);
+}
+
+.brandDashboardPage :global(.campaign-request-card:hover) {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover);
+    border-color: rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.request-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.brandDashboardPage :global(.request-header h3) {
+    margin: 0;
+    font-size: 20px;
+    color: var(--dark-gray);
+    font-weight: 700;
+    line-height: 1.3;
+    flex: 1;
+}
+
+.brandDashboardPage :global(.request-status) {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.brandDashboardPage :global(.request-status.request) {
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.request-status.active) {
+    background: var(--secondary-gradient);
+    color: white;
+    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.3);
+}
+
+.brandDashboardPage :global(.request-description) {
+    color: #6c757d;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.brandDashboardPage :global(.request-details) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.brandDashboardPage :global(.request-actions) {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.brandDashboardPage :global(.btn-activate),
+.brandDashboardPage :global(.btn-view) {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.btn-activate) {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.btn-activate:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(66, 133, 244, 0.4);
+}
+
+.brandDashboardPage :global(.btn-view) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: var(--dark-gray);
+    border: 1px solid #e9ecef;
+}
+
+.brandDashboardPage :global(.btn-view:hover) {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Empty States - Enhanced */
+.brandDashboardPage :global(.no-requests),
+.brandDashboardPage :global(.no-active-campaigns),
+.brandDashboardPage :global(.no-campaign-requests) {
+    text-align: center;
+    padding: 60px 40px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    grid-column: 1 / -1;
+    border: 2px dashed #e9ecef;
+}
+
+.brandDashboardPage :global(.no-requests i),
+.brandDashboardPage :global(.no-active-campaigns i),
+.brandDashboardPage :global(.no-campaign-requests i) {
+    font-size: 4rem;
+    background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+}
+
+.brandDashboardPage :global(.no-requests h3),
+.brandDashboardPage :global(.no-active-campaigns h3),
+.brandDashboardPage :global(.no-campaign-requests h3) {
+    color: var(--dark-gray);
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 22px;
+}
+
+.brandDashboardPage :global(.no-requests p),
+.brandDashboardPage :global(.no-active-campaigns p),
+.brandDashboardPage :global(.no-campaign-requests p) {
+    color: #6c757d;
+    font-size: 15px;
+    margin-bottom: 24px;
+}
+
+.brandDashboardPage :global(.create-campaign-btn) {
+    display: inline-block;
+    padding: 14px 28px;
+    background: var(--primary-gradient);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.create-campaign-btn:hover) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
+    color: white;
+}
+
+/* View History Section - Enhanced */
+.brandDashboardPage :global(.view-history-section) {
+    margin-top: 20px;
+    padding: 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.brandDashboardPage :global(.view-campaigns-btn) {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--primary-gradient);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.view-campaigns-btn:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
+    color: white;
+}
+
+/* Modal Styling - Enhanced */
+.brandDashboardPage :global(.modal-content) {
+    border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.brandDashboardPage :global(.modal-header) {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 28px;
+    border-bottom: none;
+}
+
+.brandDashboardPage :global(.modal-title) {
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.3px;
+}
+
+.brandDashboardPage :global(.btn-close) {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.brandDashboardPage :global(.btn-close:hover) {
+    opacity: 1;
+}
+
+/* Content Review Modal - Enhanced */
+.brandDashboardPage :global(.content-list) {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.brandDashboardPage :global(.content-list::-webkit-scrollbar) {
+    width: 8px;
+}
+
+.brandDashboardPage :global(.content-list::-webkit-scrollbar-track) {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.brandDashboardPage :global(.content-list::-webkit-scrollbar-thumb) {
+    background: #888;
+    border-radius: 10px;
+}
+
+.brandDashboardPage :global(.content-list::-webkit-scrollbar-thumb:hover) {
+    background: #555;
+}
+
+.brandDashboardPage :global(.content-item) {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding: 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+    transition: all 0.3s ease;
+}
+
+.brandDashboardPage :global(.content-item:hover) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(66, 133, 244, 0.2);
+}
+
+.brandDashboardPage :global(.content-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.brandDashboardPage :global(.influencer-info) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brandDashboardPage :global(.influencer-avatar) {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.influencer-info h4) {
+    margin: 0;
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.brandDashboardPage :global(.content-date) {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.brandDashboardPage :global(.content-status) {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.brandDashboardPage :global(.status-submitted) {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.brandDashboardPage :global(.status-approved) {
+    background: var(--secondary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.status-rejected) {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.content-body) {
+    margin-bottom: 16px;
+}
+
+.brandDashboardPage :global(.content-caption) {
+    margin-bottom: 16px;
+}
+
+.brandDashboardPage :global(.content-caption p) {
+    margin: 0;
+    line-height: 1.7;
+    color: #1a1a1a;
+    font-size: 15px;
+}
+
+.brandDashboardPage :global(.content-media) {
+    margin-bottom: 16px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.brandDashboardPage :global(.content-image) {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.content-video) {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.special-instructions) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 16px;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-color);
+    margin-top: 16px;
+}
+
+.brandDashboardPage :global(.special-instructions strong) {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.brandDashboardPage :global(.content-actions) {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.brandDashboardPage :global(.btn-approve),
+.brandDashboardPage :global(.btn-reject) {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.btn-approve) {
+    background: var(--secondary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.btn-approve:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 168, 83, 0.4);
+}
+
+.brandDashboardPage :global(.btn-reject) {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.btn-reject:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(234, 67, 53, 0.4);
+}
+
+.brandDashboardPage :global(.status-approved),
+.brandDashboardPage :global(.status-rejected) {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.brandDashboardPage :global(.status-approved) {
+    background: var(--secondary-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.status-rejected) {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.brandDashboardPage :global(.no-content) {
+    text-align: center;
+    padding: 60px 40px;
+    color: #6c757d;
+    font-size: 16px;
+}
+
+/* Campaign Details Modal - Enhanced */
+.brandDashboardPage :global(.campaign-details-content) {
+    padding: 28px;
+}
+
+.brandDashboardPage :global(.detail-section) {
+    margin-bottom: 28px;
+}
+
+.brandDashboardPage :global(.detail-section h6) {
+    color: var(--primary-color);
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.brandDashboardPage :global(.detail-grid) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.brandDashboardPage :global(.detail-item) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1a1a1a;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.brandDashboardPage :global(.detail-item i) {
+    color: var(--primary-color);
+    width: 18px;
+    font-size: 16px;
+}
+
+.brandDashboardPage :global(.detail-item strong) {
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.brandDashboardPage :global(.influencers-list) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.brandDashboardPage :global(.influencer-card) {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.brandDashboardPage :global(.influencer-card:hover) {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: rgba(66, 133, 244, 0.3);
+}
+
+.brandDashboardPage :global(.influencer-card .influencer-avatar) {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    object-fit: cover;
+    border: 3px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.brandDashboardPage :global(.influencer-name) {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--dark-gray);
+    font-size: 15px;
+}
+
+/* Alert Styling - Enhanced */
+.brandDashboardPage :global(.alert-positioned) {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    min-width: 320px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.brandDashboardPage :global(.alert-info-bordered) {
+    margin: 20px 0;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+/* Loading and Error States */
+.brandDashboardPage :global(.loadingMessage) {
+    text-align: center;
+    padding: 5rem 1rem;
+    font-size: 1.2rem;
+    color: var(--dark-gray);
+    font-weight: 500;
+}
+
+.brandDashboardPage :global(.errorAlert) {
+    background: linear-gradient(135deg, #fdecea 0%, #ffe5e5 100%);
+    border: 2px solid #f5c2c7;
+    color: #a12622;
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    box-shadow: var(--card-shadow);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+
+    .brandDashboardPage :global(.campaign-list),
+    .brandDashboardPage :global(.campaign-requests-list) {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .brandDashboardPage :global(.dashboard-container) {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .brandDashboardPage :global(.campaign-list),
+    .brandDashboardPage :global(.campaign-requests-list) {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 0;
+    }
+
+    .brandDashboardPage :global(.campaign-performance) {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .brandDashboardPage :global(.campaign-meta),
+    .brandDashboardPage :global(.request-details) {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .brandDashboardPage :global(.campaign-actions),
+    .brandDashboardPage :global(.request-actions) {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .brandDashboardPage :global(.detail-grid) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .brandDashboardPage :global(.influencers-list) {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .brandDashboardPage :global(.intro h1) {
+        font-size: 26px;
+    }
+
+    .brandDashboardPage :global(.section-header) {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .brandDashboardPage :global(.container) {
+        padding: 20px 15px;
+    }
+
+    .brandDashboardPage :global(.section-header) {
+        font-size: 20px;
+        margin: 30px 0 20px;
+    }
+
+    .brandDashboardPage :global(.campaign-card),
+    .brandDashboardPage :global(.campaign-request-card) {
+        padding: 20px;
+        min-height: auto;
+    }
+
+    .brandDashboardPage :global(.performance-metric) {
+        padding: 12px;
+    }
+
+    .brandDashboardPage :global(.performance-metric .metric-value) {
+        font-size: 16px;
+    }
+
+    .brandDashboardPage :global(.performance-metric .metric-label) {
+        font-size: 10px;
+    }
+
+    .brandDashboardPage :global(.meta-item) {
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    .brandDashboardPage :global(.influencer-avatar) {
+        width: 50px;
+        height: 50px;
+    }
+
+    .brandDashboardPage :global(.dashboard-card) {
+        padding: 20px;
+    }
+
+    .brandDashboardPage :global(.metric-value) {
+        font-size: 28px;
+    }
+}
+
+/* Comprehensive Dark Mode Overrides for Brand Dashboard */
+:global(.dark) .brandDashboardPage :global(.dashboard-card),
+:global(.dark) .brandDashboardPage :global(.campaign-card),
+:global(.dark) .brandDashboardPage :global(.campaign-request-card),
+:global(.dark) .brandDashboardPage :global(.performance-metric),
+:global(.dark) .brandDashboardPage :global(.content-item),
+:global(.dark) .brandDashboardPage :global(.influencer-card),
+:global(.dark) .brandDashboardPage :global(.detail-item),
+:global(.dark) .brandDashboardPage :global(.no-requests),
+:global(.dark) .brandDashboardPage :global(.no-active-campaigns),
+:global(.dark) .brandDashboardPage :global(.no-campaign-requests),
+:global(.dark) .brandDashboardPage :global(.view-history-section),
+:global(.dark) .brandDashboardPage :global(.modal-content),
+:global(.dark) .brandDashboardPage :global(.modal-body),
+:global(.dark) .brandDashboardPage :global(.campaign-details-content) {
+    background: var(--card, #111827) !important;
+    color: var(--fg, #e2e8f0) !important;
+    border-color: var(--border, #1f2937) !important;
+}
+
+:global(.dark) .brandDashboardPage :global(.intro),
+:global(.dark) .brandDashboardPage :global(.intro h1),
+:global(.dark) .brandDashboardPage :global(.intro p) {
+    background: var(--card, #111827) !important;
+    color: var(--fg, #e2e8f0) !important;
+    border-color: var(--border, #1f2937) !important;
+}
+
+:global(.dark) .brandDashboardPage :global(.section-header),
+:global(.dark) .brandDashboardPage :global(.campaign-card h3),
+:global(.dark) .brandDashboardPage :global(.request-header h3),
+:global(.dark) .brandDashboardPage :global(.influencer-name),
+:global(.dark) .brandDashboardPage :global(.content-caption p),
+:global(.dark) .brandDashboardPage :global(.detail-section h6),
+:global(.dark) .brandDashboardPage :global(.no-requests h3),
+:global(.dark) .brandDashboardPage :global(.no-active-campaigns h3),
+:global(.dark) .brandDashboardPage :global(.no-campaign-requests h3) {
+    color: var(--fg, #e2e8f0) !important;
+}
+
+:global(.dark) .brandDashboardPage :global(.metric-value),
+:global(.dark) .brandDashboardPage :global(.performance-metric .metric-value),
+:global(.dark) .brandDashboardPage :global(.detail-item strong) {
+    color: var(--brand, #38bdf8) !important;
+}
+
+:global(.dark) .brandDashboardPage :global(.metric-label),
+:global(.dark) .brandDashboardPage :global(.performance-metric .metric-label),
+:global(.dark) .brandDashboardPage :global(.request-description),
+:global(.dark) .brandDashboardPage :global(.campaign-card p),
+:global(.dark) .brandDashboardPage :global(.meta-item),
+:global(.dark) .brandDashboardPage :global(.no-requests p),
+:global(.dark) .brandDashboardPage :global(.no-active-campaigns p),
+:global(.dark) .brandDashboardPage :global(.no-campaign-requests p) {
+    color: var(--muted, #94a3b8) !important;
+}
+
+:global(.dark) .brandDashboardPage :global(.form-control),
+:global(.dark) .brandDashboardPage :global(input),
+:global(.dark) .brandDashboardPage :global(select),
+:global(.dark) .brandDashboardPage :global(textarea) {
+    background-color: var(--card, #111827) !important;
+    color: var(--fg, #e2e8f0) !important;
+    border-color: var(--border, #1f2937) !important;
+}
