@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../../styles/role_selection.module.css';
+import styles from '../../styles/landing/role_selection.module.css';
 
 const RoleSelection = () => {
     const navigate = useNavigate();
@@ -10,17 +10,19 @@ const RoleSelection = () => {
             navigate('/influencer/Signup');
         } else if (role === 'brand') {
             navigate('/brand/Signup');
+        } else if (role === 'customer') {
+            navigate('/customer/signup');
         }
     };
 
     return (
         <div className={styles['role-selection-page']}>
             <div className={styles['role-container']}>
-            {/* Left Section */}
+                {/* Left Section */}
                 <div className={styles['text-container']}>
                     <div className={styles.logo}>CollabSync</div>
-                <h1>Sign Up</h1>
-                <p>Please select your role to continue:</p>
+                    <h1>Sign Up</h1>
+                    <p>Please select your role to continue:</p>
 
                     <div className={styles['role-buttons']}>
                         <button
@@ -35,7 +37,13 @@ const RoleSelection = () => {
                         >
                             I'm a Brand
                         </button>
-                </div>
+                        <button
+                            className={`${styles['role-btn']} ${styles['customer-btn']}`}
+                            onClick={() => handleRoleSelection('customer')}
+                        >
+                            I'm a Customer
+                        </button>
+                    </div>
 
                     <a href="/" className={styles['back-link']} onClick={(e) => {
                         e.preventDefault();
@@ -43,11 +51,11 @@ const RoleSelection = () => {
                     }}>
                         Back to Home
                     </a>
-            </div>
+                </div>
 
-            {/* Image Section */}
+                {/* Image Section */}
                 <div className={styles['image-container']}>
-                <img src="/Sign/SighUp_for_both.svg" alt="Sign Up Illustration" />
+                    <img src="/Sign/SighUp_for_both.svg" alt="Sign Up Illustration" />
                 </div>
             </div>
         </div>

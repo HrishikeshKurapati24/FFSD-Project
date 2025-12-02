@@ -5,6 +5,25 @@
     box-sizing: border-box;
 }
 
+/* Theme variables */
+:root {
+    --bg: #ffffff;
+    --fg: #0f172a; /* slate-900 */
+    --muted: #475569; /* slate-600 */
+    --card: #ffffff;
+    --border: #e2e8f0; /* slate-200 */
+    --brand: #0ea5e9; /* sky-500 */
+}
+
+.dark {
+    --bg: #0b1220; /* deep slate */
+    --fg: #e2e8f0; /* slate-200 */
+    --muted: #94a3b8; /* slate-400 */
+    --card: #111827; /* gray-900 */
+    --border: #1f2937; /* gray-800 */
+    --brand: #38bdf8; /* sky-400 */
+}
+
 html,
 body {
     margin: 0;
@@ -12,6 +31,8 @@ body {
     width: 100%;
     height: 100%;
     overflow-x: hidden;
+    background-color: var(--bg);
+    color: var(--fg);
 }
 
 #root {
@@ -20,3 +41,10 @@ body {
     width: 100%;
     min-height: 100vh;
 }
+
+/* Optional utilities */
+.bg-surface { background-color: var(--bg); }
+.bg-card { background-color: var(--card); }
+.text-muted { color: var(--muted); }
+.border-default { border-color: var(--border); }
+a { color: var(--brand); }

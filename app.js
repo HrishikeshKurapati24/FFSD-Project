@@ -345,6 +345,7 @@ app.use('/brand', brandRoutes);
 app.use('/customer', customerRoutes);
 app.use('/subscription', subscriptionRoutes);
 app.use('/auth', authRouter);
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -29,6 +29,7 @@ const { InfluencerInfo, InfluencerAnalytics, InfluencerSocials } = require('../c
 const { CampaignMetrics } = require('../config/CampaignMongo');
 const { brandModel } = require('../models/brandModel');
 const { Message } = require('../config/MessageMongo');
+const notificationController = require('../controllers/notificationController');
 
 // Apply authentication middleware to all routes
 router.use((req, res, next) => {
@@ -607,7 +608,7 @@ router.post('/apply/:campaignId', async (req, res) => {
                         redirectUrl: '/subscription/manage'
                     });
                 }
-
+                
                 return res.status(400).json({
                     success: false,
                     message: `${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
@@ -721,6 +722,27 @@ router.post('/apply/:campaignId', async (req, res) => {
             }
         }
 
+        // Create notification for brand (always notify for new application)
+        try {
+            const campaignDoc = await CampaignInfo.findById(campaignId).select('brand_id').lean();
+            if (campaignDoc?.brand_id) {
+                const influencerInfo = await InfluencerInfo.findById(influencerId).select('fullName displayName').lean();
+                await notificationController.createNotification({
+                    recipientId: campaignDoc.brand_id,
+                    recipientType: 'brand',
+                    senderId: new mongoose.Types.ObjectId(influencerId),
+                    senderType: 'influencer',
+                    type: 'application_received',
+                    title: 'New Application',
+                    body: `${influencerInfo?.displayName || influencerInfo?.fullName || 'An influencer'} applied to your campaign.`,
+                    relatedId: newApplication._id,
+                    data: { campaignId, influencerId }
+                });
+            }
+        } catch (notifErr) {
+            console.error('Error creating notification:', notifErr);
+        }
+
         res.json({
             success: true,
             message: 'Application submitted successfully',
@@ -809,6 +831,27 @@ router.post('/brand-invites/:inviteId/accept', async (req, res) => {
         invite.status = 'request';
         await invite.save();
 
+        // Notify the brand that influencer accepted the invite
+        try {
+            const campaignDoc = await CampaignInfo.findById(invite.campaign_id).select('brand_id').lean();
+            if (campaignDoc?.brand_id) {
+                const influencerInfo = await InfluencerInfo.findById(influencerId).select('fullName displayName').lean();
+                await notificationController.createNotification({
+                    recipientId: campaignDoc.brand_id,
+                    recipientType: 'brand',
+                    senderId: new mongoose.Types.ObjectId(influencerId),
+                    senderType: 'influencer',
+                    type: 'invite_accepted',
+                    title: 'Invite Accepted',
+                    body: `${influencerInfo?.displayName || influencerInfo?.fullName || 'An influencer'} accepted your campaign invite.`,
+                    relatedId: invite._id,
+                    data: { inviteId, influencerId }
+                });
+            }
+        } catch (notifErr) {
+            console.error('Error creating accept notification:', notifErr);
+        }
+
         res.json({
             success: true,
             message: 'Invitation accepted successfully'
@@ -846,6 +889,27 @@ router.post('/brand-invites/:inviteId/decline', async (req, res) => {
         // Update status to cancelled
         invite.status = 'cancelled';
         await invite.save();
+
+        // Notify the brand that influencer declined the invite
+        try {
+            const campaignDoc = await CampaignInfo.findById(invite.campaign_id).select('brand_id').lean();
+            if (campaignDoc?.brand_id) {
+                const influencerInfo = await InfluencerInfo.findById(influencerId).select('fullName displayName').lean();
+                await notificationController.createNotification({
+                    recipientId: campaignDoc.brand_id,
+                    recipientType: 'brand',
+                    senderId: new mongoose.Types.ObjectId(influencerId),
+                    senderType: 'influencer',
+                    type: 'invite_declined',
+                    title: 'Invite Declined',
+                    body: `${influencerInfo?.displayName || influencerInfo?.fullName || 'An influencer'} declined your campaign invite.`,
+                    relatedId: invite._id,
+                    data: { inviteId, influencerId }
+                });
+            }
+        } catch (notifErr) {
+            console.error('Error creating decline notification:', notifErr);
+        }
 
         res.json({
             success: true,
@@ -1050,6 +1114,24 @@ router.post('/invite-brand', async (req, res) => {
         } catch (usageError) {
             console.error('Error updating subscription usage:', usageError);
             // Continue even if usage update fails
+        }
+
+        // Create notification for brand
+        try {
+            const influencerInfo = await InfluencerInfo.findById(influencerId).select('fullName displayName').lean();
+            await notificationController.createNotification({
+                recipientId: new mongoose.Types.ObjectId(brandId),
+                recipientType: 'brand',
+                senderId: new mongoose.Types.ObjectId(influencerId),
+                senderType: 'influencer',
+                type: 'invite_sent',
+                title: 'Influencer Invite with Product',
+                body: `${influencerInfo?.displayName || influencerInfo?.fullName || 'An influencer'} sent you an invite to collaborate with the product "${product_name}".`,
+                relatedId: campaignInfluencer._id,
+                data: { campaignId: newCampaign._id, influencerId }
+            });
+        } catch (notifErr) {
+            console.error('Error creating notification:', notifErr);
         }
 
         res.json({

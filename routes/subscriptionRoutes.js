@@ -128,13 +128,39 @@ router.post('/subscribe-after-signup', async (req, res) => {
 // Payment page
 router.get('/payment', async (req, res) => {
     try {
-        const { userId, userType, planId, billingCycle } = req.query;
+        let { userId, userType, planId, billingCycle } = req.query;
+
+        // Get userId and userType from session if not in query params or if userType is undefined
+        if (!userId && req.session?.user?.id) {
+            userId = req.session.user.id;
+        }
+        if (!userType || userType === 'undefined' || userType === 'null') {
+            userType = req.session?.user?.userType || req.session?.user?.role;
+        }
+
+        // If still no userType, try to determine from database
+        if (!userType || userType === 'undefined' || userType === 'null') {
+            const { BrandInfo } = require('../config/BrandMongo');
+            const { InfluencerInfo } = require('../config/InfluencerMongo');
+            
+            if (userId) {
+                const brand = await BrandInfo.findById(userId);
+                const influencer = await InfluencerInfo.findById(userId);
+                
+                if (brand) {
+                    userType = 'brand';
+                } else if (influencer) {
+                    userType = 'influencer';
+                }
+            }
+        }
 
         if (!userId || !userType || !planId || !billingCycle) {
             if (req.xhr || req.headers.accept?.includes('application/json')) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required parameters'
+                    message: 'Missing required parameters',
+                    details: { userId: !!userId, userType: !!userType, planId: !!planId, billingCycle: !!billingCycle }
                 });
             }
             return res.redirect('/subscription/select-plan');
@@ -251,12 +277,45 @@ router.get('/payment', async (req, res) => {
 // Process payment
 router.post('/process-payment', async (req, res) => {
     try {
-        const { userId, userType, planId, billingCycle, amount, cardData } = req.body;
+        let { userId, userType, planId, billingCycle, amount, cardData } = req.body;
+
+        // Get userId and userType from session if not in request body or if userType is undefined
+        if (!userId && req.session?.user?.id) {
+            userId = req.session.user.id;
+        }
+        if (!userType || userType === 'undefined' || userType === 'null') {
+            userType = req.session?.user?.userType || req.session?.user?.role;
+        }
+
+        // If still no userType, try to determine from database
+        if (!userType || userType === 'undefined' || userType === 'null') {
+            const { BrandInfo } = require('../config/BrandMongo');
+            const { InfluencerInfo } = require('../config/InfluencerMongo');
+            
+            if (userId) {
+                const brand = await BrandInfo.findById(userId);
+                const influencer = await InfluencerInfo.findById(userId);
+                
+                if (brand) {
+                    userType = 'brand';
+                } else if (influencer) {
+                    userType = 'influencer';
+                }
+            }
+        }
 
         if (!userId || !userType || !planId || !billingCycle || !amount || !cardData) {
             return res.status(400).json({
                 success: false,
-                message: 'Missing required payment information'
+                message: 'Missing required payment information',
+                details: {
+                    userId: !!userId,
+                    userType: !!userType,
+                    planId: !!planId,
+                    billingCycle: !!billingCycle,
+                    amount: !!amount,
+                    cardData: !!cardData
+                }
             });
         }
 
@@ -270,12 +329,33 @@ router.post('/process-payment', async (req, res) => {
 
         // Get the plan details
         const plans = await SubscriptionService.getPlansForUserType(userType);
-        const selectedPlan = plans.find(p => p._id.toString() === planId);
-
-        if (!selectedPlan) {
+        if (!plans || plans.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid plan selected'
+                message: `No plans found for userType: ${userType}`
+            });
+        }
+
+        const selectedPlan = plans.find(p => {
+            const planIdStr = p._id ? p._id.toString() : p.id ? p.id.toString() : String(p._id || p.id);
+            const requestPlanIdStr = String(planId);
+            return planIdStr === requestPlanIdStr;
+        });
+
+        if (!selectedPlan) {
+            console.error('Plan not found:', {
+                planId,
+                userType,
+                availablePlanIds: plans.map(p => (p._id || p.id)?.toString())
+            });
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid plan selected',
+                details: {
+                    planId,
+                    userType,
+                    availablePlans: plans.length
+                }
             });
         }
 
@@ -864,6 +944,21 @@ router.get('/manage', async (req, res) => {
             console.log('\n⚠️ No usage data found in subscription');
         }
 
+        const responseData = {
+            success: true,
+            currentSubscription,
+            availablePlans,
+            paymentHistory,
+            userType,
+            user: req.session.user
+        };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json(responseData);
+        }
+
+        // Render EJS for traditional requests (legacy support)
         res.render('subscription/manage', {
             currentSubscription,
             availablePlans,
@@ -875,6 +970,16 @@ router.get('/manage', async (req, res) => {
         console.error('=== ERROR in /subscription/manage ===');
         console.error('Error details:', error);
         console.error('Stack trace:', error.stack);
+        
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to load subscription management',
+                error: error.message
+            });
+        }
+        
         res.status(500).render('error', {
             message: 'Failed to load subscription management',
             error: { status: 500, details: error.message }

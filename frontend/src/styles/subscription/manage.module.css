@@ -1,0 +1,574 @@
+/* Subscription Management Styles - Scoped CSS Module */
+
+.managePageWrapper {
+    --primary-color: #4285f4;
+    --secondary-color: #5a9bff;
+    /* lighter blue */
+    --warning-color: #6faeff;
+    /* soft blue instead of yellow */
+    --danger-color: #2b62c6;
+    /* deep blue instead of red */
+    --light-gray: #f5f5f5;
+    /* neutral light grey */
+    --border-color: #e0e0e0;
+    /* neutral border */
+    --text-primary: #1e2a3b;
+    --text-secondary: #4a5a75;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+
+    background: #f5f5f5;
+    /* PAGE BACKGROUND — light grey */
+    min-height: 100vh;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Header */
+.managePageWrapper :global(header) {
+    background: white;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.managePageWrapper :global(.header-container) {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.managePageWrapper :global(.logo) {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: var(--primary-color);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.managePageWrapper :global(nav ul) {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+    margin: 0;
+    padding: 0;
+}
+
+.managePageWrapper :global(nav a) {
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.managePageWrapper :global(nav a:hover),
+.managePageWrapper :global(nav a.active) {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Container */
+.managePageWrapper :global(.container) {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+/* Page Header */
+.managePageWrapper :global(.page-header) {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.managePageWrapper :global(.page-header h1) {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.managePageWrapper :global(.page-header h1 i) {
+    color: var(--warning-color);
+    margin-right: 10px;
+}
+
+.managePageWrapper :global(.page-header p) {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* Current Subscription */
+.managePageWrapper :global(.current-subscription) {
+    margin-bottom: 50px;
+}
+
+.managePageWrapper :global(.current-subscription h2) {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.managePageWrapper :global(.subscription-card) {
+    background: white;
+    /* SECTION BACKGROUND */
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.managePageWrapper :global(.subscription-card.active) {
+    border-color: var(--secondary-color);
+    background: white;
+}
+
+.managePageWrapper :global(.plan-header) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.managePageWrapper :global(.plan-header h3) {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.managePageWrapper :global(.price) {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.managePageWrapper :global(.price span) {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.managePageWrapper :global(.plan-status) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.managePageWrapper :global(.plan-status p) {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.managePageWrapper :global(.status-badge) {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.managePageWrapper :global(.status-badge.active),
+.managePageWrapper :global(.status-badge.success) {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.managePageWrapper :global(.status-badge.expired) {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Usage Section */
+.managePageWrapper :global(.usage-section) {
+    margin-bottom: 25px;
+}
+
+.managePageWrapper :global(.usage-section h4) {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.managePageWrapper :global(.usage-grid) {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.managePageWrapper :global(.usage-item) {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.managePageWrapper :global(.usage-label) {
+    min-width: 120px;
+    font-weight: 500;
+}
+
+.managePageWrapper :global(.usage-bar) {
+    flex: 1;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.managePageWrapper :global(.usage-progress) {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+    transition: width 0.3s;
+}
+
+.managePageWrapper :global(.usage-text) {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    min-width: 80px;
+    text-align: right;
+    margin-left: 10px;
+}
+
+.managePageWrapper :global(.refresh-usage-btn) {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.managePageWrapper :global(.refresh-usage-btn:hover) {
+    background: #3367d6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+}
+
+/* Plan Features */
+.managePageWrapper :global(.plan-features) {
+    margin-bottom: 20px;
+}
+
+.managePageWrapper :global(.plan-features h4) {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.managePageWrapper :global(.plan-features ul) {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+.managePageWrapper :global(.plan-features li) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.managePageWrapper :global(.plan-features i) {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+/* No Subscription */
+.managePageWrapper :global(.no-subscription) {
+    text-align: center;
+    padding: 60px 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.managePageWrapper :global(.no-subscription i) {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.managePageWrapper :global(.no-subscription h3) {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.managePageWrapper :global(.no-subscription p) {
+    color: var(--text-secondary);
+}
+
+/* Available Plans */
+.managePageWrapper :global(.available-plans) {
+    margin-bottom: 50px;
+}
+
+.managePageWrapper :global(.available-plans h2) {
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.managePageWrapper :global(.billing-toggle) {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.managePageWrapper :global(.toggle-switch) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 25px;
+    border: 2px solid var(--border-color);
+    background: white;
+    transition: all 0.3s;
+}
+
+.managePageWrapper :global(.toggle-switch input:checked + span),
+.managePageWrapper :global(.toggle-switch.active) {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+}
+
+.managePageWrapper :global(.toggle-switch input) {
+    display: none;
+}
+
+.managePageWrapper :global(.discount) {
+    background: var(--warning-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+
+/* Plans Grid */
+.managePageWrapper :global(.plans-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+}
+
+.managePageWrapper :global(.plan-card) {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.managePageWrapper :global(.plan-card:hover) {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.managePageWrapper :global(.plan-card.premium) {
+    border-color: var(--primary-color);
+    position: relative;
+}
+
+.managePageWrapper :global(.plan-card.premium::before) {
+    content: 'Most Popular';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: white;
+    padding: 5px 20px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.managePageWrapper :global(.plan-description) {
+    margin-bottom: 20px;
+}
+
+.managePageWrapper :global(.plan-description p) {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.managePageWrapper :global(.plan-limits) {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: var(--light-gray);
+    /* light grey box */
+    border-radius: 8px;
+}
+
+.managePageWrapper :global(.limit-item) {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.managePageWrapper :global(.subscribe-btn) {
+    width: 100%;
+    padding: 15px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.managePageWrapper :global(.subscribe-btn:hover:not(:disabled)) {
+    background: #3367d6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+}
+
+.managePageWrapper :global(.subscribe-btn:disabled) {
+    background: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Billing History */
+.managePageWrapper :global(.billing-history) {
+    margin-bottom: 50px;
+}
+
+.managePageWrapper :global(.billing-history h2) {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.managePageWrapper :global(.billing-history h2 i) {
+    margin-right: 10px;
+    color: var(--primary-color);
+}
+
+.managePageWrapper :global(.history-table) {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.managePageWrapper :global(.history-table table) {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.managePageWrapper :global(.history-table th) {
+    background: var(--light-gray);
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.managePageWrapper :global(.history-table td) {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.managePageWrapper :global(.history-table td i) {
+    margin-right: 5px;
+    color: var(--primary-color);
+}
+
+.managePageWrapper :global(.no-data) {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 40px;
+}
+
+.managePageWrapper :global(.no-data i) {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--border-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .managePageWrapper :global(.header-container) {
+        flex-direction: column;
+        height: auto;
+        padding: 15px 20px;
+    }
+
+    .managePageWrapper :global(nav ul) {
+        margin-top: 15px;
+        gap: 15px;
+    }
+
+    .managePageWrapper :global(.page-header h1) {
+        font-size: 2rem;
+    }
+
+    .managePageWrapper :global(.plan-header) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .managePageWrapper :global(.plan-status) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .managePageWrapper :global(.usage-item) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .managePageWrapper :global(.usage-bar) {
+        width: 100%;
+    }
+
+    .managePageWrapper :global(.usage-text) {
+        text-align: left;
+        min-width: auto;
+    }
+
+    .managePageWrapper :global(.billing-toggle) {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .managePageWrapper :global(.plans-grid) {
+        grid-template-columns: 1fr;
+    }
+
+    .managePageWrapper :global(.history-table) {
+        overflow-x: auto;
+    }
+}

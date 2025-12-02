@@ -1,68 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import styles from '../../styles/influencer_brand_profile.module.css';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import styles from '../../styles/influencer/brand_profile.module.css';
 import { API_BASE_URL } from '../../services/api';
+import { useExternalAssets } from '../../hooks/useExternalAssets';
+import InfluencerNavigation from '../../components/influencer/InfluencerNavigation';
+import BrandProfileHeader from '../../components/influencer/brandProfile/BrandProfileHeader';
+import SocialPlatforms from '../../components/influencer/brandProfile/SocialPlatforms';
+import TopCampaigns from '../../components/influencer/brandProfile/TopCampaigns';
+import BrandInfoPanel from '../../components/influencer/brandProfile/BrandInfoPanel';
+
+const EXTERNAL_ASSETS = {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'],
+    scripts: []
+};
+
+const formatNumber = (value) => {
+    if (value === null || value === undefined) {
+        return '0';
+    }
+    if (value >= 1000000) {
+        return `${(value / 1000000).toFixed(1)}M`;
+    }
+    if (value >= 1000) {
+        return `${(value / 1000).toFixed(1)}K`;
+    }
+    return Number(value).toLocaleString();
+};
+
+const sanitizeWebsite = (url = '') => url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+
+const formatDecimal = (value, digits = 1) => Number(value ?? 0).toFixed(digits);
+
+const getPlatformBackground = (platform = '') => {
+    const normalized = platform.toLowerCase();
+    return normalized ? `${normalized}-bg` : 'default-bg';
+};
 
 const BrandProfileView = () => {
-    const navigate = useNavigate();
+    useExternalAssets(EXTERNAL_ASSETS);
     const { id } = useParams();
-    const [loading, setLoading] = useState(true);
-    const [authenticated, setAuthenticated] = useState(false);
+    const navigate = useNavigate();
     const [brand, setBrand] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Verify authentication
-    useEffect(() => {
-        const verifyAuth = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
+    const fetchBrandProfile = useCallback(async () => {
+        if (!id) {
+            setError('Brand ID is missing.');
+            setLoading(false);
+            return;
+        }
 
-                if (response.status === 401) {
-                    navigate('/signin');
-                    return;
-                }
-
-                const data = await response.json();
-                if (data.authenticated) {
-                    setAuthenticated(true);
-                    fetchBrandProfile();
-                } else {
-                    navigate('/signin');
-                }
-            } catch (error) {
-                console.error('Auth verification error:', error);
-                navigate('/signin');
-            }
-        };
-
-        verifyAuth();
-    }, [navigate, id]);
-
-    // Fetch brand profile
-    const fetchBrandProfile = async () => {
         try {
             setLoading(true);
-            // Try both routes
-            let response = await fetch(`${API_BASE_URL}/influencer/brand_profile/${id}`, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            setError(null);
 
-            if (response.status === 404) {
-                // Try alternative route
-                response = await fetch(`${API_BASE_URL}/influencer/I_brand_profile/${id}`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-            }
+            const response = await fetch(`${API_BASE_URL}/influencer/brand_profile/${id}`, {
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
 
             if (response.status === 401) {
                 navigate('/signin');
@@ -70,320 +69,132 @@ const BrandProfileView = () => {
             }
 
             if (!response.ok) {
-                throw new Error('Failed to fetch brand profile');
+                throw new Error('Failed to load brand profile.');
             }
 
             const data = await response.json();
             if (data.success) {
-                setBrand(data.brand);
+                setBrand(data.brand || null);
+            } else {
+                setError(data.message || 'Unable to load brand profile.');
             }
-        } catch (error) {
-            console.error('Error fetching brand profile:', error);
+        } catch (err) {
+            console.error('Error fetching brand profile:', err);
+            setError('Something went wrong while loading the brand profile.');
         } finally {
             setLoading(false);
         }
+    }, [id, navigate]);
+
+    useEffect(() => {
+        fetchBrandProfile();
+    }, [fetchBrandProfile]);
+
+    const handleSignOut = async (event) => {
+        event?.preventDefault();
+        try {
+            const response = await fetch(`${API_BASE_URL}/influencer/signout`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const contentType = response.headers.get('content-type');
+                if (contentType?.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = '/signin';
+                        return;
+                    }
+                }
+            }
+        } catch (signOutError) {
+            console.error('Error signing out:', signOutError);
+        }
+        window.location.href = '/signin';
     };
 
-    const handleBack = (e) => {
-        e.preventDefault();
-        navigate(-1);
-    };
+    const handleBack = useCallback(
+        (event) => {
+            event?.preventDefault();
+            navigate('/influencer/explore', { replace: true });
+        },
+        [navigate]
+    );
+
+    const rootClassName = `${styles['brand-profile-page']} brand-profile-page`;
 
     if (loading) {
         return (
-            <div className={styles['brand-profile-page']}>
-                <div style={{ padding: '20px', textAlign: 'center' }}>Loading brand profile...</div>
+            <div className={rootClassName}>
+                <div className="loading-state">Loading brand profile...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={rootClassName}>
+                <div className="error-state">{error}</div>
             </div>
         );
     }
 
     if (!brand) {
         return (
-            <div className={styles['brand-profile-page']}>
-                <div style={{ padding: '20px', textAlign: 'center' }}>Brand profile not found</div>
+            <div className={rootClassName}>
+                <div className="error-state">Brand profile not found.</div>
             </div>
         );
     }
 
+    const socials = Array.isArray(brand.socials) ? brand.socials : [];
+    const bestPosts = Array.isArray(brand.bestPosts) ? brand.bestPosts : [];
+    const categories = Array.isArray(brand.categories) ? brand.categories : [];
+    const languages = Array.isArray(brand.languages) ? brand.languages : [];
+    const performanceMetrics = brand.performanceMetrics || {};
+    const audience = brand.audienceDemographics || {};
+
     return (
-        <div className={styles['brand-profile-page']}>
-            <div className={styles['profile-header']}>
-                <div className={styles['profile-content']}>
-                    <a href="#" className={styles['back-button']} onClick={handleBack} aria-label="Go back to explore brands">
-                        <i className="fas fa-arrow-left"></i> Go Back
-                    </a>
-                    <div className={styles['profile-header-content']}>
-                        <img 
-                            src={brand.profilePicUrl || '/images/default-avatar.jpg'} 
-                            alt={brand.displayName || brand.fullName || 'Brand'} 
-                            className={styles['profile-pic']}
+        <div className={rootClassName}>
+            <InfluencerNavigation onSignOut={handleSignOut} />
+
+            <BrandProfileHeader
+                brand={brand}
+                formatNumber={formatNumber}
+                formatDecimal={formatDecimal}
+                onBack={handleBack}
+            />
+
+            <section className="profile-content">
+                <div className="profile-details">
+                    <div className="main-content">
+                        <SocialPlatforms
+                            socials={socials}
+                            formatNumber={formatNumber}
+                            getPlatformBackground={getPlatformBackground}
                         />
-                        <div className={styles['profile-info']}>
-                            <h1 className={styles['profile-name']}>
-                                {brand.displayName || brand.fullName || 'Unknown Brand'}
-                                {brand.verified && (
-                                    <i className={`fas fa-check-circle ${styles['verified-badge']}`}></i>
-                                )}
-                            </h1>
-                            <p className={styles['profile-username']}>@{brand.username || 'unknown'}</p>
-                            <p className={styles['profile-bio']}>
-                                {brand.bio || 'No description available'}
-                            </p>
-                            <div className={styles['profile-stats']}>
-                                <div className={styles['stat-item']}>
-                                    <div className={styles['stat-value']}>
-                                        {(brand.totalFollowers || 0).toLocaleString()}
-                                    </div>
-                                    <div className={styles['stat-label']}>Total Audience</div>
-                                </div>
-                                <div className={styles['stat-item']}>
-                                    <div className={styles['stat-value']}>
-                                        {(brand.avgEngagementRate || 0).toFixed(1)}%
-                                    </div>
-                                    <div className={styles['stat-label']}>Avg. Engagement</div>
-                                </div>
-                                <div className={styles['stat-item']}>
-                                    <div className={styles['stat-value']}>
-                                        {brand.completedCollabs || 0}
-                                    </div>
-                                    <div className={styles['stat-label']}>Campaigns</div>
-                                </div>
-                                <div className={styles['stat-item']}>
-                                    <div className={styles['stat-value']}>
-                                        {(brand.rating || 0).toFixed(1)}⭐
-                                    </div>
-                                    <div className={styles['stat-label']}>Rating</div>
-                                </div>
-                            </div>
-                        </div>
+                        <TopCampaigns posts={bestPosts} formatNumber={formatNumber} />
+                    </div>
+
+                    <div className="side-content">
+                        <BrandInfoPanel
+                            brand={brand}
+                            audience={audience}
+                            performanceMetrics={performanceMetrics}
+                            categories={categories}
+                            languages={languages}
+                            sanitizeWebsite={sanitizeWebsite}
+                            formatNumber={formatNumber}
+                            formatDecimal={formatDecimal}
+                        />
                     </div>
                 </div>
-            </div>
-
-            <div className={styles['profile-content']}>
-                <div className={styles['profile-details']}>
-                    <div className={styles['main-content']}>
-                        <div className={styles['detail-card']}>
-                            <h2 className={styles['card-title']}>Social Media Platforms</h2>
-                            <div className={styles['social-platforms']}>
-                                {brand.socials && brand.socials.length > 0 ? (
-                                    brand.socials.map((social, idx) => (
-                                        <div key={idx} className={styles['platform-card']}>
-                                            <div className={styles['platform-header']}>
-                                                <div className={`${styles['platform-icon']} ${styles[`${(social.platform || 'default').toLowerCase()}-bg`]}`}>
-                                                    <i className={`fab fa-${social.icon || 'link'}`}></i>
-                                                </div>
-                                                <div className={styles['platform-name']}>
-                                                    {social.name || social.platform || 'Unknown Platform'}
-                                                </div>
-                                            </div>
-                                            <div className={styles['platform-stats']}>
-                                                <div className={styles['stat-box']}>
-                                                    <div className={styles['stat-box-value']}>
-                                                        {(social.followers || 0).toLocaleString()}
-                                                    </div>
-                                                    <div className={styles['stat-box-label']}>Followers</div>
-                                                </div>
-                                                <div className={styles['stat-box']}>
-                                                    <div className={styles['stat-box-value']}>
-                                                        {(social.avgLikes || 0).toLocaleString()}
-                                                    </div>
-                                                    <div className={styles['stat-box-label']}>Avg. Likes</div>
-                                                </div>
-                                                <div className={styles['stat-box']}>
-                                                    <div className={styles['stat-box-value']}>
-                                                        {(social.avgComments || 0).toLocaleString()}
-                                                    </div>
-                                                    <div className={styles['stat-box-label']}>Avg. Comments</div>
-                                                </div>
-                                                <div className={styles['stat-box']}>
-                                                    <div className={styles['stat-box-value']}>
-                                                        {(social.avgViews || 0).toLocaleString()}
-                                                    </div>
-                                                    <div className={styles['stat-box-label']}>Avg. Views</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>No social media platforms connected</p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className={styles['detail-card']}>
-                            <h2 className={styles['card-title']}>Top Campaigns</h2>
-                            <div className={styles['best-posts']}>
-                                {brand.bestPosts && brand.bestPosts.length > 0 ? (
-                                    brand.bestPosts.map((post, idx) => (
-                                        <div key={idx} className={styles['post-card']}>
-                                            <img 
-                                                src={post.thumbnail || '/images/default-campaign.jpg'}
-                                                alt="Campaign thumbnail" 
-                                                className={styles['post-image']}
-                                            />
-                                            <div className={styles['post-details']}>
-                                                <div className={styles['post-platform']}>
-                                                    <i className={`fab fa-${(post.platform || 'link').toLowerCase()}`}></i>
-                                                    {post.title}
-                                                </div>
-                                                <div className={styles['post-stats']}>
-                                                    <span>
-                                                        <i className="fas fa-heart"></i>
-                                                        {(post.likes || 0).toLocaleString()}
-                                                    </span>
-                                                    <span>
-                                                        <i className="fas fa-comment"></i>
-                                                        {(post.comments || 0).toLocaleString()}
-                                                    </span>
-                                                    {post.views && (
-                                                        <span>
-                                                            <i className="fas fa-eye"></i>
-                                                            {(post.views || 0).toLocaleString()}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>No campaigns available to display</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className={styles['side-content']}>
-                        <div className={styles['detail-card']}>
-                            <h2 className={styles['card-title']}>Brand Information</h2>
-                            <div className={styles['brand-info-section']}>
-                                {brand.location && (
-                                    <div className={styles['info-item']}>
-                                        <div className={styles['info-icon']}>
-                                            <i className="fas fa-map-marker-alt"></i>
-                                        </div>
-                                        <div className={styles['info-content']}>
-                                            <div className={styles['info-label']}>Location</div>
-                                            <div className={styles['info-value']}>{brand.location}</div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {brand.website && (
-                                    <div className={styles['info-item']}>
-                                        <div className={styles['info-icon']}>
-                                            <i className="fas fa-globe"></i>
-                                        </div>
-                                        <div className={styles['info-content']}>
-                                            <div className={styles['info-label']}>Website</div>
-                                            <div className={styles['info-value']}>
-                                                <a 
-                                                    href={brand.website} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className={styles['website-link']}
-                                                >
-                                                    {brand.website.replace(/^https?:\/\//, '')}
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {brand.mission && brand.mission !== brand.bio && (
-                                    <div className={styles['info-item']}>
-                                        <div className={styles['info-icon']}>
-                                            <i className="fas fa-bullseye"></i>
-                                        </div>
-                                        <div className={styles['info-content']}>
-                                            <div className={styles['info-label']}>Mission</div>
-                                            <div className={styles['info-value']}>{brand.mission}</div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className={styles['audience-section']}>
-                                <h3>Target Audience</h3>
-                                <div className={styles['audience-stats']}>
-                                    <div className={styles['audience-stat']}>
-                                        <div className={styles['audience-stat-value']}>
-                                            {brand.audienceDemographics?.gender || 'Mixed'}
-                                        </div>
-                                        <div className={styles['audience-stat-label']}>Primary Gender</div>
-                                    </div>
-                                    <div className={styles['audience-stat']}>
-                                        <div className={styles['audience-stat-value']}>
-                                            {brand.audienceDemographics?.ageRange || '18-45'}
-                                        </div>
-                                        <div className={styles['audience-stat-label']}>Age Range</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className={styles['performance-metrics']}>
-                                <h3>Performance Metrics</h3>
-                                <div className={styles['metric-grid']}>
-                                    <div className={styles['metric-card']}>
-                                        <div className={styles['metric-value']}>
-                                            {(brand.performanceMetrics?.reach || 0).toLocaleString()}
-                                        </div>
-                                        <div className={styles['metric-label']}>Reach</div>
-                                    </div>
-                                    <div className={styles['metric-card']}>
-                                        <div className={styles['metric-value']}>
-                                            {(brand.performanceMetrics?.impressions || 0).toLocaleString()}
-                                        </div>
-                                        <div className={styles['metric-label']}>Impressions</div>
-                                    </div>
-                                    <div className={styles['metric-card']}>
-                                        <div className={styles['metric-value']}>
-                                            {(brand.performanceMetrics?.engagement || 0).toLocaleString()}
-                                        </div>
-                                        <div className={styles['metric-label']}>Engagement</div>
-                                    </div>
-                                    <div className={styles['metric-card']}>
-                                        <div className={styles['metric-value']}>
-                                            {(brand.performanceMetrics?.conversionRate || 0).toFixed(1)}%
-                                        </div>
-                                        <div className={styles['metric-label']}>Conversion Rate</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className={styles['categories-section']}>
-                                <h3>Brand Categories</h3>
-                                <div className={styles['category-tags']}>
-                                    {brand.categories && brand.categories.length > 0 ? (
-                                        brand.categories.map((category, idx) => (
-                                            <span key={idx} className={styles['category-tag']}>
-                                                {category}
-                                            </span>
-                                        ))
-                                    ) : (
-                                        <p>No categories specified</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className={styles['languages-section']}>
-                                <h3>Languages</h3>
-                                <div className={styles['language-tags']}>
-                                    {brand.languages && brand.languages.length > 0 ? (
-                                        brand.languages.map((language, idx) => (
-                                            <span key={idx} className={styles['language-tag']}>
-                                                {language}
-                                            </span>
-                                        ))
-                                    ) : (
-                                        <p>No languages specified</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </section>
         </div>
     );
 };

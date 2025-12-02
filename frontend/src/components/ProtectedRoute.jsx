@@ -5,7 +5,7 @@ import { checkAuth } from '../utils/auth';
 /**
  * ProtectedRoute component that checks authentication before rendering child components
  * @param {React.ReactNode} children - Child components to render if authenticated
- * @param {string} requiredUserType - Optional: 'brand' or 'influencer' to restrict access
+ * @param {string} requiredUserType - Optional: 'brand', 'influencer', or 'customer' to restrict access
  * @param {React.ReactNode} fallback - Optional: Component to show while checking auth
  */
 const ProtectedRoute = ({ children, requiredUserType = null, fallback = null }) => {

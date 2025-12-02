@@ -4,6 +4,27 @@ import styles from '../../../styles/admin/CampaignAnalytics.module.css';
 import { API_BASE_URL } from '../../../services/api';
 
 const CampaignAnalytics = () => {
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    window.location.href = '/admin/dashboard';
+  };
+
+  const goBackButtonStyle = {
+    padding: '0.5rem 1rem',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    backgroundColor: '#fff',
+    color: '#2c3e50',
+    cursor: 'pointer',
+    marginBottom: '1rem',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem'
+  };
+
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -285,6 +306,9 @@ const CampaignAnalytics = () => {
   if (loading) {
     return (
       <div className={styles.campaignAnalyticsPage}>
+        <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+          ← Go Back
+        </button>
         <div className={styles.loadingMessage}>Loading campaign analytics...</div>
       </div>
     );
@@ -292,6 +316,9 @@ const CampaignAnalytics = () => {
 
   return (
     <div className={styles.campaignAnalyticsPage}>
+      <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+        ← Go Back
+      </button>
       {error && <div className={styles.errorAlert}>{error}</div>}
 
       <div className={styles.analyticsHeader}>

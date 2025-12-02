@@ -1,0 +1,778 @@
+.explore-page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  line-height: 1.6;
+}
+
+.explore-page :global(*) {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Header/Navbar styles are now in dashboard.module.css and shared across all influencer pages */
+
+/* Main Container */
+.explore-page :global(.container) {
+  width: 80%;
+  margin: 40px auto;
+}
+
+.explore-page :global(.intro) {
+  text-align: center;
+  padding: 20px;
+}
+
+.explore-page :global(.intro h1) {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #007BFF;
+}
+
+.explore-page :global(.intro p) {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* Filter Section */
+.explore-page :global(.filter-section) {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.explore-page :global(.filter-controls) {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.explore-page :global(.search-box) {
+  display: flex;
+  flex: 1;
+  min-width: 250px;
+  height: 46px;
+}
+
+.explore-page :global(.search-box input) {
+  flex: 1;
+  padding: 10px 15px;
+  height: 100%;
+  border: 2px solid #ddd;
+  border-right: none;
+  border-radius: 5px 0 0 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+.explore-page :global(.search-box input:focus) {
+  border-color: #4285f4;
+}
+
+.explore-page :global(.search-btn) {
+  padding: 0 14px;
+  background: #4285f4;
+  color: white;
+  border: 2px solid #4285f4;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: auto;
+  width: auto;
+  height: 100%;
+}
+
+.explore-page :global(.search-btn i) {
+  font-size: 0.9rem;
+}
+
+.explore-page :global(.search-btn:hover) {
+  background: #3367d6;
+  border-color: #3367d6;
+}
+
+.explore-page :global(.category-filter select) {
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.explore-page :global(.category-filter select:focus) {
+  border-color: #4285f4;
+  outline: none;
+}
+
+.explore-page :global(.clear-btn) {
+  padding: 10px 15px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.explore-page :global(.clear-btn:hover) {
+  background: #545b62;
+}
+
+.explore-page :global(.results-info) {
+  margin-bottom: 15px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Loading and Error States */
+.explore-page :global(.loading-message) {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.explore-page :global(.error-alert) {
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem;
+  border-left: 4px solid #c33;
+  text-align: center;
+}
+
+/* Filter Actions */
+.explore-page :global(.filter-actions) {
+  display: flex;
+  align-items: center;
+}
+
+/* Toggle Button */
+.explore-page :global(.toggle-container) {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.explore-page :global(.toggle-button) {
+  padding: 10px 20px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-width: 100px;
+  width: auto;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.explore-page :global(.toggle-button:hover) {
+  background: #3367d6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+}
+
+.explore-page :global(.visually-hidden) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Brand List */
+.explore-page :global(.brand-list) {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.explore-page :global(.brand-list.grid) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.explore-page :global(.brand-list.list-view) {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.explore-page :global(.brand-item) {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.explore-page :global(.brand-list.grid .brand-item) {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 25px;
+}
+
+.explore-page :global(.brand-item:hover) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #4285f4;
+}
+
+.explore-page :global(.brand-logo-container) {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.explore-page :global(.brand-logo-container img) {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #e0e0e0;
+  transition: border-color 0.3s;
+}
+
+.explore-page :global(.brand-list.grid .brand-logo-container img) {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.explore-page :global(.verified-badge) {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #4285f4;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.explore-page :global(.brand-details) {
+  flex: 1;
+  min-width: 0;
+}
+
+.explore-page :global(.brand-list.grid .brand-details) {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.explore-page :global(.brand-header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.explore-page :global(.brand-list.grid .brand-header) {
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.explore-page :global(.brand-name) {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.explore-page :global(.brand-list.grid .brand-name) {
+  font-size: 1.3rem;
+}
+
+.explore-page :global(.brand-rating) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ff9800;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.explore-page :global(.brand-tagline) {
+  color: #666;
+  font-style: italic;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.explore-page :global(.brand-info-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.explore-page :global(.brand-list.grid .brand-info-grid) {
+  grid-template-columns: 1fr;
+  text-align: center;
+}
+
+.explore-page :global(.info-item) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.explore-page :global(.brand-list.grid .info-item) {
+  justify-content: center;
+}
+
+.explore-page :global(.info-item i) {
+  color: #4285f4;
+  width: 14px;
+  text-align: center;
+}
+
+.explore-page :global(.brand-mission) {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.explore-page :global(.button-group) {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.explore-page :global(.brand-list.grid .button-group) {
+  width: 100%;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.explore-page :global(.brand-list.list-view .button-group) {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-self: center;
+}
+
+.explore-page :global(.invite-button),
+.explore-page :global(.profile-button) {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  text-align: center;
+  border: none;
+  min-width: 100px;
+}
+
+.explore-page :global(.brand-list.grid .invite-button),
+.explore-page :global(.brand-list.grid .profile-button) {
+  padding: 8px 16px;
+  min-height: 36px;
+  width: 50%;
+}
+
+.explore-page :global(.brand-list.list-view .invite-button),
+.explore-page :global(.brand-list.list-view .profile-button) {
+  flex: 1;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 0;
+}
+
+.explore-page :global(.brand-list.list-view .brand-item) {
+  display: grid;
+  grid-template-columns: auto 1fr minmax(190px, 220px);
+  align-items: stretch;
+  gap: 20px;
+}
+
+.explore-page :global(.brand-list.list-view .brand-details) {
+  padding-right: 15px;
+}
+
+.explore-page :global(.brand-list.list-view .brand-logo-container) {
+  align-self: center;
+}
+
+.explore-page :global(.brand-list.list-view .brand-info-grid) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.explore-page :global(.brand-list.list-view .brand-mission) {
+  margin-bottom: 0;
+}
+
+.explore-page :global(.brand-list.list-view .brand-logo-container img) {
+  width: 90px;
+  height: 90px;
+  border-radius: 16px;
+}
+
+.explore-page :global(.invite-button) {
+  background: #4285f4;
+  color: white;
+}
+
+.explore-page :global(.invite-button:hover) {
+  background: #3367d6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
+}
+
+.explore-page :global(.profile-button) {
+  background: white;
+  color: #4285f4;
+  border: 1px solid #4285f4;
+}
+
+.explore-page :global(.profile-button:hover) {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.explore-page :global(.no-brands-message) {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.explore-page :global(.no-brands-message h2) {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Invite Modal Styles */
+.explore-page :global(.invite-modal) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.explore-page :global(.invite-modal-content) {
+  background: white;
+  max-width: 600px;
+  width: 100%;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: slideIn 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.explore-page :global(.invite-modal-close) {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 32px;
+  font-weight: bold;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s;
+  line-height: 1;
+}
+
+.explore-page :global(.invite-modal-close:hover) {
+  color: #333;
+}
+
+.explore-page :global(.invite-modal-title) {
+  color: #4285f4;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-right: 30px;
+}
+
+.explore-page :global(.invite-brand-name) {
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 25px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #4285f4;
+}
+
+.explore-page :global(.form-group) {
+  margin-bottom: 20px;
+}
+
+.explore-page :global(.form-group label) {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.explore-page :global(.form-group input),
+.explore-page :global(.form-group textarea) {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.explore-page :global(.form-group input:focus),
+.explore-page :global(.form-group textarea:focus) {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.explore-page :global(.form-group input.error),
+.explore-page :global(.form-group textarea.error) {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.explore-page :global(.field-error) {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.explore-page :global(.field-error::before) {
+  content: "⚠";
+  font-size: 0.8rem;
+}
+
+.explore-page :global(.form-group textarea) {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.explore-page :global(.form-row) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.explore-page :global(.channel-checkboxes) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.explore-page :global(.channel-checkboxes label) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.explore-page :global(.channel-checkboxes label:hover) {
+  background: #f8f9fa;
+}
+
+.explore-page :global(.channel-checkboxes input[type="checkbox"]) {
+  width: auto;
+  cursor: pointer;
+}
+
+.explore-page :global(.invite-modal-actions) {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.explore-page :global(.invite-btn-send) {
+  flex: 1;
+  padding: 14px 20px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.explore-page :global(.invite-btn-send:hover) {
+  background: #3367d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.explore-page :global(.invite-btn-send:active) {
+  transform: translateY(0);
+}
+
+.explore-page :global(.invite-btn-cancel) {
+  flex: 1;
+  padding: 6px 10px;
+  background: white;
+  margin: 0 3px;
+  color: #333;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.explore-page :global(.invite-btn-cancel:hover) {
+  background: #f8f9fa;
+  border-color: #999;
+}
+
+.explore-page :global(.invite-btn-cancel:active) {
+  transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .explore-page :global(.form-row) {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-page :global(.channel-checkboxes) {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-page :global(.brand-list.grid) {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-page :global(.brand-item) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .explore-page :global(.brand-header) {
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .explore-page :global(.brand-info-grid) {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .explore-page :global(.info-item) {
+    justify-content: center;
+  }
+
+  .explore-page :global(.button-group) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .explore-page :global(.filter-controls) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .explore-page :global(.search-box) {
+    min-width: auto;
+  }
+
+  .explore-page :global(.category-filter select) {
+    min-width: auto;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .explore-page :global(*) {
+    transition: none !important;
+    animation: none !important;
+  }
+}

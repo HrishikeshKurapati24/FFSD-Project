@@ -1,0 +1,406 @@
+:global(:root) {
+  --primary-color: #4285f4;
+  --secondary-color: #34a853;
+  --accent-color: #ea4335;
+  --light-gray: #f8f9fa;
+  --dark-gray: #333;
+}
+
+.brand-profile-page {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  min-height: 100vh;
+}
+
+.brand-profile-page :global(*) {
+  box-sizing: border-box;
+}
+
+/* Header/Navbar styles are now in dashboard.module.css and shared across all influencer pages */
+
+:global(.brand-profile-page .profile-header) {
+  background: linear-gradient(135deg, var(--primary-color), #2e70e3);
+  color: #fff;
+  padding: 48px 0 40px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+:global(.brand-profile-page .profile-content) {
+  width: min(1200px, 92%);
+  margin: 0 auto;
+}
+
+:global(.brand-profile-page .back-button) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+:global(.brand-profile-page .back-button:hover) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+:global(.brand-profile-page .profile-header-content) {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+:global(.brand-profile-page .profile-pic) {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+:global(.brand-profile-page .profile-info) {
+  flex: 1;
+  min-width: 240px;
+}
+
+:global(.brand-profile-page .profile-name) {
+  font-size: 2.4rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:global(.brand-profile-page .verified-badge) {
+  color: #1da1f2;
+}
+
+:global(.brand-profile-page .profile-username) {
+  margin: 6px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+}
+
+:global(.brand-profile-page .profile-bio) {
+  margin: 10px 0;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 600px;
+}
+
+:global(.brand-profile-page .profile-stats) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+:global(.brand-profile-page .stat-item) {
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global(.brand-profile-page .stat-value) {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+:global(.brand-profile-page .stat-label) {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:global(.brand-profile-page .profile-details) {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0 3rem;
+}
+
+:global(.brand-profile-page .main-content),
+:global(.brand-profile-page .side-content) {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+:global(.brand-profile-page .detail-card) {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(34, 62, 125, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+:global(.brand-profile-page .detail-card:hover) {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(34, 62, 125, 0.12);
+}
+
+:global(.brand-profile-page .card-title) {
+  margin-bottom: 1rem;
+  font-size: 1.35rem;
+  border-bottom: 2px solid rgba(66, 133, 244, 0.15);
+  padding-bottom: 0.5rem;
+}
+
+:global(.brand-profile-page .social-platforms) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+:global(.brand-profile-page .platform-card) {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+:global(.brand-profile-page .platform-header) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+:global(.brand-profile-page .platform-icon) {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+:global(.brand-profile-page .platform-stats) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+:global(.brand-profile-page .stat-box) {
+  background: var(--light-gray);
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+:global(.brand-profile-page .stat-box-value) {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+:global(.brand-profile-page .best-posts) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+:global(.brand-profile-page .post-card) {
+  border: 1px solid #e9ecef;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+:global(.brand-profile-page .post-image) {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+:global(.brand-profile-page .post-details) {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+:global(.brand-profile-page .post-stats) {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+:global(.brand-profile-page .brand-info-section) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+:global(.brand-profile-page .info-item) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: #f1f3f5;
+}
+
+:global(.brand-profile-page .info-icon) {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:global(.brand-profile-page .audience-section),
+:global(.brand-profile-page .performance-metrics),
+:global(.brand-profile-page .categories-section),
+:global(.brand-profile-page .languages-section) {
+  margin-top: 1.5rem;
+}
+
+:global(.brand-profile-page .audience-stats),
+:global(.brand-profile-page .metric-grid) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+:global(.brand-profile-page .audience-stat),
+:global(.brand-profile-page .metric-card) {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  background: #fff;
+}
+
+:global(.brand-profile-page .audience-stat-value),
+:global(.brand-profile-page .metric-value) {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+:global(.brand-profile-page .category-tags),
+:global(.brand-profile-page .language-tags) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+:global(.brand-profile-page .category-tag),
+:global(.brand-profile-page .language-tag) {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+:global(.brand-profile-page .category-tag) {
+  background: var(--primary-color);
+}
+
+:global(.brand-profile-page .language-tag) {
+  background: var(--secondary-color);
+}
+
+:global(.brand-profile-page .website-link) {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+:global(.brand-profile-page .website-link:hover) {
+  text-decoration: underline;
+}
+
+:global(.brand-profile-page .loading-state),
+:global(.brand-profile-page .error-state) {
+  width: min(600px, 90%);
+  margin: 4rem auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  font-size: 1.1rem;
+}
+
+:global(.brand-profile-page .error-state) {
+  border: 1px solid rgba(234, 67, 53, 0.4);
+  color: #c62828;
+}
+
+:global(.brand-profile-page .empty-state) {
+  margin: 0.5rem 0 0;
+  color: #6c757d;
+  font-style: italic;
+}
+
+:global(.brand-profile-page .instagram-bg) {
+  background: #e1306c;
+}
+
+:global(.brand-profile-page .youtube-bg) {
+  background: #ff0000;
+}
+
+:global(.brand-profile-page .tiktok-bg) {
+  background: #000;
+}
+
+:global(.brand-profile-page .facebook-bg) {
+  background: #1877f2;
+}
+
+:global(.brand-profile-page .twitter-bg) {
+  background: #1da1f2;
+}
+
+:global(.brand-profile-page .linkedin-bg) {
+  background: #0077b5;
+}
+
+:global(.brand-profile-page .default-bg) {
+  background: var(--dark-gray);
+}
+
+@media (max-width: 1100px) {
+  :global(.brand-profile-page .profile-details) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  :global(.brand-profile-page .profile-header-content) {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: center;
+    align-items: center;
+  }
+
+  :global(.brand-profile-page .profile-info) {
+    text-align: center;
+  }
+
+  :global(.brand-profile-page .audience-stats),
+  :global(.brand-profile-page .metric-grid),
+  :global(.brand-profile-page .platform-stats) {
+    grid-template-columns: 1fr;
+  }
+}

@@ -12,6 +12,92 @@ const mongoose = require('mongoose');
 const { BrandInfo, BrandAnalytics, BrandSocials } = require('../config/BrandMongo');
 const { Message } = require('../config/MessageMongo');
 const { Product } = require('../config/ProductMongo');
+const notificationController = require('../controllers/notificationController');
+
+// Brand sign out route (must be before authentication middleware)
+router.get('/signout', (req, res) => {
+    // Clear session
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session during signout:', err);
+            const isAPIRequest = req.xhr || req.headers.accept?.includes('application/json');
+            if (isAPIRequest) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error logging out'
+                });
+            }
+            return res.redirect('/signin');
+        }
+
+        // Clear JWT cookie
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/'
+        });
+
+        // Set cache control
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
+        // Check if this is an API request (JSON) or page request (HTML)
+        const isAPIRequest = req.xhr || req.headers.accept?.includes('application/json');
+
+        if (isAPIRequest) {
+            return res.status(200).json({
+                success: true,
+                message: 'Signed out successfully'
+            });
+        } else {
+            return res.redirect('/signin');
+        }
+    });
+});
+
+router.post('/signout', (req, res) => {
+    // Clear session
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session during signout:', err);
+            const isAPIRequest = req.xhr || req.headers.accept?.includes('application/json');
+            if (isAPIRequest) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error logging out'
+                });
+            }
+            return res.redirect('/signin');
+        }
+
+        // Clear JWT cookie
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/'
+        });
+
+        // Set cache control
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
+        // Check if this is an API request (JSON) or page request (HTML)
+        const isAPIRequest = req.xhr || req.headers.accept?.includes('application/json');
+
+        if (isAPIRequest) {
+            return res.status(200).json({
+                success: true,
+                message: 'Signed out successfully'
+            });
+        } else {
+            return res.redirect('/signin');
+        }
+    });
+});
 
 // Apply authentication middleware to all routes
 router.use(isAuthenticated);
@@ -21,7 +107,7 @@ router.use(isBrand);
 const verifyBrandId = (req, res, next) => {
     // Check session first, then req.user (from JWT)
     const userId = req.session?.user?.id || req.user?.id;
-    
+
     if (userId) {
         // Add brand ID to request for use in routes
         req.brandId = userId;
@@ -92,7 +178,7 @@ router.get('/explore', async (req, res) => {
             }
         });
         const categories = Array.from(categoriesSet).sort();
-        
+
         console.log('=== CATEGORIES DEBUG ===');
         console.log('Total influencers found:', allInfluencers.length);
         console.log('Sample influencer categories:', allInfluencers.slice(0, 3).map(i => ({ id: i._id, categories: i.categories })));
@@ -138,7 +224,21 @@ router.get('/explore', async (req, res) => {
             };
         });
 
-        res.render('brand/explore', { 
+        const responseData = {
+            success: true,
+            influencers: enrichedInfluencers,
+            categories,
+            searchQuery,
+            selectedCategory
+        };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json(responseData);
+        }
+
+        // Render EJS for traditional requests (legacy support)
+        res.render('brand/explore', {
             influencers: enrichedInfluencers,
             searchQuery,
             selectedCategory,
@@ -146,6 +246,15 @@ router.get('/explore', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching influencers:', error);
+
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to load influencers'
+            });
+        }
+
         res.status(500).render('error', {
             message: 'Failed to load influencers',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -160,6 +269,12 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
         const influencerId = req.params.influencerId || req.query.id;
 
         if (!influencerId) {
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Influencer ID is required'
+                });
+            }
             return res.status(400).render('error', {
                 message: 'Influencer ID is required',
                 error: { status: 400 }
@@ -169,6 +284,12 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
         // Get influencer info from InfluencerInfo collection
         const influencer = await InfluencerInfo.findById(influencerId).lean();
         if (!influencer) {
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Influencer not found'
+                });
+            }
             return res.status(404).render('error', {
                 message: 'Influencer not found',
                 error: { status: 404 }
@@ -238,9 +359,29 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
             }
         };
 
-        res.render('brand/influencer_details', { influencer: influencerData });
+        const responseData = {
+            influencer: influencerData
+        };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                ...responseData
+            });
+        }
+
+        // Render EJS template for traditional requests
+        res.render('brand/influencer_details', responseData);
     } catch (error) {
         console.error('Error getting influencer profile details:', error);
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to load influencer details',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
         res.status(500).render('error', {
             message: 'Failed to load influencer details',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -439,6 +580,7 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
                 tag, // 'influencer invite' | 'request'
                 _cid: ci._id,
                 _iid: influencer._id,
+                message: latestMessage, // Add message field
                 collab: {
                     title: campaign.title,
                     description: campaign.description,
@@ -483,9 +625,29 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
 
         const requests = [...formattedInfluencerInvites, ...formattedCampaignRequests];
 
+        const responseData = {
+            success: true,
+            requests
+        };
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json(responseData);
+        }
+
+        // Render EJS for traditional requests (legacy support)
         res.render('brand/received_requests', { requests });
     } catch (error) {
         console.error('Error fetching received requests:', error);
+
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to fetch received requests'
+            });
+        }
+
         res.status(500).render('error', {
             message: 'Failed to fetch received requests',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -494,7 +656,14 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
 });
 
 router.get('/create_collab', (req, res) => {
-    // Render the existing Create_collab.ejs view as requested by the user
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json({
+            success: true
+        });
+    }
+
+    // Render EJS for traditional requests (legacy support)
     res.render('brand/create_collab');
 });
 
@@ -571,12 +740,12 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
         // Calculate remaining budget: budget - sum(completed payments for this campaign)
         let remainingBudget = 0;
         const paymentsAgg = await CampaignPayments.aggregate([
-                { $match: { campaign_id: request.campaign_id._id, status: 'completed' } },
-                { $group: { _id: '$campaign_id', total: { $sum: '$amount' } } }
-            ]);
-            const totalPaid = paymentsAgg?.[0]?.total || 0;
-            remainingBudget = request.campaign_id.budget - totalPaid;
-            console.log(remainingBudget);
+            { $match: { campaign_id: request.campaign_id._id, status: 'completed' } },
+            { $group: { _id: '$campaign_id', total: { $sum: '$amount' } } }
+        ]);
+        const totalPaid = paymentsAgg?.[0]?.total || 0;
+        remainingBudget = request.campaign_id.budget - totalPaid;
+        console.log(remainingBudget);
 
         // Format campaign dates
         const startDate = new Date(request.campaign_id.start_date).toLocaleDateString();
@@ -660,9 +829,27 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
             campaignProducts: campaignProducts
         };
 
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                ...viewData
+            });
+        }
+
+        // Render EJS for traditional requests
         res.render('brand/transaction', viewData);
     } catch (error) {
         console.error('Error fetching transaction data:', error);
+        
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to load transaction page'
+            });
+        }
+
         res.status(500).render('error', {
             message: 'Failed to load transaction page',
             error: process.env.NODE_ENV === 'development' ? error : {}
@@ -695,7 +882,17 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
 
         // Validate required fields (always required)
         if (!amount || !paymentMethod) {
-            return res.status(400).send('Amount and payment method are required');
+            const errorMessage = 'Amount and payment method are required';
+            
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(400).json({
+                    success: false,
+                    message: errorMessage
+                });
+            }
+            
+            return res.status(400).send(errorMessage);
         }
 
         // Convert string IDs to MongoDB ObjectIds
@@ -710,13 +907,33 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
 
         if (!request) {
             console.error('Request not found for:', { campaignId, influencerId });
-            return res.status(404).send('Request not found');
+            const errorMessage = 'Request not found';
+            
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(404).json({
+                    success: false,
+                    message: errorMessage
+                });
+            }
+            
+            return res.status(404).send(errorMessage);
         }
 
         // Ensure campaign is in influencer-invite status before allowing completion
         const campaignDoc = await CampaignInfo.findById(request.campaign_id).select('status brand_id');
         if (!campaignDoc) {
-            return res.status(404).send('Campaign not found');
+            const errorMessage = 'Campaign not found';
+            
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(404).json({
+                    success: false,
+                    message: errorMessage
+                });
+            }
+            
+            return res.status(404).send(errorMessage);
         }
 
         const isCompleting = (campaignDoc.status === 'influencer-invite');
@@ -734,16 +951,46 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             today.setHours(0, 0, 0, 0);
 
             if (start < today) {
-                return res.status(400).send('Start date cannot be in the past');
+                const errorMessage = 'Start date cannot be in the past';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(400).send(errorMessage);
             }
 
             if (end <= start) {
-                return res.status(400).send('End date must be after start date');
+                const errorMessage = 'End date must be after start date';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(400).send(errorMessage);
             }
 
             const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
             if (duration > 365) {
-                return res.status(400).send('Campaign duration cannot exceed 365 days');
+                const errorMessage = 'Campaign duration cannot exceed 365 days';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(400).send(errorMessage);
             }
 
             // Update the campaign with the completed details
@@ -775,18 +1022,48 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
 
             // Basic validation for product
             if (!prodName || !prodDescription || !category) {
-                return res.status(400).send('All product fields are required');
+                const errorMessage = 'All product fields are required';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(400).send(errorMessage);
             }
 
             if (!req.file) {
-                return res.status(400).send('Product image is required');
+                const errorMessage = 'Product image is required';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(400).send(errorMessage);
             }
 
             const op = Number(originalPrice);
             const cp = Number(campaignPrice);
             const tq = Number(targetQty);
             if (!Number.isFinite(op) || op < 0 || !Number.isFinite(cp) || cp < 0 || cp > op || !Number.isFinite(tq) || tq < 0) {
-                return res.status(400).send('Invalid product pricing or target quantity');
+                const errorMessage = 'Invalid product pricing or target quantity';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(400).send(errorMessage);
             }
 
             try {
@@ -813,7 +1090,17 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                 console.log('Product created successfully');
             } catch (uploadError) {
                 console.error('Error uploading image to Cloudinary:', uploadError);
-                return res.status(500).send('Error uploading product image');
+                const errorMessage = 'Error uploading product image';
+                
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(500).json({
+                        success: false,
+                        message: errorMessage
+                    });
+                }
+                
+                return res.status(500).send(errorMessage);
             }
         }
 
@@ -832,7 +1119,17 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             await payment.save();
         } catch (error) {
             console.error('Error saving payment:', error);
-            return res.status(500).send('Internal Server Error');
+            const errorMessage = 'Internal Server Error';
+            
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(500).json({
+                    success: false,
+                    message: errorMessage
+                });
+            }
+            
+            return res.status(500).send(errorMessage);
         }
 
         // Update CampaignInfluencers status to 'active'
@@ -846,6 +1143,27 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             }
         );
 
+        // Create notification for influencer to inform that their request was accepted / campaign completed
+        try {
+            // Fetch campaign title for a nicer message
+            const campaignInfoForNotif = await CampaignInfo.findById(request.campaign_id).select('title').lean();
+            const campaignTitle = campaignInfoForNotif?.title || 'your campaign';
+
+            await notificationController.createNotification({
+                recipientId: new mongoose.Types.ObjectId(influencerId),
+                recipientType: 'influencer',
+                senderId: new mongoose.Types.ObjectId(brandId),
+                senderType: 'brand',
+                type: 'request_accepted',
+                title: 'Request Accepted',
+                body: `Your request has been accepted for "${campaignTitle}".`,
+                relatedId: request._id,
+                data: { campaignId: request.campaign_id }
+            });
+        } catch (notifErr) {
+            console.error('Error creating acceptance notification for influencer:', notifErr);
+        }
+
         // Update subscription usage for influencer connection
         const { SubscriptionService } = require('../models/brandModel');
         try {
@@ -856,12 +1174,30 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         }
 
         // Set success message in session
-        req.session.successMessage = 'Campaign completed and payment processed successfully!';
+        const successMessage = 'Campaign completed and payment processed successfully!';
+        req.session.successMessage = successMessage;
+
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                message: successMessage
+            });
+        }
 
         // Redirect to received requests page
         res.redirect(`/brand/home`);
     } catch (error) {
         console.error('Error processing payment:', error);
+        
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({
+                success: false,
+                message: 'Internal Server Error'
+            });
+        }
+
         res.status(500).send('Internal Server Error');
     }
 });
@@ -1060,6 +1396,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
     try {
         // Handle multer errors
         if (req.fileValidationError) {
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(400).json({
+                    success: false,
+                    message: req.fileValidationError
+                });
+            }
             return res.status(400).render('brand/Create_collab', {
                 error: req.fileValidationError,
                 formData: req.body
@@ -1083,6 +1426,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
         //Check if the brand is verified, if not, return an error
         const brand = await BrandInfo.findById(brandId);
         if (!brand.verified) {
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Your account is not verified. Please wait for verification.'
+                });
+            }
             return res.status(400).render('brand/Create_collab', {
                 error: 'Your account is not verified. Please wait for verification.',
                 formData: req.body
@@ -1094,6 +1444,18 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
         try {
             const limitCheck = await SubscriptionService.checkSubscriptionLimit(brandId, 'brand', 'create_campaign');
             if (!limitCheck.allowed) {
+                // Return JSON for API requests
+                if (req.xhr || req.headers.accept?.includes('application/json')) {
+                    return res.status(limitCheck.redirectToPayment ? 403 : 400).json({
+                        success: false,
+                        message: limitCheck.redirectToPayment
+                            ? limitCheck.reason
+                            : `${limitCheck.reason}. Please upgrade your plan to create more campaigns.`,
+                        showRenewLink: limitCheck.redirectToPayment,
+                        showUpgradeLink: !limitCheck.redirectToPayment
+                    });
+                }
+
                 // Check if subscription is expired
                 if (limitCheck.redirectToPayment) {
                     return res.status(403).render('brand/Create_collab', {
@@ -1103,7 +1465,7 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                         renewUrl: '/subscription/manage'
                     });
                 }
-                
+
                 return res.status(400).render('brand/Create_collab', {
                     error: `${limitCheck.reason}. Please upgrade your plan to create more campaigns.`,
                     formData: req.body,
@@ -1112,6 +1474,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
             }
         } catch (subscriptionError) {
             console.error('Subscription check error:', subscriptionError);
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Unable to verify subscription. Please try again later.'
+                });
+            }
             return res.status(500).render('brand/Create_collab', {
                 error: 'Unable to verify subscription. Please try again later.',
                 formData: req.body
@@ -1125,6 +1494,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
 
         // Validate duration
         if (duration <= 0) {
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'End date must be after start date.'
+                });
+            }
             return res.status(400).render('brand/Create_collab', {
                 error: 'End date must be after start date.',
                 formData: req.body
@@ -1152,6 +1528,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
         if (products && Array.isArray(products) && products.length > 0) {
             for (const product of products) {
                 if (!product.name || !product.category || !product.original_price || !product.campaign_price || !product.description || !product.target_quantity) {
+                    // Return JSON for API requests
+                    if (req.xhr || req.headers.accept?.includes('application/json')) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'All product fields (name, category, original_price, campaign_price, description) are required.'
+                        });
+                    }
                     return res.status(400).render('brand/Create_collab', {
                         error: 'All product fields (name, category, original_price, campaign_price, description) are required.',
                         formData: req.body
@@ -1159,6 +1542,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                 }
 
                 if (parseInt(product.target_quantity) < 0) {
+                    // Return JSON for API requests
+                    if (req.xhr || req.headers.accept?.includes('application/json')) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Target quantity must be 0 or greater.'
+                        });
+                    }
                     return res.status(400).render('brand/Create_collab', {
                         error: 'Target quantity must be 0 or greater.',
                         formData: req.body
@@ -1166,6 +1556,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                 }
 
                 if (parseFloat(product.original_price) <= 0 || parseFloat(product.campaign_price) <= 0) {
+                    // Return JSON for API requests
+                    if (req.xhr || req.headers.accept?.includes('application/json')) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Product prices must be greater than 0.'
+                        });
+                    }
                     return res.status(400).render('brand/Create_collab', {
                         error: 'Product prices must be greater than 0.',
                         formData: req.body
@@ -1173,6 +1570,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                 }
 
                 if (parseFloat(product.campaign_price) >= parseFloat(product.original_price)) {
+                    // Return JSON for API requests
+                    if (req.xhr || req.headers.accept?.includes('application/json')) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Campaign price must be less than original price.'
+                        });
+                    }
                     return res.status(400).render('brand/Create_collab', {
                         error: 'Campaign price must be less than original price.',
                         formData: req.body
@@ -1180,6 +1584,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                 }
             }
         } else {
+            // Return JSON for API requests
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'At least one product is required.'
+                });
+            }
             return res.status(400).render('brand/Create_collab', {
                 error: 'At least one product is required.',
                 formData: req.body
@@ -1214,6 +1625,13 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
                             imageUrl = await uploadBufferToCloudinary(productImageFile, 'product-images');
                         } catch (error) {
                             console.error('Error uploading product image:', error);
+                            // Return JSON for API requests
+                            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                                return res.status(500).json({
+                                    success: false,
+                                    message: 'Error uploading product image: ' + error.message
+                                });
+                            }
                             return res.status(500).render('brand/Create_collab', {
                                 error: 'Error uploading product image: ' + error.message,
                                 formData: req.body
@@ -1270,10 +1688,41 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
         // Set success message in session
         req.session.successMessage = 'Campaign successfully created.';
 
-        // Redirect to home page
+        // Return JSON for API requests (React frontend)
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.json({
+                success: true,
+                message: 'Campaign successfully created.',
+                campaignId: savedCampaign._id
+            });
+        }
+
+        // Redirect to home page for traditional requests
         res.redirect('/brand/home');
     } catch (error) {
         console.error('Error creating campaign:', error);
+
+        // Return JSON for API requests
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'File size too large. Maximum size is 5MB.'
+                });
+            }
+
+            if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Unexpected file field. Please check your form.'
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to create campaign. Please try again.'
+            });
+        }
 
         // Handle multer errors specifically
         if (error.code === 'LIMIT_FILE_SIZE') {
@@ -1300,8 +1749,26 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
 // Add this route after the campaigns/create route
 router.post('/campaigns/:campaignId/activate', async (req, res) => {
     try {
+        // Check authentication
+        if (!req.session || !req.session.user || !req.session.user.id) {
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.status(401).json({ 
+                    success: false,
+                    message: 'Authentication required' 
+                });
+            }
+            return res.status(401).redirect('/signin');
+        }
+
         const { campaignId } = req.params;
         const brandId = req.session.user.id;
+
+        if (!campaignId) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Campaign ID is required' 
+            });
+        }
 
         // Find the campaign and verify ownership
         const campaign = await CampaignInfo.findOne({
@@ -1310,7 +1777,10 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         });
 
         if (!campaign) {
-            return res.status(404).json({ error: 'Campaign not found' });
+            return res.status(404).json({ 
+                success: false,
+                message: 'Campaign not found' 
+            });
         }
 
         // Guard: must have at least one accepted/active influencer
@@ -1319,15 +1789,17 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
             status: 'active'
         });
         if (acceptedCount === 0) {
-            return res.status(400).json({ error: 'Cannot activate: no accepted influencers yet.' });
+            return res.status(400).json({ 
+                success: false,
+                message: 'Cannot activate: no accepted influencers yet.' 
+            });
         }
 
-        // Guard: cannot activate before start date
-        const now = new Date();
-        if (campaign.start_date && now < new Date(campaign.start_date)) {
-            return res.status(400).json({ error: 'Cannot activate before the campaign start date.' });
-        }
-
+        // Note: Brands can activate campaigns at any time once they have accepted influencers.
+        // The start_date controls when campaigns become visible to customers (see customerRoutes.js),
+        // but campaigns can be activated in advance to prepare them for launch.
+        // No start date check is needed here - campaigns will automatically become visible
+        // to customers only when the start_date is reached.
 
         // Update campaign status to active
         campaign.status = 'active';
@@ -1336,10 +1808,22 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         // Set success message in session
         req.session.successMessage = 'Campaign activated successfully.';
 
-        res.json({ success: true });
+        res.json({ 
+            success: true,
+            message: 'Campaign activated successfully'
+        });
     } catch (error) {
         console.error('Error activating campaign:', error);
-        res.status(500).json({ error: 'Failed to activate campaign' });
+        if (req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(500).json({ 
+                success: false,
+                message: error.message || 'Failed to activate campaign' 
+            });
+        }
+        res.status(500).json({ 
+            success: false,
+            message: 'Failed to activate campaign' 
+        });
     }
 });
 
@@ -1589,6 +2073,23 @@ router.post('/invite-influencer', async (req, res) => {
 
         console.log('Invite created successfully:', newInvite._id);
 
+        // Create notification for influencer
+        try {
+            await notificationController.createNotification({
+                recipientId: new mongoose.Types.ObjectId(influencerId),
+                recipientType: 'influencer',
+                senderId: new mongoose.Types.ObjectId(brandId),
+                senderType: 'brand',
+                type: 'brand_invite',
+                title: 'Campaign Invite',
+                body: `${brand.brandName || 'A brand'} invited you to collaborate on "${campaign.title || 'a campaign'}".`,
+                relatedId: newInvite._id,
+                data: { campaignId: campaign._id }
+            });
+        } catch (notifErr) {
+            console.error('Error creating notification:', notifErr);
+        }
+
         res.json({
             success: true,
             message: 'Influencer invited successfully',
@@ -1631,6 +2132,26 @@ router.post('/requests/:requestId1/:requestId2/decline', async (req, res) => {
                 success: false,
                 message: 'Request not found or you do not have permission to decline it'
             });
+        }
+
+        // Create notification for influencer to inform that their request was declined
+        try {
+            const campaignInfoForNotif = await CampaignInfo.findById(request.campaign_id).select('title').lean();
+            const campaignTitle = campaignInfoForNotif?.title || 'your campaign';
+
+            await notificationController.createNotification({
+                recipientId: new mongoose.Types.ObjectId(influencerId),
+                recipientType: 'influencer',
+                senderId: new mongoose.Types.ObjectId(brandId),
+                senderType: 'brand',
+                type: 'request_declined',
+                title: 'Request Declined',
+                body: `Your request for "${campaignTitle}" was declined.`,
+                relatedId: request._id,
+                data: { campaignId: request.campaign_id }
+            });
+        } catch (notifErr) {
+            console.error('Error creating decline notification for influencer:', notifErr);
         }
 
         // Set success message in session
@@ -1693,11 +2214,6 @@ router.post('/profile/delete', isAuthenticated, async (req, res) => {
     }
 });
 
-router.use('/signout', (req, res) => {
-    res.clearCookie('token', { httpOnly: true, path: '/' });
-    res.set('Cache-Control', 'no-store');
-    res.redirect('/');
-});
 
 // Get campaign history page
 router.get('/campaigns/history', isAuthenticated, isBrand, brandController.getCampaignHistory);
