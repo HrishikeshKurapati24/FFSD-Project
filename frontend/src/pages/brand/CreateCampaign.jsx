@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addNotification } from '../../store/slices/notificationSlice';
 import styles from '../../styles/brand/create_campaign.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
@@ -21,6 +22,7 @@ const EXTERNAL_ASSETS = {
 const CreateCampaign = () => {
   useExternalAssets(EXTERNAL_ASSETS);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showRenewLink, setShowRenewLink] = useState(false);
@@ -62,7 +64,7 @@ const CreateCampaign = () => {
 
   const handleSignOut = async (e) => {
     e?.preventDefault();
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/brand/signout`, {
         method: 'GET',
@@ -181,30 +183,30 @@ const CreateCampaign = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file.');
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file.');
       e.target.value = '';
-        return;
-      }
+      return;
+    }
 
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB.');
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB.');
       e.target.value = '';
-        return;
-      }
+      return;
+    }
 
     // Create preview
-      const reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = (e) => {
       setProducts(prev => prev.map(p =>
         p.id === productId
           ? { ...p, image: file, imagePreview: e.target.result }
           : p
       ));
-      };
-      reader.readAsDataURL(file);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Remove product image
@@ -245,7 +247,7 @@ const CreateCampaign = () => {
       if (words.length < 2) {
         newErrors.title = 'Campaign title must contain at least 2 meaningful words';
         hasErrors = true;
-    }
+      }
     }
 
     // Campaign Description
@@ -255,7 +257,7 @@ const CreateCampaign = () => {
     } else if (formData.description.length > 1000) {
       newErrors.description = 'Campaign description must be 1000 characters or less';
       hasErrors = true;
-      } else {
+    } else {
       const words = formData.description.trim().split(/\s+/).filter(word => word.length > 2);
       if (words.length < 5) {
         newErrors.description = 'Campaign description must contain at least 5 meaningful words';
@@ -279,7 +281,7 @@ const CreateCampaign = () => {
       if (end <= start) {
         newErrors.end_date = 'End date must be after start date';
         hasErrors = true;
-    }
+      }
     }
 
     // Budget
@@ -352,7 +354,7 @@ const CreateCampaign = () => {
         if (!product.name.trim()) {
           productError.name = 'Product name is required';
           hasErrors = true;
-    } else {
+        } else {
           const words = product.name.trim().split(/\s+/).filter(word => word.length > 2);
           if (words.length < 2) {
             productError.name = 'Product name must contain at least 2 meaningful words';
@@ -364,7 +366,7 @@ const CreateCampaign = () => {
         if (!product.category) {
           productError.category = 'Please select a category';
           hasErrors = true;
-    }
+        }
 
         // Target quantity
         if (!product.target_quantity) {
@@ -380,7 +382,7 @@ const CreateCampaign = () => {
         if (!product.original_price || isNaN(opVal) || opVal <= 0) {
           productError.original_price = 'Original price must be greater than 0';
           hasErrors = true;
-    }
+        }
 
         // Campaign price
         const cpVal = parseFloat(product.campaign_price);
@@ -396,13 +398,13 @@ const CreateCampaign = () => {
         if (!product.description.trim()) {
           productError.description = 'Product description is required';
           hasErrors = true;
-    }
+        }
 
         // Image
         if (!product.image) {
           productError.image = 'Product image is required';
-      hasErrors = true;
-    } else {
+          hasErrors = true;
+        } else {
           const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
           if (!validTypes.includes(product.image.type)) {
             productError.image = 'Please select a valid image file (JPG, PNG, or GIF)';
@@ -418,7 +420,7 @@ const CreateCampaign = () => {
         }
       });
       setProductErrors(newProductErrors);
-      }
+    }
 
     setFormErrors(newErrors);
     return !hasErrors;
@@ -510,11 +512,11 @@ const CreateCampaign = () => {
             if (response.redirected || response.status === 302 || response.ok) {
               navigate('/brand/home');
               return;
-          } else {
+            } else {
               setError('Failed to create campaign. Please try again.');
               return;
+            }
           }
-        }
         }
       } catch (err) {
         // If parsing fails, check status
@@ -523,13 +525,14 @@ const CreateCampaign = () => {
           return;
         } else {
           setError('Failed to create campaign. Please try again.');
-      return;
-    }
+          return;
+        }
       }
 
       // Handle response
       if (result.success) {
         alert('Campaign created successfully!');
+        dispatch(addNotification({ type: 'success', message: 'Campaign created successfully!', duration: 3000 }));
         navigate('/brand/home');
       } else {
         // Handle error response - extract message from result
@@ -537,6 +540,7 @@ const CreateCampaign = () => {
 
         // The backend already includes the full message, so we can use it directly
         setError(errorMessage);
+        dispatch(addNotification({ type: 'error', message: errorMessage, duration: 5000 }));
 
         // Store showRenewLink and showUpgradeLink in state for rendering
         setShowRenewLink(result.showRenewLink || false);
@@ -594,12 +598,12 @@ const CreateCampaign = () => {
           <div className="btn-group">
             <button type="submit" className="submit-btn" disabled={loading}>
               {loading ? 'Creating Campaign...' : 'Create Campaign'}
-                          </button>
-                      </div>
-                  </form>
-            </div>
-            </div>
-      );
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 export default CreateCampaign;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addNotification } from '../../store/slices/notificationSlice';
 import styles from '../../styles/brand/explore.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
@@ -14,6 +15,7 @@ const EXTERNAL_ASSETS = {
 export default function Explore() {
   useExternalAssets(EXTERNAL_ASSETS);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   // State management
   const [loading, setLoading] = useState(true);
@@ -210,6 +212,7 @@ export default function Explore() {
 
       if (data.success) {
         alert(`Invitation sent successfully to ${selectedInfluencer.name}!`);
+        dispatch(addNotification({ type: 'success', message: `Invitation sent to ${selectedInfluencer.name}`, duration: 3000 }));
         handleCloseInviteModal();
       } else {
         alert('Failed to send invite: ' + (data.message || 'Unknown error'));

@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/influencer/explore.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
-import InfluencerNavigation from '../../components/influencer/InfluencerNavigation';
+import { useDispatch } from 'react-redux';
+import { addNotification } from '../../store/slices/notificationSlice';
 import ExploreIntro from '../../components/influencer/explore/ExploreIntro';
 import ExploreFilters from '../../components/influencer/explore/ExploreFilters';
 import ResultsInfo from '../../components/influencer/explore/ResultsInfo';
@@ -23,6 +24,7 @@ const DEFAULT_BRAND_LOGO = '/images/default-brand.png';
 const Explore = () => {
   useExternalAssets(EXTERNAL_ASSETS);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -243,6 +245,7 @@ const Explore = () => {
 
       if (data.success) {
         alert(`Invitation sent successfully to ${selectedBrand.name}!`);
+        dispatch(addNotification({ type: 'success', message: `Invitation sent to ${selectedBrand.name}`, duration: 3000 }));
         handleCloseInviteModal();
       } else {
         const errorMessage = data.message || 'Unknown error';

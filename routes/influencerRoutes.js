@@ -393,19 +393,48 @@ router.get('/collab', async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
-        // Get campaigns where this influencer already has entries with 'brand-invite' or 'influencer-invite' status
-        const existingInvites = await CampaignInfluencers.find({
+        // Get campaigns where this influencer already has entries with 'brand-invite', 'influencer-invite', 'active', or 'request' status
+        const existingEntries = await CampaignInfluencers.find({
             influencer_id: new mongoose.Types.ObjectId(influencerId),
-            status: { $in: ['brand-invite', 'influencer-invite'] }
-        }).select('campaign_id').lean();
+            status: { $in: ['brand-invite', 'influencer-invite', 'active', 'request'] }
+        }).select('campaign_id status').lean();
+
+        // Create a map of campaign IDs to their status
+        const campaignStatusMap = {};
+        existingEntries.forEach(entry => {
+            campaignStatusMap[entry.campaign_id.toString()] = entry.status;
+        });
 
         // Extract campaign IDs that this influencer is already invited to or has invited
-        const excludedCampaignIds = existingInvites.map(invite => invite.campaign_id.toString());
+        const excludedCampaignIds = existingEntries.map(entry => entry.campaign_id.toString());
 
-        // Filter out campaigns where influencer already has invites
+        // Filter out campaigns where influencer already has invites or applications
         const requests = allRequests.filter(request =>
             !excludedCampaignIds.includes(request._id.toString())
         );
+
+        // Get brand-invite campaigns for this influencer
+        const brandInvites = await CampaignInfluencers.find({
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            status: 'brand-invite'
+        })
+            .populate({
+                path: 'campaign_id',
+                populate: {
+                    path: 'brand_id',
+                    select: 'brandName logoUrl'
+                }
+            })
+            .lean();
+
+        // Transform brand invites to match the campaign format
+        const brandInviteCampaigns = brandInvites.map(invite => {
+            const campaign = invite.campaign_id;
+            return {
+                ...campaign,
+                invitationStatus: 'brand-invite'
+            };
+        });
 
         // Get products for each campaign
         const campaignIds = requests.map(request => request._id);
@@ -445,12 +474,44 @@ router.get('/collab', async (req, res) => {
                 products: campaignProducts,
                 product_names: campaignProducts.map(p => p.name).join(', '),
                 product_categories: productCategories,
-                primary_category: productCategories[0] || null
+                primary_category: productCategories[0] || null,
+                invitationStatus: null // No invitation status for open campaigns
             };
         });
 
+        // Transform brand invite campaigns
+        const brandInviteCollabs = brandInviteCampaigns.map(campaign => {
+            const campaignProducts = productsByCampaign[campaign._id.toString()] || [];
+            const productCategories = [...new Set(campaignProducts.map(p => p.category).filter(Boolean))];
+
+            return {
+                id: campaign._id,
+                title: campaign.title,
+                brand_name: campaign.brand_id?.brandName || 'Unknown Brand',
+                influence_regions: campaign.target_audience,
+                budget: parseFloat(campaign.budget) || 0,
+                offer_sentence: campaign.description,
+                channels: Array.isArray(campaign.required_channels) ? campaign.required_channels.join(', ') : '',
+                min_followers: campaign.min_followers?.toLocaleString() || '0',
+                age_group: campaign.target_audience?.split(',')[0] || 'All Ages',
+                genders: campaign.target_audience?.split(',')[1] || 'All Genders',
+                duration: campaign.duration || 0,
+                required_channels: Array.isArray(campaign.required_channels) ? campaign.required_channels : [],
+                created_at: campaign.createdAt || new Date(),
+                // Product information
+                products: campaignProducts,
+                product_names: campaignProducts.map(p => p.name).join(', '),
+                product_categories: productCategories,
+                primary_category: productCategories[0] || null,
+                invitationStatus: 'brand-invite'
+            };
+        });
+
+        // Combine all campaigns
+        const allCollabs = [...collabs, ...brandInviteCollabs];
+
         const responseData = {
-            collabs: collabs,
+            collabs: allCollabs,
             influencer: influencerId
         };
 
@@ -827,9 +888,19 @@ router.post('/brand-invites/:inviteId/accept', async (req, res) => {
             });
         }
 
-        // Update status to request
+        // Update status to request (influencer has accepted and is now applying)
         invite.status = 'request';
+        invite.applied_at = new Date();
         await invite.save();
+
+        // Update influencer subscription usage
+        try {
+            const { SubscriptionService } = require('../models/brandModel');
+            await SubscriptionService.updateUsage(influencerId, 'influencer', { campaignsUsed: 1 });
+        } catch (usageError) {
+            console.error('Error updating influencer subscription usage:', usageError);
+            // Continue even if usage update fails
+        }
 
         // Notify the brand that influencer accepted the invite
         try {

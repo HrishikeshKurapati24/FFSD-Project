@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addNotification } from '../../store/slices/notificationSlice';
 import styles from '../../styles/brand/transaction.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
@@ -21,6 +22,7 @@ const EXTERNAL_ASSETS = {
 const Transaction = () => {
     useExternalAssets(EXTERNAL_ASSETS);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { requestId1, requestId2 } = useParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -140,6 +142,7 @@ const Transaction = () => {
             window.location.href = '/signin';
         } catch (error) {
             console.error('Error during signout:', error);
+            dispatch(addNotification({ type: 'error', message: 'Error during signout. Please try again.', duration: 5000 }));
             window.location.href = '/signin';
         }
     };
@@ -317,6 +320,7 @@ const Transaction = () => {
                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
+            dispatch(addNotification({ type: 'error', message: 'Please correct the form errors.', duration: 5000 }));
             return;
         }
 
@@ -372,16 +376,19 @@ const Transaction = () => {
                 const result = await response.json();
                 if (result.success) {
                     setSuccessMessage(result.message || 'Campaign completed and payment processed successfully!');
+                    dispatch(addNotification({ type: 'success', message: result.message || 'Payment processed successfully', duration: 3000 }));
                     setTimeout(() => {
                         navigate('/brand/home');
                     }, 2000);
                 } else {
                     setError(result.message || 'Failed to process payment. Please try again.');
+                    dispatch(addNotification({ type: 'error', message: result.message || 'Payment failed', duration: 5000 }));
                 }
             } else {
                 // Handle redirect or text response
                 if (response.ok) {
                     setSuccessMessage('Campaign completed and payment processed successfully!');
+                    dispatch(addNotification({ type: 'success', message: 'Campaign completed and payment processed successfully!', duration: 3000 }));
                     setTimeout(() => {
                         navigate('/brand/home');
                     }, 2000);
