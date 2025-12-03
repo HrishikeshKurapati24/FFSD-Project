@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import styles from '../../styles/influencer/dashboard.module.css';
 import NotificationBell from './NotificationBell';
+import NotificationModal from '../brand/NotificationModal';
 
 const NAV_LINKS = [
   { label: 'Home', path: '/influencer/home' },
@@ -13,11 +14,12 @@ const MENU_LINKS = [
   { label: 'Campaigns', path: '/influencer/campaigns' }
 ];
 
-const InfluencerNavigation = ({ onSignOut, showNotification = false }) => {
+const InfluencerNavigation = ({ onSignOut, showNotification = true }) => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const toggleButtonRef = useRef(null);
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
 
   const activePath = useMemo(() => location.pathname, [location.pathname]);
 
@@ -103,7 +105,16 @@ const InfluencerNavigation = ({ onSignOut, showNotification = false }) => {
             ))}
           </ul>
         </nav>
-        <NotificationBell />
+        {showNotification && (
+          <NotificationBell
+            showNotification={true}
+            onNotificationClick={() => setNotificationModalOpen(true)}
+          />
+        )}
+        <NotificationModal
+          isOpen={notificationModalOpen}
+          onClose={() => setNotificationModalOpen(false)}
+        />
         <div
           ref={menuRef}
           className="menu-wrapper"

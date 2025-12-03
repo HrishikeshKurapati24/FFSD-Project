@@ -143,7 +143,7 @@ const Dashboard = () => {
         setBrandInvites(data.brandInvites || []);
         setSentRequests(data.sentRequests || []);
         setRecentCampaignHistory(data.recentCampaignHistory || []);
-        setBaseUrl(data.baseUrl || window.location.origin);
+        setBaseUrl(window.location.origin);
 
         // Cache subscription data in context if available
         if (data.subscriptionStatus || data.subscriptionLimits) {
@@ -510,9 +510,9 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="container">
-        <IntroSection 
-          influencer={contextInfluencer} 
-          subscriptionStatus={subscriptionStatus} 
+        <IntroSection
+          influencer={contextInfluencer}
+          subscriptionStatus={subscriptionStatus}
           stats={stats}
         />
         <SubscriptionAlert subscriptionStatus={subscriptionStatus} />
@@ -531,7 +531,7 @@ const Dashboard = () => {
         />
         <SentRequests requests={sentRequests} onCancel={handleCancelRequest} />
         <RecentCampaignHistory campaigns={recentCampaignHistory} />
-        </div>
+      </div>
 
       <ContentCreationModal
         isOpen={contentModalOpen}

@@ -231,6 +231,13 @@ const contentTrackingSchema = new mongoose.Schema({
 
 // Customer Schema - for tracking customer purchases and interactions
 const customerSchema = new mongoose.Schema({
+    // Link to authenticated customer identity (Customer from CustomerMongo.js) - optional
+    customer_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer',
+        index: true,
+        default: null
+    },
     email: {
         type: String,
         required: [true, 'Email is required'],
@@ -292,6 +299,7 @@ contentTrackingSchema.index({ user_session_id: 1 });
 contentTrackingSchema.index({ created_at: -1 });
 
 customerSchema.index({ email: 1 }, { unique: true });
+customerSchema.index({ customer_id: 1 });
 
 // Create models
 const Product = mongoose.model('Product', productSchema);

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styles from '../../styles/customer/all_campaigns.module.css';
-import { API_BASE_URL } from '../../services/api';
+import { logout } from '../../utils/auth';
+import { useCustomer } from '../../contexts/CustomerContext';
 
 const CustomerNavbar = ({
   searchValue = '',
@@ -13,21 +14,19 @@ const CustomerNavbar = ({
   const navigate = useNavigate();
   const activePath = location.pathname;
   const [showDropdown, setShowDropdown] = useState(false);
+  const { logout: clearCustomerContext } = useCustomer();
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_BASE_URL}/customer/signout`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      
-      // Redirect to signin after logout
-      window.location.href = '/signin';
+      // Clear CustomerContext state first
+      clearCustomerContext();
+
+      // Call backend logout to clear session and cookies
+      await logout();
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if logout fails, clear context and redirect
+      clearCustomerContext();
       window.location.href = '/signin';
     }
   };
@@ -100,7 +99,7 @@ const CustomerNavbar = ({
                 <i className="fas fa-shopping-cart me-2" aria-hidden="true" />
                 Cart
               </Link>
-              
+
               {customerName && (
                 <div className="dropdown ms-3" style={{ position: 'relative' }}>
                   <button

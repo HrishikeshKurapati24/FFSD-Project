@@ -4,6 +4,7 @@ import styles from '../../styles/brand/explore.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
 import BrandNavigation from '../../components/brand/BrandNavigation';
+import NotificationModal from '../../components/brand/NotificationModal';
 
 const EXTERNAL_ASSETS = {
   styles: [
@@ -30,6 +31,7 @@ export default function Explore() {
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false);
 
   // Load saved view mode from localStorage
   useEffect(() => {
@@ -245,7 +247,16 @@ export default function Explore() {
 
   return (
     <div className={styles.explorePageWrapper}>
-      <BrandNavigation onSignOut={handleSignOut} showNotification={false} />
+      <BrandNavigation
+        onSignOut={handleSignOut}
+        showNotification={true}
+        onNotificationClick={() => setNotificationModalOpen(true)}
+      />
+
+      <NotificationModal
+        isOpen={notificationModalOpen}
+        onClose={() => setNotificationModalOpen(false)}
+      />
 
       {/* Invite Modal */}
       {inviteModalOpen && (

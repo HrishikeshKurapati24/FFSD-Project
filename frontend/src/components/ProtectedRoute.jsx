@@ -1,79 +1,56 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { checkAuth } from '../utils/auth';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useCustomer } from '../contexts/CustomerContext';
+import { useBrand } from '../contexts/BrandContext';
+import { useInfluencer } from '../contexts/InfluencerContext';
 
 /**
  * ProtectedRoute component that checks authentication before rendering child components
  * @param {React.ReactNode} children - Child components to render if authenticated
- * @param {string} requiredUserType - Optional: 'brand', 'influencer', or 'customer' to restrict access
- * @param {React.ReactNode} fallback - Optional: Component to show while checking auth
+ * @param {string} requiredRole - Required role: 'customer', 'brand', or 'influencer'
  */
-const ProtectedRoute = ({ children, requiredUserType = null, fallback = null }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
+const ProtectedRoute = ({ requiredRole = 'customer', children }) => {
+    const location = useLocation();
+    const { customer, loading: customerLoading } = useCustomer();
+    const { brand, loading: brandLoading } = useBrand();
+    const { influencer, loading: influencerLoading } = useInfluencer();
 
-    useEffect(() => {
-        const verifyAuth = async () => {
-            try {
-                setIsLoading(true);
-                const authResult = await checkAuth();
-
-                if (authResult.authenticated && authResult.user) {
-                    // Check if user type is required and matches
-                    if (requiredUserType && authResult.user.userType !== requiredUserType) {
-                        // User doesn't have required role
-                        console.log(`Access denied: Required ${requiredUserType}, but user is ${authResult.user.userType}`);
-                        navigate('/signin');
-                        return;
-                    }
-
-                    setIsAuthenticated(true);
-                    setUser(authResult.user);
-                } else {
-                    // Not authenticated - redirect to login
-                    navigate('/signin');
-                }
-            } catch (error) {
-                console.error('Error verifying authentication:', error);
-                navigate('/signin');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        verifyAuth();
-    }, [navigate, requiredUserType]);
+    // Determine loading state based on required role
+    const isLoading =
+        (requiredRole === 'customer' && customerLoading) ||
+        (requiredRole === 'brand' && brandLoading) ||
+        (requiredRole === 'influencer' && influencerLoading);
 
     // Show loading state while checking authentication
     if (isLoading) {
-        if (fallback) {
-            return fallback;
-        }
         return (
-            <div style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                minHeight: '100vh' 
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh'
             }}>
                 <div>Loading...</div>
             </div>
         );
     }
 
-    // If authenticated, render children with user prop
-    if (isAuthenticated && user) {
-        // Clone children and pass user as prop if it's a single element
-        if (React.isValidElement(children)) {
-            return React.cloneElement(children, { user });
+    // Check authentication based on required role
+    if (requiredRole === 'customer') {
+        if (!customer) {
+            return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
         }
-        return children;
+    } else if (requiredRole === 'brand') {
+        if (!brand) {
+            return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
+        }
+    } else if (requiredRole === 'influencer') {
+        if (!influencer) {
+            return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
+        }
     }
 
-    // Not authenticated - this shouldn't render as we redirect above
-    return null;
+    return children;
 };
 
 export default ProtectedRoute;

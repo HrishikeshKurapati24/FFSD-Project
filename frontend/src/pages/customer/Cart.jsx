@@ -34,7 +34,7 @@ const Cart = () => {
         cvv: ''
     });
 
-    // Check authentication on mount
+    // Check authentication on mount (optional - don't redirect if not authenticated)
     useEffect(() => {
         const checkAuth = async () => {
             try {
@@ -51,20 +51,24 @@ const Cart = () => {
                     if (data.authenticated && data.user?.userType === 'customer') {
                         setIsAuthenticated(true);
                         setCustomerName(data.user?.displayName || '');
-                    } else {
-                        navigate('/signin');
+                        // Pre-fill form with customer info if authenticated
+                        if (data.user?.email) {
+                            setFormData(prev => ({
+                                ...prev,
+                                email: data.user.email || prev.email,
+                                name: data.user.displayName || data.user.name || prev.name
+                            }));
+                        }
                     }
-                } else {
-                    navigate('/signin');
                 }
             } catch (error) {
-                console.error('Auth check error:', error);
-                navigate('/signin');
+                // Silently fail - user can still checkout as guest
+                console.log('Auth check optional - user can checkout as guest');
             }
         };
 
         checkAuth();
-    }, [navigate]);
+    }, []);
 
     const showAlert = useCallback((type, message) => {
         setAlert({ type, message });
@@ -167,16 +171,7 @@ const Cart = () => {
     const formatCurrency = (value) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
 
-    if (!isAuthenticated) {
-        return (
-            <div className={styles.cartPage}>
-                <CustomerNavbar />
-                <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status" aria-label="Loading" />
-                </div>
-            </div>
-        );
-    }
+    // No need to block unauthenticated users - they can checkout as guests
 
     return (
         <div className={styles.cartPage}>

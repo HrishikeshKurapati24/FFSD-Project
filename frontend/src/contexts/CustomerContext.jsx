@@ -90,10 +90,11 @@ export const CustomerProvider = ({ children }) => {
         }
     };
 
-    // Logout customer
+    // Logout customer - clears local state
     const logout = () => {
         setCustomer(null);
         setError(null);
+        setLoading(false);
     };
 
     const value = {

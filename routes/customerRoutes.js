@@ -3,6 +3,7 @@ const router = express.Router();
 const CustomerPurchaseController = require('../controllers/customerPurchaseController');
 const { CampaignInfo, CampaignInfluencers } = require('../config/CampaignMongo');
 const { InfluencerInfo } = require('../config/InfluencerMongo');
+const { isAuthenticated, isCustomer } = require('./authRoutes');
 
 // Ensure cart exists in session
 router.use((req, res, next) => {
@@ -69,7 +70,7 @@ router.get('/', async (req, res) => {
 router.get('/campaign/:campaignId/shop', CustomerPurchaseController.getCampaignShoppingPage);
 router.get('/product/:productId', CustomerPurchaseController.getProductDetails);
 
-// Cart routes
+// Cart routes - work with session-based cart (no authentication required)
 router.get('/cart', CustomerPurchaseController.getCartPage);
 router.post('/cart/add', CustomerPurchaseController.addToCart);
 router.post('/cart/remove', CustomerPurchaseController.removeFromCart);

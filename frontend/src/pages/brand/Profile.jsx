@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
 import { useBrand } from '../../contexts/BrandContext';
 import BrandNavigation from '../../components/brand/BrandNavigation';
+import NotificationModal from '../../components/brand/NotificationModal';
 import {
     addValue,
     removeTag,
@@ -46,6 +47,7 @@ const Profile = () => {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editImagesModalOpen, setEditImagesModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [notificationModalOpen, setNotificationModalOpen] = useState(false);
 
     // Form data state
     const [formData, setFormData] = useState({
@@ -374,7 +376,16 @@ const Profile = () => {
 
     return (
         <div className={styles.profilePageWrapper}>
-            <BrandNavigation onSignOut={handleSignOut} />
+            <BrandNavigation
+                onSignOut={handleSignOut}
+                showNotification={true}
+                onNotificationClick={() => setNotificationModalOpen(true)}
+            />
+
+            <NotificationModal
+                isOpen={notificationModalOpen}
+                onClose={() => setNotificationModalOpen(false)}
+            />
 
             <div className="container">
                 <ProfileBanner

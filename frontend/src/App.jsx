@@ -48,6 +48,7 @@ import InfluencerCampaignHistory from './pages/influencer/CampaignHistory';
 import Profile from './pages/influencer/Profile';
 import BrandProfileView from './pages/influencer/BrandProfileView';
 import NotificationCenter from './components/notifications/NotificationCenter';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
 
@@ -57,48 +58,48 @@ function App() {
         <CustomerProvider>
           <CartProvider>
             <BrowserRouter>
-            <NotificationCenter />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/role-selection" element={<RoleSelection />} />
-              <Route path="/signin" element={<Signin />} />
-              <Route path="/influencer/Signup" element={<InfluencerSignup />} />
-              <Route path="/brand/Signup" element={<BrandSignup />} />
-              <Route path="/customer/signup" element={<CustomerSignup />} />
-              <Route path="/subscription/select-plan" element={<SelectPlan />} />
-              <Route path="/subscription/payment" element={<Payment />} />
-              <Route path="/subscription/payment-success" element={<PaymentSuccess />} />
-              <Route path="/subscription/manage" element={<Manage />} />
-              <Route path="/admin/dashboard" element={<Dashboard />} />
-              <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
-              <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />
-              <Route path="/admin/influencer-analytics" element={<InfluencerAnalytics />} />
-              <Route path="/admin/feedback_and_moderation" element={<FeedbackAndModeration />} />
-              <Route path='/admin/collaboration_monitoring' element={<CollaborationMonitoring />} />
-              <Route path="/admin/user_management" element={<UserManagement />} />
-              <Route path="/admin/customer-management" element={<CustomerManagement />} />
-              <Route path="/admin/login" element={<Login />} />
-              <Route path="/admin/payment_verification" element={<PaymentVerification />} />
-              <Route path="/admin/settings" element={<Settings />} />
-              {/* Brand Routes */}
-              <Route path="/brand/home" element={<BrandDashboard />} />
-              <Route path="/brand/explore" element={<BrandExplore />} />
-              <Route path="/brand/profile" element={<BrandProfile />} />
-              <Route path="/brand/create_campaign" element={<CreateCampaign />} />
-              <Route path="/brand/recievedRequests" element={<ReceivedRequests />} />
-              <Route path="/brand/:requestId1/:requestId2/transaction" element={<Transaction />} />
-              <Route path="/brand/campaigns/history" element={<CampaignHistory />} />
-              <Route path="/brand/influencer_profile/:influencerId" element={<InfluencerProfileView />} />
-              {/* Influencer Routes */}
-              <Route path="/influencer/home" element={<InfluencerDashboard />} />
-              <Route path="/influencer/explore" element={<Explore />} />
-              <Route path="/influencer/profile" element={<Profile />} />
-              <Route path="/influencer/campaigns" element={<Campaigns />} />
-              <Route path="/influencer/collab/:id" element={<CampaignDetails />} />
-              <Route path="/influencer/campaign-history" element={<InfluencerCampaignHistory />} />
-              <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
-              {/*
+              <NotificationCenter />
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/role-selection" element={<RoleSelection />} />
+                <Route path="/signin" element={<Signin />} />
+                <Route path="/influencer/Signup" element={<InfluencerSignup />} />
+                <Route path="/brand/Signup" element={<BrandSignup />} />
+                <Route path="/customer/signup" element={<CustomerSignup />} />
+                <Route path="/subscription/select-plan" element={<SelectPlan />} />
+                <Route path="/subscription/payment" element={<Payment />} />
+                <Route path="/subscription/payment-success" element={<PaymentSuccess />} />
+                <Route path="/subscription/manage" element={<Manage />} />
+                <Route path="/admin/dashboard" element={<Dashboard />} />
+                <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
+                <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />
+                <Route path="/admin/influencer-analytics" element={<InfluencerAnalytics />} />
+                <Route path="/admin/feedback_and_moderation" element={<FeedbackAndModeration />} />
+                <Route path='/admin/collaboration_monitoring' element={<CollaborationMonitoring />} />
+                <Route path="/admin/user_management" element={<UserManagement />} />
+                <Route path="/admin/customer-management" element={<CustomerManagement />} />
+                <Route path="/admin/login" element={<Login />} />
+                <Route path="/admin/payment_verification" element={<PaymentVerification />} />
+                <Route path="/admin/settings" element={<Settings />} />
+                {/* Brand Routes */}
+                <Route path="/brand/home" element={<BrandDashboard />} />
+                <Route path="/brand/explore" element={<BrandExplore />} />
+                <Route path="/brand/profile" element={<BrandProfile />} />
+                <Route path="/brand/create_campaign" element={<CreateCampaign />} />
+                <Route path="/brand/recievedRequests" element={<ReceivedRequests />} />
+                <Route path="/brand/:requestId1/:requestId2/transaction" element={<Transaction />} />
+                <Route path="/brand/campaigns/history" element={<CampaignHistory />} />
+                <Route path="/brand/influencer_profile/:influencerId" element={<InfluencerProfileView />} />
+                {/* Influencer Routes */}
+                <Route path="/influencer/home" element={<InfluencerDashboard />} />
+                <Route path="/influencer/explore" element={<Explore />} />
+                <Route path="/influencer/profile" element={<Profile />} />
+                <Route path="/influencer/campaigns" element={<Campaigns />} />
+                <Route path="/influencer/collab/:id" element={<CampaignDetails />} />
+                <Route path="/influencer/campaign-history" element={<InfluencerCampaignHistory />} />
+                <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
+                {/*
               
               
               <Route path="/influencer/campaign-history" element={<CampaignHistory />} />
@@ -106,14 +107,14 @@ function App() {
               
               <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
               <Route path="/influencer/I_brand_profile/:id" element={<BrandProfileView />} /> */}
-              <Route path="/customer" element={<AllCampaigns />} />
-              <Route path="/customer/campaign/:campaignId/shop" element={<CampaignShopping />} />
-              <Route path="/customer/cart" element={<Cart />} />
-              <Route path="/customer/rankings" element={<Rankings />} />
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
-          </CustomerProvider>
+                <Route path="/customer" element={<AllCampaigns />} />
+                <Route path="/customer/campaign/:campaignId/shop" element={<CampaignShopping />} />
+                <Route path="/customer/cart" element={<Cart />} />
+                <Route path="/customer/rankings" element={<Rankings />} />
+              </Routes>
+            </BrowserRouter>
+          </CartProvider>
+        </CustomerProvider>
       </InfluencerProvider>
     </BrandProvider>
   );

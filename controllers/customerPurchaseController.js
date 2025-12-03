@@ -134,7 +134,8 @@ class CustomerPurchaseController {
                 contentCount: content.length,
                 productsCount: products.length
             });
-            return res.json({
+
+            const responsePayload = {
                 campaign: {
                     id: campaign._id,
                     title: campaign.title,
@@ -147,7 +148,19 @@ class CustomerPurchaseController {
                 products,
                 title: `${campaign.title} - Shopping`,
                 subtitle: `Shop ${campaign.brand_id.brandName} products`
-            });
+            };
+
+            // If this is an API/React request, return JSON
+            const isAPIRequest =
+                req.xhr ||
+                (req.headers.accept && req.headers.accept.includes('application/json'));
+
+            if (isAPIRequest) {
+                return res.json(responsePayload);
+            }
+
+            // Otherwise render the original EJS view for server-rendered pages
+            return res.render('customer/campaign-shopping', responsePayload);
         } catch (error) {
             console.error('[Customer] Error fetching campaign shopping page:', error);
             return res.status(500).json({
@@ -318,13 +331,28 @@ class CustomerPurchaseController {
                 // Skipping ContentTracking with required content_id to avoid validation error
             }
 
-            // Upsert customer record
+            // Check if user is authenticated to link customer_id
+            const authenticatedCustomerId = (req.session?.user?.userType === 'customer' && req.session?.user?.id)
+                ? req.session.user.id
+                : (req.user?.userType === 'customer' && req.user?.id ? req.user.id : null);
+
+            // Upsert customer record (ProductCustomer model)
+            const updateFields = {
+                $set: {
+                    name: name || undefined,
+                    phone: phone || undefined,
+                    last_purchase_date: new Date(),
+                    ...(authenticatedCustomerId && { customer_id: authenticatedCustomerId })
+                },
+                $inc: {
+                    total_purchases: cart.reduce((s, i) => s + i.quantity, 0),
+                    total_spent: grandTotal
+                }
+            };
+
             await Customer.findOneAndUpdate(
                 { email },
-                {
-                    $set: { name: name || undefined, phone: phone || undefined, last_purchase_date: new Date() },
-                    $inc: { total_purchases: cart.reduce((s, i) => s + i.quantity, 0), total_spent: grandTotal }
-                },
+                updateFields,
                 { upsert: true, new: true }
             );
 

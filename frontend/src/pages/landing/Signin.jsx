@@ -158,16 +158,30 @@ const Signin = () => {
             if (data.user) {
                 if (data.user.userType === 'brand') {
                     await initializeBrand(data.user);
+                    // Use React Router navigation for SPA behavior
+                    setTimeout(() => {
+                        navigate(data.redirectUrl || '/brand/home', { replace: true });
+                    }, 1000);
                 } else if (data.user.userType === 'influencer') {
                     await initializeInfluencer(data.user);
+                    // Use React Router navigation for SPA behavior
+                    setTimeout(() => {
+                        navigate(data.redirectUrl || '/influencer/home', { replace: true });
+                    }, 1000);
                 } else if (data.user.userType === 'customer') {
                     await initializeCustomer(data.user);
+                    // Use React Router navigation for SPA behavior
+                    // Small delay to ensure context is set before navigation
+                    setTimeout(() => {
+                        navigate(data.redirectUrl || '/customer', { replace: true });
+                    }, 100);
                 }
+            } else {
+                // Fallback redirect if no user data
+                setTimeout(() => {
+                    navigate(data.redirectUrl || '/', { replace: true });
+                }, 1500);
             }
-            // Redirect after successful authentication
-            setTimeout(() => {
-                window.location.href = data.redirectUrl;
-            }, 1500);
         } catch (error) {
             console.error('Signin error:', error);
             if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
