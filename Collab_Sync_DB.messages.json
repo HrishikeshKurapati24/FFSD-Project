@@ -1,0 +1,198 @@
+[{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b7"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0796"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "message": "Hi Masoom! We're excited to work with you on our Natural Beauty Revolution campaign. Could you please confirm the timeline for the Instagram reel series?",
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.164Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.164Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b9"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07af"
+  },
+  "message": "Kusha, your food delivery vlog was incredible! The authentic reactions and genuine reviews really resonated with our audience.",
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.164Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.164Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07bb"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e079d"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b3"
+  },
+  "message": "Hi Ranveer! We'd love to collaborate with you on our Sound of India campaign. Your fitness content with music would be perfect!",
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.165Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.165Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eae4254f1f9c68ea2951f9"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "campaign_id": {
+    "$oid": "68eae3f04f1f9c68ea2951c9"
+  },
+  "message": "Hi, I'm excited to join.",
+  "createdAt": {
+    "$date": "2025-10-11T23:11:33.917Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T23:11:33.917Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef94f57b1b1a0838fe9de4"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "campaign_id": {
+    "$oid": "68ef9152a5f776a3836deefb"
+  },
+  "message": "dabh",
+  "createdAt": {
+    "$date": "2025-10-15T12:35:01.205Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T12:35:01.205Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efc9f86a79827fecb7d034"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e079d"
+  },
+  "campaign_id": {
+    "$oid": "68efc8d471c53257d21c30a7"
+  },
+  "message": "Hi, I'm excited to join.",
+  "createdAt": {
+    "$date": "2025-10-15T16:21:12.419Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T16:21:12.419Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa18d81704b8cab9d5631a"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8959"
+  },
+  "campaign_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "message": "Hi, I'm excited to join.",
+  "createdAt": {
+    "$date": "2025-10-23T12:00:24.419Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:00:24.419Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920e71d6f5359af7c270d2f"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "campaign_id": {
+    "$oid": "6920e2ffb1a0763329d49784"
+  },
+  "message": "Okay, I'll follow the instructions as requested. I'm very excited to try out these glasses.",
+  "createdAt": {
+    "$date": "2025-11-21T22:26:37.432Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T22:26:37.432Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "693056edcff163c59f20dd4a"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "campaign_id": {
+    "$oid": "691f7aa5ac58c59c7cc19e34"
+  },
+  "message": "I'm very excited to join!",
+  "createdAt": {
+    "$date": "2025-12-03T15:27:41.965Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T15:27:41.965Z"
+  },
+  "__v": 0
+}]

@@ -1,0 +1,96 @@
+[{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07bd"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "description": "Exclusive 30% off on all natural skincare products for influencers",
+  "start_date": {
+    "$date": "2025-11-10T19:16:58.159Z"
+  },
+  "end_date": {
+    "$date": "2026-01-09T19:16:58.159Z"
+  },
+  "eligibility": "Verified influencers with 100K+ followers in beauty/lifestyle niche",
+  "offer_percentage": 30,
+  "offer_details": "Get 30% discount on Mamaearth's complete range of natural skincare products. Valid on first purchase.",
+  "status": "active",
+  "created_at": {
+    "$date": "2025-10-11T19:16:58.165Z"
+  },
+  "updated_at": {
+    "$date": "2025-10-11T19:16:58.165Z"
+  },
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.165Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.165Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07bf"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "description": "Free delivery and 20% off on food orders for influencers",
+  "start_date": {
+    "$date": "2025-11-10T19:16:58.159Z"
+  },
+  "end_date": {
+    "$date": "2025-12-10T19:16:58.159Z"
+  },
+  "eligibility": "Food content creators with 150K+ followers",
+  "offer_percentage": 20,
+  "offer_details": "Enjoy free delivery and 20% discount on all food orders. Valid on orders above ₹200.",
+  "status": "active",
+  "created_at": {
+    "$date": "2025-10-11T19:16:58.166Z"
+  },
+  "updated_at": {
+    "$date": "2025-10-11T19:16:58.166Z"
+  },
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.166Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.166Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07c1"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "description": "Special 25% discount on Boat's latest audio products",
+  "start_date": {
+    "$date": "2025-11-10T19:16:58.159Z"
+  },
+  "end_date": {
+    "$date": "2025-12-25T19:16:58.159Z"
+  },
+  "eligibility": "Content creators with 200K+ followers in tech/gaming/music categories",
+  "offer_percentage": 25,
+  "offer_details": "Exclusive 25% off on Boat's premium audio products including headphones, earbuds, and speakers.",
+  "status": "active",
+  "created_at": {
+    "$date": "2025-10-11T19:16:58.167Z"
+  },
+  "updated_at": {
+    "$date": "2025-10-11T19:16:58.167Z"
+  },
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.167Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.167Z"
+  },
+  "__v": 0
+}]

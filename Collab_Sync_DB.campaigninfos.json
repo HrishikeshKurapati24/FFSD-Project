@@ -1,0 +1,749 @@
+[{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "title": "Natural Beauty Revolution",
+  "description": "A campaign promoting natural and sustainable beauty products.",
+  "status": "completed",
+  "start_date": {
+    "$date": "2025-11-10T19:16:58.159Z"
+  },
+  "end_date": {
+    "$date": "2025-11-20T17:48:11.556Z"
+  },
+  "duration": 30,
+  "required_influencers": 3,
+  "budget": 1500000,
+  "target_audience": "Women aged 18-35 interested in natural beauty",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 200000,
+  "objectives": "Increase brand awareness and drive sales of natural beauty products",
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.159Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T17:48:11.557Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07af"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "title": "Foodie Adventures",
+  "description": "A campaign showcasing diverse cuisines available on Zomato.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-11-10T19:16:58.159Z"
+  },
+  "end_date": {
+    "$date": "2025-12-10T19:16:58.159Z"
+  },
+  "duration": 30,
+  "required_influencers": 5,
+  "budget": 3000000,
+  "target_audience": "Food lovers aged 18-45",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "TikTok"
+  ],
+  "min_followers": 500000,
+  "objectives": "Increase app downloads and boost daily orders",
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.161Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.161Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b3"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "title": "Sound of India",
+  "description": "A campaign promoting Boat's latest audio products.",
+  "status": "request",
+  "start_date": {
+    "$date": "2025-11-10T19:16:58.159Z"
+  },
+  "end_date": {
+    "$date": "2025-12-25T19:16:58.159Z"
+  },
+  "duration": 45,
+  "required_influencers": 4,
+  "budget": 2000000,
+  "target_audience": "Tech-savvy youth aged 16-35",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "TikTok"
+  ],
+  "min_followers": 300000,
+  "objectives": "Increase brand awareness and drive sales of premium audio products",
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.162Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.162Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8987"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "title": "Foodie Delights",
+  "description": "A comprehensive campaign showcasing Swiggy's diverse restaurant partners and cuisines. Influencers will explore different food categories, highlight local favorites, and demonstrate the seamless ordering experience.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-06T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-11-05T21:24:01.557Z"
+  },
+  "duration": 30,
+  "required_influencers": 6,
+  "budget": 2500000,
+  "target_audience": "Food enthusiasts aged 18-45, busy professionals, and families who order food online",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "TikTok"
+  ],
+  "min_followers": 400000,
+  "objectives": "Increase app downloads by 35%, boost daily orders by 30%, and enhance brand loyalty among food lovers",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.558Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.558Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8999"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b892a"
+  },
+  "title": "Fashion Forward 2.0",
+  "description": "A premium fashion campaign showcasing Myntra's latest collections and styling trends. Influencers will demonstrate versatile styling options, highlight seasonal trends, and showcase the brand's fashion expertise.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-03T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-11-02T21:24:01.557Z"
+  },
+  "duration": 30,
+  "required_influencers": 4,
+  "budget": 2200000,
+  "target_audience": "Fashion-conscious individuals aged 18-40, style enthusiasts, and online shoppers",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 300000,
+  "objectives": "Drive 35% increase in fashion category sales, boost brand engagement, and establish Myntra as the go-to fashion destination",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.565Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.565Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89a9"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8933"
+  },
+  "title": "Original Content Spotlight",
+  "description": "A successful campaign promoting Netflix's Indian original series and movies. Influencers created engaging content around their favorite shows, shared reviews, and highlighted the diversity of content available.",
+  "status": "completed",
+  "start_date": {
+    "$date": "2025-08-12T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-09-26T21:24:01.557Z"
+  },
+  "duration": 45,
+  "required_influencers": 7,
+  "budget": 3500000,
+  "target_audience": "Streaming enthusiasts aged 18-50, entertainment lovers, and digital content consumers",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "Twitter"
+  ],
+  "min_followers": 350000,
+  "objectives": "Increase subscriber base by 25%, boost engagement with Indian content, and promote new original releases",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.568Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.568Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89b7"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b893c"
+  },
+  "title": "Home Transformation",
+  "description": "A campaign showcasing Urban Company's comprehensive home services. Influencers will demonstrate before/after transformations, highlight service quality, and showcase the convenience of professional home services.",
+  "status": "request",
+  "start_date": {
+    "$date": "2025-10-21T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-11-25T21:24:01.557Z"
+  },
+  "duration": 35,
+  "required_influencers": 3,
+  "budget": 1400000,
+  "target_audience": "Homeowners aged 25-45, busy professionals, and families seeking reliable home services",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 200000,
+  "objectives": "Increase service bookings by 40%, build trust in home services, and showcase service quality and reliability",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.572Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.572Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89bf"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8945"
+  },
+  "title": "Smart Money Management",
+  "description": "An exclusive campaign promoting CRED's financial tools and rewards program. Influencers will create educational content about smart credit card usage, financial planning, and exclusive CRED benefits.",
+  "status": "brand-invite",
+  "start_date": {
+    "$date": "2025-10-31T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-12-10T21:24:01.557Z"
+  },
+  "duration": 40,
+  "required_influencers": 2,
+  "budget": 1200000,
+  "target_audience": "Credit card users aged 25-45, financially conscious individuals, and premium lifestyle enthusiasts",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 250000,
+  "objectives": "Increase premium member signups by 45%, boost app engagement, and highlight exclusive rewards and financial benefits",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.574Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.574Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89c7"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "title": "Natural Beauty Essentials",
+  "description": "A comprehensive campaign promoting Mamaearth's essential beauty products. Influencers will showcase daily skincare routines, highlight natural ingredients, and demonstrate the brand's commitment to natural beauty.",
+  "status": "draft",
+  "start_date": {
+    "$date": "2025-11-10T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-12-08T21:24:01.557Z"
+  },
+  "duration": 28,
+  "required_influencers": 5,
+  "budget": 1800000,
+  "target_audience": "Beauty enthusiasts aged 18-35, natural product lovers, and wellness-focused individuals",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 250000,
+  "objectives": "Increase brand awareness by 30%, drive 20% growth in beauty product sales, and establish Mamaearth as the leading natural beauty brand",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.576Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.576Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89cb"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "title": "Gaming Audio Experience",
+  "description": "A specialized campaign targeting gaming enthusiasts. Influencers will showcase Boat's gaming audio products, demonstrate sound quality, and highlight the immersive gaming experience.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-09-29T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-10-29T21:24:01.557Z"
+  },
+  "duration": 30,
+  "required_influencers": 4,
+  "budget": 1600000,
+  "target_audience": "Gaming enthusiasts aged 16-35, tech-savvy youth, and audio quality seekers",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "TikTok"
+  ],
+  "min_followers": 200000,
+  "objectives": "Increase gaming product sales by 25%, boost brand engagement among gamers, and establish Boat as the preferred gaming audio brand",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.576Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.576Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89d7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "title": "Vision Care Awareness",
+  "description": "A successful awareness campaign about eye health and the importance of proper eyewear. Influencers created educational content about eye care, showcased Lenskart's diverse eyewear collection, and promoted regular eye checkups.",
+  "status": "completed",
+  "start_date": {
+    "$date": "2025-09-11T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-10-31T21:24:01.557Z"
+  },
+  "duration": 50,
+  "required_influencers": 5,
+  "budget": 1900000,
+  "target_audience": "Individuals aged 16-45 interested in eye health, fashion-conscious people, and those needing eyewear",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 180000,
+  "objectives": "Increase brand awareness by 40%, drive 25% growth in eyewear sales, and promote eye health awareness",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.579Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.579Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89e3"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0771"
+  },
+  "title": "Beauty Masterclass",
+  "description": "An exclusive influencer-driven campaign for Nykaa's beauty education initiative. Influencers will create tutorial content, share beauty tips, and showcase Nykaa's diverse product range.",
+  "status": "influencer-invite",
+  "start_date": {
+    "$date": "2025-10-31T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-12-05T21:24:01.557Z"
+  },
+  "duration": 35,
+  "required_influencers": 6,
+  "budget": 2800000,
+  "target_audience": "Beauty enthusiasts aged 18-40, makeup lovers, and individuals seeking beauty education",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "TikTok"
+  ],
+  "min_followers": 300000,
+  "objectives": "Increase beauty product sales by 40%, boost brand engagement, and establish Nykaa as the ultimate beauty education platform",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.581Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.581Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89eb"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "title": "Weekend Specials",
+  "description": "A campaign that was cancelled due to budget reallocation. Was intended to promote weekend food specials and exclusive restaurant offers on Swiggy.",
+  "status": "cancelled",
+  "start_date": {
+    "$date": "2025-10-21T21:24:01.557Z"
+  },
+  "end_date": {
+    "$date": "2025-11-11T21:24:01.557Z"
+  },
+  "duration": 21,
+  "required_influencers": 3,
+  "budget": 1200000,
+  "target_audience": "Weekend food enthusiasts and casual diners",
+  "required_channels": [
+    "Instagram",
+    "YouTube"
+  ],
+  "min_followers": 200000,
+  "objectives": "Increase weekend orders and promote special restaurant offers",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.583Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.583Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eae3f04f1f9c68ea2951c9"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "title": "Summer Collection: MamaEarth",
+  "description": "We are launching a new awareness campaign for our Vitamin C skincare range that helps users achieve glowing and healthy skin. We’re looking for influencers who can create authentic content showcasing their daily skincare routines using our Vitamin C products — face wash, serum, and moisturizer. The goal is to promote clean, toxin-free skincare and highlight the benefits of natural ingredients.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-16T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-12-29T00:00:00.000Z"
+  },
+  "duration": 14,
+  "required_influencers": 1,
+  "budget": 3000,
+  "target_audience": "Young adults (18–35 years old) who are conscious about skincare, prefer natural and toxin-free products, and actively follow beauty or lifestyle content on Instagram and YouTube.",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 1000,
+  "objectives": "Foster community interaction through social media challenges, giveaways, or educational content.",
+  "createdAt": {
+    "$date": "2025-10-11T23:10:40.681Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T17:44:46.702Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef9152a5f776a3836deefb"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "title": "campaign: deslyxia",
+  "description": "it's a very useful product, that's why it's product market fit",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-15T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-10-17T00:00:00.000Z"
+  },
+  "duration": 3,
+  "required_influencers": 1,
+  "budget": 4,
+  "target_audience": "Women and men aged 18–40 who are conscious about natural skincare, toxin-free beauty, and eco-friendly self-care products.",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 16,
+  "objectives": "reach Women and men aged 18–40 who are",
+  "createdAt": {
+    "$date": "2025-10-15T12:19:30.565Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T12:39:28.891Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efc8d471c53257d21c30a7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "title": "The Visionary Style Launch: Airflex Frames",
+  "description": "We are launching our new Airflex collection, featuring ultra-lightweight, durable, and trendy eyeglasses for the modern, professional youth. The campaign aims to highlight the comfort and style versatility of these frames for everyday wear, work-from-home, and digital screen use. Influencers will showcase the product through engaging styling videos and 'Day in the Life' content.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-15T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-11-05T00:00:00.000Z"
+  },
+  "duration": 22,
+  "required_influencers": 2,
+  "budget": 18500,
+  "target_audience": "Young adults (22-35) in major metropolitan areas who are digitally native, fashion-conscious, and prioritize comfort and quality in accessories.",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 10000,
+  "objectives": "1. Drive awareness for the Airflex collection (Reach target: 5M impressions). 2. Generate sales of the featured frames (Conversion target: 500 units). 3. Increase engagement with Lenskart's brand on social platforms.",
+  "createdAt": {
+    "$date": "2025-10-15T16:16:20.483Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T16:55:45.442Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f14a0bbbe92d158da6f44c"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "title": "🌿 \"Glow Naturally with MamaEarth Ubtan Range\"",
+  "description": "We are launching a new influencer campaign to promote MamaEarth’s Ubtan Face Wash and Face Pack. The goal is to create awareness around the natural ingredients, skin-brightening benefits, and toxin-free formula. We aim to drive traffic to our product pages and boost festive season sales through authentic influencer content.",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-17T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-12-22T00:00:00.000Z"
+  },
+  "duration": 6,
+  "required_influencers": 1,
+  "budget": 5000,
+  "target_audience": "Women aged 18-35, skincare enthusiasts, working professionals, college students, eco-conscious consumers in Tier 1 and Tier 2 Indian cities.",
+  "required_channels": [
+    "Instagram",
+    "YouTube",
+    "TikTok"
+  ],
+  "min_followers": 9997,
+  "objectives": "Raise brand awareness, educate about Ubtan benefits, increase product trials, and drive traffic to our website/app for purchase.",
+  "createdAt": {
+    "$date": "2025-10-16T19:39:55.770Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T17:44:18.353Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f14bd0262b49974e4a5b45"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "title": "MamaBoy",
+  "description": "Promote charcoal facewash",
+  "status": "completed",
+  "start_date": {
+    "$date": "2025-10-17T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-10-23T00:00:00.000Z"
+  },
+  "duration": 7,
+  "required_influencers": 1,
+  "budget": 1000,
+  "target_audience": "Young Adults",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 0,
+  "objectives": "Increase brand awareness",
+  "product_name": "Charcoal facwash",
+  "createdAt": {
+    "$date": "2025-10-16T19:47:28.836Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-16T20:01:29.377Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "title": "Boat Airdopes Pro Launch Campaign",
+  "description": "Launch campaign for Boat's new wireless earbuds featuring advanced noise cancellation, premium sound quality, and extended battery life. Targeting tech-savvy consumers who appreciate premium audio products at competitive prices",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-23T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-10-31T00:00:00.000Z"
+  },
+  "duration": 9,
+  "required_influencers": 2,
+  "budget": 10000,
+  "target_audience": "ech-enthusiastic young professionals aged 18-35, fitness enthusiasts, and music lovers who value quality audio products",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 10000,
+  "objectives": "To increase brand awareness of Boat's premium audio lineup, highlight product quality and features, and drive sales through influencer demonstrations and authentic user experiences",
+  "createdAt": {
+    "$date": "2025-10-23T11:54:03.897Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:14:53.111Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa21ae43ca27883d26a483"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "title": "Zomato Cravings Carnival: Eat. Snap. Share.",
+  "description": "to spread awareness among new customers",
+  "status": "active",
+  "start_date": {
+    "$date": "2025-10-23T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-10-30T00:00:00.000Z"
+  },
+  "duration": 8,
+  "required_influencers": 1,
+  "budget": 500,
+  "target_audience": "Food enthusiasts aged 18–40, urban professionals, and college students across India who enjoy trying new cuisines and sharing their food experiences online.",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 0,
+  "objectives": "increase the brand awareness",
+  "product_name": "zomato gold",
+  "createdAt": {
+    "$date": "2025-10-23T12:38:06.263Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:42:13.991Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "691f7aa5ac58c59c7cc19e34"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "title": "Mamaearth Onion Shampoo Awareness & Promotion Campaign",
+  "description": "This campaign aims to promote Mamaearth’s Onion Shampoo, a natural hair-care solution designed to reduce hair fall and strengthen roots. We want influencers to highlight real results, natural ingredients, and toxin-free formulation through engaging content.",
+  "status": "request",
+  "start_date": {
+    "$date": "2025-11-21T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-12-16T00:00:00.000Z"
+  },
+  "duration": 26,
+  "required_influencers": 2,
+  "budget": 10000,
+  "target_audience": "Men and women aged 18–35 who are concerned about hair fall and prefer natural, chemical-free products.",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 10000,
+  "objectives": "Increase awareness about Mamaearth’s Onion Shampoo, highlight its natural ingredients, and drive conversions through authentic influencer testimonials and short-form video content.",
+  "createdAt": {
+    "$date": "2025-11-20T20:31:33.230Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T20:31:33.230Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920e2ffb1a0763329d49784"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "title": "Lenskart AirX Smart Matte Black Launch Campaign",
+  "description": "Lenskart AirX Smart Matte Black Launch Campaign",
+  "status": "completed",
+  "start_date": {
+    "$date": "2025-11-22T00:00:00.000Z"
+  },
+  "end_date": {
+    "$date": "2025-11-21T23:06:17.454Z"
+  },
+  "duration": 27,
+  "required_influencers": 1,
+  "budget": 10000,
+  "target_audience": "Professionals, creators, tech enthusiasts, eyewear lovers, students, and anyone looking for lightweight, smart-styled, premium eyewear for daily use.",
+  "required_channels": [
+    "Instagram"
+  ],
+  "min_followers": 20000,
+  "objectives": "Promote the launch of the new Lenskart AirX Smart Matte Black eyeglasses to increase brand visibility, drive awareness of Lenskart’s premium lightweight category, and generate high-quality user-generated content showcasing daily use, comfort, and style.",
+  "createdAt": {
+    "$date": "2025-11-21T22:09:03.339Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T23:06:17.456Z"
+  },
+  "__v": 0
+}]

@@ -1,0 +1,324 @@
+[{
+  "_id": {
+    "$oid": "68ed545ceee2afa36b226201"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "content_type": "post",
+  "title": "My Favorite Mamaearth Products! 🌟",
+  "caption": "I've been using these amazing products from Mamaearth and I'm absolutely loving the results! The Vitamin C serum has given me such a natural glow, and the onion hair oil has made my hair so much stronger. \n\n#mamaearth #NaturalBeauty #Skincare #HairCare #BeautyTips #HealthyLiving #GlowingSkin #StrongHair",
+  "media_urls": [
+    {
+      "url": "/images/influencer-content/beauty-post.jpg",
+      "type": "image",
+      "_id": {
+        "$oid": "68ed545ceee2afa36b226202"
+      }
+    }
+  ],
+  "attached_products": [
+    {
+      "product_id": {
+        "$oid": "68ed545ceee2afa36b2261f6"
+      },
+      "highlight_text": "Try this amazing serum!",
+      "call_to_action": "buy_now",
+      "position": {
+        "x": 20,
+        "y": 30
+      },
+      "_id": {
+        "$oid": "68ed545ceee2afa36b226203"
+      }
+    },
+    {
+      "product_id": {
+        "$oid": "68ed545ceee2afa36b2261fb"
+      },
+      "highlight_text": "Perfect for hair growth!",
+      "call_to_action": "buy_now",
+      "position": {
+        "x": 60,
+        "y": 70
+      },
+      "_id": {
+        "$oid": "68ed545ceee2afa36b226204"
+      }
+    }
+  ],
+  "hashtags": [
+    "mamaearth",
+    "naturalbeauty",
+    "skincare",
+    "haircare",
+    "beautytips",
+    "healthyliving",
+    "glowingskin",
+    "stronghair"
+  ],
+  "mentions": [],
+  "disclosures": [
+    "Paid partnership with Mamaearth",
+    "All opinions are my own"
+  ],
+  "published_at": {
+    "$date": "2025-10-13T19:34:52.145Z"
+  },
+  "status": "published",
+  "performance_metrics": {
+    "views": 150,
+    "likes": 25,
+    "comments": 8,
+    "shares": 5,
+    "clicks": 12,
+    "conversions": 3,
+    "revenue": 1347
+  },
+  "is_featured": true,
+  "createdAt": {
+    "$date": "2025-10-13T19:34:52.149Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-13T19:34:52.153Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ed54cbf3400c5ecbbfb0c2"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "content_type": "post",
+  "title": "My Favorite Mamaearth Products! 🌟",
+  "caption": "I've been using these amazing products from Mamaearth and I'm absolutely loving the results! The Vitamin C serum has given me such a natural glow, and the onion hair oil has made my hair so much stronger. \n\n#mamaearth #NaturalBeauty #Skincare #HairCare #BeautyTips #HealthyLiving #GlowingSkin #StrongHair",
+  "media_urls": [
+    {
+      "url": "/images/influencer-content/beauty-post.jpg",
+      "type": "image",
+      "_id": {
+        "$oid": "68ed54cbf3400c5ecbbfb0c3"
+      }
+    }
+  ],
+  "attached_products": [
+    {
+      "product_id": {
+        "$oid": "68ed545ceee2afa36b2261f6"
+      },
+      "highlight_text": "Try this amazing serum!",
+      "call_to_action": "buy_now",
+      "position": {
+        "x": 20,
+        "y": 30
+      },
+      "_id": {
+        "$oid": "68ed54cbf3400c5ecbbfb0c4"
+      }
+    },
+    {
+      "product_id": {
+        "$oid": "68ed545ceee2afa36b2261fb"
+      },
+      "highlight_text": "Perfect for hair growth!",
+      "call_to_action": "buy_now",
+      "position": {
+        "x": 60,
+        "y": 70
+      },
+      "_id": {
+        "$oid": "68ed54cbf3400c5ecbbfb0c5"
+      }
+    }
+  ],
+  "hashtags": [
+    "mamaearth",
+    "naturalbeauty",
+    "skincare",
+    "haircare",
+    "beautytips",
+    "healthyliving",
+    "glowingskin",
+    "stronghair"
+  ],
+  "mentions": [],
+  "disclosures": [
+    "Paid partnership with Mamaearth",
+    "All opinions are my own"
+  ],
+  "published_at": {
+    "$date": "2025-10-13T19:36:43.903Z"
+  },
+  "status": "published",
+  "performance_metrics": {
+    "views": 150,
+    "likes": 25,
+    "comments": 8,
+    "shares": 5,
+    "clicks": 12,
+    "conversions": 3,
+    "revenue": 1347
+  },
+  "is_featured": true,
+  "createdAt": {
+    "$date": "2025-10-13T19:36:43.906Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-13T19:36:43.910Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f1cfc5d8f98576c6ffabbd"
+  },
+  "campaign_id": {
+    "$oid": "68f14bd0262b49974e4a5b45"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "caption": "This facewash brightens up the skin. #Skincare",
+  "media_urls": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760677828/content/68f14bd0262b49974e4a5b45/b9565a98d732385d442db6694ca7f712_uby7kj.png",
+      "type": "image",
+      "original_name": "Screenshot 2025-10-17 at 10.09.32â¯AM.png",
+      "_id": {
+        "$oid": "68f1cfc5d8f98576c6ffabbe"
+      }
+    }
+  ],
+  "attached_products": [
+    {
+      "product_id": {
+        "$oid": "68f14f1d8bed6fa2c3b5523f"
+      },
+      "_id": {
+        "$oid": "68f1cfc5d8f98576c6ffabbf"
+      }
+    }
+  ],
+  "hashtags": [],
+  "mentions": [],
+  "scheduled_at": {
+    "$date": "2025-10-16T05:10:00.000Z"
+  },
+  "status": "published",
+  "special_instructions": "",
+  "createdAt": {
+    "$date": "2025-10-17T05:10:29.759Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-17T06:13:08.338Z"
+  },
+  "__v": 0,
+  "brand_feedback": "Good, I need you to post more posts like these",
+  "published_at": {
+    "$date": "2025-10-17T06:13:08.332Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa209443ca27883d26a3c3"
+  },
+  "campaign_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "caption": "this is very good product comes with high base and clear quality of voice and comes with anc and gives upto 18hrs of playback and also comes with water resistance and it also supports fast charge",
+  "media_urls": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1761222803/content/68fa175b1704b8cab9d56242/d608f766d7c218bd59036959cf06bc70_ezwvj8.png",
+      "type": "image",
+      "original_name": "Screenshot 2025-10-23 at 5.59.24â¯PM.png",
+      "_id": {
+        "$oid": "68fa209443ca27883d26a3c4"
+      }
+    }
+  ],
+  "attached_products": [
+    {
+      "product_id": {
+        "$oid": "68fa17641704b8cab9d56244"
+      },
+      "_id": {
+        "$oid": "68fa209443ca27883d26a3c5"
+      }
+    }
+  ],
+  "hashtags": [],
+  "mentions": [],
+  "scheduled_at": {
+    "$date": "2025-10-24T13:33:00.000Z"
+  },
+  "status": "published",
+  "special_instructions": "",
+  "createdAt": {
+    "$date": "2025-10-23T12:33:24.769Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:35:23.591Z"
+  },
+  "__v": 0,
+  "brand_feedback": "ok",
+  "published_at": {
+    "$date": "2025-10-23T12:35:23.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6920e368b1a0763329d4984f"
+  },
+  "campaign_id": {
+    "$oid": "68f14bd0262b49974e4a5b45"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "caption": "hi",
+  "media_urls": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1763763047/content/68f14bd0262b49974e4a5b45/d8e0ac7c4386f6a1607df0b977b8407b_uyetv2.png",
+      "type": "image",
+      "original_name": "Screenshot 2025-11-22 at 1.53.19â¯AM.png",
+      "_id": {
+        "$oid": "6920e368b1a0763329d49850"
+      }
+    }
+  ],
+  "attached_products": [
+    {
+      "product_id": {
+        "$oid": "68f14f1d8bed6fa2c3b5523f"
+      },
+      "_id": {
+        "$oid": "6920e368b1a0763329d49851"
+      }
+    }
+  ],
+  "hashtags": [],
+  "mentions": [],
+  "scheduled_at": {
+    "$date": "2025-11-22T01:10:00.000Z"
+  },
+  "status": "submitted",
+  "special_instructions": "is it okay?",
+  "createdAt": {
+    "$date": "2025-11-21T22:10:48.521Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T22:10:48.521Z"
+  },
+  "__v": 0
+}]

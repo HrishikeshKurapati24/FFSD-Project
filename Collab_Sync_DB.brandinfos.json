@@ -1,0 +1,754 @@
+[{
+  "_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "brandName": "Mamaearth",
+  "email": "mamaearth@example.com",
+  "password": "$2b$10$UhQCqjuY.BFVghW2.zci0.DCpeqMztGAgZbCp17BLL572U1kE0KC.",
+  "username": "mamaearth1234",
+  "displayName": "Mamaearth",
+  "bio": "India's first Made Safe certified brand. Natural, toxin-free personal care products.",
+  "phone": "+919876543210",
+  "industry": "Beauty & Personal Care",
+  "location": "US",
+  "website": "https://mamaearth1234.com",
+  "mission": "India's first Made Safe certified brand. Natural, toxin-free personal care products.",
+  "values": [
+    "Sustainability",
+    "Natural Ingredients",
+    "Toxin-free",
+    "Eco-friendly"
+  ],
+  "verified": true,
+  "logoUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760224605/brand-logos/logo-1760224602367-648861312_gqe4gv.png",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1763722240/brand-banners/banner-1763722237758-556636663_uhaarq.png",
+  "categories": [
+    "Beauty",
+    "Personal Care",
+    "Natural Products",
+    "Skincare"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Increase brand awareness and engagement",
+  "about": "Mamaearth is India's first Made Safe certified brand that offers toxin-free and natural personal care products.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Goodness Inside",
+  "primaryMarket": "India",
+  "completedCampaigns": 151,
+  "influencerPartnerships": 500,
+  "avgCampaignRating": 4.8,
+  "totalAudience": 5000000,
+  "targetAgeRange": "18-35",
+  "targetGender": "Female",
+  "targetInterests": [
+    "Beauty",
+    "Skincare",
+    "Natural Products",
+    "Wellness"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:57.710Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T10:50:41.152Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "brandName": "Boat",
+  "email": "boat@example.com",
+  "password": "$2b$10$UhQCqjuY.BFVghW2.zci0.DCpeqMztGAgZbCp17BLL572U1kE0KC.",
+  "username": "boat",
+  "displayName": "Boat Lifestyle",
+  "bio": "India's leading audio and wearable brand. Premium quality at affordable prices.1",
+  "phone": "+919876543211",
+  "industry": "Electronics",
+  "location": "Asia",
+  "website": "https://boat.com",
+  "mission": "India's leading audio and wearable brand. Premium quality at affordable prices.",
+  "values": [
+    "Innovation",
+    "Quality",
+    "Affordability",
+    "Youth Culture"
+  ],
+  "verified": true,
+  "logoUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217234/brand-logos/logo-1760217231628-951230867_neu1gk.jpg",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217238/brand-banners/banner-1760217231628-807144331_f8g8eq.png",
+  "categories": [
+    "Electronics",
+    "Audio",
+    "Wearables",
+    "Lifestyle"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Increase brand awareness and engagement",
+  "about": "Boat is India's leading audio and wearable brand, known for its premium quality products at affordable prices.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Plug Into Nirvana",
+  "primaryMarket": "India",
+  "completedCampaigns": 200,
+  "influencerPartnerships": 800,
+  "avgCampaignRating": 4.7,
+  "totalAudience": 8000000,
+  "targetAgeRange": "16-35",
+  "targetGender": "All",
+  "targetInterests": [
+    "Music",
+    "Technology",
+    "Gaming",
+    "Fitness"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:57.999Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-25T11:47:24.207Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0771"
+  },
+  "brandName": "Nykaa",
+  "email": "nykaa@example.com",
+  "password": "$2b$10$UhQCqjuY.BFVghW2.zci0.DCpeqMztGAgZbCp17BLL572U1kE0KC.",
+  "username": "nykaa",
+  "displayName": "Nykaa",
+  "bio": "India's largest beauty and wellness e-commerce platform.",
+  "phone": "+919876543212",
+  "industry": "E-commerce",
+  "location": "Mumbai, India",
+  "website": "https://nykaa.com",
+  "mission": "To democratize beauty and wellness in India.",
+  "values": [
+    "Beauty",
+    "Wellness",
+    "Innovation",
+    "Customer First"
+  ],
+  "verified": true,
+  "logoUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217280/brand-logos/logo-1760217275659-754716666_a2dnrj.png",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217282/brand-banners/banner-1760217275660-940141837_bfsdck.jpg",
+  "categories": [
+    "Beauty",
+    "E-commerce",
+    "Wellness",
+    "Fashion"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Beauty for All",
+  "about": "Nykaa is India's largest beauty and wellness e-commerce platform, offering a wide range of products.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Your Beauty, Our Passion",
+  "primaryMarket": "India",
+  "completedCampaigns": 300,
+  "influencerPartnerships": 1000,
+  "avgCampaignRating": 4.6,
+  "totalAudience": 10000000,
+  "targetAgeRange": "18-40",
+  "targetGender": "Female",
+  "targetInterests": [
+    "Beauty",
+    "Fashion",
+    "Wellness",
+    "Lifestyle"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.050Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:14:43.432Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "brandName": "Lenskart",
+  "email": "lenskart@example.com",
+  "password": "$2b$10$UhQCqjuY.BFVghW2.zci0.DCpeqMztGAgZbCp17BLL572U1kE0KC.",
+  "username": "lenskart",
+  "displayName": "Lenskart",
+  "bio": "India's leading eyewear brand. Vision for everyone.",
+  "phone": "+919876543213",
+  "industry": "Eyewear",
+  "location": "Gurgaon, India",
+  "website": "https://lenskart.com",
+  "mission": "To provide affordable, stylish eyewear to everyone.",
+  "values": [
+    "Innovation",
+    "Accessibility",
+    "Style",
+    "Quality"
+  ],
+  "verified": true,
+  "logoUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217327/brand-logos/logo-1760217321313-551078527_r2a3xu.jpg",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217332/brand-banners/banner-1760217321313-282751585_zpcfpn.png",
+  "categories": [
+    "Eyewear",
+    "Fashion",
+    "Healthcare",
+    "E-commerce"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Clear Vision for All",
+  "about": "Lenskart is India's leading eyewear brand, offering affordable and stylish eyewear solutions.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "See Better, Look Better",
+  "primaryMarket": "India",
+  "completedCampaigns": 251,
+  "influencerPartnerships": 700,
+  "avgCampaignRating": 4.5,
+  "totalAudience": 7000000,
+  "targetAgeRange": "16-45",
+  "targetGender": "All",
+  "targetInterests": [
+    "Fashion",
+    "Healthcare",
+    "Style",
+    "Technology"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.058Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T23:06:17.461Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "brandName": "Zomato",
+  "email": "zomato@example.com",
+  "password": "$2b$10$UhQCqjuY.BFVghW2.zci0.DCpeqMztGAgZbCp17BLL572U1kE0KC.",
+  "username": "zomato",
+  "displayName": "Zomato",
+  "bio": "India's leading food delivery and restaurant discovery platform.",
+  "phone": "+919876543214",
+  "industry": "Food Delivery",
+  "location": "Gurgaon, India",
+  "website": "https://zomato.com",
+  "mission": "To ensure nobody has a bad meal.",
+  "values": [
+    "Food",
+    "Technology",
+    "Customer First",
+    "Innovation"
+  ],
+  "verified": true,
+  "logoUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217374/brand-logos/logo-1760217370545-934612294_gu5pss.png",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217376/brand-banners/banner-1760217370545-692405234_v7ub5u.jpg",
+  "categories": [
+    "Food",
+    "Technology",
+    "Delivery",
+    "E-commerce"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Food for Everyone",
+  "about": "Zomato is India's leading food delivery and restaurant discovery platform.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Never Have a Bad Meal",
+  "primaryMarket": "India",
+  "completedCampaigns": 400,
+  "influencerPartnerships": 1200,
+  "avgCampaignRating": 4.9,
+  "totalAudience": 15000000,
+  "targetAgeRange": "18-45",
+  "targetGender": "All",
+  "targetInterests": [
+    "Food",
+    "Technology",
+    "Lifestyle",
+    "Entertainment"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.065Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:16:16.982Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "brandName": "Swiggy",
+  "email": "swiggy@example.com",
+  "password": "$2b$10$8LbCi9cuF8C4vjlPxHBKCudg59hOfzULJ9VD.e2m9gs4nboFvsGjK",
+  "username": "swiggy",
+  "displayName": "Swiggy",
+  "bio": "India's most loved food delivery platform. Order from your favorite restaurants.",
+  "phone": "+919876543215",
+  "industry": "Food Delivery",
+  "location": "Bangalore, India",
+  "website": "https://swiggy.com",
+  "mission": "To ensure nobody has a bad meal experience.",
+  "values": [
+    "Food",
+    "Technology",
+    "Customer First",
+    "Innovation"
+  ],
+  "verified": true,
+  "logoUrl": "/images/brands/swiggy-logo.png",
+  "bannerUrl": "/images/brands/swiggy-banner.png",
+  "categories": [
+    "Food",
+    "Technology",
+    "Delivery",
+    "E-commerce"
+  ],
+  "languages": [
+    "English",
+    "Hindi",
+    "Tamil",
+    "Telugu",
+    "Kannada"
+  ],
+  "currentCampaign": "Foodie Adventures",
+  "about": "Swiggy is India's leading food delivery platform, connecting customers with their favorite restaurants.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Order in for what you crave",
+  "primaryMarket": "India",
+  "completedCampaigns": 350,
+  "influencerPartnerships": 900,
+  "avgCampaignRating": 4.8,
+  "totalAudience": 12000000,
+  "targetAgeRange": "18-45",
+  "targetGender": "All",
+  "targetInterests": [
+    "Food",
+    "Technology",
+    "Lifestyle",
+    "Entertainment"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T21:20:56.347Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:20:56.347Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b892a"
+  },
+  "brandName": "Myntra",
+  "email": "myntra@example.com",
+  "password": "$2b$10$QmDe8zmMAiya0q7hwKtZhO/fTN0.hKZFz4kyfCkUW5LKCdJ4x4/uu",
+  "username": "myntra",
+  "displayName": "Myntra",
+  "bio": "India's leading fashion and lifestyle e-commerce platform.",
+  "phone": "+919876543216",
+  "industry": "E-commerce",
+  "location": "Bangalore, India",
+  "website": "https://myntra.com",
+  "mission": "To democratize fashion and lifestyle in India.",
+  "values": [
+    "Fashion",
+    "Style",
+    "Innovation",
+    "Customer First"
+  ],
+  "verified": true,
+  "logoUrl": "/images/brands/myntra-logo.png",
+  "bannerUrl": "/images/brands/myntra-banner.jpg",
+  "categories": [
+    "Fashion",
+    "E-commerce",
+    "Lifestyle",
+    "Beauty"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Fashion Forward",
+  "about": "Myntra is India's leading fashion and lifestyle e-commerce platform, offering a wide range of products.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Fashion Forward",
+  "primaryMarket": "India",
+  "completedCampaigns": 280,
+  "influencerPartnerships": 750,
+  "avgCampaignRating": 4.7,
+  "totalAudience": 9000000,
+  "targetAgeRange": "18-40",
+  "targetGender": "All",
+  "targetInterests": [
+    "Fashion",
+    "Lifestyle",
+    "Beauty",
+    "Shopping"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.470Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.470Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8933"
+  },
+  "brandName": "Netflix India",
+  "email": "netflix@example.com",
+  "password": "$2b$10$QmDe8zmMAiya0q7hwKtZhO/fTN0.hKZFz4kyfCkUW5LKCdJ4x4/uu",
+  "username": "netflixindia",
+  "displayName": "Netflix India",
+  "bio": "India's leading streaming platform. Watch your favorite shows and movies.",
+  "phone": "+919876543217",
+  "industry": "Entertainment",
+  "location": "Mumbai, India",
+  "website": "https://netflix.com",
+  "mission": "To entertain the world with great stories.",
+  "values": [
+    "Entertainment",
+    "Innovation",
+    "Diversity",
+    "Quality"
+  ],
+  "verified": true,
+  "logoUrl": "/images/brands/netflix-logo.png",
+  "bannerUrl": "/images/brands/netflix-banner.png",
+  "categories": [
+    "Entertainment",
+    "Streaming",
+    "Movies",
+    "TV Shows"
+  ],
+  "languages": [
+    "English",
+    "Hindi",
+    "Tamil",
+    "Telugu",
+    "Bengali"
+  ],
+  "currentCampaign": "Binge Watch India",
+  "about": "Netflix India is the leading streaming platform offering diverse content for Indian audiences.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "See What's Next",
+  "primaryMarket": "India",
+  "completedCampaigns": 180,
+  "influencerPartnerships": 400,
+  "avgCampaignRating": 4.9,
+  "totalAudience": 8000000,
+  "targetAgeRange": "18-50",
+  "targetGender": "All",
+  "targetInterests": [
+    "Entertainment",
+    "Movies",
+    "TV Shows",
+    "Streaming"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.477Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.477Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b893c"
+  },
+  "brandName": "Urban Company",
+  "email": "urbancompany@example.com",
+  "password": "$2b$10$QmDe8zmMAiya0q7hwKtZhO/fTN0.hKZFz4kyfCkUW5LKCdJ4x4/uu",
+  "username": "urbancompany",
+  "displayName": "Urban Company",
+  "bio": "India's leading home services platform. Book cleaning, beauty, and repair services.",
+  "phone": "+919876543218",
+  "industry": "Home Services",
+  "location": "Gurgaon, India",
+  "website": "https://urbancompany.com",
+  "mission": "To make home services accessible to everyone.",
+  "values": [
+    "Quality",
+    "Trust",
+    "Convenience",
+    "Reliability"
+  ],
+  "verified": true,
+  "logoUrl": "/images/brands/urbancompany-logo.jpeg",
+  "bannerUrl": "/images/brands/urbancompany-banner.jpeg",
+  "categories": [
+    "Home Services",
+    "Beauty",
+    "Cleaning",
+    "Repair"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Home Sweet Home",
+  "about": "Urban Company is India's leading home services platform, connecting customers with trusted service providers.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Home Services Made Simple",
+  "primaryMarket": "India",
+  "completedCampaigns": 120,
+  "influencerPartnerships": 300,
+  "avgCampaignRating": 4.6,
+  "totalAudience": 5000000,
+  "targetAgeRange": "25-45",
+  "targetGender": "All",
+  "targetInterests": [
+    "Home Services",
+    "Beauty",
+    "Lifestyle",
+    "Convenience"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.481Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.481Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8945"
+  },
+  "brandName": "CRED",
+  "email": "cred@example.com",
+  "password": "$2b$10$QmDe8zmMAiya0q7hwKtZhO/fTN0.hKZFz4kyfCkUW5LKCdJ4x4/uu",
+  "username": "cred",
+  "displayName": "CRED",
+  "bio": "India's leading credit card bill payment platform. Earn rewards while paying bills.",
+  "phone": "+919876543219",
+  "industry": "Fintech",
+  "location": "Bangalore, India",
+  "website": "https://cred.club",
+  "mission": "To make credit card bill payments rewarding.",
+  "values": [
+    "Innovation",
+    "Rewards",
+    "Trust",
+    "Excellence"
+  ],
+  "verified": true,
+  "logoUrl": "/images/brands/cred-logo.png",
+  "bannerUrl": "/images/brands/cred-banner.png",
+  "categories": [
+    "Fintech",
+    "Payments",
+    "Rewards",
+    "Finance"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "currentCampaign": "Rewards Revolution",
+  "about": "CRED is India's leading credit card bill payment platform, offering rewards and exclusive offers.",
+  "influenceRegions": "India",
+  "status": "active",
+  "tagline": "Trust. Rewards. Excellence.",
+  "primaryMarket": "India",
+  "completedCampaigns": 90,
+  "influencerPartnerships": 200,
+  "avgCampaignRating": 4.8,
+  "totalAudience": 4000000,
+  "targetAgeRange": "25-45",
+  "targetGender": "All",
+  "targetInterests": [
+    "Finance",
+    "Technology",
+    "Rewards",
+    "Lifestyle"
+  ],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.484Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.484Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eadc1c4f1f9c68ea295186"
+  },
+  "brandName": "test33",
+  "email": "inafnj@dn.com",
+  "password": "$2b$10$yW19HS3afBjZefMwOaqcLuL17H9D3jExpZMLALNL8RVxQZkvRcd3u",
+  "username": "inafnj_7648",
+  "displayName": "test33",
+  "phone": "1111111134",
+  "industry": "Sustainable Home Goods",
+  "website": "https://mamaearth.com",
+  "values": [],
+  "verified": false,
+  "logoUrl": "/images/default-brand-logo.jpg",
+  "bannerUrl": "/images/default-brand-banner.jpg",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "status": "active",
+  "primaryMarket": "Global",
+  "completedCampaigns": 0,
+  "influencerPartnerships": 0,
+  "avgCampaignRating": 0,
+  "totalAudience": 0,
+  "targetInterests": [],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-11T22:37:16.235Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T22:37:16.235Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efa0e30eeb9fd813f6a8c7"
+  },
+  "brandName": "Aurora Designs",
+  "email": "dolly@gmaiil.com",
+  "password": "$2b$10$o6ZS7FMXVeS9GANbl5.anuLkkiSE4JQ2eJwmgxeAmAKUa2UB9MzOS",
+  "username": "dolly_9390",
+  "displayName": "Aurora Designs",
+  "phone": "+12025550123",
+  "industry": "Sustainable Home Goods",
+  "website": "https://nike.com",
+  "values": [],
+  "verified": true,
+  "logoUrl": "/images/default-brand-logo.jpg",
+  "bannerUrl": "/images/default-brand-banner.jpg",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "status": "active",
+  "primaryMarket": "Global",
+  "completedCampaigns": 0,
+  "influencerPartnerships": 0,
+  "avgCampaignRating": 0,
+  "totalAudience": 12340,
+  "targetInterests": [],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-10-15T13:25:55.612Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-17T08:08:53.758Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69138d26c9b3ee3bde713dfd"
+  },
+  "brandName": "Himanshu",
+  "email": "himanshu.kurapati@gmail.com",
+  "password": "$2b$10$fp5bTzJDo5h.LM6rePrqSuyRix0ntb8mHipf/x.AHeb.ZksHzWp1.",
+  "username": "himanshukurapati_6738",
+  "displayName": "Himanshu",
+  "phone": "+7995476044",
+  "industry": "Mafia",
+  "website": "https://himanshu.com",
+  "values": [],
+  "verified": false,
+  "logoUrl": "/images/default-brand-logo.jpg",
+  "bannerUrl": "/images/default-brand-banner.jpg",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "status": "active",
+  "primaryMarket": "Global",
+  "completedCampaigns": 0,
+  "avgCampaignRating": 0,
+  "totalAudience": 10000,
+  "targetInterests": [],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-11-11T19:23:18.479Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-11T19:23:18.479Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6917607f1471453f57ad1dc1"
+  },
+  "brandName": "Golang Travels",
+  "email": "golang@gmail.com",
+  "password": "$2b$10$vO.uVgdpwN7ItNfUFuhq6uoWxRLcb.xiNhDBM60.Wlx5o74TFWXPK",
+  "username": "golang_7043",
+  "displayName": "Golang Travels",
+  "phone": "+12025550123",
+  "industry": "Travels",
+  "website": "https://golangtravels.com",
+  "values": [],
+  "verified": false,
+  "logoUrl": "/images/default-brand-logo.jpg",
+  "bannerUrl": "/images/default-brand-banner.jpg",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "status": "active",
+  "primaryMarket": "Global",
+  "completedCampaigns": 0,
+  "avgCampaignRating": 0,
+  "totalAudience": 100000,
+  "targetInterests": [],
+  "topCampaigns": [],
+  "createdAt": {
+    "$date": "2025-11-14T17:01:51.103Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-14T17:01:51.103Z"
+  },
+  "__v": 0
+}]

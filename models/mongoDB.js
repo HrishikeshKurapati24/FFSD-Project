@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 // MongoDB connection URL
-const MONGODB_URL = 'mongodb://localhost:27017/Collab_Sync_DB';
+const MONGODB_URL = process.env.MONGO_URI || 'mongodb://localhost:27017/Collab_Sync_DB';
 
 // Connection state tracking
 let isConnected = false;

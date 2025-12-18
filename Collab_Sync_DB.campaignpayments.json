@@ -1,0 +1,594 @@
+[{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b898b"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8987"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "amount": 450000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-08T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.560Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.560Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b898d"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8987"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "amount": 380000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-09T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.561Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.561Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b898f"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8987"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b897a"
+  },
+  "amount": 320000,
+  "status": "processing",
+  "payment_date": {
+    "$date": "2025-10-10T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.562Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.562Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b899d"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8999"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b892a"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0796"
+  },
+  "amount": 500000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-06T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.566Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.566Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b899f"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8999"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b892a"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8959"
+  },
+  "amount": 420000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-07T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.567Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.567Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89ad"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89a9"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8933"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07a4"
+  },
+  "amount": 480000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-09-01T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.569Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.569Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89af"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89a9"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8933"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b894e"
+  },
+  "amount": 420000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-09-06T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.570Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.570Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89b1"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89a9"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8933"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b896f"
+  },
+  "amount": 400000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-09-11T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.570Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.570Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89cf"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89cb"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e079d"
+  },
+  "amount": 350000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-03T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.577Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.577Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89d1"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89cb"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "amount": 300000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-05T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.578Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.578Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89db"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89d7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0796"
+  },
+  "amount": 400000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-01T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.580Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.580Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89dd"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89d7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8959"
+  },
+  "amount": 350000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-06T21:24:01.557Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.580Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.580Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eae45a4f1f9c68ea29522b"
+  },
+  "campaign_id": {
+    "$oid": "68eae4254f1f9c68ea2951f6"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "amount": 3000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-11T23:12:26.152Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-11T23:12:26.153Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T23:12:26.153Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef95f87b1b1a0838fe9e09"
+  },
+  "campaign_id": {
+    "$oid": "68ef94f57b1b1a0838fe9de1"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "amount": 2.85,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-15T12:39:20.079Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-15T12:39:20.083Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T12:39:20.083Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efceb9c97a49d64d095d7d"
+  },
+  "campaign_id": {
+    "$oid": "68efc8d471c53257d21c30a7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "amount": 10000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-15T16:41:29.258Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-15T16:41:29.265Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T16:41:29.265Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efd17f3b71b4619adcbff3"
+  },
+  "campaign_id": {
+    "$oid": "68efc8d471c53257d21c30a7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e079d"
+  },
+  "amount": 8500,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-15T16:53:19.509Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-15T16:53:19.518Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T16:53:19.518Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f14f1d8bed6fa2c3b55242"
+  },
+  "campaign_id": {
+    "$oid": "68f14bd0262b49974e4a5b45"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "amount": 1000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-16T20:01:33.718Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-16T20:01:33.719Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-16T20:01:33.719Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f15164e854fae68c50d603"
+  },
+  "campaign_id": {
+    "$oid": "68f14a0bbbe92d158da6f44c"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "amount": 5000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-16T20:11:16.758Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-16T20:11:16.764Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-16T20:11:16.764Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa19051704b8cab9d5634e"
+  },
+  "campaign_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8959"
+  },
+  "amount": 5000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-23T12:01:09.063Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-23T12:01:09.065Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:01:09.065Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa1a8f43ca27883d26a2e4"
+  },
+  "campaign_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "amount": 500,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-23T12:07:43.760Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-23T12:07:43.768Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:07:43.768Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa22ad43ca27883d26a4bf"
+  },
+  "campaign_id": {
+    "$oid": "68fa21ae43ca27883d26a483"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "influencer_id": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "amount": 500,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-10-23T12:42:21.713Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-10-23T12:42:21.715Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:42:21.715Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920e9fa6fdfa1a3b2758648"
+  },
+  "campaign_id": {
+    "$oid": "6920e2ffb1a0763329d49784"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "influencer_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "amount": 10000,
+  "status": "completed",
+  "payment_date": {
+    "$date": "2025-11-21T22:38:50.083Z"
+  },
+  "payment_method": "bank_transfer",
+  "createdAt": {
+    "$date": "2025-11-21T22:38:50.089Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T22:38:50.089Z"
+  },
+  "__v": 0
+}]

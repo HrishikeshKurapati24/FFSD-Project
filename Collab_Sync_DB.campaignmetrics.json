@@ -1,0 +1,567 @@
+[{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ad"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "overall_progress": 29,
+  "performance_score": 67,
+  "engagement_rate": 5.684698057590437,
+  "reach": 1359347,
+  "conversion_rate": 3.4395788329722743,
+  "clicks": 55630,
+  "impressions": 5701511,
+  "revenue": 3000000,
+  "roi": 2,
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.160Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T17:48:11.552Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b1"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07af"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "overall_progress": 96,
+  "performance_score": 84,
+  "engagement_rate": 6.2919283520812535,
+  "reach": 2919720,
+  "conversion_rate": 3.0338753373923355,
+  "clicks": 139745,
+  "impressions": 4221908,
+  "revenue": 2363531,
+  "roi": 214,
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.162Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.162Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b5"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07b3"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "overall_progress": 82,
+  "performance_score": 89,
+  "engagement_rate": 5.1347016006318995,
+  "reach": 1532999,
+  "conversion_rate": 3.000804894717395,
+  "clicks": 53333,
+  "impressions": 2268172,
+  "revenue": 734234,
+  "roi": 165,
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.163Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.163Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8989"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8987"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "overall_progress": 72,
+  "performance_score": 89,
+  "engagement_rate": 5.1,
+  "reach": 3804507,
+  "conversion_rate": 4.2,
+  "clicks": 195000,
+  "impressions": 6800000,
+  "revenue": 1750000,
+  "roi": 175,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.560Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T22:21:38.524Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b899b"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b8999"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b892a"
+  },
+  "overall_progress": 60,
+  "performance_score": 85,
+  "engagement_rate": 4.6,
+  "reach": 2800000,
+  "conversion_rate": 3.8,
+  "clicks": 106000,
+  "impressions": 4200000,
+  "revenue": 950000,
+  "roi": 143,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.565Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.565Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89ab"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89a9"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8933"
+  },
+  "overall_progress": 100,
+  "performance_score": 92,
+  "engagement_rate": 6.1,
+  "reach": 5200000,
+  "conversion_rate": 5.8,
+  "clicks": 302000,
+  "impressions": 8800000,
+  "revenue": 2800000,
+  "roi": 180,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.569Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.569Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89b9"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89b7"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b893c"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.573Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.573Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89c1"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89bf"
+  },
+  "brand_id": {
+    "$oid": "68eacaf128d20ff5089b8945"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.574Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.574Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89c9"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89c7"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.576Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.576Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89cd"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89cb"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "overall_progress": 86,
+  "performance_score": 87,
+  "engagement_rate": 4.9,
+  "reach": 2400000,
+  "conversion_rate": 4.1,
+  "clicks": 98000,
+  "impressions": 3600000,
+  "revenue": 720000,
+  "roi": 145,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.577Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:49:16.966Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89d9"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89d7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "overall_progress": 100,
+  "performance_score": 88,
+  "engagement_rate": 4.3,
+  "reach": 3200000,
+  "conversion_rate": 3.6,
+  "clicks": 115000,
+  "impressions": 4800000,
+  "revenue": 855000,
+  "roi": 145,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.579Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.579Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89e5"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89e3"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0771"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.582Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.582Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b89ed"
+  },
+  "campaign_id": {
+    "$oid": "68eacaf128d20ff5089b89eb"
+  },
+  "brand_id": {
+    "$oid": "68eaca38309d941d70050dea"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.584Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.584Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eae1714f1f9c68ea2951b8"
+  },
+  "campaign_id": {
+    "$oid": "68eae1714f1f9c68ea2951b6"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T23:00:01.712Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T23:00:01.712Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eae3f04f1f9c68ea2951cb"
+  },
+  "campaign_id": {
+    "$oid": "68eae3f04f1f9c68ea2951c9"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-11T23:10:40.709Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T23:10:40.709Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef9152a5f776a3836deeff"
+  },
+  "campaign_id": {
+    "$oid": "68ef9152a5f776a3836deefb"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-15T12:19:30.576Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T12:19:30.576Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efc8d871c53257d21c30ac"
+  },
+  "campaign_id": {
+    "$oid": "68efc8d471c53257d21c30a7"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-15T16:16:24.081Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T16:16:24.081Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f14a0fbbe92d158da6f451"
+  },
+  "campaign_id": {
+    "$oid": "68f14a0bbbe92d158da6f44c"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-10-16T19:39:59.975Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-16T19:39:59.975Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa17641704b8cab9d56247"
+  },
+  "campaign_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "overall_progress": 25,
+  "performance_score": 80,
+  "engagement_rate": 30,
+  "reach": 100,
+  "conversion_rate": 0,
+  "clicks": 1000,
+  "impressions": 567,
+  "revenue": 1000,
+  "roi": 10,
+  "createdAt": {
+    "$date": "2025-10-23T11:54:12.701Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-25T13:18:21.342Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "691f7aabac58c59c7cc19e39"
+  },
+  "campaign_id": {
+    "$oid": "691f7aa5ac58c59c7cc19e34"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "overall_progress": 0,
+  "performance_score": 0,
+  "engagement_rate": 0,
+  "reach": 0,
+  "conversion_rate": 0,
+  "clicks": 0,
+  "impressions": 0,
+  "revenue": 0,
+  "roi": 0,
+  "createdAt": {
+    "$date": "2025-11-20T20:31:39.346Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T20:31:39.346Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920e302b1a0763329d49789"
+  },
+  "campaign_id": {
+    "$oid": "6920e2ffb1a0763329d49784"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "overall_progress": 100,
+  "performance_score": 34,
+  "engagement_rate": 34,
+  "reach": 344344,
+  "conversion_rate": 0,
+  "clicks": 2343,
+  "impressions": 333423,
+  "revenue": 10000,
+  "roi": 1,
+  "createdAt": {
+    "$date": "2025-11-21T22:09:06.537Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T23:06:17.452Z"
+  },
+  "__v": 0
+}]

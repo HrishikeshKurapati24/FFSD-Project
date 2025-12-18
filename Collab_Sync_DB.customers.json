@@ -1,0 +1,115 @@
+[{
+  "_id": {
+    "$oid": "68ed545ceee2afa36b22620d"
+  },
+  "email": "demo@customer.com",
+  "phone": "+919876543210",
+  "name": "Demo Customer",
+  "preferences": {
+    "categories": [
+      "skincare",
+      "haircare"
+    ],
+    "brands": [
+      "Mamaearth"
+    ],
+    "price_range": {
+      "min": 100,
+      "max": 1000
+    }
+  },
+  "total_purchases": 3,
+  "total_spent": 1347,
+  "last_purchase_date": {
+    "$date": "2025-10-13T19:34:52.160Z"
+  },
+  "is_verified": true,
+  "createdAt": {
+    "$date": "2025-10-13T19:34:52.161Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-13T19:34:52.161Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ed56059e8e8121276b049d"
+  },
+  "email": "hrishikesh.kurapati@gmail.com",
+  "phone": "+12025550123",
+  "name": "Hrishikesh Kurapati",
+  "preferences": {
+    "categories": [],
+    "brands": []
+  },
+  "total_purchases": 33343,
+  "total_spent": 2625166.847,
+  "is_verified": false,
+  "createdAt": {
+    "$date": "2025-10-13T19:41:57.488Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T22:58:15.640Z"
+  },
+  "__v": 0,
+  "last_purchase_date": {
+    "$date": "2025-11-21T22:58:15.640Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69306283cff163c59f20de99"
+  },
+  "name": "charan tadivaka",
+  "email": "charan@gmail.com",
+  "password": "$2b$10$MTwN4HxoI36UqlCfaGN.aOeeoYDn.d.xOBUZxt16DKY.kTw3QOyXm",
+  "phone": "+12025550123",
+  "preferences": {
+    "price_range": {
+      "min": 0,
+      "max": 10000
+    },
+    "categories": [],
+    "brands": []
+  },
+  "total_purchases": 0,
+  "total_spent": 0,
+  "last_purchase_date": null,
+  "is_verified": false,
+  "createdAt": {
+    "$date": "2025-12-03T16:17:07.543Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T16:17:07.545Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "693062d7cff163c59f20dea6"
+  },
+  "name": "charan tads",
+  "email": "charanc@gmail.com",
+  "password": "$2b$10$oCLwver.rY./q9XoXBmCPOoyouEvoBwyiUlL8SSpFj9n1Za8MpOjm",
+  "phone": "1111111134",
+  "preferences": {
+    "price_range": {
+      "min": 0,
+      "max": 10000
+    },
+    "categories": [],
+    "brands": []
+  },
+  "total_purchases": 0,
+  "total_spent": 0,
+  "last_purchase_date": null,
+  "is_verified": false,
+  "createdAt": {
+    "$date": "2025-12-03T16:18:31.522Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T16:18:31.523Z"
+  },
+  "__v": 0
+}]

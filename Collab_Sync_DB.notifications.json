@@ -1,0 +1,31 @@
+[{
+  "_id": {
+    "$oid": "693056edcff163c59f20dd4e"
+  },
+  "recipientId": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "recipientType": "brand",
+  "senderId": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "senderType": "influencer",
+  "type": "application_received",
+  "title": "New Application",
+  "body": "Kusha Kapila applied to your campaign.",
+  "relatedId": {
+    "$oid": "693056edcff163c59f20dd46"
+  },
+  "data": {
+    "campaignId": "691f7aa5ac58c59c7cc19e34",
+    "influencerId": "68eaad2aaa0b06c2e62e0788"
+  },
+  "read": true,
+  "createdAt": {
+    "$date": "2025-12-03T15:27:41.969Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-03T15:28:05.419Z"
+  },
+  "__v": 0
+}]

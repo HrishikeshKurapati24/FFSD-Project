@@ -1,0 +1,495 @@
+[{
+  "_id": {
+    "$oid": "68ed545ceee2afa36b2261f6"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "name": "Mamaearth Vitamin C Face Serum",
+  "description": "Brightening vitamin C serum with natural ingredients for glowing skin",
+  "images": [
+    {
+      "url": "/images/products/mamaearth-serum.jpg",
+      "alt": "Mamaearth Vitamin C Serum",
+      "is_primary": true,
+      "_id": {
+        "$oid": "68ed545ceee2afa36b2261f7"
+      }
+    }
+  ],
+  "original_price": 599,
+  "campaign_price": 449,
+  "discount_percentage": 25,
+  "category": "Skincare",
+  "tags": [
+    "skincare",
+    "vitamin-c",
+    "natural",
+    "brightening"
+  ],
+  "stock_quantity": 100,
+  "is_digital": false,
+  "delivery_info": {
+    "estimated_days": 3,
+    "shipping_cost": 50,
+    "free_shipping_threshold": 500
+  },
+  "specifications": {
+    "Volume": "30ml",
+    "Skin Type": "All Types",
+    "Key Ingredients": "Vitamin C, Aloe Vera, Orange Oil"
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "createdAt": {
+    "$date": "2025-10-13T19:34:52.137Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-13T19:34:52.137Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ed545ceee2afa36b2261fb"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "campaign_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07ab"
+  },
+  "name": "Mamaearth Onion Hair Oil",
+  "description": "Nourishing hair oil with onion extract for stronger, healthier hair",
+  "images": [
+    {
+      "url": "/images/products/mamaearth-oil.jpg",
+      "alt": "Mamaearth Onion Hair Oil",
+      "is_primary": true,
+      "_id": {
+        "$oid": "68ed545ceee2afa36b2261fc"
+      }
+    }
+  ],
+  "original_price": 299,
+  "campaign_price": 199,
+  "discount_percentage": 33,
+  "category": "Hair Care",
+  "tags": [
+    "hair-care",
+    "onion",
+    "natural",
+    "hair-growth"
+  ],
+  "stock_quantity": 150,
+  "is_digital": false,
+  "delivery_info": {
+    "estimated_days": 3,
+    "shipping_cost": 50,
+    "free_shipping_threshold": 500
+  },
+  "specifications": {
+    "Volume": "100ml",
+    "Hair Type": "All Types",
+    "Key Ingredients": "Onion Extract, Coconut Oil, Almond Oil"
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "createdAt": {
+    "$date": "2025-10-13T19:34:52.144Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-13T19:34:52.144Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef9152a5f776a3836deefd"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "campaign_id": {
+    "$oid": "68ef9152a5f776a3836deefb"
+  },
+  "name": "Airflex Pro Blue-Light Aviator",
+  "description": "hello",
+  "original_price": 887,
+  "campaign_price": 698,
+  "discount_percentage": 21,
+  "category": "Food & Beverage",
+  "tags": [],
+  "stock_quantity": 0,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "images": [],
+  "createdAt": {
+    "$date": "2025-10-15T12:19:30.574Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T12:19:30.574Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efc8d871c53257d21c30a9"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "campaign_id": {
+    "$oid": "68efc8d471c53257d21c30a7"
+  },
+  "name": "Airflex Pro Blue-Light Aviator",
+  "description": "The Airflex Aviator combines a classic silhouette with ultra-light, flexible TR-90 material for all-day comfort. Features a premium blue-light filter lens, making it perfect for professionals and students who spend long hours in front of screens.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760544983/product-images/jweuvxejcvsdc4euu62l.png",
+      "is_primary": false,
+      "_id": {
+        "$oid": "68efc8d871c53257d21c30aa"
+      }
+    }
+  ],
+  "original_price": 89.99,
+  "campaign_price": 69.99,
+  "discount_percentage": 22,
+  "category": "Fashion",
+  "tags": [],
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "createdAt": {
+    "$date": "2025-10-15T16:16:24.076Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T11:30:09.876Z"
+  },
+  "__v": 0,
+  "sold_quantity": 2,
+  "target_quantity": "100"
+},
+{
+  "_id": {
+    "$oid": "68f14a0fbbe92d158da6f44e"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "campaign_id": {
+    "$oid": "68f14a0bbbe92d158da6f44c"
+  },
+  "name": "MamaEarth Ubtan Face Wash",
+  "description": "Made with natural ingredients like turmeric and saffron, MamaEarth’s Ubtan Face Wash gently exfoliates and removes tan, giving your skin a natural glow. Free from SLS, parabens, and harmful chemicals. Suitable for all skin types.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760643599/product-images/oe9oeaqjbvinyrjymhf9.png",
+      "is_primary": false,
+      "_id": {
+        "$oid": "68f14a0fbbe92d158da6f44f"
+      }
+    }
+  ],
+  "original_price": 6.99,
+  "campaign_price": 4.96,
+  "discount_percentage": 29,
+  "category": "Beauty",
+  "tags": [],
+  "target_quantity": 1000,
+  "sold_quantity": 2,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "special_instructions": "",
+  "createdAt": {
+    "$date": "2025-10-16T19:39:59.970Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-04T11:23:27.194Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68f14f1d8bed6fa2c3b5523f"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "campaign_id": {
+    "$oid": "68f14bd0262b49974e4a5b45"
+  },
+  "name": "Charcoal facewash",
+  "description": "good facewash",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760644892/products/productImage-1760644889365-771359621_lsazuz.png",
+      "is_primary": true,
+      "_id": {
+        "$oid": "68f14f1d8bed6fa2c3b55240"
+      }
+    }
+  ],
+  "original_price": 3.99,
+  "campaign_price": 2.96,
+  "category": "Skincare",
+  "tags": [],
+  "target_quantity": 100,
+  "sold_quantity": 0,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "createdAt": {
+    "$date": "2025-10-16T20:01:33.712Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-16T20:01:33.712Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa17641704b8cab9d56244"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "campaign_id": {
+    "$oid": "68fa175b1704b8cab9d56242"
+  },
+  "name": "Boat Airdopes 411 ANC",
+  "description": "Premium wireless earbuds with Active Noise Cancellation, 40-hour battery life, Bluetooth 5.2 connectivity, and IPX4 water resistance. Features BEAST",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1761220451/product-images/pzax8gjpl6uxqzhjjpzn.png",
+      "is_primary": false,
+      "_id": {
+        "$oid": "68fa17641704b8cab9d56245"
+      }
+    }
+  ],
+  "original_price": 7.49,
+  "campaign_price": 5.49,
+  "discount_percentage": 27,
+  "category": "Electronics",
+  "tags": [],
+  "target_quantity": 1000,
+  "sold_quantity": 8,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad29aa0b06c2e62e0768"
+  },
+  "special_instructions": "Please highlight the premium build quality, demonstrate the ANC feature in different environments, and showcase the seamless touch controls",
+  "createdAt": {
+    "$date": "2025-10-23T11:54:12.688Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-25T11:39:24.942Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa21ae43ca27883d26a485"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "campaign_id": {
+    "$oid": "68fa21ae43ca27883d26a483"
+  },
+  "name": "zomato gold",
+  "description": "",
+  "images": [],
+  "original_price": 0,
+  "campaign_price": 0,
+  "category": "",
+  "tags": [],
+  "target_quantity": 0,
+  "sold_quantity": 0,
+  "is_digital": false,
+  "delivery_info": {
+    "estimated_days": 0,
+    "shipping_cost": 0,
+    "free_shipping_threshold": 0
+  },
+  "specifications": {},
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "createdAt": {
+    "$date": "2025-10-23T12:38:06.265Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:38:06.265Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68fa22ad43ca27883d26a4bc"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "campaign_id": {
+    "$oid": "68fa21ae43ca27883d26a483"
+  },
+  "name": "zomato gold",
+  "description": "this is subsricption for frequent zomato user",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1761223340/products/productImage-1761223333953-703761109_cqvw8b.png",
+      "is_primary": true,
+      "_id": {
+        "$oid": "68fa22ad43ca27883d26a4bd"
+      }
+    }
+  ],
+  "original_price": 10,
+  "campaign_price": 9,
+  "category": "Food",
+  "tags": [],
+  "target_quantity": 100,
+  "sold_quantity": 0,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad2aaa0b06c2e62e0781"
+  },
+  "createdAt": {
+    "$date": "2025-10-23T12:42:21.677Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T12:42:21.677Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "691f7aabac58c59c7cc19e36"
+  },
+  "brand_id": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "campaign_id": {
+    "$oid": "691f7aa5ac58c59c7cc19e34"
+  },
+  "name": "Mamaearth Onion Shampoo for Hair Fall Control",
+  "description": "Mamaearth Onion Shampoo is enriched with onion seed oil and plant keratin designed to reduce hair fall, strengthen hair, and promote smoother, shinier texture. It contains no sulfates, parabens, silicones, or artificial dyes.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1763670698/product-images/baeax6bpltisgr3hzfff.png",
+      "is_primary": false,
+      "_id": {
+        "$oid": "691f7aabac58c59c7cc19e37"
+      }
+    }
+  ],
+  "original_price": 5.99,
+  "campaign_price": 4.99,
+  "discount_percentage": 17,
+  "category": "Beauty",
+  "tags": [],
+  "target_quantity": 3000,
+  "sold_quantity": 0,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad29aa0b06c2e62e0756"
+  },
+  "special_instructions": "Focus on real results after 7–10 days of usage. Do not claim guaranteed regrowth. Highlight “Made Safe” certification and natural ingredients. Show before/after texture differences if possible.",
+  "createdAt": {
+    "$date": "2025-11-20T20:31:39.338Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-20T20:31:39.338Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920e302b1a0763329d49786"
+  },
+  "brand_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "campaign_id": {
+    "$oid": "6920e2ffb1a0763329d49784"
+  },
+  "name": "Lenskart AirX Smart – Matte Black",
+  "description": "Lenskart AirX Smart Matte Black glasses feature lightweight TR90 frames, flexible temples, and a sleek matte-black finish. Designed for everyday wear, providing maximum comfort with a premium modern aesthetic.",
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/dntg56vi6/image/upload/v1763762945/product-images/m1s9u4vvycofoltb0tkt.png",
+      "is_primary": false,
+      "_id": {
+        "$oid": "6920e302b1a0763329d49787"
+      }
+    }
+  ],
+  "original_price": 89,
+  "campaign_price": 75,
+  "discount_percentage": 16,
+  "category": "Fashion",
+  "tags": [],
+  "target_quantity": 50000,
+  "sold_quantity": 33333,
+  "is_digital": false,
+  "delivery_info": {
+    "shipping_cost": 0
+  },
+  "status": "active",
+  "created_by": {
+    "$oid": "68eaad2aaa0b06c2e62e0779"
+  },
+  "special_instructions": "•\tUse clear close-up shots of the frame edges, hinges, and matte texture.\r\n\t•\tShow real-life use cases: work setup, outdoors, daily routine.\r\n\t•\tHighlight comfort, lightweight design, flexibility, and premium minimal look.\r\n\t•\tMandatory hashtags:\r\n#LenskartAirX #SmartEyewear #MatteBlackFrames #LenskartStyle",
+  "createdAt": {
+    "$date": "2025-11-21T22:09:06.530Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T22:58:15.635Z"
+  },
+  "__v": 0
+}]

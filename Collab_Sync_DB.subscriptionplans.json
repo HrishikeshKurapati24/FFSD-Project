@@ -1,0 +1,344 @@
+[{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b2"
+  },
+  "name": "Free",
+  "userType": "brand",
+  "price": {
+    "monthly": 0,
+    "yearly": 0
+  },
+  "features": {
+    "maxCampaigns": 2,
+    "maxInfluencers": 2,
+    "analytics": true,
+    "advancedAnalytics": false,
+    "prioritySupport": false,
+    "customBranding": false,
+    "apiAccess": false,
+    "collaborationTools": true,
+    "maxBrands": -1,
+    "whiteLabel": false,
+    "dedicatedManager": false,
+    "bulkOperations": false,
+    "exportData": false,
+    "socialMediaIntegration": false,
+    "contentLibrary": false
+  },
+  "limits": {
+    "storageGB": 1,
+    "monthlyUploads": 10,
+    "teamMembers": 1
+  },
+  "isActive": true,
+  "description": "Perfect for trying out CollabSync with basic features",
+  "popularBadge": false,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.018Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.018Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b3"
+  },
+  "name": "Basic",
+  "userType": "brand",
+  "price": {
+    "monthly": 29,
+    "yearly": 290
+  },
+  "features": {
+    "maxCampaigns": 5,
+    "maxInfluencers": 10,
+    "analytics": true,
+    "advancedAnalytics": false,
+    "prioritySupport": false,
+    "customBranding": false,
+    "apiAccess": false,
+    "collaborationTools": true,
+    "maxBrands": -1,
+    "whiteLabel": false,
+    "dedicatedManager": false,
+    "bulkOperations": false,
+    "exportData": false,
+    "socialMediaIntegration": false,
+    "contentLibrary": false
+  },
+  "limits": {
+    "storageGB": 5,
+    "monthlyUploads": 50,
+    "teamMembers": 2
+  },
+  "isActive": true,
+  "description": "Perfect for small businesses starting with influencer marketing",
+  "popularBadge": false,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.018Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.018Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b4"
+  },
+  "name": "Pro",
+  "userType": "brand",
+  "price": {
+    "monthly": 79,
+    "yearly": 790
+  },
+  "features": {
+    "maxCampaigns": 25,
+    "maxInfluencers": 50,
+    "analytics": true,
+    "advancedAnalytics": true,
+    "prioritySupport": true,
+    "customBranding": true,
+    "apiAccess": false,
+    "bulkOperations": true,
+    "exportData": true,
+    "collaborationTools": true,
+    "maxBrands": -1,
+    "whiteLabel": false,
+    "dedicatedManager": false,
+    "socialMediaIntegration": false,
+    "contentLibrary": false
+  },
+  "limits": {
+    "storageGB": 25,
+    "monthlyUploads": 200,
+    "teamMembers": 5
+  },
+  "isActive": true,
+  "description": "Ideal for growing brands with multiple campaigns",
+  "popularBadge": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b5"
+  },
+  "name": "Premium",
+  "userType": "brand",
+  "price": {
+    "monthly": 199,
+    "yearly": 1990
+  },
+  "features": {
+    "maxCampaigns": -1,
+    "maxInfluencers": -1,
+    "analytics": true,
+    "advancedAnalytics": true,
+    "prioritySupport": true,
+    "customBranding": true,
+    "apiAccess": true,
+    "whiteLabel": true,
+    "bulkOperations": true,
+    "exportData": true,
+    "socialMediaIntegration": true,
+    "contentLibrary": true,
+    "collaborationTools": true,
+    "maxBrands": -1,
+    "dedicatedManager": false
+  },
+  "limits": {
+    "storageGB": 100,
+    "monthlyUploads": 1000,
+    "teamMembers": 15
+  },
+  "isActive": true,
+  "description": "For established brands with extensive influencer networks",
+  "popularBadge": false,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b6"
+  },
+  "name": "Free",
+  "userType": "influencer",
+  "price": {
+    "monthly": 0,
+    "yearly": 0
+  },
+  "features": {
+    "maxBrands": 2,
+    "analytics": true,
+    "advancedAnalytics": false,
+    "prioritySupport": false,
+    "collaborationTools": true,
+    "maxCampaigns": -1,
+    "maxInfluencers": -1,
+    "customBranding": false,
+    "apiAccess": false,
+    "whiteLabel": false,
+    "dedicatedManager": false,
+    "bulkOperations": false,
+    "exportData": false,
+    "socialMediaIntegration": false,
+    "contentLibrary": false
+  },
+  "limits": {
+    "storageGB": 1,
+    "monthlyUploads": 10,
+    "teamMembers": 1
+  },
+  "isActive": true,
+  "description": "Perfect for new influencers getting started",
+  "popularBadge": false,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b7"
+  },
+  "name": "Basic",
+  "userType": "influencer",
+  "price": {
+    "monthly": 19,
+    "yearly": 190
+  },
+  "features": {
+    "maxBrands": 5,
+    "analytics": true,
+    "advancedAnalytics": false,
+    "prioritySupport": false,
+    "collaborationTools": true,
+    "maxCampaigns": -1,
+    "maxInfluencers": -1,
+    "customBranding": false,
+    "apiAccess": false,
+    "whiteLabel": false,
+    "dedicatedManager": false,
+    "bulkOperations": false,
+    "exportData": false,
+    "socialMediaIntegration": false,
+    "contentLibrary": false
+  },
+  "limits": {
+    "storageGB": 2,
+    "monthlyUploads": 25,
+    "teamMembers": 1
+  },
+  "isActive": true,
+  "description": "Great for new influencers building their brand",
+  "popularBadge": false,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b8"
+  },
+  "name": "Pro",
+  "userType": "influencer",
+  "price": {
+    "monthly": 49,
+    "yearly": 490
+  },
+  "features": {
+    "maxBrands": 25,
+    "analytics": true,
+    "advancedAnalytics": true,
+    "prioritySupport": true,
+    "bulkOperations": true,
+    "exportData": true,
+    "socialMediaIntegration": true,
+    "collaborationTools": true,
+    "maxCampaigns": -1,
+    "maxInfluencers": -1,
+    "customBranding": false,
+    "apiAccess": false,
+    "whiteLabel": false,
+    "dedicatedManager": false,
+    "contentLibrary": false
+  },
+  "limits": {
+    "storageGB": 15,
+    "monthlyUploads": 100,
+    "teamMembers": 3
+  },
+  "isActive": true,
+  "description": "Perfect for professional influencers",
+  "popularBadge": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68fa09127b30acd74aab84b9"
+  },
+  "name": "Premium",
+  "userType": "influencer",
+  "price": {
+    "monthly": 99,
+    "yearly": 990
+  },
+  "features": {
+    "maxBrands": -1,
+    "analytics": true,
+    "advancedAnalytics": true,
+    "prioritySupport": true,
+    "customBranding": true,
+    "apiAccess": true,
+    "dedicatedManager": true,
+    "bulkOperations": true,
+    "exportData": true,
+    "socialMediaIntegration": true,
+    "contentLibrary": true,
+    "collaborationTools": true,
+    "maxCampaigns": -1,
+    "maxInfluencers": -1,
+    "whiteLabel": false
+  },
+  "limits": {
+    "storageGB": 50,
+    "monthlyUploads": 500,
+    "teamMembers": 10
+  },
+  "isActive": true,
+  "description": "For top-tier influencers and agencies",
+  "popularBadge": false,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-23T10:53:06.019Z"
+  }
+}]

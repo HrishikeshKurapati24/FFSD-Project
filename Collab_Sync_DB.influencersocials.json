@@ -1,0 +1,646 @@
+[{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078a"
+  },
+  "influencerId": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "socialHandle": "kushakapila2",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "profile",
+      "followers": 3215896,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68ecf91eabd49a3461264a77"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-13T13:05:34.450Z"
+      }
+    },
+    {
+      "platform": "youtube"
+    },
+    {
+      "platform": "tiktok"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.147Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-13T13:05:34.444Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0791"
+  },
+  "influencerId": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "socialHandle": "@dollysingh",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@dollysingh",
+      "followers": 1909665,
+      "engagementRate": 4.277405444577862,
+      "avgLikes": 71994,
+      "avgComments": 3198,
+      "avgViews": 191314,
+      "category": "comedy",
+      "_id": {
+        "$oid": "68eaad2aaa0b06c2e62e0792"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T19:16:58.150Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.150Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.150Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0798"
+  },
+  "influencerId": {
+    "$oid": "68eaad2aaa0b06c2e62e0796"
+  },
+  "socialHandle": "@masoomminawala",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@masoomminawala",
+      "followers": 3872231,
+      "engagementRate": 4.867389927206738,
+      "avgLikes": 89207,
+      "avgComments": 5790,
+      "avgViews": 196731,
+      "category": "fashion",
+      "_id": {
+        "$oid": "68eaad2aaa0b06c2e62e0799"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T19:16:58.153Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.153Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.153Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e079f"
+  },
+  "influencerId": {
+    "$oid": "68eaad2aaa0b06c2e62e079d"
+  },
+  "socialHandle": "ranveerallahbadia123",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "instagram",
+      "followers": 3315287,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68eadb944f1f9c68ea295178"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T22:35:00.712Z"
+      }
+    },
+    {
+      "platform": "youtube",
+      "handle": "youtube",
+      "followers": 24232,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68eadb944f1f9c68ea295179"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T22:35:00.713Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.155Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T22:35:00.705Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07a6"
+  },
+  "influencerId": {
+    "$oid": "68eaad2aaa0b06c2e62e07a4"
+  },
+  "socialHandle": "@prajaktakoli",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@prajaktakoli",
+      "followers": 4276662,
+      "engagementRate": 4.026656412033484,
+      "avgLikes": 81481,
+      "avgComments": 1652,
+      "avgViews": 64626,
+      "category": "comedy",
+      "_id": {
+        "$oid": "68eaad2aaa0b06c2e62e07a7"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T19:16:58.157Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.158Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T19:16:58.158Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8952"
+  },
+  "influencerId": {
+    "$oid": "68eacaf128d20ff5089b894e"
+  },
+  "socialHandle": "@mithilapalkar",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@mithilapalkar",
+      "followers": 2200000,
+      "engagementRate": 4.2,
+      "avgLikes": 55000,
+      "avgComments": 2200,
+      "avgViews": 110000,
+      "category": "entertainment",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8953"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.540Z"
+      }
+    },
+    {
+      "platform": "youtube",
+      "handle": "Mithila Palkar",
+      "followers": 800000,
+      "engagementRate": 4,
+      "avgLikes": 20000,
+      "avgComments": 1000,
+      "avgViews": 80000,
+      "category": "entertainment",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8954"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.540Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.540Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.540Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b895d"
+  },
+  "influencerId": {
+    "$oid": "68eacaf128d20ff5089b8959"
+  },
+  "socialHandle": "@aashnashroff",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@aashnashroff",
+      "followers": 1800000,
+      "engagementRate": 4.3,
+      "avgLikes": 48000,
+      "avgComments": 1900,
+      "avgViews": 100000,
+      "category": "fashion",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b895e"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.544Z"
+      }
+    },
+    {
+      "platform": "youtube",
+      "handle": "Aashna Shroff",
+      "followers": 600000,
+      "engagementRate": 4.1,
+      "avgLikes": 18000,
+      "avgComments": 900,
+      "avgViews": 90000,
+      "category": "lifestyle",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b895f"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.544Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.544Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.544Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8968"
+  },
+  "influencerId": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "socialHandle": "ashishchanchlani1",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "instagram",
+      "followers": 3200000,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68fcb92e62f30d8f346c6123"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-25T11:49:02.628Z"
+      }
+    },
+    {
+      "platform": "youtube",
+      "handle": "youtube",
+      "followers": 1800000,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68fcb92e62f30d8f346c6124"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-25T11:49:02.629Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.547Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-25T11:49:02.621Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8973"
+  },
+  "influencerId": {
+    "$oid": "68eacaf128d20ff5089b896f"
+  },
+  "socialHandle": "@diipakhosla",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@diipakhosla",
+      "followers": 2800000,
+      "engagementRate": 4.7,
+      "avgLikes": 75000,
+      "avgComments": 3200,
+      "avgViews": 150000,
+      "category": "fashion",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8974"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.549Z"
+      }
+    },
+    {
+      "platform": "youtube",
+      "handle": "Diipa Khosla",
+      "followers": 1200000,
+      "engagementRate": 4.5,
+      "avgLikes": 35000,
+      "avgComments": 1800,
+      "avgViews": 120000,
+      "category": "beauty",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8975"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.549Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.549Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.549Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b897e"
+  },
+  "influencerId": {
+    "$oid": "68eacaf128d20ff5089b897a"
+  },
+  "socialHandle": "@rohanjoshi",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@rohanjoshi",
+      "followers": 1500000,
+      "engagementRate": 4.2,
+      "avgLikes": 42000,
+      "avgComments": 1800,
+      "avgViews": 95000,
+      "category": "comedy",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b897f"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.551Z"
+      }
+    },
+    {
+      "platform": "youtube",
+      "handle": "Rohan Joshi",
+      "followers": 700000,
+      "engagementRate": 4,
+      "avgLikes": 22000,
+      "avgComments": 1100,
+      "avgViews": 100000,
+      "category": "comedy",
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8980"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:24:01.551Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.551Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.551Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacdeae90e904426156a75"
+  },
+  "influencerId": {
+    "$oid": "68eacdeae90e904426156a74"
+  },
+  "socialHandle": "@chloe.explores",
+  "platforms": [
+    {
+      "platform": "youtube",
+      "handle": "@chloe.explores",
+      "followers": 1223,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68eacdeae90e904426156a76"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-11T21:36:42.437Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:36:42.441Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:36:42.441Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef9e100eeb9fd813f6a885"
+  },
+  "influencerId": {
+    "$oid": "68ef9e100eeb9fd813f6a884"
+  },
+  "socialHandle": "@charant12",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@charant12",
+      "followers": 110,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68ef9e100eeb9fd813f6a886"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-15T13:13:52.016Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-15T13:13:52.020Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T13:13:52.020Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efa0920eeb9fd813f6a8c0"
+  },
+  "influencerId": {
+    "$oid": "68efa0920eeb9fd813f6a8bf"
+  },
+  "socialHandle": "@chloe.explores",
+  "platforms": [
+    {
+      "platform": "youtube",
+      "handle": "@chloe.explores",
+      "followers": 1000,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68efa0920eeb9fd813f6a8c1"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-15T13:24:34.971Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-15T13:24:34.974Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T13:24:34.974Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efba176dcd13cc9ca1d5c9"
+  },
+  "influencerId": {
+    "$oid": "68efba176dcd13cc9ca1d5c8"
+  },
+  "socialHandle": "@aditi_dahiya",
+  "platforms": [
+    {
+      "platform": "youtube",
+      "handle": "@aditi_dahiya",
+      "followers": 90000,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "68efba176dcd13cc9ca1d5ca"
+      },
+      "lastUpdated": {
+        "$date": "2025-10-15T15:13:27.124Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-15T15:13:27.129Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T15:13:27.129Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69175de0afc4a98a8fcf2e1c"
+  },
+  "influencerId": {
+    "$oid": "69175de0afc4a98a8fcf2e1b"
+  },
+  "socialHandle": "@willtenny24",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@willtenny24",
+      "followers": 10000,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "69175de0afc4a98a8fcf2e1d"
+      },
+      "lastUpdated": {
+        "$date": "2025-11-14T16:50:40.345Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-11-14T16:50:40.349Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-14T16:50:40.349Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920df2f1bd19b5f7ea79bf3"
+  },
+  "influencerId": {
+    "$oid": "6920df2f1bd19b5f7ea79bf2"
+  },
+  "socialHandle": "@sam_nutrionist",
+  "platforms": [
+    {
+      "platform": "instagram",
+      "handle": "@sam_nutrionist",
+      "followers": 30000,
+      "engagementRate": 0,
+      "avgLikes": 0,
+      "avgComments": 0,
+      "avgViews": 0,
+      "category": "general",
+      "_id": {
+        "$oid": "6920df2f1bd19b5f7ea79bf4"
+      },
+      "lastUpdated": {
+        "$date": "2025-11-21T21:52:47.173Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-11-21T21:52:47.178Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T21:52:47.178Z"
+  },
+  "__v": 0
+}]

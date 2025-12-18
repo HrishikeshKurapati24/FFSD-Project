@@ -1,0 +1,721 @@
+[{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0788"
+  },
+  "fullName": "Kusha Kapila",
+  "email": "kusha@example.com",
+  "password": "$2b$10$ROUUkmih1RKEjWH8qCc5HePr.VWspGkFlg1MaJytQsIOhuuse4uk.",
+  "username": "kushakapila",
+  "bio": "Digital Content Creator | Comedian | Actor | Fashion Enthusiasts",
+  "phone": "+919876543210",
+  "location": "Mumbai, India",
+  "profilePicUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217098/influencer-profiles/4d2b85913490ddb0f602aa0eb0881380_mzxfbd.png",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1763763523/influencer-banners/567dda6e407855743734fe8755c9463d_ub8xvn.jpg",
+  "verified": true,
+  "niche": "Lifestyle & Comedy",
+  "categories": [
+    "Fashion",
+    "Comedy",
+    "Lifestyle",
+    "beauty"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://kushakapila.com",
+  "about": "Digital content creator known for her relatable comedy sketches and fashion content.",
+  "influenceRegions": "India",
+  "displayName": "Kusha Kapila",
+  "primaryMarket": "India",
+  "audienceAgeRange": "18-35",
+  "audienceGender": "Female",
+  "avgRating": 4.8,
+  "completedCollabs": 150,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.145Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T23:06:17.464Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e078f"
+  },
+  "fullName": "Dolly Singh",
+  "email": "dolly@example.com",
+  "password": "$2b$10$ROUUkmih1RKEjWH8qCc5HePr.VWspGkFlg1MaJytQsIOhuuse4uk.",
+  "username": "dollysingh",
+  "bio": "Content Creator | Comedian | Actor | Writer",
+  "phone": "+919876543211",
+  "location": "Mumbai, India",
+  "profilePicUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760213359/influencer-profiles/47e1bce28da688d345939b8c8c817aaf_hzykwd.jpg",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760213361/influencer-banners/96cf3f15db641580a60f1da4b279af2b_ykqvy5.jpg",
+  "verified": true,
+  "niche": "Comedy & Entertainment",
+  "categories": [
+    "Comedy",
+    "Entertainment",
+    "Writing",
+    "Fashion"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://dollysingh.com",
+  "about": "Digital content creator known for her witty comedy sketches and relatable content.",
+  "influenceRegions": "India",
+  "displayName": "Dolly Singh",
+  "primaryMarket": "India",
+  "audienceAgeRange": "16-35",
+  "audienceGender": "Mixed",
+  "avgRating": 4.7,
+  "completedCollabs": 120,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.149Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T20:09:22.541Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e0796"
+  },
+  "fullName": "Masoom Minawala",
+  "email": "masoom@example.com",
+  "password": "$2b$10$ROUUkmih1RKEjWH8qCc5HePr.VWspGkFlg1MaJytQsIOhuuse4uk.",
+  "username": "masoomminawala",
+  "bio": "Fashion Influencer | Entrepreneur | Digital Creator",
+  "phone": "+919876543212",
+  "location": "Mumbai, India",
+  "profilePicUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217435/influencer-profiles/7832af490b414b65b20e99e80eb5ef55_rm6xjk.jpg",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217437/influencer-banners/f2a03850a59ef6e45810bbd7efd13695_dhrvgt.png",
+  "verified": true,
+  "niche": "Fashion & Lifestyle",
+  "categories": [
+    "Fashion",
+    "Lifestyle",
+    "Entrepreneurship",
+    "Travel"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://masoomminawala.com",
+  "about": "Fashion influencer and entrepreneur known for her luxury fashion content.",
+  "influenceRegions": "India",
+  "displayName": "Masoom Minawala",
+  "primaryMarket": "India",
+  "audienceAgeRange": "20-40",
+  "audienceGender": "Female",
+  "avgRating": 4.9,
+  "completedCollabs": 200,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.152Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:17:18.066Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e079d"
+  },
+  "fullName": "Ranveer Allahbadia",
+  "email": "ranveer@example.com",
+  "password": "$2b$10$ROUUkmih1RKEjWH8qCc5HePr.VWspGkFlg1MaJytQsIOhuuse4uk.",
+  "username": "ranveerallahbadia123",
+  "bio": "Fitness Influencer | Entrepreneur | Podcast Host",
+  "phone": "+919876543213",
+  "location": "Mumbai, India",
+  "profilePicUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760213442/influencer-profiles/7d74f221298fabea30221d6eb8574153_gfe1d4.jpg",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760213444/influencer-banners/243038adb827d6f4ba44787e7b9251c5_p2kyl5.png",
+  "verified": true,
+  "niche": "Fitness & Motivation",
+  "categories": [
+    "Fitness",
+    "Motivation",
+    "Fashion",
+    "Health"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://beerbiceps.com",
+  "about": "Fitness influencer and entrepreneur known for his fitness content and motivational videos.",
+  "influenceRegions": "India",
+  "displayName": "BeerBiceps",
+  "primaryMarket": "India",
+  "audienceAgeRange": "18-35",
+  "audienceGender": "Male",
+  "avgRating": 4.8,
+  "completedCollabs": 180,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.154Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:54:51.129Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eaad2aaa0b06c2e62e07a4"
+  },
+  "fullName": "Prajakta Koli",
+  "email": "prajakta@example.com",
+  "password": "$2b$10$ROUUkmih1RKEjWH8qCc5HePr.VWspGkFlg1MaJytQsIOhuuse4uk.",
+  "username": "prajaktakoli",
+  "bio": "Digital Content Creator | Actor | Comedian | Writer",
+  "phone": "+919876543214",
+  "location": "Mumbai, India",
+  "profilePicUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217488/influencer-profiles/3f19ddc519b07e41f0ce75e44081f561_upd3xq.jpg",
+  "bannerUrl": "https://res.cloudinary.com/dntg56vi6/image/upload/v1760217490/influencer-banners/e1536701d178a65fa334e5b2c205d156_gqfstm.jpg",
+  "verified": true,
+  "niche": "Comedy & Entertainment",
+  "categories": [
+    "Comedy",
+    "Entertainment",
+    "Acting",
+    "Writing"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://mostlysane.com",
+  "about": "Digital content creator known for her comedy sketches and acting.",
+  "influenceRegions": "India",
+  "displayName": "MostlySane",
+  "primaryMarket": "India",
+  "audienceAgeRange": "16-35",
+  "audienceGender": "Mixed",
+  "avgRating": 4.9,
+  "completedCollabs": 250,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-11T19:16:58.157Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:18:11.196Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b894e"
+  },
+  "fullName": "Mithila Palkar",
+  "email": "mithila@example.com",
+  "password": "$2b$10$Xz5k1GhnH0K6QBGvf0Q.X.4dWzUtm0Xi992P8eeSpO9i0s9Xe3fRS",
+  "username": "mithilapalkar",
+  "bio": "Actor | Content Creator | Singer | Digital Artist",
+  "phone": "+919876543215",
+  "location": "Mumbai, India",
+  "profilePicUrl": "/images/influencers/mithila-profile.png",
+  "bannerUrl": "/images/influencers/mithila-banner.jpg",
+  "verified": true,
+  "niche": "Entertainment & Acting",
+  "categories": [
+    "Acting",
+    "Entertainment",
+    "Music",
+    "Digital Art"
+  ],
+  "languages": [
+    "English",
+    "Hindi",
+    "Marathi"
+  ],
+  "website": "https://mithilapalkar.com",
+  "about": "Actor and content creator known for her work in web series and digital content. Also a talented singer and digital artist.",
+  "influenceRegions": "India",
+  "displayName": "Mithila Palkar",
+  "primaryMarket": "India",
+  "audienceAgeRange": "18-40",
+  "audienceGender": "Mixed",
+  "avgRating": 4.7,
+  "completedCollabs": 180,
+  "bestPosts": [
+    {
+      "platform": "Instagram",
+      "title": "Behind the Scenes",
+      "thumbnail": "/images/posts/mithila-bts.jpg",
+      "likes": 35000,
+      "comments": 1200,
+      "views": 80000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b894f"
+      }
+    },
+    {
+      "platform": "YouTube",
+      "title": "Singing Session",
+      "thumbnail": "/images/posts/mithila-singing.jpg",
+      "likes": 18000,
+      "comments": 800,
+      "views": 120000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8950"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.539Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.539Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8959"
+  },
+  "fullName": "Aashna Shroff",
+  "email": "aashna@example.com",
+  "password": "$2b$10$Xz5k1GhnH0K6QBGvf0Q.X.4dWzUtm0Xi992P8eeSpO9i0s9Xe3fRS",
+  "username": "aashnashroff",
+  "bio": "Fashion Blogger | Lifestyle Influencer | Entrepreneur",
+  "phone": "+919876543216",
+  "location": "Mumbai, India",
+  "profilePicUrl": "/images/influencers/aashna-profile.jpeg",
+  "bannerUrl": "/images/influencers/aashna-banner.jpg",
+  "verified": true,
+  "niche": "Fashion & Lifestyle",
+  "categories": [
+    "Fashion",
+    "Lifestyle",
+    "Beauty",
+    "Electronics"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://aashnashroff.com",
+  "about": "Fashion blogger and lifestyle influencer known for her chic style and travel content.",
+  "influenceRegions": "India",
+  "displayName": "Aashna Shroff",
+  "primaryMarket": "India",
+  "audienceAgeRange": "20-35",
+  "audienceGender": "Female",
+  "avgRating": 4.6,
+  "completedCollabs": 160,
+  "bestPosts": [
+    {
+      "platform": "Instagram",
+      "title": "Fashion Week Outfits",
+      "thumbnail": "/images/posts/aashna-fashion.jpg",
+      "likes": 42000,
+      "comments": 1800,
+      "views": 95000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b895a"
+      }
+    },
+    {
+      "platform": "YouTube",
+      "title": "Travel Vlog - Maldives",
+      "thumbnail": "/images/posts/aashna-travel.jpg",
+      "likes": 25000,
+      "comments": 1200,
+      "views": 150000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b895b"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.543Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.543Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b8964"
+  },
+  "fullName": "Ashish Chanchlani",
+  "email": "ashish@example.com",
+  "password": "$2b$10$Xz5k1GhnH0K6QBGvf0Q.X.4dWzUtm0Xi992P8eeSpO9i0s9Xe3fRS",
+  "username": "ashishchanchlani1",
+  "bio": "Content Creator | Comedian | Actor | YouTuber",
+  "phone": "+919876543217",
+  "location": "Mumbai, India",
+  "profilePicUrl": "/images/influencers/ashish-profile.jpg",
+  "bannerUrl": "/images/influencers/ashish-banner.jpg",
+  "verified": true,
+  "niche": "Comedy & Entertainment",
+  "categories": [
+    "Comedy",
+    "Entertainment",
+    "Acting",
+    "YouTube",
+    "Electronics"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://ashishchanchlani.com",
+  "about": "Popular content creator known for his comedy sketches and entertaining videos.",
+  "influenceRegions": "India",
+  "displayName": "Ashish Chanchlani",
+  "primaryMarket": "India",
+  "audienceAgeRange": "16-35",
+  "audienceGender": "Female",
+  "avgRating": 4.8,
+  "completedCollabs": 220,
+  "bestPosts": [
+    {
+      "platform": "Instagram",
+      "title": "Comedy Sketches",
+      "thumbnail": "/images/posts/ashish-comedy.jpg",
+      "likes": 85000,
+      "comments": 4000,
+      "views": 180000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8965"
+      }
+    },
+    {
+      "platform": "YouTube",
+      "title": "Funny Challenges",
+      "thumbnail": "/images/posts/ashish-challenges.jpg",
+      "likes": 45000,
+      "comments": 2500,
+      "views": 300000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8966"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.546Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-25T11:49:02.636Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b896f"
+  },
+  "fullName": "Diipa Khosla",
+  "email": "diipa@example.com",
+  "password": "$2b$10$Xz5k1GhnH0K6QBGvf0Q.X.4dWzUtm0Xi992P8eeSpO9i0s9Xe3fRS",
+  "username": "diipakhosla",
+  "bio": "Fashion Influencer | Beauty Expert | Entrepreneur | Global Citizen",
+  "phone": "+919876543218",
+  "location": "Mumbai, India",
+  "profilePicUrl": "/images/influencers/diipa-profile.jpeg",
+  "bannerUrl": "/images/influencers/diipa-banner.jpg",
+  "verified": true,
+  "niche": "Fashion & Beauty",
+  "categories": [
+    "Fashion",
+    "Beauty",
+    "Lifestyle",
+    "Entrepreneurship"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://diipakhosla.com",
+  "about": "Fashion influencer and beauty expert known for her international collaborations and entrepreneurial ventures.",
+  "influenceRegions": "Global",
+  "displayName": "Diipa Khosla",
+  "primaryMarket": "Global",
+  "audienceAgeRange": "22-40",
+  "audienceGender": "Female",
+  "avgRating": 4.9,
+  "completedCollabs": 280,
+  "bestPosts": [
+    {
+      "platform": "Instagram",
+      "title": "International Fashion Week",
+      "thumbnail": "/images/posts/diipa-fashion.jpg",
+      "likes": 95000,
+      "comments": 4500,
+      "views": 220000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8970"
+      }
+    },
+    {
+      "platform": "YouTube",
+      "title": "Beauty Routine",
+      "thumbnail": "/images/posts/diipa-beauty.jpg",
+      "likes": 55000,
+      "comments": 2800,
+      "views": 250000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b8971"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.548Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.548Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacaf128d20ff5089b897a"
+  },
+  "fullName": "Rohan Joshi",
+  "email": "rohan@example.com",
+  "password": "$2b$10$Xz5k1GhnH0K6QBGvf0Q.X.4dWzUtm0Xi992P8eeSpO9i0s9Xe3fRS",
+  "username": "rohanjoshi",
+  "bio": "Comedian | Writer | Actor | Content Creator",
+  "phone": "+919876543219",
+  "location": "Mumbai, India",
+  "profilePicUrl": "/images/influencers/rohan-profile.jpg",
+  "bannerUrl": "/images/influencers/rohan-banner.png",
+  "verified": true,
+  "niche": "Comedy & Writing",
+  "categories": [
+    "Comedy",
+    "Writing",
+    "Acting",
+    "Entertainment"
+  ],
+  "languages": [
+    "English",
+    "Hindi"
+  ],
+  "website": "https://rohanjoshi.com",
+  "about": "Comedian and writer known for his witty humor and engaging content across platforms.",
+  "influenceRegions": "India",
+  "displayName": "Rohan Joshi",
+  "primaryMarket": "India",
+  "audienceAgeRange": "20-40",
+  "audienceGender": "Mixed",
+  "avgRating": 4.7,
+  "completedCollabs": 140,
+  "bestPosts": [
+    {
+      "platform": "Instagram",
+      "title": "Stand-up Comedy Clips",
+      "thumbnail": "/images/posts/rohan-standup.jpg",
+      "likes": 38000,
+      "comments": 1600,
+      "views": 85000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b897b"
+      }
+    },
+    {
+      "platform": "YouTube",
+      "title": "Comedy Special",
+      "thumbnail": "/images/posts/rohan-special.jpg",
+      "likes": 28000,
+      "comments": 1400,
+      "views": 180000,
+      "_id": {
+        "$oid": "68eacaf128d20ff5089b897c"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-11T21:24:01.551Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:24:01.551Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68eacdeae90e904426156a74"
+  },
+  "fullName": "Hrishikesh Kurapati",
+  "email": "chloe_thompson_creator@gmail.com",
+  "password": "$2b$10$jCeprmRCyjigspqdMFifcOv5nY1cA0astUeK7tbHeYcwhAhziqV72",
+  "username": "chloethompsoncreator_2893",
+  "phone": "+12025550123",
+  "profilePicUrl": "/images/default-avatar.jpg",
+  "bannerUrl": "/images/default-banner.jpg",
+  "verified": false,
+  "niche": "travel",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "displayName": "Hrishikesh Kurapati",
+  "primaryMarket": "Global",
+  "avgRating": 0,
+  "completedCollabs": 0,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-11T21:36:42.440Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-11T21:36:42.440Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68ef9e100eeb9fd813f6a884"
+  },
+  "fullName": "Charan",
+  "email": "charan@gmail.com",
+  "password": "$2b$10$RcWyqmuo/jJNyExW3oe3AewqKDCA8j10woJQZZFodpd4LJeYfQhSa",
+  "username": "charan_3152",
+  "phone": "1111111134",
+  "profilePicUrl": "/images/default-avatar.jpg",
+  "bannerUrl": "/images/default-banner.jpg",
+  "verified": false,
+  "niche": "movies",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "displayName": "Charan",
+  "primaryMarket": "Global",
+  "avgRating": 0,
+  "completedCollabs": 0,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-15T13:13:52.019Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T13:13:52.019Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efa0920eeb9fd813f6a8bf"
+  },
+  "fullName": "Hrishikesh Kurapati",
+  "email": "dolly@gmali.com",
+  "password": "$2b$10$9CuCl0s4l.DnlhDat2/QJua6WEzE7a.5o/XE1EfGFdWGE9BYW4rnG",
+  "username": "dolly_5613",
+  "phone": "+12025550123",
+  "profilePicUrl": "/images/default-avatar.jpg",
+  "bannerUrl": "/images/default-banner.jpg",
+  "verified": false,
+  "niche": "Travel & Photography",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "displayName": "Hrishikesh Kurapati",
+  "primaryMarket": "Global",
+  "avgRating": 0,
+  "completedCollabs": 0,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-15T13:24:34.973Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T13:24:34.973Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68efba176dcd13cc9ca1d5c8"
+  },
+  "fullName": "Aditi Dahiya",
+  "email": "aditi@gmail.com",
+  "password": "$2b$10$IPcCG1OoJk7jMO4ZpxfHtuhbHlxyQHR7dbMBjYvnoOSLPp3ZEX7V.",
+  "username": "aditi_7747",
+  "phone": "+12025550123",
+  "profilePicUrl": "/images/default-avatar.jpg",
+  "bannerUrl": "/images/default-banner.jpg",
+  "verified": false,
+  "niche": "psychology",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "displayName": "Aditi Dahiya",
+  "primaryMarket": "Global",
+  "avgRating": 0,
+  "completedCollabs": 0,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-10-15T15:13:27.127Z"
+  },
+  "updatedAt": {
+    "$date": "2025-10-15T15:13:27.127Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69175de0afc4a98a8fcf2e1b"
+  },
+  "fullName": "Will Tennyson",
+  "email": "will.t30@gmail.com",
+  "password": "$2b$10$DQ8M8MfJ/hl/GOOYEFcLZuo.t74TyTuHzWj126lhcTGDrq.yyoS4q",
+  "username": "willt30_2867",
+  "phone": "+12025550123",
+  "profilePicUrl": "/images/default-avatar.jpg",
+  "bannerUrl": "/images/default-banner.jpg",
+  "verified": false,
+  "niche": "Fitness",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "displayName": "Will Tennyson",
+  "primaryMarket": "Global",
+  "avgRating": 0,
+  "completedCollabs": 0,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-11-14T16:50:40.348Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-14T16:50:40.348Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6920df2f1bd19b5f7ea79bf2"
+  },
+  "fullName": "Samantha Tulla",
+  "email": "sam-tulla@email.com",
+  "password": "$2b$10$KtzVftCiYdSu30eLcBSaJujMVI1OxaBZ2WFieu5Cma5uyE0B5AX.G",
+  "username": "samtulla_8813",
+  "phone": "7995476044",
+  "profilePicUrl": "/images/default-avatar.jpg",
+  "bannerUrl": "/images/default-banner.jpg",
+  "verified": false,
+  "niche": "nutrition",
+  "categories": [],
+  "languages": [],
+  "influenceRegions": "Global",
+  "displayName": "Samantha Tulla",
+  "primaryMarket": "Global",
+  "avgRating": 0,
+  "completedCollabs": 0,
+  "bestPosts": [],
+  "createdAt": {
+    "$date": "2025-11-21T21:52:47.176Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-21T21:52:47.176Z"
+  },
+  "__v": 0
+}]
