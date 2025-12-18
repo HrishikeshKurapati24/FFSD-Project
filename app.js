@@ -17,8 +17,24 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 
 // CORS configuration
+// CORS configuration
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    ...(process.env.Allowed_Origins ? process.env.Allowed_Origins.split(',') : []),
+    ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [])
+];
+
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow both frontend and backend origins
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true, // Allow cookies and authorization headers
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
@@ -384,17 +400,17 @@ const startServer = async () => {
 
         // Schedule periodic subscription expiry check (every hour)
         const { SubscriptionService } = require('./models/brandModel');
-        
+
         // Run immediately on startup
         console.log('🔍 Running initial subscription expiry check...');
         await SubscriptionService.checkAndExpireSubscriptions();
-        
+
         // Then run every hour
         setInterval(async () => {
             console.log('🔍 Running scheduled subscription expiry check...');
             await SubscriptionService.checkAndExpireSubscriptions();
         }, 60 * 60 * 1000); // 1 hour in milliseconds
-        
+
         console.log('✅ Subscription expiry checker scheduled (runs every hour)');
     } catch (err) {
         console.error('❌ Error starting server:', err);

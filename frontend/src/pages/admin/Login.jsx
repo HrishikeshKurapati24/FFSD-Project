@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/admin/login.module.css';
+import { API_BASE_URL } from '../../services/api';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -53,7 +54,7 @@ export default function Login() {
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         const fieldValue = type === 'checkbox' ? checked : value;
-        
+
         setFormData(prev => ({
             ...prev,
             [name]: fieldValue
@@ -85,9 +86,9 @@ export default function Login() {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/admin/login/verify', {
+            const response = await fetch(`${API_BASE_URL}/admin/login/verify`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
@@ -149,8 +150,8 @@ export default function Login() {
 
         const usernameError = validateUsername(resetFormData.username);
         const passwordError = validatePassword(resetFormData.newPassword);
-        const confirmError = resetFormData.newPassword !== resetFormData.confirmPassword 
-            ? "Passwords do not match" 
+        const confirmError = resetFormData.newPassword !== resetFormData.confirmPassword
+            ? "Passwords do not match"
             : '';
 
         setResetErrors({
@@ -164,7 +165,7 @@ export default function Login() {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/admin/reset-password', {
+            const response = await fetch(`${API_BASE_URL}/admin/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

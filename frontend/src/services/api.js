@@ -1,5 +1,5 @@
 // API_BASE_URL - backend server URL
-export const API_BASE_URL = 'http://localhost:3000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 // Handle authentication errors (401) by redirecting to login
 const handleAuthError = (response) => {

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "test",
     "start": "node app.js",
-    "init-data": "node initData.js"
+    "init-data": "node initData.js",
+    "build": "echo 'No build step required for backend'"
   },
   "repository": {
     "type": "git",
