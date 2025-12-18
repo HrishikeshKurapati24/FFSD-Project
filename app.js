@@ -52,6 +52,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Trust Proxy for Render (Required for secure cookies behind load balancer)
+app.set('trust proxy', 1);
+
 // Session configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
@@ -59,7 +62,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Must be 'none' for cross-site
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         httpOnly: true
     }
