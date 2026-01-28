@@ -327,6 +327,48 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
             views: post.views || 0
         })) || [];
 
+        // Fetch Campaign Data for Partnerships and Collaborations
+        const campaigns = await CampaignInfluencers.find({
+            influencer_id: influencerId,
+            status: { $in: ['active', 'completed'] }
+        })
+            .populate({
+                path: 'campaign_id',
+                select: 'title start_date end_date required_channels brand_id status',
+                populate: {
+                    path: 'brand_id',
+                    select: 'brandName'
+                }
+            })
+            .lean();
+
+        // Process Current Partnerships (Active)
+        const currentPartnerships = campaigns
+            .filter(c => c.status === 'active' && c.campaign_id?.status === 'active')
+            .map(c => ({
+                id: c.campaign_id._id,
+                title: c.campaign_id.title,
+                brandName: c.campaign_id.brand_id?.brandName || 'Unknown Brand',
+                startDate: c.campaign_id.start_date,
+                endDate: c.campaign_id.end_date,
+                progress: c.progress || 0,
+                channels: c.campaign_id.required_channels || []
+            }));
+
+        // Process Past Collaborations (Completed)
+        const pastCollaborations = campaigns
+            .filter(c => c.status === 'completed' && c.campaign_id?.status === 'completed')
+            .map(c => ({
+                id: c.campaign_id._id,
+                title: c.campaign_id.title,
+                brandName: c.campaign_id.brand_id?.brandName || 'Unknown Brand',
+                completionDate: c.campaign_id.end_date,
+                engagementRate: c.engagement_rate || 0,
+                reach: c.reach || 0,
+                clicks: c.clicks || 0,
+                conversions: c.conversions || 0
+            }));
+
         // Combine all data
         const influencerData = {
             _id: influencer._id,
@@ -336,6 +378,8 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
             profilePicUrl: influencer.profilePicUrl || '/images/default-profile.jpg',
             bannerUrl: influencer.bannerUrl || '/images/default-banner.jpg',
             bio: influencer.bio || '',
+            location: influencer.location || 'Not specified',
+            influenceRegions: influencer.influenceRegions || 'Global',
             verified: influencer.verified || false,
             categories: influencer.categories || [],
             languages: influencer.languages || [],
@@ -345,6 +389,8 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
             avgEngagementRate: analytics?.avgEngagementRate || 0,
             completedCollabs: influencer.completedCollabs || 0,
             bestPosts: bestPosts,
+            currentPartnerships: currentPartnerships,
+            pastCollaborations: pastCollaborations,
             rating: analytics?.rating || 0,
             audienceDemographics: analytics?.audienceDemographics || {
                 gender: 'Mixed',
@@ -841,7 +887,7 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
         res.render('brand/transaction', viewData);
     } catch (error) {
         console.error('Error fetching transaction data:', error);
-        
+
         // Return JSON for API requests
         if (req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(500).json({
@@ -883,7 +929,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         // Validate required fields (always required)
         if (!amount || !paymentMethod) {
             const errorMessage = 'Amount and payment method are required';
-            
+
             // Return JSON for API requests
             if (req.xhr || req.headers.accept?.includes('application/json')) {
                 return res.status(400).json({
@@ -891,7 +937,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                     message: errorMessage
                 });
             }
-            
+
             return res.status(400).send(errorMessage);
         }
 
@@ -908,7 +954,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         if (!request) {
             console.error('Request not found for:', { campaignId, influencerId });
             const errorMessage = 'Request not found';
-            
+
             // Return JSON for API requests
             if (req.xhr || req.headers.accept?.includes('application/json')) {
                 return res.status(404).json({
@@ -916,7 +962,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                     message: errorMessage
                 });
             }
-            
+
             return res.status(404).send(errorMessage);
         }
 
@@ -924,7 +970,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         const campaignDoc = await CampaignInfo.findById(request.campaign_id).select('status brand_id');
         if (!campaignDoc) {
             const errorMessage = 'Campaign not found';
-            
+
             // Return JSON for API requests
             if (req.xhr || req.headers.accept?.includes('application/json')) {
                 return res.status(404).json({
@@ -932,7 +978,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                     message: errorMessage
                 });
             }
-            
+
             return res.status(404).send(errorMessage);
         }
 
@@ -952,7 +998,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
 
             if (start < today) {
                 const errorMessage = 'Start date cannot be in the past';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(400).json({
@@ -960,13 +1006,13 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(400).send(errorMessage);
             }
 
             if (end <= start) {
                 const errorMessage = 'End date must be after start date';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(400).json({
@@ -974,14 +1020,14 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(400).send(errorMessage);
             }
 
             const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
             if (duration > 365) {
                 const errorMessage = 'Campaign duration cannot exceed 365 days';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(400).json({
@@ -989,7 +1035,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(400).send(errorMessage);
             }
 
@@ -1023,7 +1069,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             // Basic validation for product
             if (!prodName || !prodDescription || !category) {
                 const errorMessage = 'All product fields are required';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(400).json({
@@ -1031,13 +1077,13 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(400).send(errorMessage);
             }
 
             if (!req.file) {
                 const errorMessage = 'Product image is required';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(400).json({
@@ -1045,7 +1091,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(400).send(errorMessage);
             }
 
@@ -1054,7 +1100,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             const tq = Number(targetQty);
             if (!Number.isFinite(op) || op < 0 || !Number.isFinite(cp) || cp < 0 || cp > op || !Number.isFinite(tq) || tq < 0) {
                 const errorMessage = 'Invalid product pricing or target quantity';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(400).json({
@@ -1062,7 +1108,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(400).send(errorMessage);
             }
 
@@ -1091,7 +1137,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             } catch (uploadError) {
                 console.error('Error uploading image to Cloudinary:', uploadError);
                 const errorMessage = 'Error uploading product image';
-                
+
                 // Return JSON for API requests
                 if (req.xhr || req.headers.accept?.includes('application/json')) {
                     return res.status(500).json({
@@ -1099,7 +1145,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                         message: errorMessage
                     });
                 }
-                
+
                 return res.status(500).send(errorMessage);
             }
         }
@@ -1120,7 +1166,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         } catch (error) {
             console.error('Error saving payment:', error);
             const errorMessage = 'Internal Server Error';
-            
+
             // Return JSON for API requests
             if (req.xhr || req.headers.accept?.includes('application/json')) {
                 return res.status(500).json({
@@ -1128,7 +1174,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
                     message: errorMessage
                 });
             }
-            
+
             return res.status(500).send(errorMessage);
         }
 
@@ -1189,7 +1235,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         res.redirect(`/brand/home`);
     } catch (error) {
         console.error('Error processing payment:', error);
-        
+
         // Return JSON for API requests
         if (req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(500).json({
@@ -1752,9 +1798,9 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         // Check authentication
         if (!req.session || !req.session.user || !req.session.user.id) {
             if (req.xhr || req.headers.accept?.includes('application/json')) {
-                return res.status(401).json({ 
+                return res.status(401).json({
                     success: false,
-                    message: 'Authentication required' 
+                    message: 'Authentication required'
                 });
             }
             return res.status(401).redirect('/signin');
@@ -1764,9 +1810,9 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         const brandId = req.session.user.id;
 
         if (!campaignId) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: 'Campaign ID is required' 
+                message: 'Campaign ID is required'
             });
         }
 
@@ -1777,9 +1823,9 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         });
 
         if (!campaign) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                message: 'Campaign not found' 
+                message: 'Campaign not found'
             });
         }
 
@@ -1789,9 +1835,9 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
             status: 'active'
         });
         if (acceptedCount === 0) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: 'Cannot activate: no accepted influencers yet.' 
+                message: 'Cannot activate: no accepted influencers yet.'
             });
         }
 
@@ -1808,24 +1854,28 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
         // Set success message in session
         req.session.successMessage = 'Campaign activated successfully.';
 
-        res.json({ 
+        res.json({
             success: true,
             message: 'Campaign activated successfully'
         });
     } catch (error) {
         console.error('Error activating campaign:', error);
         if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({ 
+            return res.status(500).json({
                 success: false,
-                message: error.message || 'Failed to activate campaign' 
+                message: error.message || 'Failed to activate campaign'
             });
         }
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: 'Failed to activate campaign' 
+            message: 'Failed to activate campaign'
         });
     }
 });
+
+// New routes for Dashboard Influencer Drill-down
+router.get('/campaigns/:campaignId/influencers', isAuthenticated, isBrand, brandController.getCampaignInfluencers);
+router.get('/campaigns/:campaignId/influencers/:influencerId/contribution', isAuthenticated, isBrand, brandController.getInfluencerContribution);
 
 // Add this route after the campaign activation route
 router.get('/campaigns/:campaignId/details', async (req, res) => {

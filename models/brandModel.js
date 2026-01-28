@@ -824,18 +824,44 @@ class brandModel {
   // Get top campaigns for a brand
   static async getTopCampaigns(brandId) {
     try {
-      const topCampaigns = await CampaignMetrics.find({ brand_id: brandId })
-        .sort({ performance_score: -1 })
-        .limit(5);
-      return topCampaigns;
-    } catch (err) {
-      throw err;
-    }
+      // First, get campaign IDs that are 'active' or 'completed'
+      const validCampaigns = await CampaignInfo.find({
+        brand_id: brandId,
+        status: { $in: ['active', 'completed'] }
+      }).select('_id').lean();
 
-    /*
-    db2.all('SELECT * FROM campaigns WHERE brand_id = ? ORDER BY performance_score DESC LIMIT 5', [brandId], ...);
-    */
+      const validCampaignIds = validCampaigns.map(c => c._id);
+
+      if (validCampaignIds.length === 0) {
+        return [];
+      }
+
+      // Get metrics for those campaigns and populate campaign info
+      const topCampaigns = await CampaignMetrics.find({
+        brand_id: brandId,
+        campaign_id: { $in: validCampaignIds }
+      })
+        .sort({ performance_score: -1 })
+        .limit(5)
+        .populate('campaign_id', 'title status')
+        .lean();
+
+      // Map results to include title and status at top level
+      return topCampaigns.map(metric => ({
+        _id: metric._id,
+        id: metric.campaign_id?._id || metric.campaign_id,
+        title: metric.campaign_id?.title || 'Untitled Campaign',
+        status: metric.campaign_id?.status || 'active',
+        performance_score: metric.performance_score || 0,
+        reach: metric.reach || 0,
+        engagement_rate: metric.engagement_rate || 0
+      }));
+    } catch (err) {
+      console.error('Error fetching top campaigns:', err);
+      return [];
+    }
   }
+
 
   // Get verification status
   static async getVerificationStatus(brandId) {

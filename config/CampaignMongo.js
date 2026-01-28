@@ -74,11 +74,6 @@ const campaignInfoSchema = new mongoose.Schema({
         required: false, // Will be filled by brand
         trim: true,
         maxlength: [500, 'Objectives cannot exceed 500 characters']
-    },
-    product_name: {
-        type: String,
-        trim: true,
-        maxlength: [200, 'Product name cannot exceed 200 characters']
     }
 }, {
     timestamps: true

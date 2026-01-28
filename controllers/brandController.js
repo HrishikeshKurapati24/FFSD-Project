@@ -1,5 +1,5 @@
-// controller/brandController.js
 const { brandModel, SubscriptionService } = require('../models/brandModel');
+const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../config/CampaignMongo');
 const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploadError } = require('../utils/imageUpload');
 const { validationResult } = require('express-validator');
 
@@ -597,7 +597,7 @@ const brandController = {
       if (!brandId) {
         console.error('No brand ID found in session');
         const errorMessage = 'Please log in to view campaign history';
-        
+
         // Return JSON for API requests
         if (req.xhr || req.headers.accept?.includes('application/json')) {
           return res.status(401).json({
@@ -605,7 +605,7 @@ const brandController = {
             message: errorMessage
           });
         }
-        
+
         return res.status(401).render('error', {
           error: { status: 401 },
           message: errorMessage
@@ -644,7 +644,7 @@ const brandController = {
       res.render('brand/campaign_history', historyPayload);
     } catch (error) {
       console.error('Error in getCampaignHistory controller:', error);
-      
+
       // Return JSON for API requests
       if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(500).json({
@@ -657,6 +657,123 @@ const brandController = {
         error: { status: 500 },
         message: 'Error loading campaign history'
       });
+    }
+  },
+
+  // Get list of influencers for a specific campaign (Level 1)
+  async getCampaignInfluencers(req, res) {
+    try {
+      const { campaignId } = req.params;
+      const brandId = req.session.user.id;
+
+      if (!campaignId) {
+        return res.status(400).json({ success: false, message: 'Campaign ID is required' });
+      }
+
+      // Verify campaign ownership
+      const campaign = await CampaignInfo.findOne({
+        _id: campaignId,
+        brand_id: brandId
+      });
+
+      if (!campaign) {
+        return res.status(404).json({ success: false, message: 'Campaign not found' });
+      }
+
+      // Fetch influencers
+      const influencers = await CampaignInfluencers.find({
+        campaign_id: campaignId,
+        status: { $in: ['active', 'completed'] }
+      })
+        .populate('influencer_id', 'fullName username profilePicUrl')
+        .lean();
+
+      const formattedInfluencers = influencers.map(inf => ({
+        influencer_id: inf.influencer_id._id,
+        name: inf.influencer_id.fullName,
+        username: inf.influencer_id.username,
+        profilePicUrl: inf.influencer_id.profilePicUrl || '/images/default-profile.jpg',
+        status: inf.status,
+        progress: inf.progress || 0,
+        joined_at: inf.createdAt
+      }));
+
+      res.json({
+        success: true,
+        influencers: formattedInfluencers
+      });
+    } catch (error) {
+      console.error('Error fetching campaign influencers:', error);
+      res.status(500).json({ success: false, message: 'Error fetching influencers' });
+    }
+  },
+
+  // Get detailed contribution of an influencer for a campaign (Level 2)
+  async getInfluencerContribution(req, res) {
+    try {
+      const { campaignId, influencerId } = req.params;
+      const brandId = req.session.user.id;
+
+      if (!campaignId || !influencerId) {
+        return res.status(400).json({ success: false, message: 'Campaign ID and Influencer ID are required' });
+      }
+
+      // Verify campaign ownership
+      const campaign = await CampaignInfo.findOne({
+        _id: campaignId,
+        brand_id: brandId
+      }).select('title');
+
+      if (!campaign) {
+        return res.status(404).json({ success: false, message: 'Campaign not found' });
+      }
+
+      // Fetch active/completed participation
+      const participation = await CampaignInfluencers.findOne({
+        campaign_id: campaignId,
+        influencer_id: influencerId,
+        status: { $in: ['active', 'completed'] }
+      })
+        .populate('influencer_id', 'fullName profilePicUrl')
+        .lean();
+
+      if (!participation) {
+        return res.status(404).json({ success: false, message: 'Influencer is not part of this campaign' });
+      }
+
+      // Fetch payment details (Single payment model)
+      const payment = await CampaignPayments.findOne({
+        campaign_id: campaignId,
+        influencer_id: influencerId,
+        status: 'completed'
+      }).select('amount');
+
+      const totalPaid = payment ? payment.amount : 0;
+
+      res.json({
+        success: true,
+        influencer: {
+          name: participation.influencer_id.fullName,
+          profilePicUrl: participation.influencer_id.profilePicUrl || '/images/default-profile.jpg'
+        },
+        campaign: {
+          title: campaign.title
+        },
+        contribution: {
+          progress: participation.progress || 0,
+          deliverables: participation.deliverables || [],
+          metrics: {
+            engagement_rate: participation.engagement_rate || 0,
+            reach: participation.reach || 0,
+            clicks: participation.clicks || 0,
+            conversions: participation.conversions || 0
+          },
+          earnings: totalPaid
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching influencer contribution:', error);
+      res.status(500).json({ success: false, message: 'Error fetching contribution details' });
     }
   }
 };
