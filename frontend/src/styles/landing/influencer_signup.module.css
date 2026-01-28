@@ -98,6 +98,23 @@ button:hover {
     text-decoration: underline;
 }
 
+.signin-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.signin-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signin-link a:hover {
+    text-decoration: underline;
+}
+
 /* Right section - image (same style as Brand page) */
 .signup-right {
     flex: 1;

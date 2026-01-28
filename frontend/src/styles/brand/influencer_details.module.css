@@ -196,10 +196,195 @@
     color: #666;
 }
 
-.bestPosts {
+/* Partnerships and Collaborations Styles */
+.partnershipList,
+.collaborationList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.partnershipCard,
+.collabCard {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.partnershipCard:hover,
+.collabCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.partnershipHeader,
+.collabHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 8px;
+}
+
+.partnershipTitle,
+.collabTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.partnershipBrand,
+.collabBrand {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    flex: 1;
+}
+
+.partnershipDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.partnershipRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detailLabel {
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 500;
+    min-width: 70px;
+}
+
+.detailValue {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.progressBarContainer {
+    flex: 1;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressBar {
+    height: 100%;
+    background: var(--secondary-color, #34a853);
+    border-radius: 4px;
+}
+
+.progressValue {
+    font-size: 0.85rem;
+    color: #666;
+    min-width: 35px;
+    text-align: right;
+}
+
+.channelTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.channelTag {
+    font-size: 0.75rem;
+    background: #eef3ff;
+    color: var(--primary-color, #4285f4);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #d1e3ff;
+}
+
+.completionDate {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.collabMetricsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.collabMetric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.collabMetric .metricValue {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.collabMetric .metricLabel {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 2px;
+}
+
+/* Geographic Insights Styles */
+.geographicInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.geoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.geoLabel {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.geoValue {
+    font-size: 1rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.locationTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.locationTag {
+    font-size: 0.85rem;
+    background: #fff8e1;
+    color: #f57f17;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: 1px solid #fdd835;
+}
+
+.noData {
+    font-style: italic;
+    color: #999;
+    font-size: 0.9rem;
 }
 
 .postCard {

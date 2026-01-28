@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ActiveCampaignCard = ({ campaign, onReviewContent, onEndCampaign }) => {
+const ActiveCampaignCard = ({ campaign, onReviewContent, onEndCampaign, onViewInfluencers }) => {
   return (
     <div className="campaign-card">
       <span className={`campaign-status ${campaign.status === 'active' ? 'status-active' : 'status-upcoming'}`}>
@@ -57,9 +57,14 @@ const ActiveCampaignCard = ({ campaign, onReviewContent, onEndCampaign }) => {
           <i className="far fa-calendar"></i>
           <span>Ends in {campaign.daysRemaining || 0} days</span>
         </div>
-        <div className="meta-item">
+        <div
+          className="meta-item clickable-meta"
+          onClick={() => onViewInfluencers && onViewInfluencers(campaign._id, campaign.name || campaign.title)}
+          style={{ cursor: 'pointer', color: '#007bff' }}
+          title="View Influencers"
+        >
           <i className="fas fa-users"></i>
-          <span>{campaign.influencersCount || 0} influencers</span>
+          <span style={{ textDecoration: 'underline' }}>{campaign.influencersCount || 0} influencers</span>
         </div>
         <div className="meta-item">
           <i className="fas fa-tag"></i>

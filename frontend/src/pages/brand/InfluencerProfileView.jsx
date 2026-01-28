@@ -269,47 +269,88 @@ const InfluencerProfileView = () => {
                         </div>
 
                         <div className={styles.detailCard}>
-                            <h2 className={styles.cardTitle}>Best Posts</h2>
-                            <div className={styles.bestPosts}>
-                                {bestPosts.length > 0 ? (
-                                    bestPosts.map((post, index) => (
-                                        <div key={index} className={styles.postCard}>
-                                            <div className={styles.postDetails}>
-                                                <div className={styles.postPlatform}>
-                                                    <i className={`fab fa-${(post.platform || 'link').toLowerCase()}`} aria-hidden="true"></i>
-                                                    {post.platform || 'Unknown Platform'}
-                                                </div>
-                                                <div className={styles.postStats}>
-                                                    <span>
-                                                        <i className="fas fa-heart" aria-hidden="true"></i>
-                                                        {formatNumber(post.likes || 0)}
+                            <h2 className={styles.cardTitle}>Current Partnerships</h2>
+                            <div className={styles.partnershipList}>
+                                {influencer.currentPartnerships && influencer.currentPartnerships.length > 0 ? (
+                                    influencer.currentPartnerships.map((collab, index) => (
+                                        <div key={index} className={styles.partnershipCard}>
+                                            <div className={styles.partnershipHeader}>
+                                                <h3 className={styles.partnershipTitle}>{collab.title}</h3>
+                                                <span className={styles.partnershipBrand}>with {collab.brandName}</span>
+                                            </div>
+                                            <div className={styles.partnershipDetails}>
+                                                <div className={styles.partnershipRow}>
+                                                    <span className={styles.detailLabel}>Duration:</span>
+                                                    <span className={styles.detailValue}>
+                                                        {collab.startDate ? new Date(collab.startDate).toLocaleDateString() : 'N/A'} -
+                                                        {collab.endDate ? new Date(collab.endDate).toLocaleDateString() : 'N/A'}
                                                     </span>
-                                                    <span>
-                                                        <i className="fas fa-comment" aria-hidden="true"></i>
-                                                        {formatNumber(post.comments || 0)}
-                                                    </span>
-                                                    {post.views && (
-                                                        <span>
-                                                            <i className="fas fa-eye" aria-hidden="true"></i>
-                                                            {formatNumber(post.views || 0)}
-                                                        </span>
-                                                    )}
                                                 </div>
-                                                {post.url && (
-                                                    <a
-                                                        href={post.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className={styles.postLink}
-                                                    >
-                                                        View Post
-                                                    </a>
-                                                )}
+                                                <div className={styles.partnershipRow}>
+                                                    <span className={styles.detailLabel}>Progress:</span>
+                                                    <div className={styles.progressBarContainer}>
+                                                        <div
+                                                            className={styles.progressBar}
+                                                            style={{ width: `${collab.progress || 0}%` }}
+                                                            aria-valuenow={collab.progress || 0}
+                                                            aria-valuemin="0"
+                                                            aria-valuemax="100"
+                                                        ></div>
+                                                    </div>
+                                                    <span className={styles.progressValue}>{collab.progress || 0}%</span>
+                                                </div>
+                                                <div className={styles.partnershipRow}>
+                                                    <span className={styles.detailLabel}>Channels:</span>
+                                                    <div className={styles.channelTags}>
+                                                        {collab.channels && collab.channels.map((channel, i) => (
+                                                            <span key={i} className={styles.channelTag}>{channel}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <p>No best posts available</p>
+                                    <p>No current partnerships</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className={styles.detailCard}>
+                            <h2 className={styles.cardTitle}>Past Collaborations</h2>
+                            <div className={styles.collaborationList}>
+                                {influencer.pastCollaborations && influencer.pastCollaborations.length > 0 ? (
+                                    influencer.pastCollaborations.map((collab, index) => (
+                                        <div key={index} className={styles.collabCard}>
+                                            <div className={styles.collabHeader}>
+                                                <h3 className={styles.collabTitle}>{collab.title}</h3>
+                                                <span className={styles.collabBrand}>with {collab.brandName}</span>
+                                                <span className={styles.completionDate}>
+                                                    Completed: {collab.completionDate ? new Date(collab.completionDate).toLocaleDateString() : 'Unknown'}
+                                                </span>
+                                            </div>
+                                            <div className={styles.collabMetricsGrid}>
+                                                <div className={styles.collabMetric}>
+                                                    <span className={styles.metricValue}>{formatDecimal(collab.engagementRate)}%</span>
+                                                    <span className={styles.metricLabel}>Engagement</span>
+                                                </div>
+                                                <div className={styles.collabMetric}>
+                                                    <span className={styles.metricValue}>{formatNumber(collab.reach)}</span>
+                                                    <span className={styles.metricLabel}>Reach</span>
+                                                </div>
+                                                <div className={styles.collabMetric}>
+                                                    <span className={styles.metricValue}>{formatNumber(collab.clicks)}</span>
+                                                    <span className={styles.metricLabel}>Clicks</span>
+                                                </div>
+                                                <div className={styles.collabMetric}>
+                                                    <span className={styles.metricValue}>{formatNumber(collab.conversions)}</span>
+                                                    <span className={styles.metricLabel}>Conversions</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>No past collaborations</p>
                                 )}
                             </div>
                         </div>
@@ -335,32 +376,36 @@ const InfluencerProfileView = () => {
                                 </div>
                             </div>
 
-                            <div className={styles.performanceMetrics}>
-                                <h3>Performance Metrics</h3>
-                                <div className={styles.metricGrid}>
-                                    <div className={styles.metricCard}>
-                                        <div className={styles.metricValue}>
-                                            {formatNumber(performanceMetrics.reach || 0)}
-                                        </div>
-                                        <div className={styles.metricLabel}>Reach</div>
+                            <div className={styles.categoriesSection}>
+                                <h3>Geographic Insights</h3>
+                                <div className={styles.geographicInfo}>
+                                    <div className={styles.geoItem}>
+                                        <span className={styles.geoLabel}>Base Location</span>
+                                        <span className={styles.geoValue}>
+                                            <i className="fas fa-map-marker-alt" style={{ marginRight: '6px', color: '#ea4335' }}></i>
+                                            {influencer.location || 'Not specified'}
+                                        </span>
                                     </div>
-                                    <div className={styles.metricCard}>
-                                        <div className={styles.metricValue}>
-                                            {formatNumber(performanceMetrics.impressions || 0)}
-                                        </div>
-                                        <div className={styles.metricLabel}>Impressions</div>
+                                    <div className={styles.geoItem}>
+                                        <span className={styles.geoLabel}>Primary Market</span>
+                                        <span className={styles.geoValue}>
+                                            <i className="fas fa-globe" style={{ marginRight: '6px', color: '#4285f4' }}></i>
+                                            {influencer.influenceRegions || 'Global'}
+                                        </span>
                                     </div>
-                                    <div className={styles.metricCard}>
-                                        <div className={styles.metricValue}>
-                                            {formatNumber(performanceMetrics.engagement || 0)}
+                                    <div className={styles.geoItem}>
+                                        <span className={styles.geoLabel}>Top Audience Locations</span>
+                                        <div className={styles.locationTags}>
+                                            {audienceDemographics.topLocations && audienceDemographics.topLocations.length > 0 ? (
+                                                audienceDemographics.topLocations.map((location, index) => (
+                                                    <span key={index} className={styles.locationTag}>
+                                                        {location}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className={styles.noData}>Global Audience</span>
+                                            )}
                                         </div>
-                                        <div className={styles.metricLabel}>Engagement</div>
-                                    </div>
-                                    <div className={styles.metricCard}>
-                                        <div className={styles.metricValue}>
-                                            {formatDecimal(performanceMetrics.conversionRate || 0)}%
-                                        </div>
-                                        <div className={styles.metricLabel}>Conversion Rate</div>
                                     </div>
                                 </div>
                             </div>

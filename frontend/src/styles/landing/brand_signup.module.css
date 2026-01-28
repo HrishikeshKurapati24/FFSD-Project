@@ -112,6 +112,23 @@
     color: #0056b3;
 }
 
+.signin-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.signin-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signin-link a:hover {
+    text-decoration: underline;
+}
+
 /* 💬 Message Styles */
 .message {
     margin-bottom: 20px;

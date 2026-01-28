@@ -545,6 +545,14 @@ const BrandSignup = () => {
                         </button>
                     </form>
 
+                    <p className={styles['signin-link']}>
+                        Already have an account?{' '}
+                        <a href="/signin" onClick={(e) => {
+                            e.preventDefault();
+                            navigate('/signin');
+                        }}>Sign in</a>
+                    </p>
+
                     <a href="/role-selection" className={styles['back-link']} onClick={(e) => {
                         e.preventDefault();
                         navigate('/role-selection');

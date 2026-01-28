@@ -200,6 +200,14 @@ const CampaignDetails = () => {
             <InfluencerNavigation onSignOut={handleSignOut} />
 
             <div className={styles.container}>
+                <button
+                    className={styles.backButton}
+                    onClick={() => navigate(-1)}
+                    type="button"
+                >
+                    <i className="fas fa-arrow-left"></i> Back
+                </button>
+
                 {shouldShowResults && (
                     <div className={styles.campaignDetails}>
                         <CampaignHeader collab={collab} statusClass={statusClass} styles={styles} />

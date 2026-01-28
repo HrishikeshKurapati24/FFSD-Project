@@ -22,6 +22,8 @@ import CampaignRequestsSection from '../../components/brand/dashboard/CampaignRe
 import RecentCampaignHistory from '../../components/brand/dashboard/RecentCampaignHistory';
 import CampaignDetailsModal from '../../components/brand/dashboard/CampaignDetailsModal';
 import ContentReviewModal from '../../components/brand/dashboard/ContentReviewModal';
+import InfluencersListModal from '../../components/brand/dashboard/InfluencersListModal';
+import InfluencerContributionModal from '../../components/brand/dashboard/InfluencerContributionModal';
 
 const EXTERNAL_ASSETS = {
   styles: [
@@ -73,6 +75,17 @@ const Dashboard = () => {
   const detailsModalRef = useRef(null);
   const detailsModalInstanceRef = useRef(null);
   const contentModalInstanceRef = useRef(null);
+
+  // New state for influencer drill-down
+  const [influencerListOpen, setInfluencerListOpen] = useState(false);
+  const [influencerListData, setInfluencerListData] = useState({ campaignId: null, campaignName: '', influencers: [], loading: false });
+  const [contributionOpen, setContributionOpen] = useState(false);
+  const [contributionData, setContributionData] = useState({ data: null, loading: false });
+
+  const influencerListModalRef = useRef(null);
+  const contributionModalRef = useRef(null);
+  const influencerListInstanceRef = useRef(null);
+  const contributionInstanceRef = useRef(null);
 
   // Fetch dashboard data function (only dynamic data)
   const fetchDashboardData = async () => {
@@ -194,8 +207,25 @@ const Dashboard = () => {
       }
     };
 
+    // Initialize New Modals
+    const initNewModals = () => {
+      if (typeof window !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
+        // List Modal
+        if (influencerListModalRef.current && !influencerListInstanceRef.current) {
+          influencerListInstanceRef.current = new window.bootstrap.Modal(influencerListModalRef.current, { backdrop: true, keyboard: true });
+          influencerListModalRef.current.addEventListener('hidden.bs.modal', () => setInfluencerListOpen(false));
+        }
+        // Contribution Modal
+        if (contributionModalRef.current && !contributionInstanceRef.current) {
+          contributionInstanceRef.current = new window.bootstrap.Modal(contributionModalRef.current, { backdrop: true, keyboard: true });
+          contributionModalRef.current.addEventListener('hidden.bs.modal', () => setContributionOpen(false));
+        }
+      }
+    };
+
     // Try to initialize immediately
     initModals();
+    initNewModals();
 
     // If Bootstrap isn't loaded yet, wait for it
     if (typeof window !== 'undefined' && !window.bootstrap) {
@@ -203,6 +233,7 @@ const Dashboard = () => {
         if (window.bootstrap) {
           clearInterval(checkBootstrap);
           initModals();
+          initNewModals();
         }
       }, 100);
 
@@ -212,22 +243,10 @@ const Dashboard = () => {
 
     // Cleanup on unmount
     return () => {
-      if (contentModalInstanceRef.current) {
-        try {
-          contentModalInstanceRef.current.dispose();
-        } catch (error) {
-          console.error('Error disposing content modal:', error);
-        }
-        contentModalInstanceRef.current = null;
-      }
-      if (detailsModalInstanceRef.current) {
-        try {
-          detailsModalInstanceRef.current.dispose();
-        } catch (error) {
-          console.error('Error disposing details modal:', error);
-        }
-        detailsModalInstanceRef.current = null;
-      }
+      if (contentModalInstanceRef.current) contentModalInstanceRef.current.dispose();
+      if (detailsModalInstanceRef.current) detailsModalInstanceRef.current.dispose();
+      if (influencerListInstanceRef.current) influencerListInstanceRef.current.dispose();
+      if (contributionInstanceRef.current) contributionInstanceRef.current.dispose();
     };
   }, []); // Run only once on mount
 
@@ -244,13 +263,21 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (detailsModalInstanceRef.current) {
-      if (detailsModalOpen) {
-        detailsModalInstanceRef.current.show();
-      } else {
-        detailsModalInstanceRef.current.hide();
-      }
+      detailsModalOpen ? detailsModalInstanceRef.current.show() : detailsModalInstanceRef.current.hide();
     }
   }, [detailsModalOpen]);
+
+  useEffect(() => {
+    if (influencerListInstanceRef.current) {
+      influencerListOpen ? influencerListInstanceRef.current.show() : influencerListInstanceRef.current.hide();
+    }
+  }, [influencerListOpen]);
+
+  useEffect(() => {
+    if (contributionInstanceRef.current) {
+      contributionOpen ? contributionInstanceRef.current.show() : contributionInstanceRef.current.hide();
+    }
+  }, [contributionOpen]);
 
   const handleSignOut = async (e) => {
     e?.preventDefault();
@@ -292,7 +319,7 @@ const Dashboard = () => {
       alert('Campaign ID is missing. Cannot activate campaign.');
       return;
     }
-    
+
     try {
       console.log('Activating campaign:', campaignId);
       const result = await activateCampaign(campaignId);
@@ -420,6 +447,65 @@ const Dashboard = () => {
     }
   };
 
+  // --- New Handlers for Drill-down ---
+
+  const handleViewInfluencers = async (campaignId, campaignName) => {
+    setInfluencerListData({ campaignId, campaignName, influencers: [], loading: true });
+    setInfluencerListOpen(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/brand/campaigns/${campaignId}/influencers`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setInfluencerListData(prev => ({ ...prev, influencers: data.influencers, loading: false }));
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching influencers:', error);
+      alert('Failed to load influencers');
+      setInfluencerListData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleSelectInfluencer = async (influencerId) => {
+    // Hide list modal temporarily (or keep open below, but standard bootstrap modals don't stack well without config)
+    // We'll stacking logic: Close list, open contribution. Back follows reverse.
+    setInfluencerListOpen(false);
+    setContributionData({ data: null, loading: true });
+    setContributionOpen(true);
+
+    const campaignId = influencerListData.campaignId;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/brand/campaigns/${campaignId}/influencers/${influencerId}/contribution`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setContributionData({ data: data, loading: false });
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching contribution:', error);
+      alert('Failed to load contribution details');
+      setContributionData(prev => ({ ...prev, loading: false }));
+      // Reopen list if failed
+      setContributionOpen(false);
+      setInfluencerListOpen(true);
+    }
+  };
+
+  const handleBackToInfluencers = () => {
+    setContributionOpen(false);
+    setInfluencerListOpen(true);
+  };
+
   if (loading) {
     return (
       <div className={styles.brandDashboardPage}>
@@ -471,6 +557,7 @@ const Dashboard = () => {
           campaigns={activeCampaigns}
           onReviewContent={handleOpenContentModal}
           onEndCampaign={handleEndCampaign}
+          onViewInfluencers={handleViewInfluencers}
         />
 
         <CampaignRequestsSection
@@ -512,6 +599,26 @@ const Dashboard = () => {
           }
         }}
         onReview={handleReviewContent}
+      />
+
+      {/* New Modals */}
+      <InfluencersListModal
+        modalRef={influencerListModalRef}
+        isOpen={influencerListOpen}
+        onClose={() => setInfluencerListOpen(false)}
+        campaignName={influencerListData.campaignName}
+        influencers={influencerListData.influencers}
+        loading={influencerListData.loading}
+        onSelectInfluencer={handleSelectInfluencer}
+      />
+
+      <InfluencerContributionModal
+        modalRef={contributionModalRef}
+        isOpen={contributionOpen}
+        onClose={() => setContributionOpen(false)}
+        data={contributionData.data}
+        loading={contributionData.loading}
+        onBack={handleBackToInfluencers}
       />
     </div>
   );

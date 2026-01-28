@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import ActiveCampaignCard from './ActiveCampaignCard';
 
-const ActiveCampaignsSection = ({ campaigns, onReviewContent, onEndCampaign }) => {
+const ActiveCampaignsSection = ({ campaigns, onReviewContent, onEndCampaign, onViewInfluencers }) => {
   return (
     <section className="campaigns-section">
       <h2 className="section-header">Active Campaigns</h2>
@@ -14,6 +14,7 @@ const ActiveCampaignsSection = ({ campaigns, onReviewContent, onEndCampaign }) =
               campaign={campaign}
               onReviewContent={onReviewContent}
               onEndCampaign={onEndCampaign}
+              onViewInfluencers={onViewInfluencers}
             />
           ))
         ) : (
