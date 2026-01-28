@@ -3,4 +3,5 @@ node_modules/
 .env
 Collab_Sync_DB.*.json
 !package.json
-!package-lock.jsondatabase_notes.txt
+!package-lock.json
+database_notes.txt
