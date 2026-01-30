@@ -187,11 +187,7 @@ const influencerSocialsSchema = new mongoose.Schema({
             type: Date,
             default: Date.now
         }
-    }],
-    socialMediaLinks: {
-        type: Map,
-        of: String
-    }
+    }]
 }, {
     timestamps: true
 });
