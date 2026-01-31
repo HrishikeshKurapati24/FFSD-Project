@@ -83,9 +83,9 @@ const Transaction = mongoose.model('Transaction', transactionSchema);
 class SubscriptionService {
   // Get all active plans for a user type
   static async getPlansForUserType(userType) {
-    return await SubscriptionPlan.find({ 
-      userType: userType, 
-      isActive: true 
+    return await SubscriptionPlan.find({
+      userType: userType,
+      isActive: true
     }).sort({ 'price.monthly': 1 });
   }
 
@@ -95,27 +95,27 @@ class SubscriptionService {
       console.log(`\n========== [getUserSubscription] START ==========`);
       console.log(`[SubscriptionService] Fetching subscription for userId: ${userId}, userType: ${userType}`);
       console.log(`[SubscriptionService] userId type:`, typeof userId);
-      
+
       // Convert userId to string for consistent comparison
       const userIdString = userId.toString();
-      
+
       // First, check ALL subscriptions for this user (for debugging)
       const allUserSubs = await UserSubscription.find({ userId: userIdString }).populate('planId');
       console.log(`[SubscriptionService] Total subscriptions found for user: ${allUserSubs.length}`);
       allUserSubs.forEach((sub, index) => {
         console.log(`  [${index + 1}] ID: ${sub._id}, Plan: ${sub.planId?.name}, Status: ${sub.status}, Created: ${sub.createdAt}`);
       });
-      
+
       // Find the LATEST active subscription (sort by createdAt descending)
       let subscription = await UserSubscription.findOne({
         userId: userIdString,
         status: 'active'
       })
-      .sort({ createdAt: -1 })  // Get the most recent one
-      .populate('planId');
-      
+        .sort({ createdAt: -1 })  // Get the most recent one
+        .populate('planId');
+
       console.log(`[SubscriptionService] Query result:`, subscription ? 'FOUND' : 'NOT FOUND');
-      
+
       if (subscription) {
         console.log(`[SubscriptionService] Selected subscription:`, {
           id: subscription._id,
@@ -125,7 +125,7 @@ class SubscriptionService {
           endDate: subscription.endDate,
           createdAt: subscription.createdAt
         });
-        
+
         // Check if subscription has expired based on end date
         const now = new Date();
         if (subscription.endDate && new Date(subscription.endDate) < now) {
@@ -134,14 +134,14 @@ class SubscriptionService {
           await UserSubscription.findByIdAndUpdate(subscription._id, { status: 'expired' });
           console.log(`[SubscriptionService] Subscription status updated to 'expired'`);
         }
-        
+
         // Expire all OTHER active subscriptions for this user (keep only the latest one)
         const otherActiveSubs = await UserSubscription.find({
           userId: userIdString,
           status: 'active',
           _id: { $ne: subscription._id }
         });
-        
+
         if (otherActiveSubs.length > 0) {
           console.log(`[SubscriptionService] Found ${otherActiveSubs.length} old active subscriptions, expiring them...`);
           await UserSubscription.updateMany(
@@ -155,39 +155,39 @@ class SubscriptionService {
           console.log(`[SubscriptionService] Old subscriptions expired successfully`);
         }
       }
-      
+
       // If no active subscription exists, check if user had an expired one
       if (!subscription) {
         console.log(`[SubscriptionService] No active subscription found`);
-        
+
         // Check if user has any expired subscriptions
         const expiredSubscription = await UserSubscription.findOne({
           userId: userIdString,
           status: 'expired'
         })
-        .sort({ createdAt: -1 })
-        .populate('planId');
-        
+          .sort({ createdAt: -1 })
+          .populate('planId');
+
         if (expiredSubscription) {
           console.log(`[SubscriptionService] User has expired subscription. Cannot create free subscription.`);
           console.log(`[SubscriptionService] User must renew their subscription to continue.`);
           // Return the expired subscription so the system knows the user needs to renew
           return expiredSubscription;
         }
-        
+
         // Only create free subscription for NEW users (no previous subscriptions)
         console.log(`[SubscriptionService] New user detected, creating free subscription...`);
-        
+
         // Determine userType if not provided
         if (!userType || userType === 'undefined') {
           console.log(`[SubscriptionService] UserType not provided, determining from user data...`);
           // Try to determine from the user's collection
           const { BrandInfo } = require('../config/BrandMongo');
           const { InfluencerInfo } = require('../config/InfluencerMongo');
-          
+
           const brand = await BrandInfo.findById(userId);
           const influencer = await InfluencerInfo.findById(userId);
-          
+
           if (brand) {
             userType = 'brand';
             console.log(`[SubscriptionService] Determined userType: brand`);
@@ -199,11 +199,11 @@ class SubscriptionService {
             return null;
           }
         }
-        
+
         subscription = await this.createDefaultFreeSubscription(userId, userType);
         console.log(`[SubscriptionService] Free subscription created:`, subscription ? 'YES' : 'NO');
       }
-      
+
       return subscription;
     } catch (error) {
       console.error(`[SubscriptionService] Error in getUserSubscription:`, error);
@@ -224,8 +224,8 @@ class SubscriptionService {
 
     // Check if subscription status is expired
     if (subscription.status === 'expired') {
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         reason: 'Your subscription has expired. Please renew your subscription to continue.',
         redirectToPayment: true
       };
@@ -236,8 +236,8 @@ class SubscriptionService {
     if (subscription.endDate && new Date(subscription.endDate) < now) {
       // Update subscription status to expired
       await UserSubscription.findByIdAndUpdate(subscription._id, { status: 'expired' });
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         reason: 'Your subscription has expired. Please renew your subscription to continue.',
         redirectToPayment: true
       };
@@ -253,27 +253,27 @@ class SubscriptionService {
           allowed: usage.campaignsUsed < plan.features.maxCampaigns,
           reason: usage.campaignsUsed >= plan.features.maxCampaigns ? `You have reached your limit of ${plan.features.maxCampaigns} campaigns` : null
         };
-      
+
       case 'connect_influencer':
         if (plan.features.maxInfluencers === -1) return { allowed: true };
         return {
           allowed: usage.influencersConnected < plan.features.maxInfluencers,
           reason: usage.influencersConnected >= plan.features.maxInfluencers ? `You have reached your limit of ${plan.features.maxInfluencers} influencer connections` : null
         };
-      
+
       case 'connect_brand':
         if (plan.features.maxBrands === -1) return { allowed: true };
         return {
           allowed: usage.brandsConnected < plan.features.maxBrands,
           reason: usage.brandsConnected >= plan.features.maxBrands ? `You have reached your limit of ${plan.features.maxBrands} brand connections` : null
         };
-      
+
       case 'upload_content':
         return {
           allowed: usage.uploadsThisMonth < plan.limits.monthlyUploads,
           reason: usage.uploadsThisMonth >= plan.limits.monthlyUploads ? 'Monthly upload limit reached' : null
         };
-      
+
       default:
         return { allowed: true };
     }
@@ -283,29 +283,29 @@ class SubscriptionService {
   static async updateUsage(userId, userType, usageUpdate) {
     console.log(`\n[updateUsage] Starting update for userId: ${userId}, userType: ${userType}`);
     console.log(`[updateUsage] Input usageUpdate:`, usageUpdate);
-    
+
     // Map userType to schema format
     const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
     console.log(`[updateUsage] Mapped userType: ${mappedUserType}`);
-    
+
     // Transform usageUpdate to nested format: { campaignsUsed: 1 } -> { 'usage.campaignsUsed': 1 }
     const nestedUpdate = {};
     for (const [key, value] of Object.entries(usageUpdate)) {
       nestedUpdate[`usage.${key}`] = value;
     }
     console.log(`[updateUsage] Nested update object:`, nestedUpdate);
-    
+
     const result = await UserSubscription.findOneAndUpdate(
       { userId: userId, userType: mappedUserType, status: 'active' },
       { $inc: nestedUpdate },
       { new: true }
     );
-    
+
     console.log(`[updateUsage] Update result:`, result ? {
       id: result._id,
       usage: result.usage
     } : 'NULL');
-    
+
     return result;
   }
 
@@ -314,16 +314,16 @@ class SubscriptionService {
     try {
       const now = new Date();
       console.log(`[SubscriptionService] Checking for expired subscriptions at ${now}`);
-      
+
       // Find all active subscriptions where endDate has passed
       const expiredSubscriptions = await UserSubscription.find({
         status: 'active',
         endDate: { $lt: now }
       });
-      
+
       if (expiredSubscriptions.length > 0) {
         console.log(`[SubscriptionService] Found ${expiredSubscriptions.length} expired subscriptions, updating...`);
-        
+
         // Update all expired subscriptions to 'expired' status
         const result = await UserSubscription.updateMany(
           {
@@ -334,7 +334,7 @@ class SubscriptionService {
             $set: { status: 'expired' }
           }
         );
-        
+
         console.log(`[SubscriptionService] Updated ${result.modifiedCount} subscriptions to expired status`);
         return result.modifiedCount;
       } else {
@@ -354,7 +354,7 @@ class SubscriptionService {
       { $match: { status: 'completed' } },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
-    
+
     const planDistribution = await UserSubscription.aggregate([
       { $match: { status: 'active' } },
       { $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' } },
@@ -368,20 +368,20 @@ class SubscriptionService {
       planDistribution
     };
   }
-  
+
   // Check subscription expiry and handle renewal
   static async checkSubscriptionExpiry(userId, userType) {
     try {
       console.log(`\n========== [checkSubscriptionExpiry] START ==========`);
       console.log(`[checkSubscriptionExpiry] userId: ${userId}, userType: ${userType}`);
-      
+
       // Query by userId only to find the LATEST active subscription
       const subscription = await UserSubscription.findOne({
         userId: userId.toString(),
         status: 'active'
       })
-      .sort({ createdAt: -1 })  // Get the most recent one
-      .populate('planId');
+        .sort({ createdAt: -1 })  // Get the most recent one
+        .populate('planId');
 
       console.log(`[checkSubscriptionExpiry] Found subscription:`, subscription ? {
         id: subscription._id,
@@ -400,7 +400,7 @@ class SubscriptionService {
         status: 'active',
         _id: { $ne: subscription._id }  // Not equal to the current subscription
       });
-      
+
       if (otherActiveSubs.length > 0) {
         console.log(`[checkSubscriptionExpiry] Found ${otherActiveSubs.length} old active subscriptions, expiring them...`);
         await UserSubscription.updateMany(
@@ -456,9 +456,9 @@ class SubscriptionService {
   static async getSubscriptionLimitsWithUsage(userId, userType) {
     try {
       console.log(`[getSubscriptionLimitsWithUsage] Fetching for userId: ${userId}, userType: ${userType}`);
-      
+
       const subscription = await this.getUserSubscription(userId, userType);
-      
+
       if (!subscription || !subscription.planId) {
         console.log(`[getSubscriptionLimitsWithUsage] No subscription or planId, returning default free limits`);
         return {
@@ -469,7 +469,7 @@ class SubscriptionService {
 
       const plan = subscription.planId;
       const usage = subscription.usage || {};
-      
+
       console.log(`[getSubscriptionLimitsWithUsage] Plan:`, plan.name);
       console.log(`[getSubscriptionLimitsWithUsage] Usage:`, usage);
 
@@ -501,10 +501,10 @@ class SubscriptionService {
           remaining: collaborationsRemaining
         }
       };
-      
+
       console.log(`[getSubscriptionLimitsWithUsage] Returning:`, JSON.stringify(result, null, 2));
       return result;
-      
+
     } catch (error) {
       console.error('[getSubscriptionLimitsWithUsage] Error:', error);
       return {
@@ -716,6 +716,169 @@ class brandModel {
       });
     } catch (err) {
       console.error('Error fetching recent completed campaigns:', err);
+      return [];
+    }
+  }
+
+  // Get previous collaborations (completed campaigns) sorted by ROI
+  static async getPreviousCollaborations(brandId) {
+    try {
+      const brandObjectId = new mongoose.Types.ObjectId(brandId);
+
+      // Find completed campaigns
+      const campaigns = await CampaignInfo.find({
+        brand_id: brandObjectId,
+        status: 'completed'
+      }).lean();
+
+      if (!campaigns.length) return [];
+
+      const campaignIds = campaigns.map(c => c._id);
+
+      // Fetch metrics for ROI and influencer details
+      const [metrics, influencerCounts, campaignInfluencers] = await Promise.all([
+        CampaignMetrics.find({ campaign_id: { $in: campaignIds } }).lean(),
+        CampaignInfluencers.aggregate([
+          { $match: { campaign_id: { $in: campaignIds } } },
+          { $group: { _id: '$campaign_id', count: { $sum: 1 } } }
+        ]),
+        CampaignInfluencers.find({
+          campaign_id: { $in: campaignIds }
+        }).populate('influencer_id', 'displayName name username profilePicUrl verified').lean()
+      ]);
+
+      const metricsMap = new Map();
+      metrics.forEach(m => metricsMap.set(m.campaign_id.toString(), m));
+
+      const influencerCountMap = new Map();
+      influencerCounts.forEach(c => influencerCountMap.set(c._id.toString(), c.count));
+
+      // Group influencers by campaign_id
+      const influencersByCampaign = {};
+      campaignInfluencers.forEach(ci => {
+        const campaignId = ci.campaign_id.toString();
+        if (!influencersByCampaign[campaignId]) {
+          influencersByCampaign[campaignId] = [];
+        }
+        if (ci.influencer_id) {
+          influencersByCampaign[campaignId].push({
+            id: ci.influencer_id._id,
+            name: ci.influencer_id.displayName || ci.influencer_id.name || 'Unknown Influencer',
+            username: ci.influencer_id.username || '',
+            profilePicUrl: ci.influencer_id.profilePicUrl || '/images/default-avatar.jpg',
+            verified: ci.influencer_id.verified || false,
+            progress: ci.progress || 0,
+            performance_score: ci.performance_score || 0,
+            engagement_rate: ci.engagement_rate || 0,
+            reach: ci.reach || 0,
+            status: ci.status || 'completed'
+          });
+        }
+      });
+
+      // Map and sort by ROI
+      const mappedCampaigns = campaigns.map(campaign => {
+        const m = metricsMap.get(campaign._id.toString()) || {};
+        return {
+          _id: campaign._id,
+          title: campaign.title,
+          end_date: campaign.end_date,
+          budget: campaign.budget || 0,
+          roi: m.roi || 0,
+          influencersCount: influencerCountMap.get(campaign._id.toString()) || 0,
+          influencers: influencersByCampaign[campaign._id.toString()] || []
+        };
+      });
+
+      // Sort by ROI descending
+      return mappedCampaigns.sort((a, b) => b.roi - a.roi);
+
+    } catch (err) {
+      console.error('Error fetching previous collaborations:', err);
+      return [];
+    }
+  }
+
+  // Get current partnerships (active campaigns)
+  static async getCurrentPartnerships(brandId) {
+    try {
+      const brandObjectId = new mongoose.Types.ObjectId(brandId);
+
+      const campaigns = await CampaignInfo.find({
+        brand_id: brandObjectId,
+        status: 'active'
+      })
+        .select('title start_date budget required_channels')
+        .sort({ start_date: -1 })
+        .lean();
+
+      if (!campaigns.length) return [];
+
+      // Get products for each campaign
+      const campaignIds = campaigns.map(c => c._id);
+      const { Product } = require('../config/ProductMongo');
+
+      const [products, campaignInfluencers] = await Promise.all([
+        Product.find({
+          campaign_id: { $in: campaignIds },
+          status: 'active'
+        }).select('campaign_id name description original_price campaign_price category images target_quantity sold_quantity is_digital delivery_info tags').lean(),
+        CampaignInfluencers.find({
+          campaign_id: { $in: campaignIds },
+          status: 'active'
+        }).populate('influencer_id', 'displayName name username profilePicUrl verified').lean()
+      ]);
+
+      // Group products by campaign_id
+      const productsByCampaign = {};
+      products.forEach(product => {
+        const campaignId = product.campaign_id.toString();
+        if (!productsByCampaign[campaignId]) {
+          productsByCampaign[campaignId] = [];
+        }
+        productsByCampaign[campaignId].push({
+          name: product.name,
+          description: product.description,
+          originalPrice: product.original_price,
+          campaignPrice: product.campaign_price,
+          category: product.category,
+          images: product.images,
+          targetQuantity: product.target_quantity,
+          soldQuantity: product.sold_quantity,
+          isDigital: product.is_digital,
+          deliveryInfo: product.delivery_info,
+          tags: product.tags
+        });
+      });
+
+      // Group influencers by campaign_id
+      const influencersByCampaign = {};
+      campaignInfluencers.forEach(ci => {
+        const campaignId = ci.campaign_id.toString();
+        if (!influencersByCampaign[campaignId]) {
+          influencersByCampaign[campaignId] = [];
+        }
+        if (ci.influencer_id) {
+          influencersByCampaign[campaignId].push({
+            id: ci.influencer_id._id,
+            name: ci.influencer_id.displayName || ci.influencer_id.name || 'Unknown Influencer',
+            username: ci.influencer_id.username || '',
+            profilePicUrl: ci.influencer_id.profilePicUrl || '/images/default-avatar.jpg',
+            verified: ci.influencer_id.verified || false,
+            progress: ci.progress || 0,
+            status: ci.status || 'active'
+          });
+        }
+      });
+
+      // Add products and influencers to each campaign
+      return campaigns.map(campaign => ({
+        ...campaign,
+        products: productsByCampaign[campaign._id.toString()] || [],
+        influencers: influencersByCampaign[campaign._id.toString()] || []
+      }));
+    } catch (err) {
+      console.error('Error fetching current partnerships:', err);
       return [];
     }
   }

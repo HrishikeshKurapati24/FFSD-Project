@@ -404,3 +404,146 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Partnerships and Collaborations Styles */
+:global(.brand-profile-page .partnership-list),
+:global(.brand-profile-page .collaboration-list) {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+:global(.brand-profile-page .partnership-card),
+:global(.brand-profile-page .collab-card) {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+:global(.brand-profile-page .partnership-card:hover),
+:global(.brand-profile-page .collab-card:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+:global(.brand-profile-page .partnership-header),
+:global(.brand-profile-page .collab-header) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 8px;
+}
+
+:global(.brand-profile-page .partnership-title),
+:global(.brand-profile-page .collab-title) {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+:global(.brand-profile-page .partnership-brand),
+:global(.brand-profile-page .collab-brand) {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    flex: 1;
+}
+
+:global(.brand-profile-page .partnership-details) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+:global(.brand-profile-page .partnership-row) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:global(.brand-profile-page .detail-label) {
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 500;
+    min-width: 70px;
+}
+
+:global(.brand-profile-page .detail-value) {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+:global(.brand-profile-page .progress-bar-container) {
+    flex: 1;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+:global(.brand-profile-page .progress-bar) {
+    height: 100%;
+    background: var(--secondary-color, #34a853);
+    border-radius: 4px;
+}
+
+:global(.brand-profile-page .progress-value) {
+    font-size: 0.85rem;
+    color: #666;
+    min-width: 35px;
+    text-align: right;
+}
+
+:global(.brand-profile-page .channel-tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+:global(.brand-profile-page .channel-tag) {
+    font-size: 0.75rem;
+    background: #eef3ff;
+    color: var(--primary-color, #4285f4);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #d1e3ff;
+}
+
+:global(.brand-profile-page .completion-date) {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+:global(.brand-profile-page .collab-metrics-grid) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+:global(.brand-profile-page .collab-metric) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+:global(.brand-profile-page .collab-metric .metric-value) {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+:global(.brand-profile-page .collab-metric .metric-label) {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 2px;
+}

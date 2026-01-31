@@ -1,0 +1,120 @@
+/* Influencer Information Styles */
+:global(.brand-profile-page .influencers-section) {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+:global(.brand-profile-page .influencer-details) {
+    background: #fafafa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+:global(.brand-profile-page .influencer-info-compact) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+:global(.brand-profile-page .influencer-avatar-small) {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:global(.brand-profile-page .influencer-name) {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+:global(.brand-profile-page .influencer-username) {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 400;
+}
+
+:global(.brand-profile-page .verified-badge) {
+    color: #1da1f2;
+    font-size: 0.8rem;
+}
+
+:global(.brand-profile-page .product-tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+:global(.brand-profile-page .product-tag-badge) {
+    font-size: 0.7rem;
+    background: #e3f2fd;
+    color: var(--primary-color);
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 1px solid #bbdefb;
+}
+
+:global(.brand-profile-page .campaign-price) {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+:global(.brand-profile-page .original-price) {
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 4px;
+}
+
+/* Updated styling for detail labels to match metric labels - scoped only to Current Partnerships card */
+/* removed broad overrides to avoid affecting other sections */
+
+/* Ensure values align and read well next to small labels - scoped only to Current Partnerships card */
+/* removed broad overrides to avoid affecting other sections */
+
+/* Align partnership rows like metric items */
+:global(.brand-profile-page .partnership-row) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Channel/product tag containers consistency */
+:global(.brand-profile-page .channel-tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+:global(.brand-profile-page .channel-tag) {
+    font-size: 0.75rem;
+    background: #eef3ff;
+    color: var(--primary-color);
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #d1e3ff;
+}
+
+/* Specific override for Current Partnerships section to ensure consistency */
+:global(.brand-profile-page .detail-card .partnership-list .partnership-card .partnership-details .partnership-row .detail-label) {
+    font-size: 0.75rem !important;
+    color: #666 !important;
+    font-weight: 400 !important;
+    min-width: auto;
+    margin-right: 6px;
+}
+
+:global(.brand-profile-page .detail-card .partnership-list .partnership-card .partnership-details .partnership-row .detail-value) {
+    font-size: 0.9rem !important;
+    color: #333 !important;
+}
