@@ -132,15 +132,6 @@ const brandInfoSchema = new mongoose.Schema({
         default: 0,
         min: [0, 'Total audience cannot be negative']
     },
-    topCampaigns: [{
-        title: String,
-        status: {
-            type: String,
-            enum: ['active', 'completed', 'draft', 'cancelled']
-        },
-        performance_score: Number,
-        reach: Number
-    }],
     targetAgeRange: String,
     targetGender: {
         type: String,
@@ -207,11 +198,7 @@ const brandSocialsSchema = new mongoose.Schema({
             type: Date,
             default: Date.now
         }
-    }],
-    socialMediaLinks: {
-        type: Map,
-        of: String
-    }
+    }]
 }, {
     timestamps: true
 });

@@ -61,10 +61,6 @@ const CustomerSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-    is_verified: {
-        type: Boolean,
-        default: false
-    },
     createdAt: {
         type: Date,
         default: Date.now

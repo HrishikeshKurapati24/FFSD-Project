@@ -252,7 +252,7 @@ class CollaborationModel {
             const result = await CampaignMetrics.aggregate([
                 {
                     $lookup: {
-                        from: 'campaigns',
+                        from: 'campaigninfos',
                         localField: 'campaign_id',
                         foreignField: '_id',
                         as: 'campaign'
@@ -319,7 +319,7 @@ class CollaborationModel {
                 { $unwind: '$campaign' },
                 {
                     $lookup: {
-                        from: 'brands',
+                        from: 'brandinfos',
                         localField: 'campaign.brand_id',
                         foreignField: '_id',
                         as: 'brand'

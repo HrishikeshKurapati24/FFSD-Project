@@ -1,11 +1,12 @@
 // model/brandModel.js
 
-const { BrandInfo, BrandAnalytics, BrandVerification, BrandSocialLink } = require('../config/BrandMongo');
+const { BrandInfo, BrandAnalytics, BrandSocials } = require('../config/BrandMongo');
 const { CampaignInfo, CampaignMetrics, CampaignInfluencers } = require('../config/CampaignMongo');
 const { InfluencerInfo, InfluencerAnalytics } = require('../config/InfluencerMongo');
-const { BrandSocials } = require('../config/BrandMongo');
 const { SubscriptionPlan, UserSubscription, PaymentHistory } = require('../config/SubscriptionMongo');
 const mongoose = require('mongoose');
+
+
 
 // Subscription schemas moved to config/SubscriptionMongo.js
 
@@ -1058,28 +1059,37 @@ class brandModel {
   }
 
   // Update social links
+  // Update social links
   static async updateSocialLinks(brandId, socials) {
     try {
-      await BrandSocialLink.deleteMany({ brandId });
-
+      // Map input to match BrandSocials schema
       const socialLinksArray = Array.isArray(socials)
         ? socials
         : Object.entries(socials).map(([platform, data]) => ({
-          brandId,
-          platform,
+          platform: platform.toLowerCase(),
           url: data.url,
-          followers: data.followers || 0
+          followers: data.followers || 0,
+          // Extract handle from URL if not provided, fallback to brand name part or platform
+          handle: data.handle || (data.url ? data.url.split('/').filter(Boolean).pop() : 'brand')
         }));
 
-      await BrandSocialLink.insertMany(socialLinksArray);
+      // Update the main BrandSocials document
+      const updated = await BrandSocials.findOneAndUpdate(
+        { brandId },
+        {
+          $set: {
+            platforms: socialLinksArray,
+            lastUpdated: new Date()
+          }
+        },
+        { new: true, upsert: true }
+      );
+
       return true;
     } catch (err) {
+      console.error('Error updating social links:', err);
       throw err;
     }
-
-    /*
-    db2.run('DELETE FROM brand_social_links WHERE brand_id = ?', [brandId], ...);
-    */
   }
 
   // Get brand statistics

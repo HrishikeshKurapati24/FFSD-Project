@@ -1189,12 +1189,12 @@ const UserManagementController = {
                 const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
                 const fullPath = req.originalUrl || req.url || req.path || '';
                 const pathOnly = fullPath.split('?')[0].toLowerCase();
-                
+
                 // Check if this is the user_management route
-                const isUserManagementRoute = pathOnly === '/admin/user_management' || 
-                                             pathOnly === '/user_management' ||
-                                             pathOnly.includes('user_management');
-                
+                const isUserManagementRoute = pathOnly === '/admin/user_management' ||
+                    pathOnly === '/user_management' ||
+                    pathOnly.includes('user_management');
+
                 if (isUserManagementRoute) {
                     // Only treat as page request if explicitly requesting HTML and NOT JSON
                     if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
@@ -1203,20 +1203,20 @@ const UserManagementController = {
                     // Default to API request for user_management routes
                     return true;
                 }
-                
+
                 // Standard API detection for other routes
                 if (acceptHeader.includes('application/json')) return true;
                 if (req.xhr) return true;
                 if (pathOnly.startsWith('/api/')) return true;
                 if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
-                
+
                 const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
                 const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
                 if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
                     referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
                     return true;
                 }
-                
+
                 return false;
             };
 
@@ -1671,7 +1671,7 @@ const CustomerController = {
                 {
                     status: status,
                     admin_notes: notes,
-                    updated_at: new Date()
+                    updatedAt: new Date()
                 },
                 { new: true }
             );
