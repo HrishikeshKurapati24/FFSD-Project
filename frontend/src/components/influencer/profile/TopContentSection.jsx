@@ -11,6 +11,11 @@ const TopContentSection = ({ bestPosts = [] }) => (
               <i className={`fab fa-${post.platform?.toLowerCase()}`}></i>
               {post.platform}
             </div>
+
+            <h3 className="post-title">
+              {post.title || "Untitled Post"}
+            </h3>
+
             <div className="content-stats">
               <div className="stat">
                 <i className="fas fa-heart"></i>

@@ -337,6 +337,137 @@
     letter-spacing: 0.5px;
 }
 
+/* Content Section (Improved) */
+.profile-page :global(.content-section) {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    padding: 32px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.profile-page :global(.content-section h2) {
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-page :global(.content-grid) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+}
+
+.profile-page :global(.content-card) {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #edf2f7;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.profile-page :global(.content-card:hover) {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: transparent;
+}
+
+.profile-page :global(.content-platform) {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f7fafc;
+    text-transform: capitalize;
+}
+
+.profile-page :global(.content-platform i) {
+    font-size: 1.4rem;
+}
+
+.profile-page :global(.content-platform.instagram) {
+    color: #e1306c;
+}
+
+.profile-page :global(.content-platform.youtube) {
+    color: #ff0000;
+}
+
+.profile-page :global(.content-platform.tiktok) {
+    color: #000000;
+}
+
+.profile-page :global(.content-platform.linkedin) {
+    color: #0077b5;
+}
+
+.profile-page :global(.content-platform.twitter) {
+    color: #1da1f2;
+}
+
+.profile-page :global(.content-platform.facebook) {
+    color: #1877f2;
+}
+
+.profile-page :global(.post-title) {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #2d3748;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.profile-page :global(.content-stats) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.profile-page :global(.content-stats .stat) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.profile-page :global(.content-stats .stat i) {
+    font-size: 1rem;
+    color: #a0aec0;
+    transition: all 0.2s ease;
+}
+
+.profile-page :global(.content-card:hover .content-stats .stat i) {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.profile-page :global(.content-stats .stat span) {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #2d3748;
+}
+
 /* Campaigns Section */
 .profile-page :global(.campaigns-section) {
     background: #fff;

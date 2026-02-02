@@ -1,5 +1,6 @@
 const { BrandInfo, BrandSocials, BrandAnalytics } = require('./config/BrandMongo');
 const bcrypt = require('bcrypt');
+const { uploadSeedImage } = require('./utils/seedHelpers');
 
 const initializeExtendedBrandData = async () => {
     try {
@@ -476,6 +477,14 @@ const initializeExtendedBrandData = async () => {
 
         // Insert brands into database
         for (const brand of extendedBrands) {
+            // Upload images to Cloudinary
+            if (brand.brandInfo.logoUrl) {
+                brand.brandInfo.logoUrl = await uploadSeedImage(brand.brandInfo.logoUrl, 'brands');
+            }
+            if (brand.brandInfo.bannerUrl) {
+                brand.brandInfo.bannerUrl = await uploadSeedImage(brand.brandInfo.bannerUrl, 'brands');
+            }
+
             // First save the brand info
             const brandInfo = new BrandInfo({
                 ...brand.brandInfo,

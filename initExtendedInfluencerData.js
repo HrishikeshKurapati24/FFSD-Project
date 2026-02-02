@@ -1,5 +1,6 @@
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./config/InfluencerMongo');
 const bcrypt = require('bcrypt');
+const { uploadSeedImage } = require('./utils/seedHelpers');
 
 const initializeExtendedInfluencerData = async () => {
     try {
@@ -496,6 +497,13 @@ const initializeExtendedInfluencerData = async () => {
 
         // Insert influencers into database
         for (const influencer of extendedInfluencers) {
+            // Upload images to Cloudinary
+            if (influencer.influencerInfo.profilePicUrl) {
+                influencer.influencerInfo.profilePicUrl = await uploadSeedImage(influencer.influencerInfo.profilePicUrl, 'influencers');
+            }
+            if (influencer.influencerInfo.bannerUrl) {
+                influencer.influencerInfo.bannerUrl = await uploadSeedImage(influencer.influencerInfo.bannerUrl, 'influencers');
+            }
             // First save the influencer info
             const influencerInfo = new InfluencerInfo({
                 ...influencer.influencerInfo,

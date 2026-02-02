@@ -105,6 +105,7 @@ const getInfluencerProfileDetails = async (influencerId) => {
         platform: post.platform,
         url: post.url || '',
         thumbnail: post.thumbnail,
+        title: post.title,
         likes: post.likes,
         comments: post.comments,
         date: post.date

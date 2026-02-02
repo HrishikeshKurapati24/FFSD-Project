@@ -6,6 +6,11 @@ const { initializeExtendedInfluencerData } = require('./initExtendedInfluencerDa
 const { initializeCampaignData } = require('./initCampaignData');
 const { initializeCampaignMessageOfferData } = require('./initCampaignMessageOfferData');
 const { initializeAdditionalCampaignData } = require('./initAdditionalCampaignData');
+const { initializeSubscriptionData } = require('./initSubscriptionData');
+const initializeShoppableCampaignData = require('./initShoppableCampaignData');
+const { initializeMamaearthOnionCampaign } = require('./initMamaearthOnionCampaign');
+const { initializeProductData } = require('./initProductData');
+const { initializeMamaearthInfluencers } = require('./initMamaearthInfluencers');
 
 const initializeAllSeedData = async () => {
     try {
@@ -14,7 +19,13 @@ const initializeAllSeedData = async () => {
         // Connect to MongoDB
         console.log('🔌 Connecting to MongoDB...');
         await connectDB();
+        await connectDB();
         console.log('✅ MongoDB connected successfully!\n');
+
+        // Initialize Mamaearth Influencers
+        console.log('💄 Initializing specific Mamaearth influencers (Komal Pandey, etc.)...');
+        await initializeMamaearthInfluencers();
+        console.log('✅ Mamaearth influencers initialized successfully!\n');
 
         // Initialize extended brand data (5 additional brands)
         console.log('📊 Initializing extended brand data...');
@@ -30,6 +41,24 @@ const initializeAllSeedData = async () => {
         console.log('🎯 Initializing additional campaign data...');
         await initializeAdditionalCampaignData();
         console.log('✅ Additional campaign data initialized successfully!\n');
+
+        // Initialize subscription data
+        console.log('💳 Initializing subscription data...');
+        await initializeSubscriptionData();
+        console.log('✅ Subscription data initialized successfully!\n');
+
+        // Initialize shoppable campaign data
+        console.log('🛍️ Initializing shoppable campaign data...');
+        await initializeShoppableCampaignData();
+        console.log('✅ Shoppable campaign data initialized successfully!\n');
+
+        // Initialize specific Mamaearth Onion Campaign
+        await initializeMamaearthOnionCampaign();
+        console.log('✅ Mamaearth Onion Campaign initialized successfully!\n');
+
+        // Initialize Product Data for all campaigns
+        await initializeProductData();
+        console.log('✅ Product data initialized successfully!\n');
 
         console.log('🎉 All seed data initialized successfully!');
         console.log('📋 Summary:');

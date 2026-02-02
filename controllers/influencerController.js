@@ -37,7 +37,7 @@ const getInfluencerDashboard = async (req, res) => {
       SubscriptionService.checkSubscriptionExpiry(influencerId, userType),
       SubscriptionService.getSubscriptionLimitsWithUsage(influencerId, userType)
     ]);
-    
+
     console.log('\n--- Subscription data received ---');
     console.log('subscriptionStatus:', JSON.stringify(subscriptionStatus, null, 2));
     console.log('subscriptionLimits:', JSON.stringify(subscriptionLimits, null, 2));
@@ -173,9 +173,9 @@ const getInfluencerDashboard = async (req, res) => {
     console.log('Passing to EJS:');
     console.log('  - subscriptionStatus.subscription.planId.name:', subscriptionStatus?.subscription?.planId?.name);
     console.log('  - subscriptionLimits:', subscriptionLimits);
-    
+
     res.render('influencer/dashboard', responseData);
-    
+
     console.log('========== INFLUENCER DASHBOARD CONTROLLER END ==========\n');
   } catch (error) {
     console.error('Error in getInfluencerDashboard:', error);
@@ -212,14 +212,14 @@ const getBrandExplorePage = async (req, res) => {
   try {
     const { category, search } = req.query;
     const { BrandInfo } = require('../config/BrandMongo');
-    
+
     // Build filter query
     let filter = { status: 'active' };
-    
+
     if (category && category !== 'all') {
       filter.industry = { $regex: category, $options: 'i' };
     }
-    
+
     if (search) {
       filter.$or = [
         { brandName: { $regex: search, $options: 'i' } },
@@ -227,21 +227,21 @@ const getBrandExplorePage = async (req, res) => {
         { description: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     const brands = await BrandInfo.find(filter)
       .select('brandName username logoUrl bannerUrl industry location website mission tagline verified completedCampaigns influencerPartnerships avgCampaignRating primaryMarket influenceRegions')
       .sort({ verified: -1, avgCampaignRating: -1, completedCampaigns: -1 })
       .limit(50)
       .lean();
-    
+
     // Get all unique industries for filter dropdown (from brand signup)
     const allIndustries = await BrandInfo.distinct('industry', { status: 'active' });
     const categories = allIndustries.filter(Boolean);
     const uniqueCategories = [...new Set(categories)].sort();
-    
+
     console.log('Controller sending brands to view:', brands);
     const responseData = {
-      brands: brands || [], 
+      brands: brands || [],
       categories: uniqueCategories,
       selectedCategory: category || 'all',
       searchQuery: search || ''
@@ -375,6 +375,10 @@ const getInfluencerProfile = async (req, res) => {
     // Get performance metrics
     const metrics = await influencerModel.getInfluencerMetrics(influencerId);
 
+    // Get analytics for earnings
+    const { InfluencerAnalytics } = require('../config/InfluencerMongo');
+    const analytics = await InfluencerAnalytics.findOne({ influencerId: influencer._id || influencerId });
+
     // Get best performing posts
     const bestPosts = await influencerModel.getBestPerformingPosts(influencerId);
 
@@ -383,6 +387,8 @@ const getInfluencerProfile = async (req, res) => {
       // Basic Profile Info
       displayName: influencer.displayName || influencer.name || '',
       username: influencer.username || '',
+      email: influencer.email || '',
+      website: influencer.website || '',
       bio: influencer.bio || '',
       location: influencer.location || '',
       profilePicUrl: influencer.profilePicUrl || influencer.profile_pic_url || '/images/default-avatar.jpg',
@@ -393,6 +399,7 @@ const getInfluencerProfile = async (req, res) => {
       // Audience Info
       audienceAgeRange: influencer.audienceAgeRange || influencer.audience_age_range || '',
       audienceGender: influencer.audienceGender || influencer.audience_gender || '',
+      primaryMarket: influencer.primaryMarket || influencer.influenceRegions || '',
 
       // Content Info
       categories: Array.isArray(influencer.categories) ? influencer.categories :
@@ -406,6 +413,7 @@ const getInfluencerProfile = async (req, res) => {
       avgEngagementRate: metrics?.avgEngagementRate || 0,
       avgRating: metrics?.avgRating || 0,
       completedCollabs: metrics?.completedCollabs || 0,
+      monthlyEarnings: analytics?.monthlyEarnings || 0,
 
       // Social Media
       socials: Array.isArray(influencer.socials) ? influencer.socials.map(social => ({
@@ -448,9 +456,9 @@ const updateInfluencerImages = async (req, res) => {
   try {
     const influencerId = req.session.user.id;
     if (!influencerId) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Not authenticated' 
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
       });
     }
 

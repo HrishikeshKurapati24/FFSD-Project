@@ -1,5 +1,6 @@
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./config/InfluencerMongo');
 const bcrypt = require('bcrypt');
+const { uploadSeedImage } = require('./utils/seedHelpers');
 
 const initializeMamaearthInfluencers = async () => {
     try {
@@ -382,6 +383,14 @@ const initializeMamaearthInfluencers = async () => {
         // Insert influencers
         for (const influencer of influencers) {
             const { influencerInfo, socials, analytics } = influencer;
+
+            // Upload images to Cloudinary
+            if (influencerInfo.profilePicUrl) {
+                influencerInfo.profilePicUrl = await uploadSeedImage(influencerInfo.profilePicUrl, 'influencers');
+            }
+            if (influencerInfo.bannerUrl) {
+                influencerInfo.bannerUrl = await uploadSeedImage(influencerInfo.bannerUrl, 'influencers');
+            }
 
             // Check if influencer already exists
             const existingInfluencer = await InfluencerInfo.findOne({ email: influencerInfo.email });
