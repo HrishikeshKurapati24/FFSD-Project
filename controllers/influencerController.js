@@ -293,6 +293,11 @@ const getBrandProfilePage = async (req, res) => {
     // Transform brand data as needed for the view
     const socialStats = await brandModel.getSocialStats(brandId);
     const topCampaigns = await brandModel.getTopCampaigns(brandId);
+    const previousCollaborations = await brandModel.getPreviousCollaborations(brandId);
+    const currentPartnerships = await brandModel.getCurrentPartnerships(brandId);
+
+    console.log('Previous Collaborations:', previousCollaborations);
+    console.log('Current Partnerships:', currentPartnerships);
 
     const transformedBrand = {
       ...brand.toObject ? brand.toObject() : brand,
@@ -324,7 +329,9 @@ const getBrandProfilePage = async (req, res) => {
         status: campaign.status || 'Active',
         performance_score: campaign.performance_score || 0,
         reach: campaign.reach || 0
-      }))
+      })),
+      previousCollaborations,
+      currentPartnerships
     }
 
     const responseData = {

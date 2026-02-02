@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const helmet = require('helmet');
+const morgan = require('morgan');
 const session = require("express-session");
 const adminRoutes = require("./routes/adminRoutes");
 const influencerRoutes = require("./routes/influencerRoutes");
@@ -39,6 +41,13 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
+
+
+// Security Middleware
+app.use(helmet());
+
+// HTTP Request Logging
+// app.use(morgan('dev'));
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
