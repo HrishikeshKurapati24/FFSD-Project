@@ -22,10 +22,13 @@ const ContentCreationModal = ({
   };
 
   return (
-    <div className="modal" style={{ display: 'block' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div id="contentCreationModal" className="modal" style={{ display: 'block' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-body">
-          <h2><i className="fas fa-video"></i> Create Content</h2>
+          <div className="modal-header-custom" style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '10px', borderBottom: '1px solid #eee', marginBottom: '15px' }}>
+            <i className="fas fa-arrow-left" style={{ cursor: 'pointer', fontSize: '1.2rem', color: '#555' }} onClick={onClose} title="Back to Dashboard"></i>
+            <h2 style={{ margin: 0, fontSize: '1.25rem' }}><i className="fas fa-video"></i> Create Content</h2>
+          </div>
           <form onSubmit={onSubmit} encType="multipart/form-data">
             <input type="hidden" name="campaignId" value={formData.campaignId} />
 

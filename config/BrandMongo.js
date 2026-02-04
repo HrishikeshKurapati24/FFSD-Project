@@ -316,8 +316,6 @@ const brandAnalyticsSchema = new mongoose.Schema({
 });
 
 // Create indexes for better query performance
-brandInfoSchema.index({ email: 1 }, { unique: true });
-brandInfoSchema.index({ username: 1 }, { unique: true });
 brandSocialsSchema.index({ brandId: 1 });
 brandAnalyticsSchema.index({ brandId: 1 });
 

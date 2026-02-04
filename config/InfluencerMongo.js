@@ -279,8 +279,6 @@ const influencerAnalyticsSchema = new mongoose.Schema({
 });
 
 // Create indexes for better query performance
-influencerInfoSchema.index({ email: 1 }, { unique: true });
-influencerInfoSchema.index({ username: 1 }, { unique: true });
 influencerSocialsSchema.index({ influencerId: 1 });
 influencerAnalyticsSchema.index({ influencerId: 1 });
 

@@ -298,9 +298,6 @@ contentTrackingSchema.index({ content_id: 1, action_type: 1 });
 contentTrackingSchema.index({ user_session_id: 1 });
 contentTrackingSchema.index({ created_at: -1 });
 
-customerSchema.index({ email: 1 }, { unique: true });
-customerSchema.index({ customer_id: 1 });
-
 // Create models
 const Product = mongoose.model('Product', productSchema);
 const CampaignContent = mongoose.model('CampaignContent', campaignContentSchema);

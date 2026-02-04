@@ -38,7 +38,7 @@ const ProgressModal = ({
   };
 
   return (
-    <div className="modal" style={{ display: 'block' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div id="updateProgressModal" className="modal" style={{ display: 'block' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
         <h2>Update Progress & Metrics</h2>
