@@ -102,10 +102,12 @@ const transformBrandProfile = (brandDoc, socialStats = [], topCampaigns = []) =>
 
   return {
     ...brandData,
-    displayName: brandData.displayName || brandData.name || 'Unknown Brand',
-    fullName: brandData.fullName || brandData.displayName || brandData.name || 'Unknown Brand',
+    displayName: brandData.displayName || brandData.brandName || brandData.name || 'Unknown Brand',
+    fullName: brandData.fullName || brandData.displayName || brandData.brandName || 'Unknown Brand',
+    name: brandData.brandName || brandData.displayName || 'Unknown Brand',
     username: brandData.username || '',
-    bio: brandData.bio || brandData.mission || 'No description available',
+    bio: brandData.bio || brandData.mission || 'No bio available',
+    description: brandData.description || brandData.bio || '',
     profilePicUrl: brandData.logoUrl || brandData.profilePicUrl || '/images/default-brand.png',
     totalFollowers,
     avgEngagementRate,
@@ -124,11 +126,13 @@ const transformBrandProfile = (brandDoc, socialStats = [], topCampaigns = []) =>
     website: brandData.website || `https://${brandData.username || 'brand'}.com`,
     location: brandData.location || '',
     values: categories,
-    socialLinks: socials.map(social => ({
-      platform: social.platform,
-      url: `https://${social.platform}.com/${brandData.username || ''}`,
-      followers: social.followers
-    })),
+    socialLinks: Array.isArray(brandData.socialLinks) && brandData.socialLinks.length > 0
+      ? brandData.socialLinks
+      : socials.map(social => ({
+        platform: social.platform,
+        url: social.url || `https://${social.platform}.com/${brandData.username || ''}`,
+        followers: social.followers
+      })),
     topCampaigns: topCampaigns.map(campaign => ({
       id: campaign.id || campaign._id,
       title: campaign.title,
@@ -268,18 +272,24 @@ const brandController = {
 
       // Prepare update data from request body
       const updateData = {
-        name: data.name.trim(),
-        username: data.username.trim(),
-        bio: (data.description || '').trim(),
-        location: (data.primaryMarket || '').trim(),
+        brandName: data.name ? data.name.trim() : undefined,
+        displayName: data.name ? data.name.trim() : undefined,
+        username: data.username ? data.username.trim() : undefined,
+        description: data.description ? data.description.trim() : undefined,
+        bio: data.mission ? data.mission.trim() : (data.description ? data.description.trim() : undefined),
+        location: (data.location || '').trim(),
+        primaryMarket: (data.primaryMarket || '').trim(),
+        phone: (data.phone || '').trim(),
+        industry: (data.industry || '').trim(),
+        tagline: (data.tagline || '').trim(),
         website: (data.website || '').trim(),
         audienceGender: (data.targetGender || '').trim(),
         audienceAgeRange: (data.targetAgeRange || '').trim(),
-        categories: JSON.stringify(Array.isArray(data.categories) ? data.categories : []),
+        categories: Array.isArray(data.categories) ? data.categories : [],
         mission: (data.mission || '').trim(),
         currentCampaign: (data.currentCampaign || '').trim(),
-        "values": JSON.stringify(Array.isArray(data.values) ? data.values : []),
-        targetInterests: JSON.stringify(Array.isArray(data.targetInterests) ? data.targetInterests : [])
+        values: Array.isArray(data.values) ? data.values : [],
+        targetInterests: Array.isArray(data.targetInterests) ? data.targetInterests : []
       };
 
       console.log('Update data:', updateData);
@@ -287,17 +297,29 @@ const brandController = {
       // Update social links if provided
       if (data.socialLinks && Array.isArray(data.socialLinks)) {
         try {
-          const socialLinks = data.socialLinks.reduce((acc, link) => {
-            if (link.platform && link.url) {
-              acc[link.platform] = {
-                url: link.url.trim(),
-                followers: parseInt(link.followers) || 0
-              };
-            }
-            return acc;
-          }, {});
+          const socialLinksPayload = data.socialLinks.map(link => {
+            const url = link.url ? link.url.trim() : '';
+            let handle = link.handle;
 
-          await brandModel.updateSocialLinks(brandId, socialLinks);
+            if (!handle && url) {
+              try {
+                const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+                const pathParts = urlObj.pathname.split('/').filter(p => p);
+                handle = pathParts.length > 0 ? pathParts[pathParts.length - 1] : 'brand';
+              } catch (e) {
+                handle = 'brand';
+              }
+            }
+
+            return {
+              platform: link.platform || 'instagram',
+              url: url,
+              followers: parseInt(link.followers) || 0,
+              handle: handle || 'brand'
+            };
+          });
+
+          await brandModel.updateSocialLinks(brandId, socialLinksPayload);
         } catch (error) {
           console.error('Error updating social links:', error);
         }
@@ -495,16 +517,26 @@ const brandController = {
       const transformedData = {
         brand: {
           ...brand,
-          name: brand.displayName || brand.name,
+          name: brand.brandName || brand.displayName || brand.name,
           username: brand.username,
           description: brand.bio,
-          logoUrl: brand.profilePicUrl || brand.logo_url,
+          logoUrl: brand.profilePicUrl || brand.logoUrl || brand.logo_url,
           bannerUrl: brand.bannerUrl,
           verified: brand.verified,
-          primaryMarket: brand.location,
-          values: parseCategories(brand.categories),
+          location: brand.location,
+          primaryMarket: brand.primaryMarket,
+          phone: brand.phone,
+          industry: brand.industry,
+          tagline: brand.tagline,
+          targetInterests: parseCategories(brand.targetInterests),
+          currentCampaign: brand.currentCampaign,
+          values: parseCategories(brand.values),
           categories: parseCategories(brand.categories),
-          mission: brand.bio
+          mission: brand.mission,
+          website: brand.website,
+          targetAgeRange: brand.targetAgeRange,
+          targetGender: brand.targetGender,
+          socialLinks: brand.socialLinks || [] // Assuming we fetch partial or it's implicitly included?
         },
         stats: {
           activeCampaigns: stats?.total_campaigns || 0,

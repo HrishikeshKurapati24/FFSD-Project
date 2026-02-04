@@ -31,9 +31,14 @@ const ProfileBanner = ({ influencer, onEditImages, getPrimaryMarketEmoji }) => (
               <i className="fas fa-clock"></i> PENDING VERIFICATION
             </span>
           )}
+          {influencer.location && (
+            <span className="influence-info">
+              <i className="fas fa-map-marker-alt"></i> {influencer.location}
+            </span>
+          )}
           {influencer.primaryMarket && (
             <span className="influence-info">
-              Primary market: {influencer.primaryMarket} {getPrimaryMarketEmoji(influencer.primaryMarket)}
+              <i className="fas fa-globe"></i> Primary market: {influencer.primaryMarket} {getPrimaryMarketEmoji(influencer.primaryMarket)}
             </span>
           )}
         </div>

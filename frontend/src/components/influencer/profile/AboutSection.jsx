@@ -4,10 +4,15 @@ const AboutSection = ({ influencer, onEditProfile }) => (
   <div className="profile-bio">
     <div className="section-header">
       <h2>About</h2>
-      <button className="btn-edit" onClick={onEditProfile}>
+      <button className="btn-icon" onClick={onEditProfile}>
         <i className="fas fa-edit"></i> Edit
       </button>
     </div>
+    {influencer.niche && (
+      <p className="tagline" style={{ fontStyle: 'italic', marginBottom: '1rem', color: '#666' }}>
+        {influencer.niche}
+      </p>
+    )}
     <p className="bio-text">
       {influencer.bio || 'No description provided.'}
     </p>
@@ -15,6 +20,12 @@ const AboutSection = ({ influencer, onEditProfile }) => (
     <div className="info-section">
       <h3><i className="fas fa-users"></i> Audience Demographics</h3>
       <div className="audience-details">
+        {influencer.phone && (
+          <div className="detail-item">
+            <strong>Contact:</strong>
+            <span>{influencer.phone}</span>
+          </div>
+        )}
         <div className="detail-item">
           <strong>Age Range:</strong>
           <span>{influencer.audienceAgeRange || 'Not specified'}</span>
