@@ -539,7 +539,7 @@ class CollaborationModel {
                 influencer_id: new mongoose.Types.ObjectId(influencerId),
                 status: 'brand-invite'
             })
-                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date')
+                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date brand_id')
                 .populate({
                     path: 'campaign_id',
                     populate: {
@@ -572,8 +572,8 @@ class CollaborationModel {
 
     static async getSentRequests(influencerId) {
         try {
-            // First, get all campaigns with status 'request'
-            const requestCampaigns = await CampaignInfo.find({ status: 'request' }).select('_id').lean();
+            // First, get all campaigns with status 'influencer-invite'
+            const requestCampaigns = await CampaignInfo.find({ status: 'influencer-invite' }).select('_id').lean();
             const requestCampaignIds = requestCampaigns.map(c => c._id);
 
             // Then, find influencer requests for these campaigns
@@ -582,7 +582,7 @@ class CollaborationModel {
                 status: 'influencer-invite',
                 campaign_id: { $in: requestCampaignIds }
             })
-                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date status')
+                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date status brand_id')
                 .populate({
                     path: 'campaign_id',
                     populate: {

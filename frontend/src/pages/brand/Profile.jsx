@@ -41,13 +41,28 @@ const EXTERNAL_ASSETS = {
 const Profile = () => {
     useExternalAssets(EXTERNAL_ASSETS);
     const navigate = useNavigate();
-    const { brand, loading, error, refreshBrand, updateBrand } = useBrand();
+    const { brand, loading, error, refreshBrand, updateBrand, signOut } = useBrand();
 
     // Modal states
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editImagesModalOpen, setEditImagesModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+
+    // Handlers
+    const handleSignOut = async () => {
+        await signOut();
+        navigate('/signin');
+    };
+
+    const handleOpenEditModal = () => setEditModalOpen(true);
+    const handleCloseEditModal = () => setEditModalOpen(false);
+
+    const handleOpenEditImagesModal = () => setEditImagesModalOpen(true);
+    const handleCloseEditImagesModal = () => setEditImagesModalOpen(false);
+
+    const handleOpenDeleteModal = () => setDeleteModalOpen(true);
+    const handleCloseDeleteModal = () => setDeleteModalOpen(false);
 
     // Form data state
     const [formData, setFormData] = useState({
@@ -76,6 +91,10 @@ const Profile = () => {
 
     // Value input state
     const [valueInput, setValueInput] = useState('');
+    const [interestInput, setInterestInput] = useState(''); // Added interest input state
+
+    // Loading state for form submission
+    const [isSubmitting, setIsSubmitting] = useState(false); // Added submit state
 
     // Delete confirmation state
     const [deleteConfirmation, setDeleteConfirmation] = useState('');
@@ -93,7 +112,12 @@ const Profile = () => {
                 description: brand.description || '',
                 mission: brand.mission || '',
                 currentCampaign: brand.currentCampaign || '',
+                location: brand.location || '', // Added location
                 primaryMarket: brand.primaryMarket || '',
+                phone: brand.phone || '', // Added phone
+                industry: brand.industry || '', // Added industry
+                tagline: brand.tagline || '', // Added tagline
+                targetInterests: brand.targetInterests || [], // Added targetInterests
                 website: brand.website || '',
                 targetAgeRange: brand.targetAgeRange || '',
                 targetGender: brand.targetGender || '',
@@ -105,79 +129,7 @@ const Profile = () => {
         }
     }, [brand]);
 
-    // Handle 401 errors - redirect to signin
-    useEffect(() => {
-        if (error === 'Authentication required') {
-            navigate('/SignIn');
-        }
-    }, [error, navigate]);
-
-    const handleSignOut = async (e) => {
-        e?.preventDefault();
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/brand/signout`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            });
-
-            // Handle response - backend may return JSON or redirect
-            if (response.ok) {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const data = await response.json();
-                    if (data.success) {
-                        // Navigate to signin and reload to clear all state
-                        window.location.href = '/signin';
-                        return;
-                    }
-                }
-            }
-
-            // Fallback: redirect to signin regardless of response
-            window.location.href = '/signin';
-        } catch (error) {
-            console.error('Error during signout:', error);
-            // Even on error, redirect to signin page
-            window.location.href = '/signin';
-        }
-    };
-
-    // Modal handlers
-    const handleOpenEditModal = () => {
-        setEditModalOpen(true);
-        setFormErrors({});
-    };
-
-    const handleCloseEditModal = () => {
-        setEditModalOpen(false);
-        setFormErrors({});
-    };
-
-    const handleOpenEditImagesModal = () => {
-        setEditImagesModalOpen(true);
-        setImageErrors({});
-    };
-
-    const handleCloseEditImagesModal = () => {
-        setEditImagesModalOpen(false);
-        setImageErrors({});
-        setImageFormData({ logo: null, banner: null });
-    };
-
-    const handleOpenDeleteModal = () => {
-        setDeleteModalOpen(true);
-        setDeleteConfirmation('');
-    };
-
-    const handleCloseDeleteModal = () => {
-        setDeleteModalOpen(false);
-        setDeleteConfirmation('');
-    };
+    // ... (keep handleSignOut and Modal handlers as is)
 
     // Add value tag handler using utility function
     const handleAddValue = () => {
@@ -200,25 +152,42 @@ const Profile = () => {
         }));
     };
 
-    // Add social link handler using utility function
+    // Add interest tag handler
+    const handleAddInterest = () => {
+        const updatedInterests = addValue(formData.targetInterests, interestInput);
+        if (updatedInterests.length !== formData.targetInterests.length) {
+            setFormData(prev => ({
+                ...prev,
+                targetInterests: updatedInterests
+            }));
+            setInterestInput('');
+        }
+    };
+
+    // Remove interest tag handler
+    const handleRemoveInterest = (interestToRemove) => {
+        const updatedInterests = removeTag(formData.targetInterests, interestToRemove);
+        setFormData(prev => ({
+            ...prev,
+            targetInterests: updatedInterests
+        }));
+    };
+
+    // Social Link Handlers
     const handleAddSocialLink = () => {
-        const updatedSocialLinks = addSocialLink(formData.socialLinks);
         setFormData(prev => ({
             ...prev,
-            socialLinks: updatedSocialLinks
+            socialLinks: addSocialLink(prev.socialLinks)
         }));
     };
 
-    // Remove social link handler using utility function
     const handleRemoveSocialLink = (index) => {
-        const updatedSocialLinks = removeSocialLink(formData.socialLinks, index);
         setFormData(prev => ({
             ...prev,
-            socialLinks: updatedSocialLinks
+            socialLinks: removeSocialLink(prev.socialLinks, index)
         }));
     };
 
-    // Update social link field
     const handleSocialLinkChange = (index, field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -229,32 +198,39 @@ const Profile = () => {
     };
 
     // Submit profile form using helper
-    // IMPORTANT: This flow ensures data persistence:
-    // 1. Backend API saves to database first
-    // 2. Only after backend confirms success, we refresh context from database
-    // 3. If user logs out before context refresh, database still has updated data
-    // 4. On next login, context will load the updated data from database
     const handleSubmitProfile = async (e) => {
+        console.log('handleSubmitProfile called');
+        e.preventDefault(); // Explicitly prevent default here too just in case
+        setIsSubmitting(true); // Start loading
+
+        console.log('Submitting form data:', formData);
+
         await handleProfileFormSubmit(
             e,
             formData,
             async (result) => {
+                console.log('Submission successful:', result);
                 alert(result.message || 'Profile updated successfully!');
                 setEditModalOpen(false);
                 setFormErrors({});
-                // Refresh brand data from database via context
-                // Database already has updated data, so this ensures context matches database
+                setIsSubmitting(false); // Stop loading on success
+                // Refresh brand data via context
                 try {
                     await refreshBrand();
                 } catch (refreshError) {
                     console.error('Failed to refresh context, but data is saved in database:', refreshError);
-                    // Data is safe in database, context will load it on next page load
                 }
             },
             (errors = {}) => {
+                console.error('Submission failed with errors:', errors);
                 setFormErrors(errors);
+                setIsSubmitting(false); // Stop loading on error
                 if (errors?.general) {
                     alert(errors.general);
+                } else {
+                    // Alert first validation error if generic error not present
+                    const firstError = Object.values(errors)[0];
+                    if (firstError) alert(`Validation Error: ${firstError}`);
                 }
             }
         );
@@ -417,13 +393,18 @@ const Profile = () => {
                 setFormData={setFormData}
                 valueInput={valueInput}
                 setValueInput={setValueInput}
+                interestInput={interestInput} // Added
+                setInterestInput={setInterestInput} // Added
                 formErrors={formErrors}
                 onAddValue={handleAddValue}
                 onRemoveValue={handleRemoveValue}
+                onAddInterest={handleAddInterest} // Added
+                onRemoveInterest={handleRemoveInterest} // Added
                 onAddSocialLink={handleAddSocialLink}
                 onRemoveSocialLink={handleRemoveSocialLink}
                 onSocialLinkChange={handleSocialLinkChange}
                 onSubmit={handleSubmitProfile}
+                isSubmitting={isSubmitting} // Added
             />
 
             <EditImagesModal

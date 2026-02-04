@@ -38,6 +38,8 @@ const Profile = () => {
         username: '',
         bio: '',
         location: '',
+        phone: '', // Added
+        niche: '', // Added
         audienceGender: '',
         audienceAgeRange: '',
         categories: [],
@@ -49,6 +51,10 @@ const Profile = () => {
         bannerImage: null
     });
     const [deleteConfirm, setDeleteConfirm] = useState('');
+
+    // Loading state
+    const [isSubmitting, setIsSubmitting] = useState(false); // Added
+    const [formErrors, setFormErrors] = useState({}); // Added
 
     // Tag input states
     const [newCategory, setNewCategory] = useState('');
@@ -65,24 +71,40 @@ const Profile = () => {
     useEffect(() => {
         if (influencer) {
             setProfileFormData({
-                displayName: influencer.displayName || '',
+                displayName: influencer.displayName || influencer.name || '',
                 username: influencer.username || '',
                 bio: influencer.bio || '',
                 location: influencer.location || '',
-                audienceGender: influencer.audienceGender || '',
-                audienceAgeRange: influencer.audienceAgeRange || '',
-                categories: Array.isArray(influencer.categories) ? [...influencer.categories] : [],
-                languages: Array.isArray(influencer.languages) ? [...influencer.languages] : [],
-                socials: Array.isArray(influencer.socials) ? influencer.socials.map((social, index) => ({
-                    platform: social.platform || '',
-                    url: social.url || '',
-                    followers: social.followers || 0
-                })) : []
+                phone: influencer.phone || '',
+                niche: influencer.niche || '',
+                audienceGender: influencer.audienceGender || influencer.audience_gender || '',
+                audienceAgeRange: influencer.audienceAgeRange || influencer.audience_age_range || '',
+                categories: influencer.categories || [],
+                languages: influencer.languages || [],
+                socials: influencer.socials || influencer.social_media_links || []
             });
-            setProfilePicPreview(influencer.profilePicUrl || '/images/default-avatar.jpg');
-            setBannerPreview(influencer.bannerUrl || '/images/default-banner.jpg');
+            setProfilePicPreview(influencer.profilePicUrl || '');
+            setBannerPreview(influencer.bannerUrl || '');
         }
     }, [influencer]);
+
+    // Validation function
+    const validateForm = (data) => {
+        const errors = {};
+        if (!data.displayName) errors.displayName = 'Display Name is required';
+        if (!data.username) errors.username = 'Username is required';
+        if (!data.niche) errors.niche = 'Niche is required'; // Added validation
+
+        // Phone validation
+        if (data.phone && !/^\+?[1-9]\d{1,14}$/.test(data.phone)) {
+            errors.phone = 'Please enter a valid phone number';
+        }
+
+        return {
+            isValid: Object.keys(errors).length === 0,
+            errors
+        };
+    };
 
     // Handle 401 errors - redirect to signin
     useEffect(() => {
@@ -236,6 +258,17 @@ const Profile = () => {
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
 
+        // Validate form
+        const validation = validateForm(profileFormData);
+        if (!validation.isValid) {
+            setFormErrors(validation.errors);
+            // Scroll to top or first error could be nice, but for now just showing errors
+            return;
+        }
+
+        setIsSubmitting(true);
+        setFormErrors({});
+
         try {
             const response = await fetch(`${API_BASE_URL}/influencer/profile/update`, {
                 method: 'POST',
@@ -266,6 +299,8 @@ const Profile = () => {
         } catch (error) {
             console.error('Error updating profile:', error);
             alert('An error occurred while updating the profile. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -377,7 +412,7 @@ const Profile = () => {
         return (
             <div className={styles['profile-page']}>
                 <div className="error-alert">Profile not found</div>
-                        </div>
+            </div>
         );
     }
 
@@ -425,6 +460,8 @@ const Profile = () => {
                 onSocialChange={handleSocialChange}
                 onClose={handleCloseEditModal}
                 onSubmit={handleProfileSubmit}
+                formErrors={formErrors} // Added
+                isSubmitting={isSubmitting} // Added
             />
 
             <EditImagesModal
@@ -446,7 +483,7 @@ const Profile = () => {
                 onClose={handleCloseDeleteModal}
                 onDelete={handleDeleteAccount}
             />
-    </div>
+        </div>
     );
 };
 

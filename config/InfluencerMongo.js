@@ -152,6 +152,10 @@ const influencerSocialsSchema = new mongoose.Schema({
             required: [true, 'Platform handle is required'],
             trim: true
         },
+        url: {
+            type: String,
+            trim: true
+        },
         followers: {
             type: Number,
             default: 0,

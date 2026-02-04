@@ -902,7 +902,11 @@ class brandModel {
   // Get brand by ID
   static async getBrandById(id) {
     try {
-      const brand = await BrandInfo.findById(id);
+      const brand = await BrandInfo.findById(id).lean();
+      if (brand) {
+        const socialLinks = await BrandSocials.findOne({ brandId: id }).lean();
+        brand.socialLinks = socialLinks ? socialLinks.platforms : [];
+      }
       return brand;
     } catch (err) {
       throw err;
@@ -1075,14 +1079,14 @@ class brandModel {
 
       // Update the main BrandSocials document
       const updated = await BrandSocials.findOneAndUpdate(
-        { brandId },
+        { brandId: new mongoose.Types.ObjectId(brandId) },
         {
           $set: {
             platforms: socialLinksArray,
             lastUpdated: new Date()
           }
         },
-        { new: true, upsert: true }
+        { new: true, upsert: true, runValidators: false }
       );
 
       return true;

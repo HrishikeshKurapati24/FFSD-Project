@@ -77,6 +77,7 @@ const getInfluencerProfileDetails = async (influencerId) => {
         name: platform.platform.charAt(0).toUpperCase() + platform.platform.slice(1),
         icon: platform.platform.toLowerCase(),
         followers: platform.followers,
+        url: platform.url, // Added url
         avgLikes: platform.avgLikes,
         avgComments: platform.avgComments,
         avgViews: platform.avgViews,
@@ -121,16 +122,72 @@ const getInfluencerProfileDetails = async (influencerId) => {
 // Update influencer profile
 const updateInfluencerProfile = async (influencerId, updateData) => {
   try {
-    const update = { ...updateData };
+    const infoUpdate = { ...updateData };
+    const socialsUpdate = updateData.socials;
+
+    // Remove socials from info update to prevent schema errors or polluting Info doc
+    delete infoUpdate.socials;
+
     // Convert arrays or objects to proper format if needed
-    if (update.categories && !Array.isArray(update.categories)) {
-      update.categories = JSON.parse(update.categories);
+    if (infoUpdate.categories && !Array.isArray(infoUpdate.categories)) {
+      infoUpdate.categories = JSON.parse(infoUpdate.categories);
     }
-    if (update.languages && !Array.isArray(update.languages)) {
-      update.languages = JSON.parse(update.languages);
+    if (infoUpdate.languages && !Array.isArray(infoUpdate.languages)) {
+      infoUpdate.languages = JSON.parse(infoUpdate.languages);
     }
-    const updated = await InfluencerInfo.findByIdAndUpdate(influencerId, update, { new: true }).lean();
-    return updated;
+
+    // 1. Update InfluencerInfo
+    const updatedInfo = await InfluencerInfo.findByIdAndUpdate(influencerId, infoUpdate, { new: true }).lean();
+
+    // 2. Update InfluencerSocials if provided
+    if (socialsUpdate && Array.isArray(socialsUpdate)) {
+      console.log('Updating socials with:', socialsUpdate);
+
+      // Fetch basic info for fallback values if needed
+      const influencer = await InfluencerInfo.findById(influencerId);
+      const username = influencer ? influencer.username : 'unknown';
+
+      // Map frontend data to schema requirements
+      const platforms = socialsUpdate.map(s => {
+        // Try to extract handle from URL if not provided
+        let handle = s.handle;
+        if (!handle && s.url) {
+          try {
+            const urlObj = new URL(s.url.startsWith('http') ? s.url : `https://${s.url}`);
+            const pathParts = urlObj.pathname.split('/').filter(p => p);
+            handle = pathParts.length > 0 ? pathParts[pathParts.length - 1] : username;
+          } catch (e) {
+            handle = username;
+          }
+        }
+
+        return {
+          platform: s.platform || 'instagram',
+          url: s.url || '',
+          followers: s.followers || 0,
+          handle: handle || username, // Required field
+          // Preserve or default metrics
+          avgLikes: s.avgLikes || 0,
+          avgComments: s.avgComments || 0,
+          avgViews: s.avgViews || 0
+        };
+      });
+
+      console.log('Constructed platforms array:', platforms);
+
+      const result = await InfluencerSocials.findOneAndUpdate(
+        { influencerId: new mongoose.Types.ObjectId(influencerId) },
+        {
+          $set: {
+            platforms: platforms,
+            socialHandle: username // Required field, syncing with username
+          }
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false }
+      );
+    }
+
+    return updatedInfo;
   } catch (error) {
     console.error('Error updating influencer profile:', error);
     throw error;

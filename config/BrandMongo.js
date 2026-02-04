@@ -41,6 +41,11 @@ const brandInfoSchema = new mongoose.Schema({
         trim: true,
         maxlength: [500, 'Bio cannot exceed 500 characters']
     },
+    description: {
+        type: String,
+        trim: true,
+        maxlength: [1000, 'Description cannot exceed 1000 characters']
+    },
     phone: {
         type: String,
         required: [true, 'Phone number is required'],
@@ -65,6 +70,11 @@ const brandInfoSchema = new mongoose.Schema({
         type: String,
         trim: true,
         maxlength: [500, 'Mission statement cannot exceed 500 characters']
+    },
+    currentCampaign: {
+        type: String,
+        trim: true,
+        maxlength: [500, 'Current campaign goals cannot exceed 500 characters']
     },
     values: [{
         type: String,

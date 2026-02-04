@@ -16,7 +16,9 @@ const EditProfileModal = ({
   onRemoveSocialLink,
   onSocialChange,
   onClose,
-  onSubmit
+  onSubmit,
+  formErrors = {}, // Added
+  isSubmitting = false // Added
 }) => {
   if (!isOpen) {
     return null;
@@ -27,9 +29,9 @@ const EditProfileModal = ({
   };
 
   return (
-    <div className="modal" style={{ display: 'block' }} onClick={(e) => e.target.className === 'modal' && onClose()}>
+    <div className="modal" style={{ display: 'block' }} onClick={(e) => e.target.className === 'modal' && !isSubmitting && onClose()}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <span className="close-modal" onClick={onClose}>&times;</span>
+        <span className="close-modal" onClick={!isSubmitting ? onClose : undefined}>&times;</span>
         <h2>Edit Influencer Profile</h2>
         <form onSubmit={onSubmit}>
           <div className="form-row">
@@ -41,8 +43,9 @@ const EditProfileModal = ({
                 id="displayName"
                 value={formData.displayName}
                 onChange={handleInputChange('displayName')}
-                required
+                disabled={isSubmitting} // Added
               />
+              {formErrors.displayName && <small className="error-text" style={{ color: 'red' }}>{formErrors.displayName}</small>}
             </div>
             <div className="form-group">
               <label htmlFor="username">Username</label>
@@ -52,9 +55,24 @@ const EditProfileModal = ({
                 id="username"
                 value={formData.username}
                 onChange={handleInputChange('username')}
-                required
+                disabled={isSubmitting} // Added
               />
+              {formErrors.username && <small className="error-text" style={{ color: 'red' }}>{formErrors.username}</small>}
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="niche">Niche (Primary Category)</label>
+            <input
+              type="text"
+              className="form-control"
+              id="niche"
+              value={formData.niche || ''}
+              onChange={handleInputChange('niche')}
+              disabled={isSubmitting}
+              placeholder="e.g. Current Fashion, Tech Reviewer"
+            />
+            {formErrors.niche && <small className="error-text" style={{ color: 'red' }}>{formErrors.niche}</small>}
           </div>
 
           <div className="form-group">
@@ -64,7 +82,7 @@ const EditProfileModal = ({
               id="bio"
               value={formData.bio}
               onChange={handleInputChange('bio')}
-              required
+              disabled={isSubmitting} // Added
             />
           </div>
 
@@ -77,22 +95,38 @@ const EditProfileModal = ({
                 id="location"
                 value={formData.location}
                 onChange={handleInputChange('location')}
+                disabled={isSubmitting} // Added
               />
             </div>
             <div className="form-group">
-              <label htmlFor="audienceGender">Primary Audience Gender</label>
-              <select
+              <label htmlFor="phone">Phone Number</label>
+              <input
+                type="tel"
                 className="form-control"
-                id="audienceGender"
-                value={formData.audienceGender}
-                onChange={handleInputChange('audienceGender')}
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Mixed">Mixed</option>
-                <option value="Other">Other</option>
-              </select>
+                id="phone"
+                value={formData.phone || ''}
+                onChange={handleInputChange('phone')}
+                disabled={isSubmitting}
+                placeholder="+1234567890"
+              />
+              {formErrors.phone && <small className="error-text" style={{ color: 'red' }}>{formErrors.phone}</small>}
             </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="audienceGender">Primary Audience Gender</label>
+            <select
+              className="form-control"
+              id="audienceGender"
+              value={formData.audienceGender}
+              onChange={handleInputChange('audienceGender')}
+              disabled={isSubmitting} // Added
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Mixed">Mixed</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           <div className="form-group">
@@ -104,6 +138,7 @@ const EditProfileModal = ({
               value={formData.audienceAgeRange}
               onChange={handleInputChange('audienceAgeRange')}
               placeholder="e.g. 18-35"
+              disabled={isSubmitting} // Added
             />
           </div>
 
@@ -113,7 +148,7 @@ const EditProfileModal = ({
               {formData.categories.map((category, index) => (
                 <span key={`${category}-${index}`} className="tag">
                   {category}
-                  <span className="tag-remove" onClick={() => onRemoveCategory(category)}>×</span>
+                  <span className="tag-remove" onClick={() => !isSubmitting && onRemoveCategory(category)}>×</span>
                 </span>
               ))}
             </div>
@@ -125,6 +160,7 @@ const EditProfileModal = ({
                 placeholder="Add a category"
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
+                disabled={isSubmitting} // Added
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -132,7 +168,7 @@ const EditProfileModal = ({
                   }
                 }}
               />
-              <button type="button" className="btn-secondary" onClick={onAddCategory}>Add</button>
+              <button type="button" className="btn-secondary" onClick={onAddCategory} disabled={isSubmitting}>Add</button>
             </div>
           </div>
 
@@ -142,7 +178,7 @@ const EditProfileModal = ({
               {formData.languages.map((language, index) => (
                 <span key={`${language}-${index}`} className="tag">
                   {language}
-                  <span className="tag-remove" onClick={() => onRemoveLanguage(language)}>×</span>
+                  <span className="tag-remove" onClick={() => !isSubmitting && onRemoveLanguage(language)}>×</span>
                 </span>
               ))}
             </div>
@@ -154,6 +190,7 @@ const EditProfileModal = ({
                 placeholder="Add a language"
                 value={newLanguage}
                 onChange={(e) => setNewLanguage(e.target.value)}
+                disabled={isSubmitting} // Added
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -161,7 +198,7 @@ const EditProfileModal = ({
                   }
                 }}
               />
-              <button type="button" className="btn-secondary" onClick={onAddLanguage}>Add</button>
+              <button type="button" className="btn-secondary" onClick={onAddLanguage} disabled={isSubmitting}>Add</button>
             </div>
           </div>
 
@@ -177,6 +214,7 @@ const EditProfileModal = ({
                       id={`socialPlatform${index}`}
                       value={social.platform}
                       onChange={(e) => onSocialChange(index, 'platform', e.target.value)}
+                      disabled={isSubmitting} // Added
                     >
                       <option value="instagram">Instagram</option>
                       <option value="youtube">YouTube</option>
@@ -195,6 +233,7 @@ const EditProfileModal = ({
                       value={social.url}
                       onChange={(e) => onSocialChange(index, 'url', e.target.value)}
                       placeholder="Profile URL"
+                      disabled={isSubmitting} // Added
                     />
                   </div>
                   <div className="form-group social-platform-followers">
@@ -206,22 +245,29 @@ const EditProfileModal = ({
                       value={social.followers}
                       onChange={(e) => onSocialChange(index, 'followers', parseInt(e.target.value) || 0)}
                       placeholder="Followers"
+                      disabled={isSubmitting} // Added
                     />
                   </div>
                   <div className="form-group social-platform-remove">
-                    <button type="button" className="btn-secondary" onClick={() => onRemoveSocialLink(index)}>×</button>
+                    <button type="button" className="btn-secondary" onClick={() => onRemoveSocialLink(index)} disabled={isSubmitting}>×</button>
                   </div>
                 </div>
               ))}
             </div>
-            <button type="button" className="btn-secondary btn-add-social" onClick={onAddSocialLink}>
+            <button type="button" className="btn-secondary btn-add-social" onClick={onAddSocialLink} disabled={isSubmitting}>
               <i className="fas fa-plus"></i> Add Social Link
             </button>
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-primary">Save Changes</button>
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Saving...
+                </>
+              ) : 'Save Changes'}
+            </button>
           </div>
         </form>
       </div>

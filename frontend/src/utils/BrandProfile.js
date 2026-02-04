@@ -171,94 +171,48 @@ export function removeSocialLink(currentSocialLinks, indexToRemove) {
  */
 export function validateProfileData(data) {
     const errors = {};
-            let hasErrors = false;
+    let hasErrors = false;
 
     // Brand name: required, no numbers, >3 and <50 (from original validation)
-            if (!data.name) {
+    if (!data.name) {
         errors.name = 'Brand name is required';
         hasErrors = true;
-            } else if (data.name.length <= 3 || data.name.length >= 50) {
+    } else if (data.name.length <= 3 || data.name.length >= 50) {
         errors.name = 'Brand name must be > 3 and < 50 characters';
         hasErrors = true;
-            } else if (/\d/.test(data.name)) {
+    } else if (/\d/.test(data.name)) {
         errors.name = 'Brand name must not contain numbers';
         hasErrors = true;
-            }
+    }
 
     // Brand description: required, >10 and < 500 characters (from original validation)
-            if (!data.description) {
+    if (!data.description) {
         errors.description = 'Brand description is required';
         hasErrors = true;
-            } else if (data.description.length <= 10) {
+    } else if (data.description.length <= 10) {
         errors.description = 'Description must be more than 10 characters';
         hasErrors = true;
-            } else if (data.description.length > 500) {
+    } else if (data.description.length > 500) {
         errors.description = 'Description must be less than 500 characters';
         hasErrors = true;
-            }
+    }
 
-    // Primary market: required (from original validation)
-            if (!data.primaryMarket) {
-        errors.primaryMarket = 'Please select a primary market';
+    // Phone: optional but valid format if present
+    if (data.phone && !/^\+?[1-9]\d{1,14}$/.test(data.phone)) {
+        errors.phone = 'Please enter a valid phone number';
         hasErrors = true;
-            }
+    }
 
-    // Website: required with regex validation (from original validation)
-            const websiteRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
-            if (!data.website) {
-        errors.website = 'Website is required';
+    // Industry: required
+    if (!data.industry) {
+        errors.industry = 'Industry is required';
         hasErrors = true;
-            } else if (!websiteRegex.test(data.website)) {
-        errors.website = 'Enter a valid website URL';
+    }
+
+    // Tagline: optional, max 200 chars
+    if (data.tagline && data.tagline.length > 200) {
+        errors.tagline = 'Tagline must be less than 200 characters';
         hasErrors = true;
-            }
-
-    // Target age range: optional but if present must be min-max with min<max (from original validation)
-            if (data.targetAgeRange) {
-                const ageMatch = data.targetAgeRange.match(/^(\d+)-(\d+)$/);
-                if (!ageMatch) {
-            errors.targetAgeRange = 'Age range must be in format min-max, e.g., 18-35';
-            hasErrors = true;
-                } else {
-                    const min = parseInt(ageMatch[1], 10);
-                    const max = parseInt(ageMatch[2], 10);
-                    if (min >= max) {
-                errors.targetAgeRange = 'Minimum age must be less than maximum age';
-                hasErrors = true;
-                    }
-                }
-            }
-
-    // Brand categories: at least 1 (from original validation)
-            if (!Array.isArray(data.values) || data.values.length < 1) {
-        errors.values = 'Add at least one brand category';
-        hasErrors = true;
-            }
-
-    // Social media links: at least 1 (from original validation)
-            if (!Array.isArray(data.socialLinks) || data.socialLinks.length < 1) {
-        errors.socialLinks = 'Add at least one social media link';
-        hasErrors = true;
-    } else {
-        // Validate each social link (from original validation)
-        for (const link of data.socialLinks) {
-                // Only validate URL if it's not empty
-                if (link.url) {
-                    try {
-                        new URL(link.url);
-                    } catch {
-                    errors.socialLinks = `Please enter a valid URL for ${link.platform}`;
-                    hasErrors = true;
-                    break;
-                }
-            }
-
-            if (isNaN(link.followers) || link.followers < 0) {
-                errors.socialLinks = `Please enter a valid followers count for ${link.platform}`;
-                hasErrors = true;
-                break;
-            }
-        }
     }
 
     return {
@@ -323,7 +277,12 @@ export function processProfileFormData(formData, values, socialLinks) {
         description: formData.get('description')?.trim(),
         mission: formData.get('mission')?.trim(),
         currentCampaign: formData.get('currentCampaign')?.trim(),
+        location: formData.get('location')?.trim(),
         primaryMarket: formData.get('primaryMarket')?.trim(),
+        phone: formData.get('phone')?.trim(),
+        industry: formData.get('industry')?.trim(),
+        tagline: formData.get('tagline')?.trim(),
+        targetInterests: formData.get('targetInterests')?.trim(),
         website: formData.get('website')?.trim(),
         targetAgeRange: formData.get('targetAgeRange')?.trim(),
         targetGender: formData.get('targetGender')?.trim(),
@@ -340,7 +299,7 @@ export function processProfileFormData(formData, values, socialLinks) {
  * @param {Function} onError - Error callback
  */
 export async function handleProfileFormSubmit(e, formData, onSuccess, onError) {
-        e.preventDefault();
+    e.preventDefault();
 
     try {
         // Validate the data (using converted validation logic)
@@ -420,8 +379,8 @@ export async function handleDeleteAccountSubmit(e, confirmationText, onSuccess, 
 
     if (confirmationText !== 'DELETE') {
         if (onError) onError({ confirmation: 'Please type "DELETE" to confirm account deletion' });
-            return;
-        }
+        return;
+    }
 
     if (!window.confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
         return;
@@ -430,12 +389,12 @@ export async function handleDeleteAccountSubmit(e, confirmationText, onSuccess, 
     try {
         const result = await deleteBrandAccount();
 
-            if (result.success) {
+        if (result.success) {
             if (onSuccess) onSuccess(result);
-            } else {
+        } else {
             if (onError) onError({ general: result.message || 'Error deleting account' });
-            }
-        } catch (error) {
+        }
+    } catch (error) {
         console.error('Error deleting account:', error);
         if (onError) onError({ general: error.message || 'An error occurred while deleting the account' });
     }
@@ -453,10 +412,10 @@ export function createImagePreview(file) {
             return;
         }
 
-            const reader = new FileReader();
+        const reader = new FileReader();
         reader.onload = (e) => resolve(e.target.result);
         reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
     });
 }
 

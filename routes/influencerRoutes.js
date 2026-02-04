@@ -44,7 +44,7 @@ router.use(isInfluencer);
 // Middleware to verify user is an influencer (supports both session and JWT)
 const verifyInfluencer = (req, res, next) => {
     const userType = req.session?.user?.userType || req.user?.userType;
-    
+
     if (userType === 'influencer') {
         // Ensure session has user for compatibility
         if (!req.session.user && req.user) {
@@ -608,7 +608,7 @@ router.post('/apply/:campaignId', async (req, res) => {
                         redirectUrl: '/subscription/manage'
                     });
                 }
-                
+
                 return res.status(400).json({
                     success: false,
                     message: `${limitCheck.reason}. Please upgrade your plan to connect with more brands.`,
@@ -945,9 +945,9 @@ router.post('/sent-requests/:requestId/cancel', async (req, res) => {
             });
         }
 
-        // Verify the campaign is still in 'request' status
+        // Verify the campaign is still in 'influencer-invite' status
         const campaign = await CampaignInfo.findById(request.campaign_id);
-        if (!campaign || campaign.status !== 'request') {
+        if (!campaign || campaign.status !== 'influencer-invite') {
             return res.status(400).json({
                 success: false,
                 message: 'Campaign is no longer accepting requests'

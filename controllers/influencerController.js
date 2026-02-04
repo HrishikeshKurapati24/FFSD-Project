@@ -398,6 +398,8 @@ const getInfluencerProfile = async (req, res) => {
       website: influencer.website || '',
       bio: influencer.bio || '',
       location: influencer.location || '',
+      phone: influencer.phone || '',
+      niche: influencer.niche || '',
       profilePicUrl: influencer.profilePicUrl || influencer.profile_pic_url || '/images/default-avatar.jpg',
       bannerUrl: influencer.bannerUrl || influencer.banner_url || '/images/default-banner.jpg',
       verified: influencer.verified || false,
@@ -565,19 +567,25 @@ const updateInfluencerData = async (req, res) => {
       });
     }
 
+    console.log('Update Request Body:', req.body);
+    console.log('Update Request Socials:', req.body.socials);
+
     // Prepare update data
     const updateData = {
       name: req.body.displayName || currentProfile.name,
       username: req.body.username || currentProfile.username,
       bio: req.body.bio || currentProfile.bio,
       location: req.body.location || currentProfile.location,
-      audience_gender: req.body.audienceGender || currentProfile.audience_gender,
-      audience_age_range: req.body.audienceAge || currentProfile.audience_age_range,
+      phone: req.body.phone || currentProfile.phone,
+      niche: req.body.niche || currentProfile.niche,
+      displayName: req.body.displayName || currentProfile.displayName || currentProfile.name,
+      audienceGender: req.body.audienceGender || currentProfile.audienceGender || currentProfile.audience_gender,
+      audienceAgeRange: req.body.audienceAgeRange || req.body.audienceAge || currentProfile.audienceAgeRange || currentProfile.audience_age_range,
       categories: Array.isArray(req.body.categories) ? req.body.categories :
         (req.body.categories ? [req.body.categories].filter(Boolean) : currentProfile.categories),
       languages: Array.isArray(req.body.languages) ? req.body.languages :
         (req.body.languages ? [req.body.languages].filter(Boolean) : currentProfile.languages),
-      social_media_links: req.body.socials || currentProfile.social_media_links
+      socials: req.body.socials || currentProfile.socials || currentProfile.social_media_links
     };
 
     // Only update if there are changes
