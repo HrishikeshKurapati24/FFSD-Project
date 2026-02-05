@@ -21,6 +21,7 @@ const Signin = () => {
     });
     const [message, setMessage] = useState({ text: '', type: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const validateEmail = (value) => {
         const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/;
@@ -248,18 +249,46 @@ const Signin = () => {
                         <div className={styles['form-group']}>
                             <label htmlFor="password">Password</label>
                             <div className={styles['input-wrapper']}>
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    placeholder="Enter your password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    onBlur={handleBlur}
-                                    required
-                                    className={errors.password ? styles.invalid : ''}
-                                    aria-invalid={errors.password ? 'true' : 'false'}
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        id="password"
+                                        name="password"
+                                        placeholder="Enter your password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        onBlur={handleBlur}
+                                        required
+                                        className={errors.password ? styles.invalid : ''}
+                                        aria-invalid={errors.password ? 'true' : 'false'}
+                                        style={{ paddingRight: '40px' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '8px',
+                                            top: '25%',
+                                            transform: 'translateY(-50%)',
+                                            width: '24px',
+                                            height: '24px',
+                                            borderRadius: '50%',
+                                            background: '#f0f0f0',
+                                            border: '1px solid #ccc',
+                                            cursor: 'pointer',
+                                            fontSize: '14px',
+                                            color: '#666',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '0'
+                                        }}
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
                             </div>
                             <small
                                 className={styles['error-text']}

@@ -4,6 +4,9 @@ const CustomerPurchaseController = require('../controllers/customerPurchaseContr
 const { CampaignInfo, CampaignInfluencers } = require('../config/CampaignMongo');
 const { InfluencerInfo } = require('../config/InfluencerMongo');
 const { isAuthenticated, isCustomer } = require('./authRoutes');
+const { brandModel } = require('../models/brandModel');
+const influencerModel = require('../models/influencerModel');
+const brandController = require('../controllers/brandController');
 
 // Ensure cart exists in session
 router.use((req, res, next) => {
@@ -78,6 +81,68 @@ router.post('/checkout', CustomerPurchaseController.checkoutCart);
 
 // Rankings page
 router.get('/rankings', CustomerPurchaseController.getRankingsPage);
+
+// Public API for customer to fetch brand profile by ID
+router.get('/brand/:brandId/profile', async (req, res) => {
+    const brandId = req.params.brandId;
+    try {
+        const brand = await brandModel.getBrandById(brandId);
+        if (!brand) {
+            return res.status(404).json({ success: false, message: 'Brand profile not found' });
+        }
+
+        const socialStats = await brandModel.getSocialStats(brandId);
+        const topCampaigns = await brandModel.getTopCampaigns(brandId);
+        const transformed = brandController.transformBrandProfileForClient
+            ? brandController.transformBrandProfileForClient(brand, socialStats, topCampaigns)
+            : brand; // fallback
+
+        // Normalize currentCampaigns field for frontend expectations
+        transformed.currentCampaigns = Array.isArray(topCampaigns)
+            ? topCampaigns.map(c => ({ id: c.id || c._id, title: c.title, status: c.status || c.state || 'active' }))
+            : [];
+
+        return res.json({ success: true, brand: transformed });
+    } catch (error) {
+        console.error('Error in customer brand profile API:', error);
+        return res.status(500).json({ success: false, message: 'Error loading brand profile', error: error.message });
+    }
+});
+
+// Public API for customer to fetch influencer profile by ID
+router.get('/influencer/:influencerId/profile', async (req, res) => {
+    const influencerId = req.params.influencerId;
+    try {
+        const influencer = await influencerModel.getInfluencerProfileDetails(influencerId);
+        if (!influencer) {
+            return res.status(404).json({ success: false, message: 'Influencer profile not found' });
+        }
+
+        // Also fetch current campaigns (active/completed) where this influencer is participating
+        const currentCampaignsDocs = await CampaignInfluencers.find({ influencer_id: influencerId, status: { $in: ['active', 'completed'] } })
+            .populate({ path: 'campaign_id', select: 'title status' })
+            .lean();
+
+        const current = (currentCampaignsDocs || []).map(ci => ({ id: ci.campaign_id?._id || ci.campaign_id, title: ci.campaign_id?.title, status: ci.campaign_id?.status }));
+        influencer.currentCampaigns = current;
+
+        // Fetch promoted products for those campaigns
+        const { Product } = require('../config/ProductMongo');
+        const campaignIds = current.map(c => c.id).filter(Boolean);
+        let promotedProducts = [];
+        if (campaignIds.length > 0) {
+            const products = await Product.find({ campaign_id: { $in: campaignIds }, status: 'active' }).lean();
+            promotedProducts = products.map(p => ({ id: p._id, title: p.name, price: p.campaign_price || p.original_price || 0 }));
+        }
+
+        influencer.promotedProducts = promotedProducts;
+
+        return res.json({ success: true, influencer });
+    } catch (error) {
+        console.error('Error in customer influencer profile API:', error);
+        return res.status(500).json({ success: false, message: 'Error loading influencer profile', error: error.message });
+    }
+});
 
 
 

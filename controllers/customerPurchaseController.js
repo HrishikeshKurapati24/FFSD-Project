@@ -383,7 +383,7 @@ class CustomerPurchaseController {
             ]);
             const brandIdSet = new Set(revenueAgg.map(r => r._id.toString()));
             // Also include brands that may have zero revenue to allow sorting by other metrics
-            const allBrands = await BrandInfo.find({}).select('brandName logoUrl completedCampaigns avgCampaignRating').lean();
+            const allBrands = await BrandInfo.find({}).select('brandName logoUrl completedCampaigns avgCampaignRating description industry website location categories mission tagline bannerUrl verified').lean();
             allBrands.forEach(b => brandIdSet.add(b._id.toString()));
             const ids = Array.from(brandIdSet);
 
@@ -392,7 +392,7 @@ class CustomerPurchaseController {
 
             // Engagement rate and rating from BrandAnalytics (avgEngagementRate, rating)
             const { BrandAnalytics } = require('../config/BrandMongo');
-            const analytics = await BrandAnalytics.find({ brandId: { $in: ids } }).select('brandId avgEngagementRate rating').lean();
+            const analytics = await BrandAnalytics.find({ brandId: { $in: ids.map(id => new mongoose.Types.ObjectId(id)) } }).select('brandId avgEngagementRate rating').lean();
             const engRateMap = new Map(analytics.map(a => [a.brandId.toString(), a.avgEngagementRate || 0]));
             const ratingMap = new Map(analytics.map(a => [a.brandId.toString(), a.rating || 0]));
 
@@ -402,10 +402,20 @@ class CustomerPurchaseController {
                     id,
                     name: info.brandName || 'Brand',
                     logoUrl: info.logoUrl,
+                    bannerUrl: info.bannerUrl || null,
                     revenue: revenueMap.get(id) || 0,
                     engagement_rate: engRateMap.get(id) || 0,
                     rating: (info.avgCampaignRating != null ? info.avgCampaignRating : (ratingMap.get(id) || 0)),
-                    completedCampaigns: info.completedCampaigns || 0
+                    completedCampaigns: info.completedCampaigns || 0,
+                    // Additional brand details
+                    description: info.description || '',
+                    industry: info.industry || '',
+                    website: info.website || '',
+                    location: info.location || '',
+                    categories: Array.isArray(info.categories) ? info.categories : [],
+                    mission: info.mission || '',
+                    tagline: info.tagline || '',
+                    verified: !!info.verified
                 };
             });
 
@@ -416,26 +426,76 @@ class CustomerPurchaseController {
 
             // 2) INFLUENCER RANKINGS
             const { InfluencerAnalytics, InfluencerSocials } = require('../config/InfluencerMongo');
-            const infInfos = await InfluencerInfo.find({}).select('fullName profilePicUrl completedCollabs').lean();
+            const infInfos = await InfluencerInfo.find({}).select('fullName profilePicUrl completedCollabs niche bio website location displayName bannerUrl').lean();
             const infIds = infInfos.map(i => i._id.toString());
-            const infAnalytics = await InfluencerAnalytics.find({ influencerId: { $in: infIds } })
+            const infAnalytics = await InfluencerAnalytics.find({ influencerId: { $in: infIds.map(id => new mongoose.Types.ObjectId(id)) } })
                 .select('influencerId totalFollowers avgEngagementRate').lean();
             const followersMap = new Map(infAnalytics.map(a => [a.influencerId.toString(), a.totalFollowers || 0]));
             const infEngMap = new Map(infAnalytics.map(a => [a.influencerId.toString(), a.avgEngagementRate || 0]));
 
-            const socials = await InfluencerSocials.find({ influencerId: { $in: infIds } }).select('influencerId platforms').lean();
+            const socials = await InfluencerSocials.find({ influencerId: { $in: infIds.map(id => new mongoose.Types.ObjectId(id)) } }).select('influencerId platforms').lean();
             const platformCountMap = new Map(socials.map(s => [s.influencerId.toString(), Array.isArray(s.platforms) ? s.platforms.length : 0]));
+            const socialsMap = new Map(socials.map(s => [s.influencerId.toString(), Array.isArray(s.platforms) ? s.platforms : []]));
+
+            // Gather top 5 promoted products per influencer via recent published CampaignContent
+            const recentContents = await CampaignContent.find({ influencer_id: { $in: infIds.map(id => new mongoose.Types.ObjectId(id)) }, status: 'published' })
+                .populate('attached_products.product_id', 'name description images original_price campaign_price discount_percentage category tags is_digital target_quantity sold_quantity delivery_info specifications')
+                .sort({ published_at: -1 })
+                .limit(300)
+                .lean();
+
+            const topProductsMap = new Map();
+            for (const c of recentContents) {
+                const infId = c.influencer_id && c.influencer_id.toString();
+                if (!infId) continue;
+                if (!topProductsMap.has(infId)) topProductsMap.set(infId, []);
+                const arr = topProductsMap.get(infId);
+                const attached = Array.isArray(c.attached_products) ? c.attached_products : [];
+                for (const ap of attached) {
+                    const p = ap.product_id;
+                    if (!p || !p._id) continue;
+                    // avoid duplicates by product id
+                    if (!arr.find(x => x._id && x._id.toString() === p._id.toString())) {
+                        const stock = (p.target_quantity != null && p.sold_quantity != null)
+                            ? Math.max(0, p.target_quantity - p.sold_quantity)
+                            : 0;
+                        arr.push({
+                            _id: p._id,
+                            name: p.name || '',
+                            description: p.description || '',
+                            image: (p.images && p.images[0] && p.images[0].url) || null,
+                            original_price: p.original_price || 0,
+                            campaign_price: p.campaign_price || 0,
+                            discount_percentage: p.discount_percentage || 0,
+                            category: p.category || '',
+                            tags: Array.isArray(p.tags) ? p.tags : [],
+                            is_digital: !!p.is_digital,
+                            stock_available: stock,
+                            estimated_delivery_days: (p.delivery_info && p.delivery_info.estimated_days) || null,
+                            specifications: p.specifications || {}
+                        });
+                        if (arr.length >= 5) break;
+                    }
+                }
+            }
 
             let influencerRankings = infInfos.map(i => {
                 const id = i._id.toString();
                 return {
                     id,
                     name: i.fullName || 'Influencer',
+                    displayName: i.displayName || '',
                     profilePicUrl: i.profilePicUrl,
+                    bannerUrl: i.bannerUrl || null,
+                    niche: i.niche || '',
+                    bio: i.bio || '',
+                    website: i.website || '',
+                    location: i.location || '',
                     totalFollowers: followersMap.get(id) || 0,
                     engagement_rate: infEngMap.get(id) || 0,
                     platform_count: platformCountMap.get(id) || 0,
-                    completedCampaigns: i.completedCollabs || 0
+                    socials: socialsMap.get(id) || [],
+                    topProducts: topProductsMap.get(id) || []
                 };
             });
 

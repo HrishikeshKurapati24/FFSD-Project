@@ -153,6 +153,13 @@
     }
 
     /* Benefits Section */
+    .benefits-container {
+        display: flex;
+        gap: 50px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
     .benefit {
         background: #ffffff;
         border-radius: 16px;
@@ -163,6 +170,8 @@
         cursor: pointer;
         position: relative;
         overflow: hidden;
+        flex: 1;
+        min-width: 280px;
     }
 
     .benefit:hover {
@@ -210,6 +219,11 @@
         max-width: 600px;
         margin: 0 auto;
         color: #333;
+        transition: transform 0.3s ease;
+    }
+
+    .pricing-info:hover {
+        transform: translateY(-15px);
     }
 
     /* Subscription Plans Section */
@@ -263,6 +277,11 @@
     .plan-card.popular {
         border: 3px solid #28a745;
         transform: scale(1.05);
+        transition: transform 0.3s ease;
+    }
+
+    .plan-card.popular:hover {
+        transform: scale(1.05) translateY(-15px);
     }
 
     .popular-badge {
@@ -341,6 +360,11 @@
         margin-top: 40px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         color: #333;
+        transition: transform 0.3s ease;
+    }
+
+    .key-features:hover {
+        transform: translateY(-15px);
     }
 
     .key-features h3 {

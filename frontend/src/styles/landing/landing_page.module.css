@@ -152,6 +152,11 @@ nav ul li a:hover {
     backdrop-filter: blur(5px);
     border-radius: 15px;
     animation: fadeIn 1s ease-in-out;
+    transition: transform 0.3s ease;
+}
+
+.hero-content:hover {
+    transform: translateY(-10px);
 }
 
 @keyframes fadeIn {
@@ -397,6 +402,11 @@ nav ul li a:hover {
 
 .stat-item {
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-10px);
 }
 
 .stat-number {
@@ -522,6 +532,14 @@ nav ul li a:hover {
     text-align: center;
     color: #555;
     margin-bottom: 40px;
+}
+
+.partners .section-title {
+    color: #fff;
+}
+
+.partners .partners-description {
+    color: #fff;
 }
 
 .partners-logos {
