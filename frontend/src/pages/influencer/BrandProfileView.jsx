@@ -59,9 +59,8 @@ const BrandProfileView = () => {
                 credentials: 'include'
             });
 
-            if (response.status === 401) {
-                navigate('/signin');
-                return;
+            if (response.status === 401 || response.status === 403) {
+                throw new Error('The user is not authenticated');
             }
 
             if (!response.ok) {
@@ -274,13 +273,13 @@ const BrandProfileView = () => {
                                                         ))}
                                                     </div>
                                                 </div>
-                                                {collab.products && collab.products.filter((product, index, self) => 
+                                                {collab.products && collab.products.filter((product, index, self) =>
                                                     product.name && product.name.trim() !== '' &&
                                                     product.category && product.category.trim() !== '' &&
                                                     product.category !== '()' &&
                                                     index === self.findIndex(p => p.name === product.name && p.category === product.category)
                                                 ).length > 0 ? (
-                                                    collab.products.filter((product, index, self) => 
+                                                    collab.products.filter((product, index, self) =>
                                                         product.name && product.name.trim() !== '' &&
                                                         product.category && product.category.trim() !== '' &&
                                                         product.category !== '()' &&

@@ -107,11 +107,12 @@ const Profile = () => {
     };
 
     // Handle 401 errors - redirect to signin
-    useEffect(() => {
-        if (error === 'Authentication required') {
-            navigate('/signin');
-        }
-    }, [error, navigate]);
+    // Handle 401 errors - redirect to signin
+    // useEffect(() => {
+    //     if (error === 'Authentication required') {
+    //         navigate('/signin');
+    //     }
+    // }, [error, navigate]);
 
     // Handle sign out
     const handleSignOut = async (e) => {

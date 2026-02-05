@@ -1,0 +1,96 @@
+.notFoundContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    text-align: center;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.errorCode {
+    font-size: 8rem;
+    font-weight: 900;
+    color: #e9ecef;
+    line-height: 1;
+    margin-bottom: 0;
+    position: relative;
+    background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.errorMessage {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #343a40;
+    margin-bottom: 1rem;
+    margin-top: -20px;
+}
+
+.errorDescription {
+    font-size: 1.1rem;
+    color: #6c757d;
+    max-width: 500px;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.homeButton {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.homeButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+    background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+}
+
+.homeButton:active {
+    transform: translateY(0);
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.8;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.8;
+    }
+}
+
+@media (max-width: 768px) {
+    .errorCode {
+        font-size: 6rem;
+    }
+
+    .errorMessage {
+        font-size: 1.5rem;
+    }
+
+    .errorDescription {
+        font-size: 1rem;
+    }
+}

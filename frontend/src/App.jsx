@@ -49,6 +49,8 @@ import Profile from './pages/influencer/Profile';
 import BrandProfileView from './pages/influencer/BrandProfileView';
 import NotificationCenter from './components/notifications/NotificationCenter';
 import ProtectedRoute from './components/ProtectedRoute';
+import NotFound from './pages/NotFound';
+import { Navigate } from 'react-router-dom';
 
 function App() {
 
@@ -82,35 +84,35 @@ function App() {
                 <Route path="/admin/login" element={<Login />} />
                 <Route path="/admin/payment_verification" element={<PaymentVerification />} />
                 <Route path="/admin/settings" element={<Settings />} />
+
                 {/* Brand Routes */}
-                <Route path="/brand/home" element={<BrandDashboard />} />
-                <Route path="/brand/explore" element={<BrandExplore />} />
-                <Route path="/brand/profile" element={<BrandProfile />} />
-                <Route path="/brand/create_campaign" element={<CreateCampaign />} />
-                <Route path="/brand/recievedRequests" element={<ReceivedRequests />} />
-                <Route path="/brand/:requestId1/:requestId2/transaction" element={<Transaction />} />
-                <Route path="/brand/campaigns/history" element={<CampaignHistory />} />
-                <Route path="/brand/influencer_profile/:influencerId" element={<InfluencerProfileView />} />
+                <Route path="/brand/home" element={<ProtectedRoute requiredRole="brand"><BrandDashboard /></ProtectedRoute>} />
+                <Route path="/brand/explore" element={<ProtectedRoute requiredRole="brand"><BrandExplore /></ProtectedRoute>} />
+                <Route path="/brand/profile" element={<ProtectedRoute requiredRole="brand"><BrandProfile /></ProtectedRoute>} />
+                <Route path="/brand/create_campaign" element={<ProtectedRoute requiredRole="brand"><CreateCampaign /></ProtectedRoute>} />
+                <Route path="/brand/recievedRequests" element={<ProtectedRoute requiredRole="brand"><ReceivedRequests /></ProtectedRoute>} />
+                <Route path="/brand/:requestId1/:requestId2/transaction" element={<ProtectedRoute requiredRole="brand"><Transaction /></ProtectedRoute>} />
+                <Route path="/brand/campaigns/history" element={<ProtectedRoute requiredRole="brand"><CampaignHistory /></ProtectedRoute>} />
+                <Route path="/brand/influencer_profile/:influencerId" element={<ProtectedRoute requiredRole="brand"><InfluencerProfileView /></ProtectedRoute>} />
+
                 {/* Influencer Routes */}
-                <Route path="/influencer/home" element={<InfluencerDashboard />} />
-                <Route path="/influencer/explore" element={<Explore />} />
-                <Route path="/influencer/profile" element={<Profile />} />
-                <Route path="/influencer/campaigns" element={<Campaigns />} />
-                <Route path="/influencer/collab/:id" element={<CampaignDetails />} />
-                <Route path="/influencer/campaign-history" element={<InfluencerCampaignHistory />} />
-                <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
-                {/*
-              
-              
-              <Route path="/influencer/campaign-history" element={<CampaignHistory />} />
-              
-              
-              <Route path="/influencer/brand_profile/:id" element={<BrandProfileView />} />
-              <Route path="/influencer/I_brand_profile/:id" element={<BrandProfileView />} /> */}
-                <Route path="/customer" element={<AllCampaigns />} />
-                <Route path="/customer/campaign/:campaignId/shop" element={<CampaignShopping />} />
-                <Route path="/customer/cart" element={<Cart />} />
-                <Route path="/customer/rankings" element={<Rankings />} />
+                <Route path="/influencer/home" element={<ProtectedRoute requiredRole="influencer"><InfluencerDashboard /></ProtectedRoute>} />
+                <Route path="/influencer/explore" element={<ProtectedRoute requiredRole="influencer"><Explore /></ProtectedRoute>} />
+                <Route path="/influencer/profile" element={<ProtectedRoute requiredRole="influencer"><Profile /></ProtectedRoute>} />
+                <Route path="/influencer/campaigns" element={<ProtectedRoute requiredRole="influencer"><Campaigns /></ProtectedRoute>} />
+                <Route path="/influencer/collab/:id" element={<ProtectedRoute requiredRole="influencer"><CampaignDetails /></ProtectedRoute>} />
+                <Route path="/influencer/campaign-history" element={<ProtectedRoute requiredRole="influencer"><InfluencerCampaignHistory /></ProtectedRoute>} />
+                <Route path="/influencer/brand_profile/:id" element={<ProtectedRoute requiredRole="influencer"><BrandProfileView /></ProtectedRoute>} />
+
+                {/* Customer Routes */}
+                <Route path="/customer" element={<ProtectedRoute requiredRole="customer"><AllCampaigns /></ProtectedRoute>} />
+                <Route path="/customer/campaign/:campaignId/shop" element={<ProtectedRoute requiredRole="customer"><CampaignShopping /></ProtectedRoute>} />
+                <Route path="/customer/cart" element={<ProtectedRoute requiredRole="customer"><Cart /></ProtectedRoute>} />
+                <Route path="/customer/rankings" element={<ProtectedRoute requiredRole="customer"><Rankings /></ProtectedRoute>} />
+
+                {/* 404 Fallback */}
+                <Route path="/not-found" element={<NotFound />} />
+                <Route path="*" element={<Navigate replace to="/not-found" />} />
               </Routes>
             </BrowserRouter>
           </CartProvider>

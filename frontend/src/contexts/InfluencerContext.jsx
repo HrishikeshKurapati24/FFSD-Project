@@ -35,7 +35,7 @@ export const InfluencerProvider = ({ children }) => {
       if (response.status === 401) {
         // User not authenticated, clear context
         setInfluencer(null);
-        setError('Authentication required');
+        setError('The user is not authenticated');
         return;
       }
 

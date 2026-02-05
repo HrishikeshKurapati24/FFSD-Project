@@ -31,9 +31,8 @@ const CampaignHistory = () => {
                 credentials: 'include'
             });
 
-            if (response.status === 401) {
-                navigate('/signin');
-                return;
+            if (response.status === 401 || response.status === 403) {
+                throw new Error('The user is not authenticated');
             }
 
             if (!response.ok) {
@@ -115,7 +114,7 @@ const CampaignHistory = () => {
         } catch (error) {
             console.error('Error during signout:', error);
             window.location.href = '/signin';
-                }
+        }
     };
 
     if (loading) {
@@ -141,9 +140,9 @@ const CampaignHistory = () => {
             {/* Main Content */}
             <div className={styles.container}>
                 <div className={styles.campaignsHeader}>
-                <h1>Campaign History</h1>
-                <p>View and analyze your past campaign performances</p>
-            </div>
+                    <h1>Campaign History</h1>
+                    <p>View and analyze your past campaign performances</p>
+                </div>
 
                 {/* Campaigns Grid */}
                 <div className={styles.campaignsGrid}>
@@ -162,43 +161,43 @@ const CampaignHistory = () => {
                                             {(campaign.performance_score || 0).toFixed(1)}
                                         </span>
                                         <span className={styles.metricLabel}>Performance</span>
-                            </div>
+                                    </div>
                                     <div className={styles.metric}>
                                         <span className={styles.metricValue}>
                                             {(campaign.engagement_rate || 0).toFixed(1)}%
-                                </span>
+                                        </span>
                                         <span className={styles.metricLabel}>Engagement</span>
-                            </div>
+                                    </div>
                                     <div className={styles.metric}>
                                         <span className={styles.metricValue}>
                                             {(campaign.reach || 0).toLocaleString()}
-                                </span>
+                                        </span>
                                         <span className={styles.metricLabel}>Reach</span>
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
                                 <div className={styles.campaignDetails}>
                                     <div className={styles.detailItem}>
                                         <i className="far fa-calendar"></i>
                                         <span>Ended {campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'N/A'}</span>
-                            </div>
+                                    </div>
                                     <div className={styles.detailItem}>
                                         <i className="fas fa-users"></i>
                                         <span>{campaign.influencers_count || 0} influencers</span>
-                            </div>
+                                    </div>
                                     <div className={styles.detailItem}>
                                         <i className="fas fa-tag"></i>
                                         <span>{(campaign.budget || 0).toLocaleString()} budget</span>
-                            </div>
+                                    </div>
                                     <div className={styles.detailItem}>
                                         <i className="fas fa-chart-line"></i>
                                         <span>{(campaign.conversion_rate || 0).toFixed(1)}% conversion</span>
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
                                 {campaign.influencers && campaign.influencers.length > 0 && (
                                     <div className={styles.campaignInfluencers}>
-                                <h4>Influencers</h4>
+                                        <h4>Influencers</h4>
                                         <div className={styles.influencerList}>
                                             {campaign.influencers.map((influencer, idx) => {
                                                 const influencerImage = influencer.profilePicUrl || '/images/default-avatar.jpg';
@@ -217,25 +216,25 @@ const CampaignHistory = () => {
                                                             alt={influencer.name || 'Influencer'}
                                                             onError={(e) => { e.target.src = '/images/default-avatar.jpg'; }}
                                                         />
-                                                        
+
                                                     </Link>
                                                 );
                                             })}
                                         </div>
-                                </div>
+                                    </div>
                                 )}
                             </div>
                         ))
                     ) : (
                         <div className={styles.noCampaigns}>
                             <i className="fas fa-history"></i>
-                                <h3>No Campaign History</h3>
-                                <p>You haven't completed any campaigns yet.</p>
-                            </div>
+                            <h3>No Campaign History</h3>
+                            <p>You haven't completed any campaigns yet.</p>
+                        </div>
                     )}
+                </div>
+            </div>
         </div>
-    </div>
-</div>
     );
 };
 

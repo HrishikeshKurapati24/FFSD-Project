@@ -67,9 +67,8 @@ const CampaignHistory = () => {
         credentials: 'include'
       });
 
-      if (response.status === 401) {
-        navigate('/signin');
-        return;
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('The user is not authenticated');
       }
 
       if (!response.ok) {
