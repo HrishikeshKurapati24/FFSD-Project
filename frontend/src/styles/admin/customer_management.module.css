@@ -94,7 +94,7 @@
 }
 
 /* Container - already defined above, this is for nested containers */
-.adminContainer > .adminContainer {
+.adminContainer>.adminContainer {
     max-width: 1400px;
     margin: 0 auto;
     padding: 30px 20px;
@@ -123,7 +123,7 @@
 .analytics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    gap: 30px;
     margin-bottom: 40px;
 }
 
@@ -135,11 +135,12 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    transition: transform 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .analyticsCard:hover {
-    transform: translateY(-2px);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .card-icon {
@@ -190,7 +191,7 @@
 .charts-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    gap: 40px;
     margin-bottom: 40px;
 }
 
@@ -199,6 +200,12 @@
     border-radius: 12px;
     padding: 25px;
     box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chartContainer:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .chartContainer h3 {
@@ -213,7 +220,7 @@
 /* Tables Section */
 .tablesSection {
     display: grid;
-    gap: 30px;
+    gap: 40px;
 }
 
 .tableContainer {
@@ -221,6 +228,12 @@
     border-radius: 12px;
     box-shadow: var(--shadow);
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tableContainer:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .table-header {
@@ -394,8 +407,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -414,6 +432,7 @@
         transform: translateY(-50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;

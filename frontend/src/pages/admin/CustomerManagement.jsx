@@ -392,9 +392,9 @@ export default function CustomerManagement() {
                     </div>
 
                     {/* Analytics Cards */}
-                    <div className={styles.analyticsGrid}>
+                    <div className={styles['analytics-grid']}>
                         <div className={styles.analyticsCard}>
-                            <div className={styles.cardIcon}>
+                            <div className={styles['card-icon']}>
                                 <i className="fas fa-users"></i>
                             </div>
                             <div className={styles.cardContent}>
@@ -404,7 +404,7 @@ export default function CustomerManagement() {
                         </div>
 
                         <div className={styles.analyticsCard}>
-                            <div className={styles.cardIcon}>
+                            <div className={styles['card-icon']}>
                                 <i className="fas fa-user-check"></i>
                             </div>
                             <div className={styles.cardContent}>
@@ -415,7 +415,7 @@ export default function CustomerManagement() {
                         </div>
 
                         <div className={styles.analyticsCard}>
-                            <div className={styles.cardIcon}>
+                            <div className={styles['card-icon']}>
                                 <i className="fas fa-dollar-sign"></i>
                             </div>
                             <div className={styles.cardContent}>
@@ -425,7 +425,7 @@ export default function CustomerManagement() {
                         </div>
 
                         <div className={styles.analyticsCard}>
-                            <div className={styles.cardIcon}>
+                            <div className={styles['card-icon']}>
                                 <i className="fas fa-shopping-bag"></i>
                             </div>
                             <div className={styles.cardContent}>
@@ -436,7 +436,7 @@ export default function CustomerManagement() {
                     </div>
 
                     {/* Charts Section */}
-                    <div className={styles.chartsSection}>
+                    <div className={styles['charts-section']}>
                         <div className={styles.chartContainer}>
                             <h3>Customer Growth</h3>
                             <canvas ref={customerGrowthChartRef}></canvas>
@@ -451,14 +451,14 @@ export default function CustomerManagement() {
                     <div className={styles.tablesSection}>
                         {/* Top Customers */}
                         <div className={styles.tableContainer}>
-                            <div className={styles.tableHeader}>
+                            <div className={styles['table-header']}>
                                 <h3><i className="fas fa-crown"></i> Top Customers</h3>
                                 <button className={styles.exportBtn} onClick={exportTopCustomers}>
                                     <i className="fas fa-download"></i> Export
                                 </button>
                             </div>
                             <div className={styles.tableWrapper}>
-                                <table className={styles.customersTable}>
+                                <table className={styles['customers-table']}>
                                     <thead>
                                         <tr>
                                             <th>Customer</th>
@@ -473,8 +473,8 @@ export default function CustomerManagement() {
                                         {topCustomers.map(customer => (
                                             <tr key={customer._id}>
                                                 <td>
-                                                    <div className={styles.customerInfo}>
-                                                        <div className={styles.customerAvatar}>
+                                                    <div className={styles['customer-info']}>
+                                                        <div className={styles['customer-avatar']}>
                                                             {(customer.name || 'C').charAt(0).toUpperCase()}
                                                         </div>
                                                         <span>{customer.name || 'Unknown Customer'}</span>
@@ -501,9 +501,9 @@ export default function CustomerManagement() {
 
                         {/* Recent Customers */}
                         <div className={styles.tableContainer}>
-                            <div className={styles.tableHeader}>
+                            <div className={styles['table-header']}>
                                 <h3><i className="fas fa-clock"></i> Recent Customers</h3>
-                                <div className={styles.tableFilters}>
+                                <div className={styles['table-filters']}>
                                     <select
                                         id="statusFilter"
                                         value={statusFilter}
@@ -523,7 +523,7 @@ export default function CustomerManagement() {
                                 </div>
                             </div>
                             <div className={styles.tableWrapper}>
-                                <table className={styles.customersTable}>
+                                <table className={styles['customers-table']}>
                                     <thead>
                                         <tr>
                                             <th>Customer</th>
@@ -539,8 +539,8 @@ export default function CustomerManagement() {
                                         {filteredCustomers.map(customer => (
                                             <tr key={customer._id} data-customer-id={customer._id}>
                                                 <td>
-                                                    <div className={styles.customerInfo}>
-                                                        <div className={styles.customerAvatar}>
+                                                    <div className={styles['customer-info']}>
+                                                        <div className={styles['customer-avatar']}>
                                                             {(customer.name || 'C').charAt(0).toUpperCase()}
                                                         </div>
                                                         <span>{customer.name || 'Unknown Customer'}</span>

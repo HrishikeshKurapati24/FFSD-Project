@@ -280,6 +280,15 @@ const customerSchema = new mongoose.Schema({
     is_verified: {
         type: Boolean,
         default: false
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive', 'suspended'],
+        default: 'active'
+    },
+    admin_notes: {
+        type: String,
+        trim: true
     }
 }, {
     timestamps: true

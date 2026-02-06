@@ -7,11 +7,13 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'collabsync_admin_dev_secret_change_me';
 const { BrandInfo } = require("../config/BrandMongo");
 const { InfluencerInfo, InfluencerAnalytics } = require("../config/InfluencerMongo");
+const { Customer } = require("../config/CustomerMongo");
 const { CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
-const { Product, Customer, ContentTracking } = require("../config/ProductMongo");
+const { Product, Customer: ProductCustomer, ContentTracking } = require("../config/ProductMongo");
 
 // Remove the broken import for FeedbackModel
 // const { FeedbackModel } = require("../models/FeedbackModel");
+
 
 const UserManagementModel = AdminModel.UserManagementModel;
 
@@ -1477,35 +1479,35 @@ const CustomerController = {
         try {
 
             // Get all customers with their purchase data
-            const customers = await Customer.find({})
+            const customers = await ProductCustomer.find({})
                 .sort({ last_purchase_date: -1 })
                 .limit(100)
                 .lean();
 
             // Get customer analytics
             const totalCustomers = await Customer.countDocuments();
-            const activeCustomers = await Customer.countDocuments({
+            const activeCustomers = await ProductCustomer.countDocuments({
                 last_purchase_date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
             });
 
-            const totalRevenue = await Customer.aggregate([
+            const totalRevenue = await ProductCustomer.aggregate([
                 { $group: { _id: null, total: { $sum: '$total_spent' } } }
             ]);
 
-            const avgOrderValue = await Customer.aggregate([
+            const avgOrderValue = await ProductCustomer.aggregate([
                 { $match: { total_purchases: { $gt: 0 } } },
                 { $group: { _id: null, avg: { $avg: { $divide: ['$total_spent', '$total_purchases'] } } } }
             ]);
 
             // Get top customers by spending
-            const topCustomers = await Customer.find({})
+            const topCustomers = await ProductCustomer.find({})
                 .sort({ total_spent: -1 })
                 .limit(10)
                 .select('name email total_spent total_purchases last_purchase_date')
                 .lean();
 
             // Get recent customers (last 30 days)
-            const recentCustomers = await Customer.find({
+            const recentCustomers = await ProductCustomer.find({
                 createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
             })
                 .sort({ createdAt: -1 })
@@ -1523,7 +1525,7 @@ const CustomerController = {
 
                 customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
 
-                const monthlyCustomers = await Customer.countDocuments({
+                const monthlyCustomers = await ProductCustomer.countDocuments({
                     createdAt: { $gte: startOfMonth, $lte: endOfMonth }
                 });
                 customerGrowthData.push(monthlyCustomers);
@@ -1537,7 +1539,7 @@ const CustomerController = {
                 const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
                 const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-                const monthlyPurchases = await Customer.aggregate([
+                const monthlyPurchases = await ProductCustomer.aggregate([
                     {
                         $match: {
                             last_purchase_date: { $gte: startOfMonth, $lte: endOfMonth }
@@ -1655,7 +1657,7 @@ const CustomerController = {
         try {
             const { id } = req.params;
 
-            const customer = await Customer.findById(id).lean();
+            const customer = await ProductCustomer.findById(id).lean();
             if (!customer) {
                 return res.status(404).json({ success: false, message: 'Customer not found' });
             }
@@ -1686,7 +1688,7 @@ const CustomerController = {
             const { id } = req.params;
             const { status, notes } = req.body;
 
-            const customer = await Customer.findByIdAndUpdate(
+            const customer = await ProductCustomer.findByIdAndUpdate(
                 id,
                 {
                     status: status,
@@ -1711,7 +1713,7 @@ const CustomerController = {
         try {
 
             // Customer segmentation
-            const customerSegments = await Customer.aggregate([
+            const customerSegments = await ProductCustomer.aggregate([
                 {
                     $bucket: {
                         groupBy: '$total_spent',
@@ -1726,7 +1728,7 @@ const CustomerController = {
             ]);
 
             // Customer lifetime value distribution
-            const lifetimeValueData = await Customer.aggregate([
+            const lifetimeValueData = await ProductCustomer.aggregate([
                 {
                     $group: {
                         _id: {
@@ -1747,7 +1749,7 @@ const CustomerController = {
             ]);
 
             // Purchase frequency analysis
-            const purchaseFrequency = await Customer.aggregate([
+            const purchaseFrequency = await ProductCustomer.aggregate([
                 {
                     $group: {
                         _id: {
@@ -1766,7 +1768,7 @@ const CustomerController = {
             ]);
 
             // Geographic distribution (if location data exists)
-            const geographicData = await Customer.aggregate([
+            const geographicData = await ProductCustomer.aggregate([
                 { $match: { location: { $exists: true, $ne: null } } },
                 { $group: { _id: '$location', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
