@@ -35,7 +35,7 @@
     padding: 2rem;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--card-shadow);
-    height: 600px;
+    height: 450px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;

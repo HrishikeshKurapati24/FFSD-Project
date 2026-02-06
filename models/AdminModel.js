@@ -346,9 +346,9 @@ const AdminModel = {
         static async getAllPayments() {
             try {
                 const payments = await CampaignPayments.find()
-                    .select('_id payment_date brand_id influencer_id amount status payment_method collab_type influencer_category')
+                    .select('_id payment_date brand_id influencer_id amount status payment_method collab_type')
                     .populate('brand_id', 'brandName')
-                    .populate('influencer_id', 'fullName displayName category')
+                    .populate('influencer_id', 'fullName displayName categories')
                     .lean();
 
                 return payments.map(payment => ({
@@ -360,7 +360,7 @@ const AdminModel = {
                     status: payment.status,
                     paymentMethod: payment.payment_method || 'N/A',
                     collabType: payment.collab_type || 'N/A',
-                    influencerCategory: payment.influencer_id ? payment.influencer_id.category || 'N/A' : 'N/A'
+                    influencerCategory: payment.influencer_id ? (payment.influencer_id.categories || []) : []
                 }));
             } catch (error) {
                 console.error('Error in getAllPayments:', error);
@@ -372,7 +372,7 @@ const AdminModel = {
             try {
                 const payment = await CampaignPayments.findById(id)
                     .populate('brand_id', 'brandName')
-                    .populate('influencer_id', 'fullName displayName category')
+                    .populate('influencer_id', 'fullName displayName categories')
                     .lean();
 
                 if (!payment) return null;
@@ -386,7 +386,7 @@ const AdminModel = {
                     status: payment.status,
                     paymentMethod: payment.payment_method || 'N/A',
                     collabType: payment.collab_type || 'N/A',
-                    influencerCategory: payment.influencer_id ? payment.influencer_id.category || 'N/A' : 'N/A'
+                    influencerCategory: payment.influencer_id ? (payment.influencer_id.categories || []) : []
                 };
             } catch (error) {
                 console.error('Error in getPaymentById:', error);

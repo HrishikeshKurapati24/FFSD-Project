@@ -174,9 +174,16 @@ export default function CollaborationMonitoring() {
         }
 
         if (filters.status !== 'all') {
-            filtered = filtered.filter(item =>
-                (item.status || 'pending').toLowerCase() === filters.status.toLowerCase()
-            );
+            filtered = filtered.filter(item => {
+                const itemStatus = (item.status || 'request').toLowerCase();
+                const filterStatus = filters.status.toLowerCase();
+
+                if (filterStatus === 'pending') return itemStatus === 'request';
+                if (filterStatus === 'in-progress') return itemStatus === 'active';
+                if (filterStatus === 'completed') return itemStatus === 'completed';
+
+                return itemStatus === filterStatus;
+            });
         }
 
         if (filters.startDate) {
@@ -378,8 +385,8 @@ export default function CollaborationMonitoring() {
                                                 {collab.brand || 'Unknown Brand'}
                                                 {inf.influencer && ` & ${inf.influencer}`}
                                             </h3>
-                                            <span className={`${styles.statusBadge} ${styles[`status${(collab.status || 'pending').charAt(0).toUpperCase() + (collab.status || 'pending').slice(1).replace('-', '')}`]}`}>
-                                                {(collab.status || 'Pending').toUpperCase()}
+                                            <span className={`${styles.statusBadge} ${styles[`status${(collab.status || 'request').charAt(0).toUpperCase() + (collab.status || 'request').slice(1).replace('-', '')}`]}`}>
+                                                {(collab.status === 'request' ? 'Pending' : collab.status || 'Pending').toUpperCase()}
                                             </span>
                                         </div>
                                         {inf.influencer ? (
@@ -431,8 +438,8 @@ export default function CollaborationMonitoring() {
                                         <p><strong>Collaboration ID:</strong> <span>{selectedCollab.id || selectedCollab._id || 'N/A'}</span></p>
                                         <p><strong>Brand:</strong> <span>{selectedCollab.brand || 'N/A'}</span></p>
                                         <p><strong>Influencer:</strong> <span>{selectedCollab.influencer || 'N/A'}</span></p>
-                                        <p><strong>Status:</strong> <span className={`${styles.statusBadge} ${styles[`status${(selectedCollab.status || 'pending').charAt(0).toUpperCase() + (selectedCollab.status || 'pending').slice(1).replace('-', '')}`]}`}>
-                                            {selectedCollab.status || 'pending'}
+                                        <p><strong>Status:</strong> <span className={`${styles.statusBadge} ${styles[`status${(selectedCollab.status || 'request').charAt(0).toUpperCase() + (selectedCollab.status || 'request').slice(1).replace('-', '')}`]}`}>
+                                            {selectedCollab.status === 'request' ? 'Pending' : selectedCollab.status || 'Pending'}
                                         </span></p>
                                     </div>
                                     <div>

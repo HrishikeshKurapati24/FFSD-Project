@@ -1448,6 +1448,27 @@ const PaymentController = {
         }
     },
 
+    async getInfluencerCategories(req, res) {
+        try {
+            // Fetch all unique categories from InfluencerInfo collection
+            const allCategories = await InfluencerInfo.distinct('categories');
+
+            // Filter out null/empty values and sort
+            const categories = allCategories.filter(Boolean).sort();
+
+            return res.status(200).json({
+                success: true,
+                categories
+            });
+        } catch (error) {
+            console.error("Error fetching influencer categories:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Failed to fetch influencer categories"
+            });
+        }
+    },
+
     async getPaymentDetails(req, res) {
         try {
             const paymentId = req.params.id;

@@ -12,6 +12,7 @@ export default function PaymentVerification() {
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [notifications, setNotifications] = useState([]);
+    const [categories, setCategories] = useState([]);
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -28,6 +29,7 @@ export default function PaymentVerification() {
         fetchUserData();
         fetchPayments();
         fetchNotifications();
+        fetchCategories();
     }, []);
 
     const fetchNotifications = async () => {
@@ -57,10 +59,7 @@ export default function PaymentVerification() {
                         read: readNotifications.includes(n.id || n._id) || n.read
                     }));
 
-                    setDashboardData(prev => ({
-                        ...prev,
-                        notifications: updatedNotifications
-                    }));
+                    setNotifications(updatedNotifications);
                 }
             }
         } catch (error) {
@@ -157,6 +156,27 @@ export default function PaymentVerification() {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/payment_verification/categories`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.categories) {
+                    setCategories(data.categories);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
     const filterPayments = () => {
         let filtered = [...payments];
 
@@ -187,9 +207,14 @@ export default function PaymentVerification() {
         }
 
         if (filters.influencerCategory !== 'all') {
-            filtered = filtered.filter(payment =>
-                (payment.influencerCategory || payment.influencer_category || '').toLowerCase() === filters.influencerCategory.toLowerCase()
-            );
+            filtered = filtered.filter(payment => {
+                const paymentCategory = (payment.influencerCategory || payment.influencer_category || '');
+                // Handle both single string and array (though in table it's likely a string mapped from backend)
+                if (Array.isArray(paymentCategory)) {
+                    return paymentCategory.some(cat => cat.toLowerCase() === filters.influencerCategory.toLowerCase());
+                }
+                return paymentCategory.toLowerCase() === filters.influencerCategory.toLowerCase();
+            });
         }
 
         if (filters.startDate) {
@@ -356,9 +381,11 @@ export default function PaymentVerification() {
                             onChange={(e) => handleFilterChange('influencerCategory', e.target.value)}
                         >
                             <option value="all">All Influencer Categories</option>
-                            <option value="fashion">Fashion</option>
-                            <option value="fitness">Fitness</option>
-                            <option value="travel">Travel</option>
+                            {categories.map(category => (
+                                <option key={category} value={category.toLowerCase()}>
+                                    {category}
+                                </option>
+                            ))}
                         </select>
                         <input
                             type="date"
@@ -389,6 +416,7 @@ export default function PaymentVerification() {
                                         <th>Date</th>
                                         <th>Brand</th>
                                         <th>Influencer</th>
+                                        <th>Category</th>
                                         <th>Amount</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -401,6 +429,11 @@ export default function PaymentVerification() {
                                             <td>{payment.date || payment.payment_date || 'N/A'}</td>
                                             <td>{payment.brand || 'Unknown Brand'}</td>
                                             <td>{payment.influencer || 'Unknown Influencer'}</td>
+                                            <td>
+                                                {(Array.isArray(payment.influencerCategory)
+                                                    ? payment.influencerCategory.join(', ')
+                                                    : (payment.influencerCategory || 'N/A'))}
+                                            </td>
                                             <td>${payment.amount ? payment.amount.toLocaleString() : '0'}</td>
                                             <td>
                                                 <span className={`${styles.status} ${styles[payment.status || 'pending']}`}>
@@ -453,6 +486,11 @@ export default function PaymentVerification() {
                                 <p><strong>Transaction ID:</strong> <span>{selectedPayment.transactionId || selectedPayment.id || 'N/A'}</span></p>
                                 <p><strong>Brand:</strong> <span>{selectedPayment.brand || 'N/A'}</span></p>
                                 <p><strong>Influencer:</strong> <span>{selectedPayment.influencer || 'N/A'}</span></p>
+                                <p><strong>Category:</strong> <span>
+                                    {Array.isArray(selectedPayment.influencerCategory)
+                                        ? selectedPayment.influencerCategory.join(', ')
+                                        : (selectedPayment.influencerCategory || 'N/A')}
+                                </span></p>
                                 <p><strong>Amount:</strong> <span>{selectedPayment.amount ? `$${selectedPayment.amount.toLocaleString()}` : 'N/A'}</span></p>
                                 <p><strong>Payment Method:</strong> <span>{selectedPayment.paymentMethod || selectedPayment.payment_method || 'N/A'}</span></p>
                                 <p><strong>Date:</strong> <span>{selectedPayment.date || selectedPayment.payment_date || 'N/A'}</span></p>

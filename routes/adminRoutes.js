@@ -298,6 +298,7 @@ router.get('/collaboration_monitoring/:id', CollaborationController.getCollabora
 
 // Payment routes
 router.get('/payment_verification', PaymentController.getAllPayments);
+router.get('/payment_verification/categories', PaymentController.getInfluencerCategories);
 router.get('/payment_verification/:id', PaymentController.getPaymentDetails);
 router.post('/payment_verification/update/:id', PaymentController.updatePaymentStatus);
 
