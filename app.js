@@ -16,7 +16,25 @@ const { connectDB, initializeAdminUsers } = require('./models/mongoDB');
 const { BrandInfo, BrandSocials, BrandAnalytics } = require('./config/BrandMongo');
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./config/InfluencerMongo');
 const cookieParser = require('cookie-parser');
+
 const bcrypt = require('bcrypt');
+const {
+    AppError,
+    ValidationError,
+    AuthenticationError,
+    AuthorizationError,
+    DatabaseError,
+    NetworkError,
+    RateLimitError,
+    NotFoundError,
+    AdminErrorHandler,
+    BrandErrorHandler,
+    InfluencerErrorHandler,
+    CustomerErrorHandler,
+    AuthErrorHandler,
+    SubscriptionErrorHandler
+} = require('./utils/errorHandlers');
+const { ErrorLogger } = require('./utils/errorLogger');
 
 // CORS configuration
 // CORS configuration
@@ -91,10 +109,27 @@ app.use((req, res, next) => {
     next();
 });
 
+// Attach error context to requests
+app.use((req, res, next) => {
+    req.errorContext = {
+        userId: req.session?.user?.id || null,
+        userType: req.session?.user?.userType || req.session?.user?.role || null,
+        route: req.path,
+        method: req.method,
+        ip: req.ip,
+        timestamp: new Date().toISOString()
+    };
+    next();
+});
+
 // Route for the Landing_page
 app.get('/', (req, res) => {
     res.render('landing/landing_page');
 });
+
+// Error testing routes (development/testing only)
+app.use('/test-errors', require('./routes/testErrorRoutes'));
+
 
 // Route for the about_page
 app.get('/about', (req, res) => {
@@ -375,10 +410,41 @@ app.use('/subscription', subscriptionRoutes);
 app.use('/auth', authRouter);
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 
-// Error handling middleware
+// Helper function to get error handler by user type
+function getErrorHandlerForUserType(userType) {
+    switch (userType) {
+        case 'admin': return AdminErrorHandler;
+        case 'brand': return BrandErrorHandler;
+        case 'influencer': return InfluencerErrorHandler;
+        case 'customer': return CustomerErrorHandler;
+        default: return AuthErrorHandler;
+    }
+}
+
+// Enhanced global error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).render('error', { error: err.message });
+    // Log error with context
+    ErrorLogger.log(err, req.errorContext || {});
+
+    // Determine user type for role-specific handling
+    const userType = req.session?.user?.userType || req.session?.user?.role || 'guest';
+
+    // Get appropriate error handler
+    const ErrorHandlerClass = getErrorHandlerForUserType(userType);
+    const handler = new ErrorHandlerClass();
+
+    // Handle error based on request type (API vs Browser)
+    const isAPIRequest = req.xhr || req.headers.accept?.includes('application/json');
+
+    if (isAPIRequest) {
+        // Return JSON error response
+        const errorResponse = handler.formatJSONError(err, req.errorContext || {});
+        return res.status(err.statusCode || 500).json(errorResponse);
+    } else {
+        // Render error page
+        const errorData = handler.formatHTMLError(err, req.errorContext || {});
+        return res.status(err.statusCode || 500).render('error', errorData);
+    }
 });
 
 // Start the server

@@ -12,6 +12,11 @@ const bcrypt = require('bcrypt');
 dotenv.config();
 
 const router = express.Router();
+const {
+  AppError,
+  ValidationError,
+  AuthenticationError
+} = require('../utils/errorHandlers');
 
 // Helper function to verify JWT token from cookie
 const verifyJWTFromCookie = (req) => {
@@ -87,18 +92,7 @@ const isAuthenticated = async (req, res, next) => {
   }
 
   // Neither session nor valid JWT token found
-  // Check if this is an API request (JSON) or page request (HTML)
-  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
-
-  if (isAPIRequest) {
-    return res.status(401).json({
-      message: 'Authentication required',
-      error: 'Token expired. Please sign in again.'
-    });
-  } else {
-    // For page requests, redirect to signin (EJS pages)
-    return res.redirect('/SignIn');
-  }
+  throw new AuthenticationError('Authentication required. Please sign in.');
 };
 
 // Middleware to check if user is a brand
@@ -108,14 +102,7 @@ const isBrand = (req, res, next) => {
   if (userType === 'brand') {
     return next();
   }
-
-  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
-
-  if (isAPIRequest) {
-    return res.status(403).json({ message: 'Access denied: Brands only' });
-  } else {
-    return res.redirect('/SignIn');
-  }
+  throw new AuthorizationError('Access denied: Brands only');
 };
 
 // Middleware to check if user is an influencer
@@ -125,14 +112,7 @@ const isInfluencer = (req, res, next) => {
   if (userType === 'influencer') {
     return next();
   }
-
-  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
-
-  if (isAPIRequest) {
-    return res.status(403).json({ message: 'Access denied: Influencers only' });
-  } else {
-    return res.redirect('/SignIn');
-  }
+  throw new AuthorizationError('Access denied: Influencers only');
 };
 
 // Middleware to check if user is a customer
@@ -142,14 +122,7 @@ const isCustomer = (req, res, next) => {
   if (userType === 'customer') {
     return next();
   }
-
-  const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
-
-  if (isAPIRequest) {
-    return res.status(403).json({ message: 'Access denied: Customers only' });
-  } else {
-    return res.redirect('/signin');
-  }
+  throw new AuthorizationError('Access denied: Customers only');
 };
 
 // Auth verification endpoint for React to check authentication status
@@ -271,20 +244,19 @@ router.post('/signin', async (req, res) => {
 
     // If no user found
     if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+      throw new AuthenticationError('Invalid email or password');
     }
 
     // Defensive check: ensure we have a password hash to compare
     if (!user.password) {
-      // Missing password hash — don't reveal details to client. Log for admin.
       console.warn('Signin warning: missing password hash for user', { email, userType, id: user._id });
-      return res.status(400).json({ message: 'Invalid email or password' });
+      throw new AuthenticationError('Invalid email or password');
     }
 
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+      throw new AuthenticationError('Invalid email or password');
     }
 
     // Generate JWT token
@@ -324,7 +296,12 @@ router.post('/signin', async (req, res) => {
     });
   } catch (err) {
     console.error('Signin error:', err);
-    res.status(500).json({ message: err.message || 'Server error' });
+    if (err instanceof AppError) {
+      throw err;
+    }
+    throw new AppError('Server error during signin', 500, {
+      originalError: err.message
+    });
   }
 });
 
@@ -356,13 +333,13 @@ router.post('/customer/signup', async (req, res) => {
 
     // Validate required fields
     if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Name, email, and password are required' });
+      throw new ValidationError('Name, email, and password are required');
     }
 
     // Check if customer already exists
     const existingCustomer = await Customer.findOne({ email: email.toLowerCase() });
     if (existingCustomer) {
-      return res.status(400).json({ message: 'Email already registered' });
+      throw new ValidationError('Email already registered');
     }
 
     // Create new customer and let schema hooks hash the password
@@ -385,7 +362,12 @@ router.post('/customer/signup', async (req, res) => {
     });
   } catch (err) {
     console.error('Customer signup error:', err);
-    res.status(500).json({ message: err.message || 'Signup failed' });
+    if (err instanceof AppError) {
+      throw err;
+    }
+    throw new AppError('Signup failed', 500, {
+      originalError: err.message
+    });
   }
 });
 
