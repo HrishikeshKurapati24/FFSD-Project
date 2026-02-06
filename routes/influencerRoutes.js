@@ -30,6 +30,16 @@ const { CampaignMetrics } = require('../config/CampaignMongo');
 const { brandModel } = require('../models/brandModel');
 const { Message } = require('../config/MessageMongo');
 const notificationController = require('../controllers/notificationController');
+const {
+    AppError,
+    ValidationError,
+    AuthenticationError,
+    AuthorizationError,
+    DatabaseError,
+    NetworkError,
+    RateLimitError,
+    NotFoundError
+} = require('../utils/errorHandlers');
 
 // Apply authentication middleware to all routes
 router.use((req, res, next) => {
@@ -177,9 +187,8 @@ router.post('/profile/update-images', upload.fields([
                 }
             } catch (error) {
                 console.error('Error uploading profile picture:', error);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Error uploading profile picture: ' + error.message
+                throw new NetworkError('Failed to upload profile picture. Please try again.', {
+                    originalError: error.message
                 });
             }
         }
@@ -193,9 +202,8 @@ router.post('/profile/update-images', upload.fields([
                 }
             } catch (error) {
                 console.error('Error uploading banner image:', error);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Error uploading banner image: ' + error.message
+                throw new NetworkError('Failed to upload banner image. Please try again.', {
+                    originalError: error.message
                 });
             }
         }
@@ -224,9 +232,8 @@ router.post('/profile/update-images', upload.fields([
                 });
             } catch (error) {
                 console.error('Error updating influencer images:', error);
-                res.status(500).json({
-                    success: false,
-                    message: 'Error updating images: ' + error.message
+                throw new DatabaseError('Failed to update profile images in database', {
+                    originalError: error.message
                 });
             }
         } else {
@@ -236,10 +243,13 @@ router.post('/profile/update-images', upload.fields([
             });
         }
     } catch (error) {
+        // Re-throw custom errors, wrap others
+        if (error instanceof AppError) {
+            throw error;
+        }
         console.error('Error in image update route:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error: ' + error.message
+        throw new AppError('Server error while updating images', 500, {
+            originalError: error.message
         });
     }
 });
@@ -362,16 +372,17 @@ router.post('/profile/update/data', validateProfileUpdate, async (req, res) => {
         });
 
     } catch (error) {
+        if (error.name === 'ValidationError') {
+            throw new ValidationError('Profile validation failed', {
+                errors: error.errors
+            });
+        }
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to update profile in database');
+        }
         console.error('Error updating influencer profile:', error);
-        console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        });
-        return res.status(500).json({
-            success: false,
-            message: 'Error updating profile',
-            error: error.message
+        throw new AppError('Error updating profile', 500, {
+            originalError: error.message
         });
     }
 });
@@ -465,15 +476,11 @@ router.get('/collab', async (req, res) => {
         res.render('influencer/collaborations', responseData);
     } catch (error) {
         console.error('Error fetching campaign requests:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Error loading campaign requests'
-            });
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to load campaign requests');
         }
-        res.status(500).render('error', {
-            message: 'Error loading campaign requests',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        throw new AppError('Error loading campaign requests', 500, {
+            originalError: error.message
         });
     }
 });
@@ -562,15 +569,14 @@ router.get('/collab/:id', async (req, res) => {
         res.render('influencer/collaboration_details', responseData);
     } catch (error) {
         console.error('Error fetching collaboration details:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Error loading collaboration details'
-            });
+        if (error.name === 'CastError') {
+            throw new NotFoundError('Collaboration not found');
         }
-        res.status(500).render('error', {
-            message: 'Error loading collaboration details',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to load collaboration details');
+        }
+        throw new AppError('Error loading collaboration details', 500, {
+            originalError: error.message
         });
     }
 });
@@ -750,11 +756,19 @@ router.post('/apply/:campaignId', async (req, res) => {
         });
 
     } catch (error) {
+        // Re-throw custom errors
+        if (error instanceof AppError) {
+            throw error;
+        }
+        if (error.name === 'CastError') {
+            throw new ValidationError('Invalid campaign ID format');
+        }
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Database error while processing application');
+        }
         console.error('Error applying to campaign:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error applying to campaign',
-            error: error.message
+        throw new AppError('Error applying to campaign', 500, {
+            originalError: error.message
         });
     }
 });
@@ -792,7 +806,12 @@ router.post('/profile/delete', isAuthenticated, isInfluencer, async (req, res) =
         });
     } catch (error) {
         console.error('Error deleting account:', error);
-        res.status(500).json({ success: false, message: 'Failed to delete account' });
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to delete account from database');
+        }
+        throw new AppError('Failed to delete account', 500, {
+            originalError: error.message
+        });
     }
 });
 

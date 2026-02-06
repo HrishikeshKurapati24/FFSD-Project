@@ -13,6 +13,14 @@ const { BrandInfo, BrandAnalytics, BrandSocials } = require('../config/BrandMong
 const { Message } = require('../config/MessageMongo');
 const { Product } = require('../config/ProductMongo');
 const notificationController = require('../controllers/notificationController');
+const {
+    AppError,
+    ValidationError,
+    AuthorizationError,
+    DatabaseError,
+    RateLimitError,
+    NotFoundError
+} = require('../utils/errorHandlers');
 
 // Brand sign out route (must be before authentication middleware)
 router.get('/signout', (req, res) => {
@@ -246,18 +254,11 @@ router.get('/explore', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching influencers:', error);
-
-        // Return JSON for API requests
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load influencers'
-            });
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to load influencers from database');
         }
-
-        res.status(500).render('error', {
-            message: 'Failed to load influencers',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        throw new AppError('Failed to load influencers', 500, {
+            originalError: error.message
         });
     }
 });
@@ -269,31 +270,12 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
         const influencerId = req.params.influencerId || req.query.id;
 
         if (!influencerId) {
-            if (req.xhr || req.headers.accept?.includes('application/json')) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Influencer ID is required'
-                });
-            }
-            return res.status(400).render('error', {
-                message: 'Influencer ID is required',
-                error: { status: 400 }
-            });
+            throw new ValidationError('Influencer ID is required');
         }
 
-        // Get influencer info from InfluencerInfo collection
         const influencer = await InfluencerInfo.findById(influencerId).lean();
         if (!influencer) {
-            if (req.xhr || req.headers.accept?.includes('application/json')) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Influencer not found'
-                });
-            }
-            return res.status(404).render('error', {
-                message: 'Influencer not found',
-                error: { status: 404 }
-            });
+            throw new NotFoundError('Influencer not found');
         }
 
         // Get social media data from InfluencerSocials collection
@@ -421,16 +403,17 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
         res.render('brand/influencer_details', responseData);
     } catch (error) {
         console.error('Error getting influencer profile details:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load influencer details',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+        if (error instanceof AppError) {
+            throw error;
         }
-        res.status(500).render('error', {
-            message: 'Failed to load influencer details',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        if (error.name === 'CastError') {
+            throw new NotFoundError('Invalid influencer ID format');
+        }
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to load influencer details from database');
+        }
+        throw new AppError('Failed to load influencer details', 500, {
+            originalError: error.message
         });
     }
 });
@@ -502,9 +485,11 @@ router.get('/collab', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching campaigns:', error);
-        res.status(500).render('error', {
-            message: 'Error loading campaigns',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to load campaigns from database');
+        }
+        throw new AppError('Error loading campaigns', 500, {
+            originalError: error.message
         });
     }
 });
@@ -685,18 +670,11 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
         res.render('brand/received_requests', { requests });
     } catch (error) {
         console.error('Error fetching received requests:', error);
-
-        // Return JSON for API requests
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to fetch received requests'
-            });
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to fetch received requests from database');
         }
-
-        res.status(500).render('error', {
-            message: 'Failed to fetch received requests',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        throw new AppError('Failed to fetch received requests', 500, {
+            originalError: error.message
         });
     }
 });

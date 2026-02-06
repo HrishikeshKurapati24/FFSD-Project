@@ -2,6 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { SubscriptionService } = require('../models/brandModel');
 const { isAuthenticated } = require('./authRoutes');
+const {
+    AppError,
+    ValidationError,
+    AuthenticationError,
+    DatabaseError,
+    NetworkError
+} = require('../utils/errorHandlers');
 
 // Public routes (no authentication required)
 // Subscription plan selection page (after signup)
@@ -43,15 +50,8 @@ router.get('/select-plan', async (req, res) => {
         });
     } catch (error) {
         console.error('Error loading subscription plan selection:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load subscription plans'
-            });
-        }
-        res.status(500).render('error', {
-            message: 'Failed to load subscription plans',
-            error: { status: 500 }
+        throw new DatabaseError('Failed to load subscription plans', {
+            originalError: error.message
         });
     }
 });
@@ -118,9 +118,11 @@ router.post('/subscribe-after-signup', async (req, res) => {
         }
     } catch (error) {
         console.error('Error processing subscription:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to process subscription'
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to create subscription');
+        }
+        throw new AppError('Failed to process subscription', 500, {
+            originalError: error.message
         });
     }
 });
@@ -142,11 +144,11 @@ router.get('/payment', async (req, res) => {
         if (!userType || userType === 'undefined' || userType === 'null') {
             const { BrandInfo } = require('../config/BrandMongo');
             const { InfluencerInfo } = require('../config/InfluencerMongo');
-            
+
             if (userId) {
                 const brand = await BrandInfo.findById(userId);
                 const influencer = await InfluencerInfo.findById(userId);
-                
+
                 if (brand) {
                     userType = 'brand';
                 } else if (influencer) {
@@ -261,15 +263,8 @@ router.get('/payment', async (req, res) => {
         });
     } catch (error) {
         console.error('Error loading payment page:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load payment page'
-            });
-        }
-        res.status(500).render('error', {
-            message: 'Failed to load payment page',
-            error: { status: 500 }
+        throw new AppError('Failed to load payment page', 500, {
+            originalError: error.message
         });
     }
 });
@@ -291,11 +286,11 @@ router.post('/process-payment', async (req, res) => {
         if (!userType || userType === 'undefined' || userType === 'null') {
             const { BrandInfo } = require('../config/BrandMongo');
             const { InfluencerInfo } = require('../config/InfluencerMongo');
-            
+
             if (userId) {
                 const brand = await BrandInfo.findById(userId);
                 const influencer = await InfluencerInfo.findById(userId);
-                
+
                 if (brand) {
                     userType = 'brand';
                 } else if (influencer) {
@@ -445,9 +440,23 @@ router.post('/process-payment', async (req, res) => {
 
     } catch (error) {
         console.error('Error processing payment:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Payment processing failed'
+
+        // Handle specific payment errors
+        if (error.message?.includes('Card declined')) {
+            throw new ValidationError('Payment declined. Please check your card details.');
+        }
+        if (error.message?.includes('Expired card')) {
+            throw new ValidationError('Your card has expired. Please use a different card.');
+        }
+        if (error.message?.includes('Incorrect CVC')) {
+            throw new ValidationError('Incorrect CVV/CVC code. Please check your card details.');
+        }
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to save payment information');
+        }
+
+        throw new NetworkError('Payment processing failed. Please try again.', {
+            originalError: error.message
         });
     }
 });
@@ -594,13 +603,9 @@ router.get('/payment-success', async (req, res) => {
 
     } catch (error) {
         console.error('Error loading payment success page:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load payment success page'
-            });
-        }
-        res.redirect('/signin');
+        throw new AppError('Failed to load payment success page', 500, {
+            originalError: error.message
+        });
     }
 });
 
@@ -624,9 +629,8 @@ router.get('/plans/:userType', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching subscription plans:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch subscription plans'
+        throw new DatabaseError('Failed to fetch subscription plans', {
+            originalError: error.message
         });
     }
 });
@@ -645,9 +649,8 @@ router.get('/current', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching current subscription:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch current subscription'
+        throw new DatabaseError('Failed to fetch current subscription', {
+            originalError: error.message
         });
     }
 });
@@ -705,9 +708,11 @@ router.post('/subscribe', async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating subscription:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create subscription'
+        if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+            throw new DatabaseError('Failed to create subscription');
+        }
+        throw new AppError('Failed to create subscription', 500, {
+            originalError: error.message
         });
     }
 });
@@ -727,9 +732,8 @@ router.post('/check-limit', async (req, res) => {
         });
     } catch (error) {
         console.error('Error checking subscription limit:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to check subscription limit'
+        throw new AppError('Failed to check subscription limit', 500, {
+            originalError: error.message
         });
     }
 });
@@ -750,9 +754,8 @@ router.post('/update-usage', async (req, res) => {
         });
     } catch (error) {
         console.error('Error updating subscription usage:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update usage'
+        throw new AppError('Failed to update usage', 500, {
+            originalError: error.message
         });
     }
 });
@@ -970,7 +973,7 @@ router.get('/manage', async (req, res) => {
         console.error('=== ERROR in /subscription/manage ===');
         console.error('Error details:', error);
         console.error('Stack trace:', error.stack);
-        
+
         // Return JSON for API requests
         if (req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(500).json({
@@ -979,7 +982,7 @@ router.get('/manage', async (req, res) => {
                 error: error.message
             });
         }
-        
+
         res.status(500).render('error', {
             message: 'Failed to load subscription management',
             error: { status: 500, details: error.message }
