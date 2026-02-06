@@ -73,6 +73,7 @@ function App() {
                 <Route path="/subscription/payment" element={<Payment />} />
                 <Route path="/subscription/payment-success" element={<PaymentSuccess />} />
                 <Route path="/subscription/manage" element={<Manage />} />
+                <Route path="/admin" element={<Navigate replace to="/admin/login" />} />
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
                 <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />

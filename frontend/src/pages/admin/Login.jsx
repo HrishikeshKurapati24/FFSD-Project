@@ -25,6 +25,7 @@ export default function Login() {
         newPassword: '',
         confirmPassword: ''
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const storedUsername = localStorage.getItem('adminUsername');
@@ -234,16 +235,42 @@ export default function Login() {
                         <label htmlFor="password">Password</label>
                         <div className={styles.inputWrapper}>
                             <i className="fas fa-lock"></i>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                autoComplete="current-password"
-                                required
-                            />
+                            <div style={{ position: 'relative', width: '100%' }}>
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    autoComplete="current-password"
+                                    required
+                                    style={{ paddingRight: '40px' }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '8px',
+                                        top: '35%',
+                                        transform: 'translateY(-50%)',
+                                        width: '28px',
+                                        height: '28px',
+                                        borderRadius: '50%',
+                                        border: '1px solid #ccc',
+                                        backgroundColor: '#f7f7f7',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    {showPassword ? '🙈' : '👁️'}
+                                </button>
+                            </div>
                         </div>
                         {errors.password && <small className={styles.errorMessage}>{errors.password}</small>}
                     </div>

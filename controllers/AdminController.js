@@ -1,8 +1,12 @@
 const { Admin } = require("../models/mongoDB");
 const { AdminModel } = require("../models/AdminModel");
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Use environment JWT secret if available, otherwise fall back to a safe dev-only default
+const JWT_SECRET = process.env.JWT_SECRET || 'collabsync_admin_dev_secret_change_me';
 const { BrandInfo } = require("../config/BrandMongo");
-const { InfluencerInfo } = require("../config/InfluencerMongo");
+const { InfluencerInfo, InfluencerAnalytics } = require("../config/InfluencerMongo");
 const { CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
 const { Product, Customer, ContentTracking } = require("../config/ProductMongo");
 
@@ -21,7 +25,8 @@ const FeedbackModel = {
 const DashboardController = {
     async verifyUser(req, res) {
         try {
-            const { username, password, remember } = req.body;
+            const { username, password, rememberMe } = req.body;
+            const remember = !!rememberMe;
 
             // Find admin user
             const user = await Admin.findOne({ username });
@@ -42,14 +47,13 @@ const DashboardController = {
             }
 
             // Generate JWT token
-            const jwt = require('jsonwebtoken');
             const token = jwt.sign(
                 {
                     userId: user.userId,
                     userType: 'admin',
                     role: user.role
                 },
-                process.env.JWT_SECRET,
+                JWT_SECRET,
                 {
                     expiresIn: remember ? '7d' : '1h'
                 }
@@ -270,20 +274,36 @@ const DashboardController = {
                 topBrands = [];
             }
 
-            // Top Influencers by Engagement
+            // Top Influencers by Audience
             let topInfluencers = [];
             try {
-                topInfluencers = await InfluencerInfo.find({})
-                    .sort({ audienceSize: -1 })
+                // Try to get influencers from Analytics first (sorted by followers)
+                const topAnalytics = await InfluencerAnalytics.find({})
+                    .sort({ totalFollowers: -1 })
                     .limit(5)
-                    .select("displayName audienceSize categories");
+                    .lean();
 
-                // Ensure all required fields have default values
-                topInfluencers = topInfluencers.map(inf => ({
-                    displayName: inf.displayName || 'Unknown',
-                    audienceSize: inf.audienceSize || 0,
-                    categories: inf.categories || []
-                }));
+                if (topAnalytics.length > 0) {
+                    topInfluencers = await Promise.all(topAnalytics.map(async (ana) => {
+                        const info = await InfluencerInfo.findById(ana.influencerId).lean();
+                        return {
+                            displayName: info?.displayName || info?.fullName || 'Unknown',
+                            audienceSize: ana.totalFollowers || 0,
+                            categories: info?.categories || []
+                        };
+                    }));
+                } else {
+                    // Fallback: If no analytics, just get from InfluencerInfo
+                    const fallbackInfluencers = await InfluencerInfo.find({})
+                        .limit(5)
+                        .lean();
+
+                    topInfluencers = fallbackInfluencers.map(inf => ({
+                        displayName: inf.displayName || inf.fullName || 'Unknown',
+                        audienceSize: 0, // No analytics data available
+                        categories: inf.categories || []
+                    }));
+                }
             } catch (error) {
                 console.log("Error fetching top influencers:", error);
                 topInfluencers = [];

@@ -359,7 +359,7 @@ export default function Dashboard() {
                 <div className={styles.analyticsContainer}>
                     <h2>Top Performers</h2>
                     <div className={styles.analyticsGrid}>
-                        <div className={styles.analyticsCard}>
+                        <div className={`${styles.analyticsCard} ${styles.topPerformerCard}`}>
                             <h3>Top Brands by Revenue</h3>
                             <div className={styles.topPerformersList}>
                                 {dashboardData.topBrands && dashboardData.topBrands.length > 0 ? (
@@ -380,7 +380,7 @@ export default function Dashboard() {
                                 )}
                             </div>
                         </div>
-                        <div className={styles.analyticsCard}>
+                        <div className={`${styles.analyticsCard} ${styles.topPerformerCard}`}>
                             <h3>Top Influencers by Audience</h3>
                             <div className={styles.topPerformersList}>
                                 {dashboardData.topInfluencers && dashboardData.topInfluencers.length > 0 ? (

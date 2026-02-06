@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../../styles/admin/settings.module.css';
+import { API_BASE_URL } from '../../services/api';
 
 export default function Settings() {
     const [user, setUser] = useState({ name: '', email: '' });
@@ -18,7 +19,14 @@ export default function Settings() {
         // Fetch user data from backend
         const fetchUserData = async () => {
             try {
-                const response = await fetch('/admin/verify');
+                const response = await fetch(`${API_BASE_URL}/admin/verify`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     if (data.authenticated && data.user) {
@@ -28,6 +36,8 @@ export default function Settings() {
                             email: data.user.email || ''
                         });
                     }
+                } else if (response.status === 401) {
+                    window.location.href = '/admin/login';
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -39,9 +49,13 @@ export default function Settings() {
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('/admin/settings', {
+            const response = await fetch(`${API_BASE_URL}/admin/settings`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
                 body: JSON.stringify({
                     type: 'profile',
                     ...profileData
@@ -66,9 +80,13 @@ export default function Settings() {
             return;
         }
         try {
-            const response = await fetch('/admin/settings', {
+            const response = await fetch(`${API_BASE_URL}/admin/settings`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
                 body: JSON.stringify({
                     type: 'password',
                     ...passwordData
@@ -94,9 +112,13 @@ export default function Settings() {
     const handleNotificationSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('/admin/settings', {
+            const response = await fetch(`${API_BASE_URL}/admin/settings`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
                 body: JSON.stringify({
                     type: 'notifications',
                     ...notificationSettings
