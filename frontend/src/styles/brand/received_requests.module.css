@@ -12,16 +12,16 @@
   background-color: #f4f4f4;
   min-height: 100vh;
   width: 100%;
-    font-family: Arial, sans-serif;
-    color: #333;
+  font-family: Arial, sans-serif;
+  color: #333;
   line-height: 1.6;
 }
 
 /* Header */
 .receivedRequestsPageWrapper :global(header) {
-    background-color: #333;
-    color: #fff;
-    padding: 20px 0;
+  background-color: #333;
+  color: #fff;
+  padding: 20px 0;
   width: 100%;
 }
 
@@ -30,30 +30,30 @@
   max-width: 100%;
   padding: 0 20px;
   margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: relative;
 }
 
 .receivedRequestsPageWrapper :global(.logo) {
-    font-size: 1.8rem;
-    font-weight: bold;
+  font-size: 1.8rem;
+  font-weight: bold;
 }
 
 .receivedRequestsPageWrapper :global(nav ul) {
-    list-style: none;
-    display: flex;
+  list-style: none;
+  display: flex;
 }
 
 .receivedRequestsPageWrapper :global(nav ul li) {
-    margin-left: 20px;
+  margin-left: 20px;
 }
 
 .receivedRequestsPageWrapper :global(nav ul li a) {
-    color: #fff;
-    font-size: 1rem;
-    transition: color 0.3s ease;
+  color: #fff;
+  font-size: 1rem;
+  transition: color 0.3s ease;
   text-decoration: none;
 }
 
@@ -123,18 +123,18 @@
 
 /* Main Container */
 .receivedRequestsPageWrapper :global(.container) {
-    width: 80%;
-    margin: 40px auto;
+  width: 80%;
+  margin: 40px auto;
 }
 
 /* Search Bar */
 .receivedRequestsPageWrapper :global(.search-bar) {
-    width: 100%;
+  width: 100%;
   padding: 12px 20px;
   margin-bottom: 20px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-    font-size: 16px;
+  font-size: 16px;
   transition: all 0.3s ease;
 }
 
@@ -150,23 +150,30 @@
 
 /* Collab List Layout */
 .receivedRequestsPageWrapper :global(.collab-list) {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    justify-items: center;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  justify-items: center;
 }
 
 /* Collab Box */
 .receivedRequestsPageWrapper :global(.collab-box) {
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 1100px;
+  background: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1100px;
   position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.receivedRequestsPageWrapper :global(.collab-box:hover) {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
 
 .receivedRequestsPageWrapper :global(.collab-header) {
   margin-bottom: 20px;
@@ -176,10 +183,10 @@
 
 /* Title */
 .receivedRequestsPageWrapper :global(.collab-title) {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: #007BFF;
-    margin-bottom: 10px;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #007BFF;
+  margin-bottom: 10px;
   margin-right: 150px;
 }
 
@@ -213,37 +220,37 @@
 
 /* Bottom Row: Two Side-by-Side Columns */
 .receivedRequestsPageWrapper :global(.bottom-row) {
-    display: flex;
-    gap: 20px;
-    align-items: stretch;
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
 }
 
 /* Left Column: Influencer Details */
 .receivedRequestsPageWrapper :global(.left-col) {
-    flex: 1;
-    display: flex;
+  flex: 1;
+  display: flex;
 }
 
 .receivedRequestsPageWrapper :global(.blue-box) {
-    background: #e3f2fd;
-    padding: 20px;
-    border-radius: 5px;
-    border-left: 5px solid #007BFF;
-    width: 100%;
-    font-size: 1rem;
-    line-height: 1.8;
+  background: #e3f2fd;
+  padding: 20px;
+  border-radius: 5px;
+  border-left: 5px solid #007BFF;
+  width: 100%;
+  font-size: 1rem;
+  line-height: 1.8;
 }
 
 .receivedRequestsPageWrapper :global(.blue-box h3) {
-    font-size: 1.4rem;
-    margin-bottom: 8px;
-    color: #007BFF;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  color: #007BFF;
 }
 
 .receivedRequestsPageWrapper :global(.blue-box p) {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #555;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #555;
 }
 
 .receivedRequestsPageWrapper :global(.influencer-profile) {
@@ -331,31 +338,31 @@
 
 /* Right Column: Collab Requirements */
 .receivedRequestsPageWrapper :global(.red-col) {
-    flex: 1;
-    display: flex;
+  flex: 1;
+  display: flex;
 }
 
 .receivedRequestsPageWrapper :global(.collab-requirements) {
-    background: #fbe9e7;
-    padding: 20px;
-    border-radius: 5px;
-    border-left: 5px solid #FF5733;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  background: #fbe9e7;
+  padding: 20px;
+  border-radius: 5px;
+  border-left: 5px solid #FF5733;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .receivedRequestsPageWrapper :global(.collab-requirements h3) {
-    font-size: 1.4rem;
-    margin-bottom: 8px;
-    color: #FF5733;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  color: #FF5733;
 }
 
 .receivedRequestsPageWrapper :global(.collab-requirements p) {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #555;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #555;
 }
 
 .receivedRequestsPageWrapper :global(.requirements-grid) {
@@ -379,18 +386,18 @@
 
 /* Attribute and Value Styling */
 .receivedRequestsPageWrapper :global(.attr) {
-    font-weight: bold;
-    margin-right: 8px;
-    color: #333;
+  font-weight: bold;
+  margin-right: 8px;
+  color: #333;
 }
 
 .receivedRequestsPageWrapper :global(.value) {
-    font-weight: normal;
-    color: #555;
+  font-weight: normal;
+  color: #555;
 }
 
 .receivedRequestsPageWrapper :global(.channels-section) {
-    margin-top: 20px;
+  margin-top: 20px;
   padding-top: 15px;
   border-top: 1px solid rgba(255, 87, 51, 0.2);
 }
@@ -399,9 +406,9 @@
   font-size: 1.1rem;
   margin-bottom: 10px;
   color: #FF5733;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .receivedRequestsPageWrapper :global(.channels-list) {
@@ -423,20 +430,20 @@
 }
 
 .receivedRequestsPageWrapper :global(.influencer-message-bar) {
-    width: 100%;
-    box-sizing: border-box;
-    background: #fffbe6;
-    border: 1px solid #ffe58f;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-top: 10px;
-    display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
 .receivedRequestsPageWrapper :global(.influencer-message-bar strong) {
-    color: #333;
+  color: #333;
   font-size: 0.9rem;
 }
 
@@ -449,82 +456,82 @@
 
 /* Campaign Products Styles */
 .receivedRequestsPageWrapper :global(.products-section) {
-    margin-top: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
 .receivedRequestsPageWrapper :global(.products-section h4) {
-    margin: 0 0 15px 0;
-    color: #333;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .receivedRequestsPageWrapper :global(.products-grid) {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
 }
 
 .receivedRequestsPageWrapper :global(.product-item) {
-    background: white;
-    border-radius: 8px;
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    display: flex;
-    gap: 12px;
-    transition: box-shadow 0.3s ease;
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  gap: 12px;
+  transition: box-shadow 0.3s ease;
 }
 
 .receivedRequestsPageWrapper :global(.product-item:hover) {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .receivedRequestsPageWrapper :global(.product-image) {
-    width: 60px;
-    height: 60px;
-    flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
 }
 
 .receivedRequestsPageWrapper :global(.product-img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 6px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 .receivedRequestsPageWrapper :global(.product-placeholder) {
-    width: 100%;
-    height: 100%;
-    background: #f0f0f0;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 1.2rem;
+  width: 100%;
+  height: 100%;
+  background: #f0f0f0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 1.2rem;
 }
 
 .receivedRequestsPageWrapper :global(.product-details) {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .receivedRequestsPageWrapper :global(.product-name) {
-    margin: 0 0 6px 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #333;
-    line-height: 1.3;
+  margin: 0 0 6px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
 }
 
 .receivedRequestsPageWrapper :global(.product-pricing) {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .receivedRequestsPageWrapper :global(.campaign-price) {
@@ -559,8 +566,8 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all 0.3s ease;
@@ -614,7 +621,7 @@
 }
 
 .receivedRequestsPageWrapper :global(.no-requests-message p) {
-    color: #666;
+  color: #666;
   margin-bottom: 10px;
   line-height: 1.6;
 }
@@ -639,27 +646,28 @@
 
 /* Success message styles */
 .receivedRequestsPageWrapper :global(.success-message) {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #4CAF50;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 10000;
-    animation: slideIn 0.5s ease-out;
+  animation: slideIn 0.5s ease-out;
 }
 
 @keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Responsive Design */

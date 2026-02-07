@@ -133,7 +133,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.campaignCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.12);
+}
+
 
 .campaignHeader {
   display: flex;

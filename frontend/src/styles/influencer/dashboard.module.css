@@ -408,14 +408,14 @@
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #e9ecef;
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 
-.dashboard-page :global(.collab-card) {
+.dashboard-page :global(.collab-card:hover) {
     transform: translateY(-5px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -706,12 +706,12 @@
     border-radius: 12px;
     padding: 1.0rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     max-width: 100%;
 }
 
-.dashboard-page :global(.invite-card) {
+.dashboard-page :global(.invite-card:hover) {
     transform: translateY(-5px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -942,12 +942,12 @@
     border-radius: 12px;
     padding: 1.25rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     max-width: 100%;
 }
 
-.dashboard-page :global(.sent-request-card) {
+.dashboard-page :global(.sent-request-card:hover) {
     transform: translateY(-5px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
@@ -1658,18 +1658,22 @@
 /* Campaign History Section */
 .dashboard-page :global(.campaign-history-section) {
     margin: 2rem 0;
+    max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
-    justify-content: center;
-    align-items: center;
 }
 
 .dashboard-page :global(.campaign-history-section .campaigns-grid) {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
     margin-top: 10px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    padding: 0 1rem;
 }
 
 .dashboard-page :global(.campaign-history-section .campaign-card) {
@@ -1681,6 +1685,12 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-page :global(.campaign-history-section .campaign-card:hover) {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
 }
 
 .dashboard-page :global(.campaign-history-section .campaign-status) {

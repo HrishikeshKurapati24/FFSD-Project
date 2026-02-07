@@ -195,6 +195,8 @@ const Signin = () => {
         }
     };
 
+
+
     const isFormValid = updateSubmitState();
 
     return (
@@ -295,12 +297,12 @@ const Signin = () => {
                                 aria-live="polite"
                                 style={{
                                     display: errors.password ? 'block' : 'none',
-                                    marginTop: errors.password ? '6px' : '',
-                                    padding: errors.password ? '6px 8px' : '',
-                                    borderRadius: errors.password ? '4px' : '',
-                                    background: errors.password ? 'rgba(255, 77, 79, 0.12)' : '',
-                                    border: errors.password ? '1px solid #ff4d4f' : '',
-                                    color: errors.password ? '#b00020' : ''
+                                    marginTop: '8px',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    background: 'rgba(255, 77, 79, 0.12)',
+                                    border: '1px solid #ff4d4f',
+                                    color: '#b00020'
                                 }}
                             >
                                 {errors.password}
@@ -333,6 +335,8 @@ const Signin = () => {
                     </div>
                 </div>
             </div>
+
+
         </div>
     );
 };

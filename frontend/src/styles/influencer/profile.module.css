@@ -54,13 +54,13 @@
     background: #007BFF !important;
     color: white !important;
     border: none;
-    padding: 12px 20px;
+    padding: 8px 16px;
     border-radius: 12px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
+    gap: 8px;
+    font-size: 13px;
     font-weight: 600;
     transition: all 0.3s ease;
     backdrop-filter: blur(4px);
@@ -164,6 +164,12 @@
     padding: 32px;
     margin-bottom: 32px;
     border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-page :global(.profile-bio:hover) {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
 .profile-page :global(.section-header) {
@@ -188,14 +194,16 @@
     border: 2px solid var(--primary-color);
     color: white;
     border-radius: 12px;
-    padding: 10px 20px;
-    width: 150px;
+    padding: 6px 14px;
+    width: auto;
+    min-width: 100px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     font-weight: 600;
+    font-size: 13px;
     transition: all 0.3s ease;
 }
 
@@ -267,6 +275,12 @@
     padding: 32px;
     margin-bottom: 32px;
     border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-page :global(.metrics-section:hover) {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
 .profile-page :global(.metrics-section h2) {
@@ -308,7 +322,7 @@
 }
 
 .profile-page :global(.metric-card:hover) {
-    transform: translateY(-8px);
+    transform: translateY(-5px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
@@ -379,7 +393,7 @@
 }
 
 .profile-page :global(.content-card:hover) {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border-color: transparent;
 }
@@ -515,7 +529,7 @@
 }
 
 .profile-page :global(.campaign-card:hover) {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
@@ -622,7 +636,7 @@
 
 .profile-page :global(.profile-card:hover) {
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-    transform: translateY(-4px);
+    transform: translateY(-5px);
 }
 
 .profile-page :global(.profile-card h3) {

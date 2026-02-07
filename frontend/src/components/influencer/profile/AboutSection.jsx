@@ -4,7 +4,7 @@ const AboutSection = ({ influencer, onEditProfile }) => (
   <div className="profile-bio">
     <div className="section-header">
       <h2>About</h2>
-      <button className="btn-icon" onClick={onEditProfile}>
+      <button className="btn-edit" onClick={onEditProfile}>
         <i className="fas fa-edit"></i> Edit
       </button>
     </div>
