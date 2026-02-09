@@ -328,27 +328,6 @@ router.post('/signin', async (req, res) => {
   }
 });
 
-// router.post('/forgot-password', async (req, res) => {
-//   try {
-//     const { email } = req.body;
-
-//     // Check both brand and influencer collections
-//     const brand = await BrandInfo.findOne({ email });
-//     const influencer = await InfluencerInfo.findOne({ email });
-
-//     if (!brand && !influencer) {
-//       return res.status(400).json({ message: 'Email not found' });
-//     }
-
-//     // TODO: Implement password reset logic
-//     // For now, just send a success message
-//     res.status(200).json({ message: 'Password reset instructions sent to your email' });
-//   } catch (err) {
-//     console.error('Forgot password error:', err);
-//     res.status(500).json({ message: err.message || 'Server error' });
-//   }
-// });
-
 // Customer signup route
 router.post('/customer/signup', async (req, res) => {
   try {

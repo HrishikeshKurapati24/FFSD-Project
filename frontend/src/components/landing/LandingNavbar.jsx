@@ -6,8 +6,7 @@ const NAV_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'About', path: '/about' },
   { label: 'Sign Up', path: '/role-selection' },
-  { label: 'Sign In', path: '/signin' },
-  { label: 'Admin', path: '/admin/login' }
+  { label: 'Sign In', path: '/signin' }
 ];
 
 const LandingNavbar = () => {
