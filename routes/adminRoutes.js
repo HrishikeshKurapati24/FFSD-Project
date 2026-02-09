@@ -201,66 +201,44 @@ router.get('/login', (req, res) => {
     res.render('admin/login');
 });
 
-router.post('/login/verify', DashboardController.verifyUser);
-
-// Admin auth verification endpoint for React to check authentication status
-// This route always returns JSON (never HTML) since it's an API endpoint
+// Unauthenticated admin API access test endpoint
 router.get('/verify', async (req, res) => {
-    try {
-        // ALWAYS return JSON for this endpoint - it's an API endpoint
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Accept', 'application/json');
-
-        // First check for session (for EJS pages)
-        if (req.session && req.session.userId) {
-            const adminUser = await Admin.findOne({ userId: req.session.userId });
-            if (adminUser && adminUser.role === 'admin') {
-                return res.status(200).json({
-                    authenticated: true,
-                    user: {
-                        userId: adminUser.userId,
-                        username: adminUser.username,
-                        role: adminUser.role,
-                        userType: 'admin'
-                    }
-                });
-            }
-        }
-
-        // If no session, check for JWT token in cookie (for React API)
+    // Check if this is an API request (JSON expected)
+    if (isAPIRequest(req)) {
+        // Check for JWT token in cookie (for React API)
         const jwtAdmin = verifyAdminJWTFromCookie(req);
-        if (jwtAdmin) {
-            const adminUser = await Admin.findOne({ userId: jwtAdmin.userId });
-            if (adminUser && adminUser.role === 'admin') {
-                // Optionally sync to session for compatibility
-                req.session.userId = adminUser.userId;
-                req.session.role = adminUser.role;
-
-                return res.status(200).json({
-                    authenticated: true,
-                    user: {
-                        userId: adminUser.userId,
-                        username: adminUser.username,
-                        role: adminUser.role,
-                        userType: 'admin'
-                    }
-                });
-            }
+        if (!jwtAdmin) {
+            return res.status(401).json({
+                authenticated: false,
+                message: 'Not authenticated'
+            });
         }
 
-        // Not authenticated
-        return res.status(401).json({
-            authenticated: false,
-            message: 'Not authenticated'
+        // If JWT exists, verify admin user
+        const adminUser = await Admin.findOne({ userId: jwtAdmin.userId });
+        if (!adminUser || adminUser.role !== 'admin') {
+            return res.status(403).json({
+                authenticated: false,
+                message: 'Access denied: Admin only'
+            });
+        }
+
+        return res.status(200).json({
+            authenticated: true,
+            user: {
+                userId: adminUser.userId,
+                username: adminUser.username,
+                role: adminUser.role,
+                userType: 'admin'
+            }
         });
-    } catch (error) {
-        console.error('Admin auth verification error:', error);
-        return res.status(500).json({
-            authenticated: false,
-            message: 'Server error'
-        });
+    } else {
+        // For page requests, redirect to login
+        return res.redirect('/admin/login');
     }
 });
+
+router.post('/login/verify', DashboardController.verifyUser);
 
 // Protected routes - require authentication
 router.use(adminAuth);

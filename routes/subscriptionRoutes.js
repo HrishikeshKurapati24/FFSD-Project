@@ -2,183 +2,195 @@ const express = require('express');
 const router = express.Router();
 const { SubscriptionService } = require('../models/brandModel');
 const { isAuthenticated } = require('./authRoutes');
+const { asyncErrorWrapper } = require('../middleware/asyncErrorWrapper');
 
 // Public routes (no authentication required)
 // Subscription plan selection page (after signup)
-router.get('/select-plan', async (req, res) => {
-    try {
-        const { userId, userType } = req.query;
+router.get('/select-plan', asyncErrorWrapper(async (req, res) => {
+    const { userId, userType } = req.query;
 
-        if (!userId || !userType) {
-            if (req.xhr || req.headers.accept?.includes('application/json')) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Missing userId or userType'
-                });
-            }
-            return res.redirect('/signin');
-        }
+    if (!userId || !userType) {
+        const error = new Error('Missing userId or userType parameters');
+        error.statusCode = 500;
+        throw error;
+    }
 
-        const allPlans = await SubscriptionService.getPlansForUserType(userType);
+    // Validate userId format (should be MongoDB ObjectId)
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+        const error = new Error('Invalid userId format - must be a valid MongoDB ObjectId');
+        error.statusCode = 500;
+        throw error;
+    }
 
-        // Filter to only show Free, Basic, and Premium plans (exclude Pro and Enterprise)
-        const availablePlans = allPlans.filter(plan =>
-            ['Free', 'Basic', 'Premium'].includes(plan.name)
-        );
+    // Validate userType
+    if (!['brand', 'influencer'].includes(userType)) {
+        const error = new Error('Invalid userType. Must be "brand" or "influencer"');
+        error.statusCode = 500;
+        throw error;
+    }
 
-        // Return JSON for API requests (React frontend)
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.json({
-                success: true,
-                availablePlans,
-                userType,
-                userId
-            });
-        }
+    const allPlans = await SubscriptionService.getPlansForUserType(userType);
 
-        res.render('subscription/select-plan', {
+    if (!allPlans || allPlans.length === 0) {
+        const error = new Error(`No subscription plans found for userType: ${userType}`);
+        error.statusCode = 500;
+        throw error;
+    }
+
+    // Filter to only show Free, Basic, and Premium plans (exclude Pro and Enterprise)
+    const availablePlans = allPlans.filter(plan =>
+        ['Free', 'Basic', 'Premium'].includes(plan.name)
+    );
+
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json({
+            success: true,
             availablePlans,
             userType,
             userId
         });
-    } catch (error) {
-        console.error('Error loading subscription plan selection:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load subscription plans'
-            });
-        }
-        res.status(500).render('error', {
-            message: 'Failed to load subscription plans',
-            error: { status: 500 }
-        });
     }
-});
+
+    res.render('subscription/select-plan', {
+        availablePlans,
+        userType,
+        userId
+    });
+}));
 
 // Subscribe after signup (redirect to payment for paid plans)
-router.post('/subscribe-after-signup', async (req, res) => {
-    try {
-        const { userId, userType, planId, billingCycle } = req.body;
+router.post('/subscribe-after-signup', asyncErrorWrapper(async (req, res) => {
+    const { userId, userType, planId, billingCycle } = req.body;
 
-        if (!userId || !userType || !planId || !billingCycle) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required parameters'
-            });
-        }
-
-        // Get the plan details
-        const plans = await SubscriptionService.getPlansForUserType(userType);
-        const selectedPlan = plans.find(p => p._id.toString() === planId);
-
-        if (!selectedPlan) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid plan selected'
-            });
-        }
-
-        // Check if it's a free plan
-        if (selectedPlan.name === 'Free') {
-            // Create free subscription directly
-            const subscriptionData = {
-                userId,
-                userType: userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
-                planId,
-                billingCycle,
-                status: 'active',
-                startDate: new Date(),
-                endDate: new Date(Date.now() + (billingCycle === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000),
-                amount: 0,
-                usage: {
-                    campaignsUsed: 0,
-                    influencersConnected: 0,
-                    brandsConnected: 0,
-                    storageUsedGB: 0,
-                    uploadsThisMonth: 0
-                }
-            };
-
-            const subscription = await SubscriptionService.createSubscription(subscriptionData);
-
-            res.json({
-                success: true,
-                message: 'Free subscription activated successfully',
-                subscription,
-                redirectTo: '/signin'
-            });
-        } else {
-            // Redirect to payment page for paid plans
-            res.json({
-                success: true,
-                message: 'Redirecting to payment',
-                redirectTo: `/subscription/payment?userId=${userId}&userType=${userType}&planId=${planId}&billingCycle=${billingCycle}`
-            });
-        }
-    } catch (error) {
-        console.error('Error processing subscription:', error);
-        res.status(500).json({
+    if (!userId || !userType || !planId || !billingCycle) {
+        return res.status(400).json({
             success: false,
-            message: 'Failed to process subscription'
+            message: 'Missing required parameters'
         });
     }
-});
+
+    // Get the plan details
+    const plans = await SubscriptionService.getPlansForUserType(userType);
+    const selectedPlan = plans.find(p => p._id.toString() === planId);
+
+    if (!selectedPlan) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid plan selected'
+        });
+    }
+
+    // Check if it's a free plan
+    if (selectedPlan.name === 'Free') {
+        // Create free subscription directly
+        const subscriptionData = {
+            userId,
+            userType: userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
+            planId,
+            billingCycle,
+            status: 'active',
+            startDate: new Date(),
+            endDate: new Date(Date.now() + (billingCycle === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000),
+            amount: 0,
+            usage: {
+                campaignsUsed: 0,
+                influencersConnected: 0,
+                brandsConnected: 0,
+                storageUsedGB: 0,
+                uploadsThisMonth: 0
+            }
+        };
+
+        const subscription = await SubscriptionService.createSubscription(subscriptionData);
+
+        res.json({
+            success: true,
+            message: 'Free subscription activated successfully',
+            subscription,
+            redirectTo: '/signin'
+        });
+    } else {
+        // Redirect to payment page for paid plans
+        res.json({
+            success: true,
+            message: 'Redirecting to payment',
+            redirectTo: `/subscription/payment?userId=${userId}&userType=${userType}&planId=${planId}&billingCycle=${billingCycle}`
+        });
+    }
+}));
 
 // Payment page
 router.get('/payment', async (req, res) => {
-    try {
-        let { userId, userType, planId, billingCycle } = req.query;
+    let { userId, userType, planId, billingCycle } = req.query;
 
-        // Get userId and userType from session if not in query params or if userType is undefined
-        if (!userId && req.session?.user?.id) {
-            userId = req.session.user.id;
-        }
-        if (!userType || userType === 'undefined' || userType === 'null') {
-            userType = req.session?.user?.userType || req.session?.user?.role;
-        }
+    // Get userId and userType from session if not in query params or if userType is undefined
+    if (!userId && req.session?.user?.id) {
+        userId = req.session.user.id;
+    }
+    if (!userType || userType === 'undefined' || userType === 'null') {
+        userType = req.session?.user?.userType || req.session?.user?.role;
+    }
 
-        // If still no userType, try to determine from database
-        if (!userType || userType === 'undefined' || userType === 'null') {
-            const { BrandInfo } = require('../config/BrandMongo');
-            const { InfluencerInfo } = require('../config/InfluencerMongo');
-            
-            if (userId) {
-                const brand = await BrandInfo.findById(userId);
-                const influencer = await InfluencerInfo.findById(userId);
-                
-                if (brand) {
-                    userType = 'brand';
-                } else if (influencer) {
-                    userType = 'influencer';
-                }
+    // If still no userType, try to determine from database
+    if (!userType || userType === 'undefined' || userType === 'null') {
+        const { BrandInfo } = require('../config/BrandMongo');
+        const { InfluencerInfo } = require('../config/InfluencerMongo');
+
+        if (userId) {
+            const brand = await BrandInfo.findById(userId);
+            const influencer = await InfluencerInfo.findById(userId);
+
+            if (brand) {
+                userType = 'brand';
+            } else if (influencer) {
+                userType = 'influencer';
             }
         }
+    }
 
-        if (!userId || !userType || !planId || !billingCycle) {
-            if (req.xhr || req.headers.accept?.includes('application/json')) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Missing required parameters',
-                    details: { userId: !!userId, userType: !!userType, planId: !!planId, billingCycle: !!billingCycle }
-                });
-            }
-            return res.redirect('/subscription/select-plan');
-        }
+    if (!userId || !userType || !planId || !billingCycle) {
+        const error = new Error('Missing required parameters for payment page');
+        error.statusCode = 400;
+        throw error;
+    }
 
-        // Get the plan details
-        const plans = await SubscriptionService.getPlansForUserType(userType);
-        const selectedPlan = plans.find(p => p._id.toString() === planId);
+    // Validate userId format
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+        const error = new Error('Invalid userId format');
+        error.statusCode = 400;
+        throw error;
+    }
 
-        if (!selectedPlan) {
-            if (req.xhr || req.headers.accept?.includes('application/json')) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Invalid plan selected'
-                });
-            }
-            return res.redirect('/subscription/select-plan');
-        }
+    // Validate userType
+    if (!['brand', 'influencer'].includes(userType)) {
+        const error = new Error('Invalid userType. Must be "brand" or "influencer"');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    // Validate billingCycle
+    if (!['monthly', 'yearly'].includes(billingCycle)) {
+        const error = new Error('Invalid billingCycle. Must be "monthly" or "yearly"');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    // Get the plan details
+    const plans = await SubscriptionService.getPlansForUserType(userType);
+    if (!plans || plans.length === 0) {
+        const error = new Error(`No subscription plans found for userType: ${userType}`);
+        error.statusCode = 500;
+        throw error;
+    }
+
+    const selectedPlan = plans.find(p => p._id.toString() === planId);
+
+    if (!selectedPlan) {
+        const error = new Error(`Invalid plan selected: ${planId}`);
+        error.statusCode = 400;
+        throw error;
+    }
 
         // Fetch user's last payment details to pre-fill the form
         const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
@@ -259,20 +271,7 @@ router.get('/payment', async (req, res) => {
             billingCycle,
             lastPaymentDetails
         });
-    } catch (error) {
-        console.error('Error loading payment page:', error);
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to load payment page'
-            });
-        }
-        res.status(500).render('error', {
-            message: 'Failed to load payment page',
-            error: { status: 500 }
-        });
-    }
-});
+    });
 
 // Process payment
 router.post('/process-payment', async (req, res) => {

@@ -1,0 +1,429 @@
+{
+  "info": {
+    "name": "Error Handling Middleware Tests",
+    "description": "Comprehensive test collection for authenticated error handling middleware",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3002",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication Errors",
+      "item": [
+        {
+          "name": "401 - Authentication Required",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-auth-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-auth-error"]
+            },
+            "description": "Test JWT authentication error handling"
+          }
+        },
+        {
+          "name": "403 - Authorization Denied",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-authz-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-authz-error"]
+            },
+            "description": "Test authorization/permission error handling"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validation Errors",
+      "item": [
+        {
+          "name": "400 - Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"invalid-email-format\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-validation-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-validation-error"]
+            },
+            "description": "Test input validation error handling"
+          }
+        },
+        {
+          "name": "403 - CSRF Token Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"action\": \"update-profile\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-csrf-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-csrf-error"]
+            },
+            "description": "Test CSRF protection error handling"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Database & System Errors",
+      "item": [
+        {
+          "name": "500 - Database Connection Error",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-db-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-db-error"]
+            },
+            "description": "Test database connection error handling"
+          }
+        },
+        {
+          "name": "500 - Async Operation Error",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-async-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-async-error"]
+            },
+            "description": "Test async error wrapper functionality"
+          }
+        },
+        {
+          "name": "503 - Service Unavailable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-service-unavailable",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-service-unavailable"]
+            },
+            "description": "Test external service unavailable error"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Application & Business Logic Errors",
+      "item": [
+        {
+          "name": "422 - Business Logic Violation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"campaignBudget\": 1000000}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-custom-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-custom-error"]
+            },
+            "description": "Test custom business logic error handling"
+          }
+        },
+        {
+          "name": "402 - Subscription Limit Reached",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-subscription-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-subscription-error"]
+            },
+            "description": "Test subscription/payment required error"
+          }
+        },
+        {
+          "name": "413 - File Too Large",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/test-upload-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-upload-error"]
+            },
+            "description": "Test file upload size limit error"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rate Limiting & Infrastructure",
+      "item": [
+        {
+          "name": "429 - Rate Limit Exceeded",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-rate-limit",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-rate-limit"]
+            },
+            "description": "Test rate limiting error handling"
+          }
+        },
+        {
+          "name": "408 - Request Timeout",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-timeout-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-timeout-error"]
+            },
+            "description": "Test request timeout error handling"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Timeout test completed\", function () {",
+                  "    // This request should timeout and return 408",
+                  "    pm.expect(pm.response.code).to.be.oneOf([408, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Response Type Tests",
+      "item": [
+        {
+          "name": "JSON Response (API Request)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-api-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-api-error"]
+            },
+            "description": "Test JSON error response for API requests"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response is JSON\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\");",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "pm.test(\"Error response structure\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"success\");",
+                  "    pm.expect(jsonData).to.have.property(\"error\");",
+                  "    pm.expect(jsonData.error).to.have.property(\"code\");",
+                  "    pm.expect(jsonData.error).to.have.property(\"message\");",
+                  "    pm.expect(jsonData.error).to.have.property(\"timestamp\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "HTML Response (Page Request)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/test-page-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["test-page-error"]
+            },
+            "description": "Test HTML error page response for browser requests"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response is HTML\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\");",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+                  "});",
+                  "",
+                  "pm.test(\"Contains error page content\", function () {",
+                  "    pm.expect(pm.response.text()).to.include(\"error\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('Testing error handling middleware...');"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test(\"Status code is error (4xx or 5xx)\", function () {",
+          "    pm.expect(pm.response.code).to.be.at.least(400);",
+          "});",
+          "",
+          "pm.test(\"Response time is reasonable\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

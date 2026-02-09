@@ -17,6 +17,8 @@ const { BrandInfo, BrandSocials, BrandAnalytics } = require('./config/BrandMongo
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./config/InfluencerMongo');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const { asyncErrorWrapper } = require('./middleware/asyncErrorWrapper');
+
 
 // CORS configuration
 // CORS configuration
@@ -127,89 +129,107 @@ app.get('/brand/Sup_b', (req, res) => {
 });
 
 // API routes for landing page modals
-app.get('/api/brands', async (req, res) => {
-    try {
-        console.log('Fetching brands...');
+app.get('/api/brands', asyncErrorWrapper(async (req, res) => {
+    console.log('Fetching brands...');
 
-        // First try to find brands with active status, if none found, get all brands
-        let brands = await BrandInfo.find({ status: 'active' })
+    // Validate query parameters
+    const { status } = req.query;
+    if (status && !['active', 'inactive', 'pending'].includes(status)) {
+        const error = new Error(`Invalid status parameter: ${status}. Must be 'active', 'inactive', or 'pending'`);
+        error.statusCode = 500;
+        throw error;
+    }
+
+    // First try to find brands with active status, if none found, get all brands
+    let brands = await BrandInfo.find(status ? { status } : { status: 'active' })
+        .select('brandName industry logoUrl completedCampaigns influencerPartnerships categories avgCampaignRating')
+        .lean();
+
+    console.log('Active brands found:', brands.length);
+
+    // If no active brands found, get all brands
+    if (brands.length === 0) {
+        brands = await BrandInfo.find({})
             .select('brandName industry logoUrl completedCampaigns influencerPartnerships categories avgCampaignRating')
             .lean();
-
-        console.log('Active brands found:', brands.length);
-
-        // If no active brands found, get all brands
-        if (brands.length === 0) {
-            brands = await BrandInfo.find({})
-                .select('brandName industry logoUrl completedCampaigns influencerPartnerships categories avgCampaignRating')
-                .lean();
-            console.log('All brands found:', brands.length);
-        }
-
-        const brandsWithStats = brands.map(brand => {
-            return {
-                _id: brand._id,
-                brandName: brand.brandName,
-                industry: brand.industry,
-                logoUrl: brand.logoUrl,
-                completedCampaigns: brand.completedCampaigns || 0,
-                influencerPartnerships: brand.influencerPartnerships || 0,
-                categories: brand.categories || ['General'],
-                avgCampaignRating: brand.avgCampaignRating || 0,
-                totalFollowers: 0, // Simplified for now
-                avgEngagementRate: 0 // Simplified for now
-            };
-        });
-
-        console.log('Brands processed:', brandsWithStats.length);
-        res.json(brandsWithStats);
-    } catch (error) {
-        console.error('Error fetching brands:', error);
-        res.status(500).json({ error: 'Failed to fetch brands', details: error.message });
+        console.log('All brands found:', brands.length);
     }
-});
 
-app.get('/api/influencers', async (req, res) => {
-    try {
-        console.log('Fetching influencers...');
+    if (!brands || brands.length === 0) {
+        const error = new Error('No brands found in database');
+        error.statusCode = 404;
+        throw error;
+    }
 
-        // First try to find influencers with active status, if none found, get all influencers
-        let influencers = await InfluencerInfo.find({ status: 'active' })
+    const brandsWithStats = brands.map(brand => {
+        return {
+            _id: brand._id,
+            brandName: brand.brandName,
+            industry: brand.industry,
+            logoUrl: brand.logoUrl,
+            completedCampaigns: brand.completedCampaigns || 0,
+            influencerPartnerships: brand.influencerPartnerships || 0,
+            categories: brand.categories || ['General'],
+            avgCampaignRating: brand.avgCampaignRating || 0,
+            totalFollowers: 0, // Simplified for now
+            avgEngagementRate: 0 // Simplified for now
+        };
+    });
+
+    console.log('Brands processed:', brandsWithStats.length);
+    res.json(brandsWithStats);
+}));
+
+app.get('/api/influencers', asyncErrorWrapper(async (req, res) => {
+    console.log('Fetching influencers...');
+
+    // Validate query parameters
+    const { status } = req.query;
+    if (status && !['active', 'inactive', 'pending'].includes(status)) {
+        const error = new Error(`Invalid status parameter: ${status}. Must be 'active', 'inactive', or 'pending'`);
+        error.statusCode = 500;
+        throw error;
+    }
+
+    // First try to find influencers with active status, if none found, get all influencers
+    let influencers = await InfluencerInfo.find(status ? { status } : { status: 'active' })
+        .select('fullName niche profilePicUrl avgRating completedCollabs categories')
+        .lean();
+
+    console.log('Active influencers found:', influencers.length);
+
+    // If no active influencers found, get all influencers
+    if (influencers.length === 0) {
+        influencers = await InfluencerInfo.find({})
             .select('fullName niche profilePicUrl avgRating completedCollabs categories')
             .lean();
-
-        console.log('Active influencers found:', influencers.length);
-
-        // If no active influencers found, get all influencers
-        if (influencers.length === 0) {
-            influencers = await InfluencerInfo.find({})
-                .select('fullName niche profilePicUrl avgRating completedCollabs categories')
-                .lean();
-            console.log('All influencers found:', influencers.length);
-        }
-
-        const influencersWithStats = influencers.map(influencer => {
-            return {
-                _id: influencer._id,
-                fullName: influencer.fullName,
-                niche: influencer.niche,
-                profilePicUrl: influencer.profilePicUrl,
-                avgRating: influencer.avgRating || 0,
-                completedCollabs: influencer.completedCollabs || 0,
-                categories: influencer.categories || ['General'],
-                socialPlatforms: ['instagram', 'youtube'], // Simplified for now
-                totalFollowers: Math.floor(Math.random() * 1000000) + 10000, // Random for demo
-                avgEngagementRate: Math.floor(Math.random() * 10) + 3 // Random for demo
-            };
-        });
-
-        console.log('Influencers processed:', influencersWithStats.length);
-        res.json(influencersWithStats);
-    } catch (error) {
-        console.error('Error fetching influencers:', error);
-        res.status(500).json({ error: 'Failed to fetch influencers', details: error.message });
+        console.log('All influencers found:', influencers.length);
     }
-});
+
+    if (!influencers || influencers.length === 0) {
+        const error = new Error('No influencers found in database');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const influencersWithStats = influencers.map(influencer => {
+        return {
+            _id: influencer._id,
+            fullName: influencer.fullName,
+            niche: influencer.niche,
+            profilePicUrl: influencer.profilePicUrl,
+            avgRating: influencer.avgRating || 0,
+            completedCollabs: influencer.completedCollabs || 0,
+            categories: influencer.categories || ['General'],
+            socialPlatforms: ['instagram', 'youtube'], // Simplified for now
+            totalFollowers: Math.floor(Math.random() * 1000000) + 10000, // Random for demo
+            avgEngagementRate: Math.floor(Math.random() * 10) + 3 // Random for demo
+        };
+    });
+
+    console.log('Influencers processed:', influencersWithStats.length);
+    res.json(influencersWithStats);
+}));
 
 app.post('/signup-form-brand', async (req, res) => {
     try {
@@ -375,11 +395,11 @@ app.use('/subscription', subscriptionRoutes);
 app.use('/auth', authRouter);
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).render('error', { error: err.message });
-});
+// Import error handling middleware
+const errorHandler = require('./middleware/errorHandler');
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
