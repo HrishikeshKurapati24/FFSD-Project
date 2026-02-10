@@ -72,7 +72,8 @@ class CollaborationModel {
                     timeliness_score: collab.timeliness_score || 0,
                     performance_score: campaignMetrics.performance_score || 0,
                     impressions: campaignMetrics.impressions || 0,
-                    revenue: campaignMetrics.revenue || 0,
+                    revenue: collab.revenue || 0, // specific to influencer
+                    commission_earned: collab.commission_earned || 0, // specific to influencer
                     roi: campaignMetrics.roi || 0
                 };
             });

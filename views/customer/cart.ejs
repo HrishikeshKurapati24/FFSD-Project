@@ -51,7 +51,8 @@
                                         </div>
                                         <form class="d-inline" method="post" action="/customer/cart/remove"
                                             onsubmit="return removeItem(event, '<%= item.productId %>')">
-                                            <button class="btn btn-sm btn-outline-danger mt-2 cart-item-remove">Remove</button>
+                                            <button
+                                                class="btn btn-sm btn-outline-danger mt-2 cart-item-remove">Remove</button>
                                         </form>
                                     </div>
                                 </li>
@@ -161,7 +162,8 @@
 
             const payload = {
                 customerInfo: { name, email, phone, address },
-                paymentInfo: { cardNumber, expMonth, expYear, cvv }
+                paymentInfo: { cardNumber, expMonth, expYear, cvv },
+                referralCode: localStorage.getItem('referralCode') || undefined // Add Referral Code
             };
 
             const res = await fetch('/customer/checkout', {

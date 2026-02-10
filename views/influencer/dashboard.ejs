@@ -479,6 +479,14 @@
                           <%= collab.roi %>
                         </span>
                       </div>
+                      <div class="analytics-item highlight-metric">
+                        <span class="label">My Earnings</span>
+                        <span class="value success-text">$<%= (collab.commission_earned || 0).toLocaleString() %></span>
+                      </div>
+                       <div class="analytics-item">
+                        <span class="label">Sales Generated</span>
+                        <span class="value">$<%= (collab.revenue || 0).toLocaleString() %></span>
+                      </div>
                       <div class="analytics-item">
                         <span class="label">Conversion Rate</span>
                         <span class="value">
@@ -505,7 +513,7 @@
                     </div>
                     <div class="shop-url-container">
                       <input type="text" class="shop-url-input" id="shopUrl_<%= collab.campaign_id %>"
-                        value="<%= `${baseUrl}/customer/campaign/${collab.campaign_id}/shop` %>" readonly>
+                        value="<%= `${baseUrl}/customer/campaign/${collab.campaign_id}/shop?ref=${influencer.metrics?.referralCode || influencer.referralCode || ''}` %>" readonly>
                       <button class="btn btn-copy" onclick="copyShopUrl('<%= collab.campaign_id %>')"
                         title="Copy to clipboard">
                         <i class="fas fa-copy"></i>
