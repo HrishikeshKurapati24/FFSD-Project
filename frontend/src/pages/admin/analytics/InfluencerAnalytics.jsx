@@ -12,22 +12,11 @@ const InfluencerAnalytics = () => {
     window.location.href = '/admin/dashboard';
   };
 
-  const goBackButtonStyle = {
-    padding: '0.5rem 1rem',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    backgroundColor: '#fff',
-    color: '#2c3e50',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.4rem'
-  };
 
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('followers'); // default sort
   const categoryBreakdownChartRef = useRef(null);
   const performanceChartRef = useRef(null);
   const topInfluencersChartRef = useRef(null);
@@ -239,7 +228,7 @@ const InfluencerAnalytics = () => {
       collaborations: [45, 52, 48, 61, 58, 67],
       reach: [125000, 142000, 138000, 156000, 162000, 178000]
     };
-    
+
     // Limit data points to prevent infinite growth (max 12 months)
     const MAX_DATA_POINTS = 12;
     const performanceData = {
@@ -319,7 +308,7 @@ const InfluencerAnalytics = () => {
             ticks: {
               maxRotation: 45,
               minRotation: 0,
-              callback: function(value, index) {
+              callback: function (value, index) {
                 const label = this.getLabelForValue(value);
                 return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
               }
@@ -416,7 +405,7 @@ const InfluencerAnalytics = () => {
             ticks: {
               maxRotation: 45,
               minRotation: 0,
-              callback: function(value, index) {
+              callback: function (value, index) {
                 const label = this.getLabelForValue(value);
                 return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
               }
@@ -521,7 +510,7 @@ const InfluencerAnalytics = () => {
             ticks: {
               maxRotation: 45,
               minRotation: 0,
-              callback: function(value, index) {
+              callback: function (value, index) {
                 const label = this.getLabelForValue(value);
                 return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
               }
@@ -620,7 +609,7 @@ const InfluencerAnalytics = () => {
             ticks: {
               maxRotation: 45,
               minRotation: 0,
-              callback: function(value, index) {
+              callback: function (value, index) {
                 const label = this.getLabelForValue(value);
                 return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
               }
@@ -655,7 +644,7 @@ const InfluencerAnalytics = () => {
   if (loading) {
     return (
       <div className={styles.influencerAnalyticsPage}>
-        <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+        <button type="button" onClick={handleGoBack} className={styles.backButton}>
           ← Go Back
         </button>
         <div className={styles.loadingMessage}>Loading influencer analytics...</div>
@@ -665,7 +654,7 @@ const InfluencerAnalytics = () => {
 
   return (
     <div className={styles.influencerAnalyticsPage}>
-      <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+      <button type="button" onClick={handleGoBack} className={styles.backButton}>
         ← Go Back
       </button>
       {error && <div className={styles.errorAlert}>{error}</div>}
@@ -730,6 +719,10 @@ const InfluencerAnalytics = () => {
             </div>
           </div>
 
+          <div className={styles.chartsContainer}>
+            {/* The following charts will be appended here by initializeTopInfluencersChart, etc. */}
+          </div>
+
           <div className={styles.categoryDistribution}>
             <h3>Influencer Categories</h3>
             <div className={styles.categoryGrid}>
@@ -753,6 +746,61 @@ const InfluencerAnalytics = () => {
                 <p>No category breakdown data available</p>
               )}
             </div>
+          </div>
+
+          <div className={styles.topInfluencersTableContainer}>
+            <div className={styles.tableHeader}>
+              <h3>Top Performing Influencers</h3>
+              <div className={styles.sortControls}>
+                <button
+                  className={`${styles.sortButton} ${sortBy === 'engagement' ? styles.active : ''}`}
+                  onClick={() => setSortBy('engagement')}
+                >
+                  Sort by Engagement
+                </button>
+                <button
+                  className={`${styles.sortButton} ${sortBy === 'followers' ? styles.active : ''}`}
+                  onClick={() => setSortBy('followers')}
+                >
+                  Sort by Followers
+                </button>
+              </div>
+            </div>
+
+            <table className={styles.influencersTable}>
+              <thead>
+                <tr>
+                  <th>Influencer</th>
+                  <th>Category</th>
+                  <th>Total Followers</th>
+                  <th>Engagement Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metrics.topInfluencers && [...metrics.topInfluencers]
+                  .sort((a, b) => {
+                    if (sortBy === 'followers') return (b.followers || 0) - (a.followers || 0);
+                    return (b.engagement || 0) - (a.engagement || 0);
+                  })
+                  .map((influencer, index) => (
+                    <tr key={index}>
+                      <td>
+                        <div className={styles.influencerInfo}>
+                          <img
+                            src={influencer.logo || '/images/default-profile.png'}
+                            alt={influencer.name}
+                            className={styles.influencerLogo}
+                          />
+                          <span>{influencer.name || 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td>{influencer.category || 'N/A'}</td>
+                      <td>{influencer.followers != null ? influencer.followers.toLocaleString() : 'N/A'}</td>
+                      <td>{influencer.engagement != null ? `${influencer.engagement}%` : 'N/A'}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         </>
       ) : (

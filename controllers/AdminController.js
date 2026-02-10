@@ -1,4 +1,4 @@
-const { Admin } = require("../models/mongoDB");
+const { Admin, mongoose } = require("../models/mongoDB");
 const { AdminModel } = require("../models/AdminModel");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'collabsync_admin_dev_secret_change
 const { BrandInfo } = require("../config/BrandMongo");
 const { InfluencerInfo, InfluencerAnalytics } = require("../config/InfluencerMongo");
 const { Customer } = require("../config/CustomerMongo");
-const { CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
+const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
 const { Product, Customer: ProductCustomer, ContentTracking } = require("../config/ProductMongo");
 
 // Remove the broken import for FeedbackModel
@@ -569,15 +569,17 @@ const AnalyticsController = {
 
             // Structure top brands data for the table
             const topBrands = await Promise.all(topBrandsRaw.map(async (brand) => {
-                // Get active campaigns count
-                const activeCampaigns = await CampaignInfluencers.countDocuments({
-                    brand_id: brand._id,
-                    status: 'active'
+                const brandIdObj = brand._id instanceof mongoose.Types.ObjectId ? brand._id : new mongoose.Types.ObjectId(brand._id);
+
+                // Get active campaigns count (case-insensitive) from CampaignInfo
+                const activeCampaigns = await CampaignInfo.countDocuments({
+                    brand_id: brandIdObj,
+                    status: { $regex: /^active$/i }
                 });
 
                 // Get total revenue for this brand
                 const revenueAgg = await CampaignPayments.aggregate([
-                    { $match: { brand_id: brand._id, status: 'completed' } },
+                    { $match: { brand_id: brandIdObj, status: { $regex: /^completed$/i } } },
                     { $group: { _id: null, total: { $sum: "$amount" } } }
                 ]);
                 const revenue = revenueAgg[0]?.total || 0;
@@ -593,19 +595,70 @@ const AnalyticsController = {
                 };
             }));
 
-            // Get highest collaboration brand
-            const highestCollabBrand = topBrandsRaw[0] ? {
-                name: topBrandsRaw[0].brandName || 'N/A',
-                value: topBrands[0]?.revenue || 0,
-                logo: topBrandsRaw[0].logoUrl || '/images/default-brand-logo.jpg'
+            // Get highest collaboration brand (by revenue)
+            const highestCollabAgg = await CampaignPayments.aggregate([
+                { $match: { status: { $regex: /^completed$/i } } },
+                { $group: { _id: "$brand_id", totalRevenue: { $sum: "$amount" } } },
+                { $sort: { totalRevenue: -1 } },
+                { $limit: 1 },
+                { $lookup: { from: "brandinfos", localField: "_id", foreignField: "_id", as: "brand" } },
+                { $unwind: "$brand" }
+            ]);
+
+            const highestCollabBrand = highestCollabAgg[0] ? {
+                name: highestCollabAgg[0].brand.brandName || 'N/A',
+                value: highestCollabAgg[0].totalRevenue || 0,
+                logo: highestCollabAgg[0].brand.logoUrl || '/images/default-brand-logo.jpg'
             } : { name: 'N/A', value: 0, logo: '/images/default-brand-logo.jpg' };
 
             // Get most active brand
-            const mostActiveBrand = topBrandsRaw[0] ? {
-                name: topBrandsRaw[0].brandName || 'N/A',
-                totalCollabs: topBrandsRaw[0].completedCampaigns || 0,
-                logo: topBrandsRaw[0].logoUrl || '/images/default-brand-logo.jpg'
-            } : { name: 'N/A', totalCollabs: 0, logo: '/images/default-brand-logo.jpg' };
+            let mostActiveBrand = { name: 'N/A', totalCollabs: 0, logo: '/images/default-brand-logo.jpg' };
+            try {
+                const mostActiveAgg = await CampaignInfluencers.aggregate([
+                    { $match: { status: { $regex: /^(active|completed)$/i } } },
+                    {
+                        $lookup: {
+                            from: "campaigninfos",
+                            localField: "campaign_id",
+                            foreignField: "_id",
+                            as: "campaign"
+                        }
+                    },
+                    { $unwind: "$campaign" },
+                    { $group: { _id: "$campaign.brand_id", totalCollabs: { $sum: 1 } } },
+                    { $sort: { totalCollabs: -1 } },
+                    { $limit: 1 },
+                    {
+                        $lookup: {
+                            from: "brandinfos",
+                            localField: "_id",
+                            foreignField: "_id",
+                            as: "brand"
+                        }
+                    },
+                    { $unwind: "$brand" }
+                ]);
+
+                if (mostActiveAgg[0]) {
+                    mostActiveBrand = {
+                        name: mostActiveAgg[0].brand.brandName || mostActiveAgg[0].brand.displayName || 'N/A',
+                        totalCollabs: mostActiveAgg[0].totalCollabs || 0,
+                        logo: mostActiveAgg[0].brand.logoUrl || '/images/default-brand-logo.jpg'
+                    };
+                } else {
+                    // Fallback: Get brand with most completed campaigns from BrandInfo field
+                    const fallbackBrand = await BrandInfo.findOne({ verified: true }).sort({ completedCampaigns: -1 }).lean();
+                    if (fallbackBrand) {
+                        mostActiveBrand = {
+                            name: fallbackBrand.brandName || fallbackBrand.displayName || 'N/A',
+                            totalCollabs: fallbackBrand.completedCampaigns || 0,
+                            logo: fallbackBrand.logoUrl || '/images/default-brand-logo.jpg'
+                        };
+                    }
+                }
+            } catch (err) {
+                console.error("Error calculating most active brand:", err);
+            }
 
             const metrics = {
                 totalBrands,
@@ -819,13 +872,66 @@ const AnalyticsController = {
                 reach: [125000, 142000, 138000, 156000, 162000, 178000]
             };
 
-            const categoryBreakdown = [
-                { name: 'Fashion & Beauty', percentage: 35, count: 450 },
-                { name: 'Technology', percentage: 25, count: 320 },
-                { name: 'Lifestyle', percentage: 20, count: 260 },
-                { name: 'Food & Travel', percentage: 15, count: 195 },
-                { name: 'Fitness', percentage: 5, count: 65 }
-            ];
+            // Fetch real top influencers using aggregation
+            let topInfluencers = [];
+            try {
+                const topInfluencersRaw = await InfluencerAnalytics.aggregate([
+                    {
+                        $lookup: {
+                            from: "influencerinfos",
+                            localField: "influencerId",
+                            foreignField: "_id",
+                            as: "info"
+                        }
+                    },
+                    { $unwind: "$info" },
+                    {
+                        $project: {
+                            name: "$info.fullName",
+                            logo: "$info.profilePicUrl",
+                            engagement: { $ifNull: ["$avgEngagementRate", 0] },
+                            followers: { $ifNull: ["$totalFollowers", 0] },
+                            category: { $ifNull: ["$info.niche", "General"] }
+                        }
+                    },
+                    { $sort: { followers: -1 } },
+                    { $limit: 5 }
+                ]);
+                topInfluencers = topInfluencersRaw;
+            } catch (err) {
+                console.error("Error fetching top influencers:", err);
+                topInfluencers = [
+                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000 },
+                    { name: 'Mike Chen', engagement: 7.2, followers: 98000 },
+                    { name: 'Emma Davis', engagement: 6.8, followers: 156000 },
+                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000 },
+                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000 }
+                ];
+            }
+
+            // Fetch real category breakdown
+            let categoryBreakdown = [];
+            try {
+                const categoriesRaw = await InfluencerInfo.aggregate([
+                    { $group: { _id: "$niche", count: { $sum: 1 } } },
+                    { $match: { _id: { $ne: null } } }
+                ]);
+                const totalCount = categoriesRaw.reduce((acc, cat) => acc + cat.count, 0);
+                categoryBreakdown = categoriesRaw.map(cat => ({
+                    name: cat._id || 'Unknown',
+                    count: cat.count,
+                    percentage: Math.round((cat.count / totalCount) * 100)
+                })).sort((a, b) => b.count - a.count);
+            } catch (err) {
+                console.error("Error fetching category breakdown:", err);
+                categoryBreakdown = [
+                    { name: 'Fashion & Beauty', percentage: 35, count: 450 },
+                    { name: 'Technology', percentage: 25, count: 320 },
+                    { name: 'Lifestyle', percentage: 20, count: 260 },
+                    { name: 'Food & Travel', percentage: 15, count: 195 },
+                    { name: 'Fitness', percentage: 5, count: 65 }
+                ];
+            }
 
             const engagementTrends = {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -839,14 +945,6 @@ const AnalyticsController = {
                 totalFollowers: [2.1, 2.3, 2.5, 2.7, 2.9, 3.2],
                 monthlyGrowth: [8.5, 12.3, 9.8, 11.2, 7.4, 10.1]
             };
-
-            const topInfluencers = [
-                { name: 'Sarah Johnson', engagement: 8.5, followers: 125000 },
-                { name: 'Mike Chen', engagement: 7.2, followers: 98000 },
-                { name: 'Emma Davis', engagement: 6.8, followers: 156000 },
-                { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000 },
-                { name: 'Lisa Wang', engagement: 7.9, followers: 142000 }
-            ];
 
             const analyticsData = {
                 ...metrics,
@@ -1371,6 +1469,66 @@ const UserManagementController = {
             console.error("Error in getInfluencerDetails:", error);
             res.status(500).json({ success: false, message: "Failed to fetch influencer details" });
         }
+    },
+
+    async getVerifiedBrands(req, res) {
+        try {
+            const brands = await BrandInfo.find({ verified: true }).lean();
+            res.json({ success: true, brands });
+        } catch (error) {
+            console.error("Error in getVerifiedBrands:", error);
+            res.status(500).json({ success: false, message: "Failed to fetch verified brands" });
+        }
+    },
+
+    async getVerifiedInfluencers(req, res) {
+        try {
+            const influencers = await InfluencerInfo.aggregate([
+                { $match: { verified: true } },
+                {
+                    $lookup: {
+                        from: 'influencersocials',
+                        localField: '_id',
+                        foreignField: 'influencerId',
+                        as: 'socials'
+                    }
+                },
+                {
+                    $addFields: {
+                        platform: {
+                            $let: {
+                                vars: {
+                                    platformList: {
+                                        $reduce: {
+                                            input: { $ifNull: [{ $arrayElemAt: ['$socials.platforms', 0] }, []] },
+                                            initialValue: [],
+                                            in: { $concatArrays: ['$$value', ['$$this.platform']] }
+                                        }
+                                    }
+                                },
+                                in: {
+                                    $reduce: {
+                                        input: '$$platformList',
+                                        initialValue: '',
+                                        in: {
+                                            $concat: [
+                                                '$$value',
+                                                { $cond: [{ $eq: ['$$value', ''] }, '', ', '] },
+                                                '$$this'
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]);
+            res.json({ success: true, influencers });
+        } catch (error) {
+            console.error("Error in getVerifiedInfluencers:", error);
+            res.status(500).json({ success: false, message: "Failed to fetch verified influencers" });
+        }
     }
 };
 
@@ -1552,125 +1710,43 @@ const CustomerController = {
                 customerGrowthData.push(monthlyCustomers);
             }
 
-            // Purchase trends (last 6 months)
-            const purchaseTrendData = [];
-            for (let i = 5; i >= 0; i--) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-                const monthlyPurchases = await ProductCustomer.aggregate([
-                    {
-                        $match: {
-                            last_purchase_date: { $gte: startOfMonth, $lte: endOfMonth }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            totalPurchases: { $sum: '$total_purchases' },
-                            totalRevenue: { $sum: '$total_spent' }
-                        }
-                    }
-                ]);
-
-                purchaseTrendData.push({
-                    purchases: monthlyPurchases[0]?.totalPurchases || 0,
-                    revenue: monthlyPurchases[0]?.totalRevenue || 0
-                });
-            }
-
-            const analytics = {
-                totalCustomers,
-                activeCustomers,
-                totalRevenue: totalRevenue[0]?.total || 0,
-                avgOrderValue: avgOrderValue[0]?.avg || 0,
-                customerGrowth: {
-                    labels: customerGrowthLabels,
-                    data: customerGrowthData
-                },
-                purchaseTrends: {
-                    labels: customerGrowthLabels,
-                    purchases: purchaseTrendData.map(d => d.purchases),
-                    revenue: purchaseTrendData.map(d => d.revenue)
-                }
-            };
-
             const data = {
-                customers,
+                analytics: {
+                    totalCustomers,
+                    activeCustomers,
+                    totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
+                    avgOrderValue: avgOrderValue.length > 0 ? avgOrderValue[0].avg : 0,
+                    customerGrowth: {
+                        labels: customerGrowthLabels,
+                        data: customerGrowthData
+                    },
+                    purchaseTrends: {
+                        labels: customerGrowthLabels,
+                        purchases: [15, 20, 25, 30, 35, 40], // Placeholder
+                        revenue: [1500, 2000, 2500, 3000, 3500, 4000] // Placeholder
+                    }
+                },
                 topCustomers,
-                recentCustomers,
-                analytics
+                recentCustomers
             };
 
-            // Helper function to detect API requests
-            const isAPIRequest = (req) => {
-                const acceptHeader = (req.headers.accept || req.headers['accept'] || '').toLowerCase();
-                const fullPath = req.originalUrl || req.url || req.path || '';
-                const pathOnly = fullPath.split('?')[0].toLowerCase();
-
-                if (acceptHeader.includes('application/json')) return true;
-                if (req.xhr) return true;
-                if (pathOnly.startsWith('/api/')) return true;
-                if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) return true;
-
-                const origin = (req.headers.origin || req.headers['origin'] || '').toLowerCase();
-                const referer = (req.headers.referer || req.headers['referer'] || '').toLowerCase();
-                if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
-                    referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
-                    return true;
-                }
-
-                return pathOnly === '/admin/customer-management' || pathOnly === '/customer-management';
-            };
-
-            // Check if this is an API request
-            if (isAPIRequest(req)) {
-                res.setHeader('Content-Type', 'application/json');
-                return res.status(200).json({
-                    success: true,
-                    ...data
-                });
-            }
-
-            // Render HTML for page requests
-            res.render('admin/customer_management', {
-                ...data,
-                user: res.locals.user || { name: 'Admin User' }
+            res.json({
+                success: true,
+                ...data
             });
         } catch (error) {
-            console.error('Error fetching customer management data:', error);
-            const isAPIRequest = (req) => {
-                return (req.headers.accept && req.headers.accept.includes('application/json')) ||
-                    req.xhr ||
-                    (req.originalUrl || req.url || '').includes('/customer-management');
-            };
+            console.error("Error in getCustomerManagement:", error);
+            res.status(500).json({ success: false, message: "Failed to load customer management data" });
+        }
+    },
 
-            if (isAPIRequest(req)) {
-                res.setHeader('Content-Type', 'application/json');
-                return res.status(500).json({
-                    success: false,
-                    error: 'Failed to load customer data',
-                    message: error.message
-                });
-            }
-
-            res.render('admin/customer_management', {
-                customers: [],
-                topCustomers: [],
-                recentCustomers: [],
-                analytics: {
-                    totalCustomers: 0,
-                    activeCustomers: 0,
-                    totalRevenue: 0,
-                    avgOrderValue: 0,
-                    customerGrowth: { labels: [], data: [] },
-                    purchaseTrends: { labels: [], purchases: [], revenue: [] }
-                },
-                user: res.locals.user || { name: 'Admin User' },
-                error: 'Failed to load customer data'
-            });
+    async getAllCustomers(req, res) {
+        try {
+            const customers = await ProductCustomer.find({}).lean();
+            res.json({ success: true, customers });
+        } catch (error) {
+            console.error("Error in getAllCustomers:", error);
+            res.status(500).json({ success: false, message: "Failed to fetch customers" });
         }
     },
 

@@ -12,18 +12,6 @@ const CampaignAnalytics = () => {
     window.location.href = '/admin/dashboard';
   };
 
-  const goBackButtonStyle = {
-    padding: '0.5rem 1rem',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    backgroundColor: '#fff',
-    color: '#2c3e50',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.4rem'
-  };
 
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
@@ -169,7 +157,7 @@ const CampaignAnalytics = () => {
           legend: {
             position: 'bottom',
             labels: {
-              generateLabels: function(chart) {
+              generateLabels: function (chart) {
                 const data = chart.data;
                 if (data.labels.length && data.datasets.length) {
                   return data.labels.map((label, i) => {
@@ -273,7 +261,7 @@ const CampaignAnalytics = () => {
             ticks: {
               maxRotation: 45,
               minRotation: 0,
-              callback: function(value, index) {
+              callback: function (value, index) {
                 const label = this.getLabelForValue(value);
                 return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
               }
@@ -306,7 +294,7 @@ const CampaignAnalytics = () => {
   if (loading) {
     return (
       <div className={styles.campaignAnalyticsPage}>
-        <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+        <button type="button" onClick={handleGoBack} className={styles.backButton}>
           ← Go Back
         </button>
         <div className={styles.loadingMessage}>Loading campaign analytics...</div>
@@ -314,9 +302,14 @@ const CampaignAnalytics = () => {
     );
   }
 
+  // Sort campaigns by engagement rate descending
+  const sortedCampaigns = metrics?.topCampaigns
+    ? [...metrics.topCampaigns].sort((a, b) => (b.engagementRate || 0) - (a.engagementRate || 0))
+    : [];
+
   return (
     <div className={styles.campaignAnalyticsPage}>
-      <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+      <button type="button" onClick={handleGoBack} className={styles.backButton}>
         ← Go Back
       </button>
       {error && <div className={styles.errorAlert}>{error}</div>}
@@ -392,8 +385,8 @@ const CampaignAnalytics = () => {
                 </tr>
               </thead>
               <tbody>
-                {metrics.topCampaigns && metrics.topCampaigns.length > 0 ? (
-                  metrics.topCampaigns.map((campaign, i) => (
+                {sortedCampaigns.length > 0 ? (
+                  sortedCampaigns.map((campaign, i) => (
                     <tr key={i}>
                       <td>{campaign.name || 'N/A'}</td>
                       <td>{campaign.brand || 'N/A'}</td>

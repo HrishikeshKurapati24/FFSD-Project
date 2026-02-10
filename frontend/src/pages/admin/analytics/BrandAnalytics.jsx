@@ -12,22 +12,11 @@ const BrandAnalytics = () => {
     window.location.href = '/admin/dashboard';
   };
 
-  const goBackButtonStyle = {
-    padding: '0.5rem 1rem',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    backgroundColor: '#fff',
-    color: '#2c3e50',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.4rem'
-  };
 
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('engagementRate'); // default sort
   const brandGrowthChartRef = useRef(null);
   const revenueChartRef = useRef(null);
   const categoryChartRef = useRef(null);
@@ -832,7 +821,7 @@ const BrandAnalytics = () => {
   if (loading) {
     return (
       <div className={styles.brandAnalyticsPage}>
-        <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+        <button type="button" onClick={handleGoBack} className={styles.backButton}>
           ← Go Back
         </button>
         <div className={styles.loadingMessage}>Loading brand analytics...</div>
@@ -840,9 +829,17 @@ const BrandAnalytics = () => {
     );
   }
 
+  // Sorting logic for brands
+  const sortedBrands = metrics?.topBrands
+    ? [...metrics.topBrands].sort((a, b) => {
+      if (sortBy === 'revenue') return (b.revenue || 0) - (a.revenue || 0);
+      return (b.engagementRate || 0) - (a.engagementRate || 0);
+    })
+    : [];
+
   return (
     <div className={styles.brandAnalyticsPage}>
-      <button type="button" onClick={handleGoBack} style={goBackButtonStyle}>
+      <button type="button" onClick={handleGoBack} className={styles.backButton}>
         ← Go Back
       </button>
       {error && <div className={styles.errorAlert}>{error}</div>}
@@ -939,7 +936,23 @@ const BrandAnalytics = () => {
           </div>
 
           <div className={styles.brandsTableContainer}>
-            <h3>Top Performing Brands</h3>
+            <div className={styles.tableHeader}>
+              <h3>Top Performing Brands</h3>
+              <div className={styles.sortControls}>
+                <button
+                  className={`${styles.sortButton} ${sortBy === 'engagementRate' ? styles.active : ''}`}
+                  onClick={() => setSortBy('engagementRate')}
+                >
+                  Sort by Engagement
+                </button>
+                <button
+                  className={`${styles.sortButton} ${sortBy === 'revenue' ? styles.active : ''}`}
+                  onClick={() => setSortBy('revenue')}
+                >
+                  Sort by Revenue
+                </button>
+              </div>
+            </div>
             <table className={styles.brandsTable}>
               <thead>
                 <tr>
@@ -952,8 +965,8 @@ const BrandAnalytics = () => {
                 </tr>
               </thead>
               <tbody>
-                {metrics.topBrands && metrics.topBrands.length > 0 ? (
-                  metrics.topBrands.map((brand, i) => (
+                {sortedBrands.length > 0 ? (
+                  sortedBrands.map((brand, i) => (
                     <tr key={i}>
                       <td>
                         <div className={styles.brandInfo}>

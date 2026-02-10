@@ -282,9 +282,11 @@ export default function Dashboard() {
                             <p>{stat.label}</p>
                             <h2>
                                 {stat.value}
-                                <span className={`${styles.badge} ${styles[stat.color || 'green']}`}>
-                                    &#9633; {stat.growth}%
-                                </span>
+                                {stat.growth && (
+                                    <span className={`${styles.badge} ${styles[stat.color || 'green']}`}>
+                                        {stat.growth}
+                                    </span>
+                                )}
                             </h2>
                             <p>{stat.description}</p>
                         </div>
@@ -422,6 +424,28 @@ export default function Dashboard() {
                             <i className="fas fa-users"></i>
                             <h3>Campaign Analytics</h3>
                             <p>In-depth analysis of campaign performance, engagement, and ROI metrics</p>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Overall User Details Section */}
+                <div className={styles.dashboardLinksContainer}>
+                    <h2>Overall User Details</h2>
+                    <div className={styles.dashboardLinks}>
+                        <Link to="/admin/brand-list" className={styles.dashboardLink}>
+                            <i className="fas fa-building"></i>
+                            <h3>Brands</h3>
+                            <p>View all verified brands on the platform</p>
+                        </Link>
+                        <Link to="/admin/influencer-list" className={styles.dashboardLink}>
+                            <i className="fas fa-star"></i>
+                            <h3>Influencers</h3>
+                            <p>View all verified influencers on the platform</p>
+                        </Link>
+                        <Link to="/admin/customer-list" className={styles.dashboardLink}>
+                            <i className="fas fa-user-friends"></i>
+                            <h3>Customers</h3>
+                            <p>View all customers joined on the platform</p>
                         </Link>
                     </div>
                 </div>

@@ -51,7 +51,10 @@ const isAPIRequest = (req) => {
         '/admin/brand-analytics', '/brand-analytics',
         '/admin/influencer-analytics', '/influencer-analytics',
         '/admin/campaign-analytics', '/campaign-analytics',
-        '/admin/notifications', '/notifications'
+        '/admin/notifications', '/notifications',
+        '/admin/verified-brands', '/verified-brands',
+        '/admin/verified-influencers', '/verified-influencers',
+        '/admin/all-customers', '/all-customers'
     ];
 
     const isAdminAPIRoute = adminAPIRoutes.some(route =>
@@ -269,6 +272,8 @@ router.get('/user_management', UserManagementController.getUserManagementPage);
 router.post('/user_management/approve/:id', UserManagementController.approveUser);
 router.get('/user_management/brand/:id', UserManagementController.getBrandDetails);
 router.get('/user_management/influencer/:id', UserManagementController.getInfluencerDetails);
+router.get('/verified-brands', UserManagementController.getVerifiedBrands);
+router.get('/verified-influencers', UserManagementController.getVerifiedInfluencers);
 
 // Collaboration routes
 router.get('/collaboration_monitoring', CollaborationController.getAllCollaborations);
@@ -290,6 +295,7 @@ router.get('/customer-management', CustomerController.getCustomerManagement);
 router.get('/customer-details/:id', CustomerController.getCustomerDetails);
 router.put('/customer-status/:id', CustomerController.updateCustomerStatus);
 router.get('/customer-analytics', CustomerController.getCustomerAnalytics);
+router.get('/all-customers', CustomerController.getAllCustomers);
 
 // Settings route
 router.get('/settings', (req, res) => {

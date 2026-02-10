@@ -25,6 +25,9 @@ import Settings from './pages/admin/Settings';
 import UserManagement from './pages/admin/UserManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
 import CollaborationMonitoring from './pages/admin/CollaborationMonitoring';
+import BrandList from './pages/admin/BrandList';
+import InfluencerList from './pages/admin/InfluencerList';
+import CustomerList from './pages/admin/CustomerList';
 import Login from './pages/admin/Login';
 import AllCampaigns from './pages/customer/AllCampaigns';
 import CampaignShopping from './pages/customer/CampaignShopping';
@@ -85,6 +88,9 @@ function App() {
                 <Route path="/admin/login" element={<Login />} />
                 <Route path="/admin/payment_verification" element={<PaymentVerification />} />
                 <Route path="/admin/settings" element={<Settings />} />
+                <Route path="/admin/brand-list" element={<BrandList />} />
+                <Route path="/admin/influencer-list" element={<InfluencerList />} />
+                <Route path="/admin/customer-list" element={<CustomerList />} />
 
                 {/* Brand Routes */}
                 <Route path="/brand/home" element={<ProtectedRoute requiredRole="brand"><BrandDashboard /></ProtectedRoute>} />
