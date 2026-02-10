@@ -636,6 +636,95 @@ class CustomerPurchaseController {
             return res.status(500).json({ message: 'Error loading rankings', error: process.env.NODE_ENV === 'development' ? error : {} });
         }
     }
+    /**
+     * Get Customer Order History & Bought From List
+     */
+    static async getOrderHistory(req, res) {
+        try {
+            // Get user ID from session or req.user
+            // Support both session-based and potential JWT middleware patterns
+            const userId = (req.session?.user?.userType === 'customer' && req.session?.user?.id)
+                ? req.session.user.id
+                : (req.user?.userType === 'customer' && req.user?.id ? req.user.id : null);
+
+            if (!userId) {
+                // If using session auth, redirect. If API, return 401.
+                if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                    return res.status(401).json({ success: false, message: 'Unauthorized' });
+                }
+                // For now, redirect to home or login if existing
+                return res.redirect('/');
+            }
+
+            // 1. Fetch Orders
+            const orders = await Order.find({ customer_id: userId })
+                .sort({ created_at: -1 })
+                .populate('items.product_id', 'name images campaign_price')
+                .populate('influencer_id', 'displayName fullName') // For referral info
+                .lean();
+
+            // 2. Aggregate "Bought From" (Brands and Influencers)
+            // We need to look at all orders for this user
+            // Influencers: from order.influencer_id
+            // Brands: from order.items.product_id -> Product -> brand_id
+
+            const influencerIds = new Set();
+            const productIds = new Set();
+
+            orders.forEach(order => {
+                if (order.influencer_id) {
+                    influencerIds.add(order.influencer_id._id ? order.influencer_id._id.toString() : order.influencer_id.toString());
+                }
+                if (Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        if (item.product_id) {
+                            productIds.add(item.product_id._id ? item.product_id._id.toString() : item.product_id.toString());
+                        }
+                    });
+                }
+            });
+
+            // Fetch Influencer Details
+            const purchasedInfluencers = await InfluencerInfo.find({ _id: { $in: Array.from(influencerIds) } })
+                .select('displayName fullName profilePicUrl niche')
+                .lean();
+
+            // Fetch Brand Details (via Products)
+            // First get products to find brand IDs
+            const products = await Product.find({ _id: { $in: Array.from(productIds) } }).select('brand_id').lean();
+            const brandIds = new Set(products.map(p => p.brand_id ? p.brand_id.toString() : null).filter(Boolean));
+
+            const purchasedBrands = await BrandInfo.find({ _id: { $in: Array.from(brandIds) } })
+                .select('brandName logoUrl industry website')
+                .lean();
+
+            const data = {
+                title: 'My Orders & History',
+                orders,
+                purchasedInfluencers,
+                purchasedBrands,
+                user: req.session.user || req.user
+            };
+
+            // Check if this is an API request
+            if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render View
+            return res.render('customer/orders', data);
+
+        } catch (error) {
+            console.error('Error fetching order history:', error);
+            if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                return res.status(500).json({ success: false, message: 'Error loading orders' });
+            }
+            return res.status(500).render('error', { message: 'Failed to load order history' });
+        }
+    }
 }
 
 module.exports = CustomerPurchaseController;

@@ -160,6 +160,23 @@
                 return;
             }
 
+            // Enhanced Validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+
+            if (phone && phone.length < 10) {
+                alert('Please enter a valid phone number.');
+                return;
+            }
+
+            if (cardNumber && cardNumber.replace(/\s/g, '').length < 13) {
+                alert('Please check your card number.');
+                return;
+            }
+
             const payload = {
                 customerInfo: { name, email, phone, address },
                 paymentInfo: { cardNumber, expMonth, expYear, cvv },

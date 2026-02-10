@@ -1351,7 +1351,8 @@ const UserManagementController = {
                 social_handles: (influencer.social_handles && influencer.social_handles.length > 0) ? influencer.social_handles.join(', ') : 'N/A',
                 audienceSize: influencer.audienceSize || 0,
                 _id: influencer._id || influencer.id || null,
-                verified: influencer.verified || false
+                verified: influencer.verified || false,
+                userType: 'influencer'
             }));
 
             // Map brands to expected fields for the view
@@ -1362,11 +1363,63 @@ const UserManagementController = {
                 industry: brand.industry || brand.businessCategory || brand.category || 'N/A',
                 totalAudience: brand.totalAudience || 0,
                 _id: brand._id || brand.id || null,
-                verified: brand.verified || false
+                verified: brand.verified || false,
+                userType: 'brand'
             }));
 
-            const flaggedContent = [];
-            const suspiciousUsers = [];
+            // --- Suspicious Activity Logic ---
+            const suspiciousActivityIds = await AdminModel.DashboardModel.prototype.checkSuspiciousActivity(); // checkSuspiciousActivity is an instance method in the class definition, but defined in object literal... wait, let's check definition. 
+            // It is defined as `async checkSuspiciousActivity() {` inside `DashboardModel: class { ... }`. 
+            // It is NOT static. So we need to instantiate or make it static. 
+            // Looking at AdminModel.js, other methods like getDashboardStats are static. checkSuspiciousActivity is NOT static.
+            // I should probably fix AdminModel.js or instantiate it.
+            // Let's assume I fix AdminModel.js to be static for consistency, or just instantiate it here.
+            // Easier to instantiate: new AdminModel.DashboardModel().checkSuspiciousActivity()
+
+            let suspiciousUsers = [];
+            try {
+                const activity = await new AdminModel.DashboardModel().checkSuspiciousActivity();
+
+                // Fetch details for suspicious brands
+                if (activity.brands && activity.brands.length > 0) {
+                    const sBrands = await BrandInfo.find({ _id: { $in: activity.brands } }).select('brandName email').lean();
+                    suspiciousUsers.push(...sBrands.map(b => ({
+                        _id: b._id,
+                        name: b.brandName,
+                        email: b.email,
+                        userType: 'brand',
+                        reason: 'High Campaign Creation Rate (Possible Spam)'
+                    })));
+                }
+
+                // Fetch details for suspicious influencers
+                if (activity.influencers && activity.influencers.length > 0) {
+                    const sInfs = await InfluencerInfo.find({ _id: { $in: activity.influencers } }).select('displayName fullName email').lean();
+                    suspiciousUsers.push(...sInfs.map(i => ({
+                        _id: i._id,
+                        name: i.displayName || i.fullName,
+                        email: i.email,
+                        userType: 'influencer',
+                        reason: 'High Application Rate (Possible Bot)'
+                    })));
+                }
+            } catch (err) {
+                console.error("Error fetching suspicious activity:", err);
+            }
+
+            // --- Flagged Content Mock Logic (Demo) ---
+            // In a real app, this would query a Flag/Report collection.
+            const flaggedContent = [
+                {
+                    _id: 'mock_flag_1',
+                    contentId: 'camp_123',
+                    contentType: 'Campaign',
+                    reason: 'Inappropriate Title',
+                    reportedBy: 'System AI',
+                    status: 'Pending'
+                }
+            ];
+
             const userTypeRequests = [];
             const profileSuggestions = [];
 

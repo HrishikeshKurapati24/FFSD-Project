@@ -45,8 +45,26 @@ app.use(cors({
 }));
 
 
-// Security Middleware
-app.use(helmet());
+// Security Middleware with CSP configuration
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'", // Allow inline scripts for analytics page
+                "https://cdn.jsdelivr.net", // For Chart.js
+                "https://unpkg.com" // For vis-network library
+            ],
+            scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, onchange)
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:", "http:"],
+            connectSrc: ["'self'"],
+            frameSrc: ["'self'"]
+        }
+    }
+}));
 
 // HTTP Request Logging
 // app.use(morgan('dev'));

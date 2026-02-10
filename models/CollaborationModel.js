@@ -19,7 +19,7 @@ class CollaborationModel {
                 status: 'active'
             })
                 .populate('campaign_id', 'title budget duration required_channels min_followers target_audience status')
-                .populate('influencer_id', 'fullName profilePicUrl')
+                .populate('influencer_id', 'fullName profilePicUrl referralCode')
                 .populate({
                     path: 'campaign_id',
                     populate: {
@@ -74,7 +74,8 @@ class CollaborationModel {
                     impressions: campaignMetrics.impressions || 0,
                     revenue: collab.revenue || 0, // specific to influencer
                     commission_earned: collab.commission_earned || 0, // specific to influencer
-                    roi: campaignMetrics.roi || 0
+                    roi: campaignMetrics.roi || 0,
+                    referralCode: collab.influencer_id?.referralCode || '' // Added for shop URL generation
                 };
             });
 

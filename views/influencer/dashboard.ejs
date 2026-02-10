@@ -233,15 +233,15 @@
           <li><a href="/influencer/profile">My Profile</a></li>
         </ul>
       </nav>
-        <!-- Notification bell -->
-        <div id="notifWrapper" style="display:flex;align-items:center;gap:12px;margin-left:12px;">
-          <button id="notifBell" class="notif-bell" title="Notifications" onclick="openNotifications()">
-            <i class="fas fa-bell"></i>
-            <span id="notifCount" class="notif-count" style="display:none">0</span>
-          </button>
-        </div>
+      <!-- Notification bell -->
+      <div id="notifWrapper" style="display:flex;align-items:center;gap:12px;margin-left:12px;">
+        <button id="notifBell" class="notif-bell" title="Notifications" onclick="openNotifications()">
+          <i class="fas fa-bell"></i>
+          <span id="notifCount" class="notif-count" style="display:none">0</span>
+        </button>
       </div>
-    </header>
+    </div>
+  </header>
 
   <!-- Sidebar Navigation (Right Side) -->
   <button class="toggle-btn" onclick="openMenu()">☰</button>
@@ -483,7 +483,7 @@
                         <span class="label">My Earnings</span>
                         <span class="value success-text">$<%= (collab.commission_earned || 0).toLocaleString() %></span>
                       </div>
-                       <div class="analytics-item">
+                      <div class="analytics-item">
                         <span class="label">Sales Generated</span>
                         <span class="value">$<%= (collab.revenue || 0).toLocaleString() %></span>
                       </div>
@@ -513,7 +513,8 @@
                     </div>
                     <div class="shop-url-container">
                       <input type="text" class="shop-url-input" id="shopUrl_<%= collab.campaign_id %>"
-                        value="<%= `${baseUrl}/customer/campaign/${collab.campaign_id}/shop?ref=${influencer.metrics?.referralCode || influencer.referralCode || ''}` %>" readonly>
+                        value="<%= `${baseUrl}/customer/campaign/${collab.campaign_id}/shop?ref=${influencer.metrics?.referralCode || influencer.referralCode || ''}` %>"
+                        readonly>
                       <button class="btn btn-copy" onclick="copyShopUrl('<%= collab.campaign_id %>')"
                         title="Copy to clipboard">
                         <i class="fas fa-copy"></i>
@@ -1027,7 +1028,8 @@
     <div class="header">
       <strong>Notifications</strong>
       <div>
-        <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary" onclick="markAllRead()">Mark all read</button>
+        <button id="markAllReadBtn" class="btn btn-sm btn-outline-primary" onclick="markAllRead()">Mark all
+          read</button>
         <button onclick="closeNotifications()" class="btn btn-sm btn-light">Close</button>
       </div>
     </div>
@@ -1583,10 +1585,10 @@
         const t = new Date(d);
         const diff = Math.floor((Date.now() - t.getTime()) / 1000);
         if (diff < 60) return diff + 's';
-        if (diff < 3600) return Math.floor(diff/60) + 'm';
-        if (diff < 86400) return Math.floor(diff/3600) + 'h';
-        return Math.floor(diff/86400) + 'd';
-      } catch(e){ return '' }
+        if (diff < 3600) return Math.floor(diff / 60) + 'm';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h';
+        return Math.floor(diff / 86400) + 'd';
+      } catch (e) { return '' }
     }
 
     function renderNotifications(list) {
@@ -1624,7 +1626,7 @@
         markBtn.textContent = n.read ? 'Read' : 'Mark read';
         markBtn.onclick = async () => {
           try {
-            await fetch('/api/notifications/mark-read', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: n._id }), credentials: 'same-origin' });
+            await fetch('/api/notifications/mark-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: n._id }), credentials: 'same-origin' });
             item.classList.remove('unread');
             markBtn.textContent = 'Read';
             // update badge
@@ -1656,7 +1658,7 @@
         if (!data.success) throw new Error('Failed');
         const ids = (data.notifications || []).filter(n => !n.read).map(n => n._id);
         if (ids.length === 0) return;
-        await fetch('/api/notifications/mark-read', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ ids }), credentials: 'same-origin' });
+        await fetch('/api/notifications/mark-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }), credentials: 'same-origin' });
         // reload and update
         await loadNotifications();
       } catch (err) {

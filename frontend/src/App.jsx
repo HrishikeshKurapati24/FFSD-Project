@@ -19,6 +19,7 @@ import Dashboard from './pages/admin/Dashboard';
 import BrandAnalytics from './pages/admin/analytics/BrandAnalytics';
 import CampaignAnalytics from './pages/admin/analytics/CampaignAnalytics';
 import InfluencerAnalytics from './pages/admin/analytics/InfluencerAnalytics';
+import AdvancedAnalytics from './pages/admin/analytics/AdvancedAnalytics';
 import FeedbackAndModeration from './pages/admin/FeedbackAndModeration';
 import PaymentVerification from './pages/admin/PaymentVerification';
 import Settings from './pages/admin/Settings';
@@ -33,6 +34,7 @@ import AllCampaigns from './pages/customer/AllCampaigns';
 import CampaignShopping from './pages/customer/CampaignShopping';
 import Cart from './pages/customer/Cart.jsx';
 import Rankings from './pages/customer/Rankings';
+import OrderHistory from './pages/customer/OrderHistory';
 import BrandDashboard from './pages/brand/Dashboard';
 import BrandExplore from './pages/brand/Explore';
 import BrandProfile from './pages/brand/Profile';
@@ -81,6 +83,7 @@ function App() {
                 <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
                 <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />
                 <Route path="/admin/influencer-analytics" element={<InfluencerAnalytics />} />
+                <Route path="/admin/advanced-analytics" element={<AdvancedAnalytics />} />
                 <Route path="/admin/feedback_and_moderation" element={<FeedbackAndModeration />} />
                 <Route path='/admin/collaboration_monitoring' element={<CollaborationMonitoring />} />
                 <Route path="/admin/user_management" element={<UserManagement />} />
@@ -116,6 +119,7 @@ function App() {
                 <Route path="/customer/campaign/:campaignId/shop" element={<ProtectedRoute requiredRole="customer"><CampaignShopping /></ProtectedRoute>} />
                 <Route path="/customer/cart" element={<ProtectedRoute requiredRole="customer"><Cart /></ProtectedRoute>} />
                 <Route path="/customer/rankings" element={<ProtectedRoute requiredRole="customer"><Rankings /></ProtectedRoute>} />
+                <Route path="/customer/orders" element={<ProtectedRoute requiredRole="customer"><OrderHistory /></ProtectedRoute>} />
 
                 {/* 404 Fallback */}
                 <Route path="/not-found" element={<NotFound />} />
