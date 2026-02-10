@@ -349,11 +349,11 @@ body {
 .action-btn {
     background: none;
     border: none;
-    padding: 8px;
+    padding: 5px 8px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 0.9rem;
-    margin: 0 2px;
+    font-size: 0.8rem;
+    margin: 0 5px;
     transition: all 0.3s;
 }
 
@@ -395,8 +395,13 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -415,6 +420,7 @@ body {
         transform: translateY(-50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;

@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController } = require('../controllers/AdminController');
+const {
+    DashboardController,
+    AnalyticsController,
+    FeedbackController,
+    PaymentController,
+    UserManagementController,
+    CollaborationController,
+    CustomerController,
+    NotificationController
+} = require('../controllers/AdminController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');

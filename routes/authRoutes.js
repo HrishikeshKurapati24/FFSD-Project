@@ -65,7 +65,34 @@ const isAuthenticated = async (req, res, next) => {
       } else if (jwtUser.userType === 'influencer') {
         user = await InfluencerInfo.findById(jwtUser.id).select('email displayName fullName').lean();
       } else if (jwtUser.userType === 'customer') {
-        user = await Customer.findById(jwtUser.id).select('email name').lean();
+        user = await Customer.findById(jwtUser.id).select('email name status admin_notes').lean();
+      }
+
+      if (user && jwtUser.userType === 'customer' && user.status === 'suspended') {
+        const errorMessage = user.admin_notes || 'Your account has been suspended by the admin.';
+
+        // Clear authentication to prevent further access during this request
+        res.clearCookie('token');
+        if (req.session) {
+          req.session.destroy();
+        }
+
+        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+        if (isAPIRequest) {
+          return res.status(403).json({
+            message: 'Access denied: ' + errorMessage,
+            error: errorMessage
+          });
+        } else {
+          return res.status(403).send(`
+                  <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+                      <h1 style="color: #ea4335;">Access Denied</h1>
+                      <p>Your account has been suspended.</p>
+                      <p><strong>Reason:</strong> ${errorMessage}</p>
+                      <a href="/signin" style="color: #4285f4; text-decoration: none;">Return to Sign In</a>
+                  </div>
+              `);
+        }
       }
 
       if (user) {
@@ -272,6 +299,15 @@ router.post('/signin', async (req, res) => {
     // If no user found
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Check for suspension (Customer only)
+    if (userType === 'customer' && user.status === 'suspended') {
+      const errorMessage = user.admin_notes || 'Your account has been suspended by the admin.';
+      return res.status(403).json({
+        message: 'Access denied',
+        error: errorMessage
+      });
     }
 
     // Defensive check: ensure we have a password hash to compare

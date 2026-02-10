@@ -1653,240 +1653,7 @@ const PaymentController = {
     }
 };
 
-const CustomerController = {
-    async getCustomerManagement(req, res) {
-        try {
 
-            // Get all customers with their purchase data
-            const customers = await ProductCustomer.find({})
-                .sort({ last_purchase_date: -1 })
-                .limit(100)
-                .lean();
-
-            // Get customer analytics
-            const totalCustomers = await Customer.countDocuments();
-            const activeCustomers = await ProductCustomer.countDocuments({
-                last_purchase_date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-            });
-
-            const totalRevenue = await ProductCustomer.aggregate([
-                { $group: { _id: null, total: { $sum: '$total_spent' } } }
-            ]);
-
-            const avgOrderValue = await ProductCustomer.aggregate([
-                { $match: { total_purchases: { $gt: 0 } } },
-                { $group: { _id: null, avg: { $avg: { $divide: ['$total_spent', '$total_purchases'] } } } }
-            ]);
-
-            // Get top customers by spending
-            const topCustomers = await ProductCustomer.find({})
-                .sort({ total_spent: -1 })
-                .limit(10)
-                .select('name email total_spent total_purchases last_purchase_date')
-                .lean();
-
-            // Get recent customers (last 30 days)
-            const recentCustomers = await ProductCustomer.find({
-                createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-            })
-                .sort({ createdAt: -1 })
-                .limit(20)
-                .lean();
-
-            // Customer growth data (last 6 months)
-            const customerGrowthData = [];
-            const customerGrowthLabels = [];
-            for (let i = 5; i >= 0; i--) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-                customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-
-                const monthlyCustomers = await ProductCustomer.countDocuments({
-                    createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-                });
-                customerGrowthData.push(monthlyCustomers);
-            }
-
-            const data = {
-                analytics: {
-                    totalCustomers,
-                    activeCustomers,
-                    totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
-                    avgOrderValue: avgOrderValue.length > 0 ? avgOrderValue[0].avg : 0,
-                    customerGrowth: {
-                        labels: customerGrowthLabels,
-                        data: customerGrowthData
-                    },
-                    purchaseTrends: {
-                        labels: customerGrowthLabels,
-                        purchases: [15, 20, 25, 30, 35, 40], // Placeholder
-                        revenue: [1500, 2000, 2500, 3000, 3500, 4000] // Placeholder
-                    }
-                },
-                topCustomers,
-                recentCustomers
-            };
-
-            res.json({
-                success: true,
-                ...data
-            });
-        } catch (error) {
-            console.error("Error in getCustomerManagement:", error);
-            res.status(500).json({ success: false, message: "Failed to load customer management data" });
-        }
-    },
-
-    async getAllCustomers(req, res) {
-        try {
-            const customers = await ProductCustomer.find({}).lean();
-            res.json({ success: true, customers });
-        } catch (error) {
-            console.error("Error in getAllCustomers:", error);
-            res.status(500).json({ success: false, message: "Failed to fetch customers" });
-        }
-    },
-
-    async getCustomerDetails(req, res) {
-        try {
-            const { id } = req.params;
-
-            const customer = await ProductCustomer.findById(id).lean();
-            if (!customer) {
-                return res.status(404).json({ success: false, message: 'Customer not found' });
-            }
-
-            // Get customer's purchase history through ContentTracking
-            const purchaseHistory = await ContentTracking.find({ customer_email: customer.email })
-                .populate('product_id', 'name images campaign_price')
-                .populate('content_id', 'title')
-                .sort({ purchase_date: -1 })
-                .limit(50)
-                .lean();
-
-            res.json({
-                success: true,
-                customer: {
-                    ...customer,
-                    purchaseHistory
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching customer details:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch customer details' });
-        }
-    },
-
-    async updateCustomerStatus(req, res) {
-        try {
-            const { id } = req.params;
-            const { status, notes } = req.body;
-
-            const customer = await ProductCustomer.findByIdAndUpdate(
-                id,
-                {
-                    status: status,
-                    admin_notes: notes,
-                    updatedAt: new Date()
-                },
-                { new: true }
-            );
-
-            if (!customer) {
-                return res.status(404).json({ success: false, message: 'Customer not found' });
-            }
-
-            res.json({ success: true, message: 'Customer status updated successfully', customer });
-        } catch (error) {
-            console.error('Error updating customer status:', error);
-            res.status(500).json({ success: false, message: 'Failed to update customer status' });
-        }
-    },
-
-    async getCustomerAnalytics(req, res) {
-        try {
-
-            // Customer segmentation
-            const customerSegments = await ProductCustomer.aggregate([
-                {
-                    $bucket: {
-                        groupBy: '$total_spent',
-                        boundaries: [0, 100, 500, 1000, 5000, Infinity],
-                        default: 'Other',
-                        output: {
-                            count: { $sum: 1 },
-                            avgSpent: { $avg: '$total_spent' }
-                        }
-                    }
-                }
-            ]);
-
-            // Customer lifetime value distribution
-            const lifetimeValueData = await ProductCustomer.aggregate([
-                {
-                    $group: {
-                        _id: {
-                            $switch: {
-                                branches: [
-                                    { case: { $lt: ['$total_spent', 50] }, then: '$0-50' },
-                                    { case: { $lt: ['$total_spent', 200] }, then: '$50-200' },
-                                    { case: { $lt: ['$total_spent', 500] }, then: '$200-500' },
-                                    { case: { $lt: ['$total_spent', 1000] }, then: '$500-1000' }
-                                ],
-                                default: '$1000+'
-                            }
-                        },
-                        count: { $sum: 1 }
-                    }
-                },
-                { $sort: { '_id': 1 } }
-            ]);
-
-            // Purchase frequency analysis
-            const purchaseFrequency = await ProductCustomer.aggregate([
-                {
-                    $group: {
-                        _id: {
-                            $switch: {
-                                branches: [
-                                    { case: { $eq: ['$total_purchases', 1] }, then: 'One-time' },
-                                    { case: { $lte: ['$total_purchases', 3] }, then: '2-3 purchases' },
-                                    { case: { $lte: ['$total_purchases', 10] }, then: '4-10 purchases' }
-                                ],
-                                default: '10+ purchases'
-                            }
-                        },
-                        count: { $sum: 1 }
-                    }
-                }
-            ]);
-
-            // Geographic distribution (if location data exists)
-            const geographicData = await ProductCustomer.aggregate([
-                { $match: { location: { $exists: true, $ne: null } } },
-                { $group: { _id: '$location', count: { $sum: 1 } } },
-                { $sort: { count: -1 } },
-                { $limit: 10 }
-            ]);
-
-            res.json({
-                success: true,
-                analytics: {
-                    customerSegments,
-                    lifetimeValueData,
-                    purchaseFrequency,
-                    geographicData
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching customer analytics:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch customer analytics' });
-        }
-    }
-};
 
 const CollaborationController = {
     async getAllCollaborations(req, res) {
@@ -2149,6 +1916,261 @@ const NotificationController = {
                 success: false,
                 error: 'Failed to mark notifications as read'
             });
+        }
+    }
+};
+
+const CustomerController = {
+    // Get customer management page data
+    async getCustomerManagement(req, res) {
+        try {
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || '').toLowerCase();
+                return acceptHeader.includes('application/json') || req.xhr;
+            };
+
+            // Get analytics data
+            const totalCustomers = await Customer.countDocuments();
+            const activeCustomers = await Customer.countDocuments({ status: 'active' });
+
+            // Calculate total revenue and average order value
+            const revenueAgg = await Customer.aggregate([
+                { $group: { _id: null, totalRevenue: { $sum: "$total_spent" }, avgOrderValue: { $avg: "$total_spent" } } }
+            ]);
+            const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+            const avgOrderValue = revenueAgg[0]?.avgOrderValue || 0;
+
+            // Get top customers by total spent
+            const topCustomers = await Customer.find({})
+                .sort({ total_spent: -1 })
+                .limit(10)
+                .lean();
+
+            // Get recent customers (last 20)
+            const recentCustomers = await Customer.find({})
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .lean();
+
+            // Generate customer growth data (last 6 months)
+            const customerGrowthData = [];
+            const customerGrowthLabels = [];
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+
+                // Count customers created in this month
+                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                const count = await Customer.countDocuments({
+                    createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+                });
+                customerGrowthData.push(count);
+            }
+
+            // Generate purchase trends data (mock for now)
+            const purchaseTrendsLabels = customerGrowthLabels;
+            const purchaseTrendsData = customerGrowthData.map(count => Math.floor(count * 1.5));
+            const revenueData = purchaseTrendsData.map(purchases => Math.floor(purchases * avgOrderValue));
+
+            const analytics = {
+                totalCustomers,
+                activeCustomers,
+                totalRevenue,
+                avgOrderValue,
+                customerGrowth: {
+                    labels: customerGrowthLabels,
+                    data: customerGrowthData
+                },
+                purchaseTrends: {
+                    labels: purchaseTrendsLabels,
+                    purchases: purchaseTrendsData,
+                    revenue: revenueData
+                }
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    analytics,
+                    topCustomers,
+                    recentCustomers
+                });
+            }
+
+            // Render HTML page (if needed)
+            return res.render('admin/customer-management', {
+                analytics,
+                topCustomers,
+                recentCustomers,
+                user: res.locals.user
+            });
+        } catch (error) {
+            console.error('Error in getCustomerManagement:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) || req.xhr;
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to fetch customer management data',
+                    message: error.message
+                });
+            }
+            return res.status(500).send('Failed to load customer management page');
+        }
+    },
+
+    // Get customer details by ID
+    async getCustomerDetails(req, res) {
+        try {
+            const customerId = req.params.id;
+            const customer = await Customer.findById(customerId).lean();
+
+            if (!customer) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Customer not found'
+                });
+            }
+
+            // Get purchase history from Product collection
+            const purchases = await ProductCustomer.find({ customer_id: customerId })
+                .populate('product_id')
+                .sort({ purchase_date: -1 })
+                .limit(10)
+                .lean();
+
+            customer.purchaseHistory = purchases;
+
+            return res.status(200).json({
+                success: true,
+                customer
+            });
+        } catch (error) {
+            console.error('Error in getCustomerDetails:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch customer details',
+                message: error.message
+            });
+        }
+    },
+
+    // Update customer status
+    async updateCustomerStatus(req, res) {
+        try {
+            const customerId = req.params.id;
+            const { status, notes } = req.body;
+
+            const updateData = {};
+            if (status) updateData.status = status;
+            if (notes !== undefined) updateData.admin_notes = notes;
+            updateData.updatedAt = Date.now();
+
+            const customer = await Customer.findByIdAndUpdate(
+                customerId,
+                updateData,
+                { new: true, runValidators: true }
+            );
+
+            if (!customer) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Customer not found'
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Customer updated successfully',
+                customer
+            });
+        } catch (error) {
+            console.error('Error in updateCustomerStatus:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to update customer',
+                message: error.message
+            });
+        }
+    },
+
+    // Get customer analytics
+    async getCustomerAnalytics(req, res) {
+        try {
+            const totalCustomers = await Customer.countDocuments();
+            const activeCustomers = await Customer.countDocuments({ status: 'active' });
+
+            const revenueAgg = await Customer.aggregate([
+                { $group: { _id: null, totalRevenue: { $sum: "$total_spent" }, avgOrderValue: { $avg: "$total_spent" } } }
+            ]);
+            const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+            const avgOrderValue = revenueAgg[0]?.avgOrderValue || 0;
+
+            return res.status(200).json({
+                success: true,
+                analytics: {
+                    totalCustomers,
+                    activeCustomers,
+                    totalRevenue,
+                    avgOrderValue
+                }
+            });
+        } catch (error) {
+            console.error('Error in getCustomerAnalytics:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch customer analytics',
+                message: error.message
+            });
+        }
+    },
+
+    // Get all customers
+    async getAllCustomers(req, res) {
+        try {
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || '').toLowerCase();
+                return acceptHeader.includes('application/json') || req.xhr;
+            };
+
+            const customers = await Customer.find({})
+                .sort({ createdAt: -1 })
+                .lean();
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    customers
+                });
+            }
+
+            // Render HTML page
+            return res.render('admin/all-customers', {
+                customers,
+                user: res.locals.user
+            });
+        } catch (error) {
+            console.error('Error in getAllCustomers:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) || req.xhr;
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to fetch customers',
+                    message: error.message
+                });
+            }
+            return res.status(500).send('Failed to load customers page');
         }
     }
 };

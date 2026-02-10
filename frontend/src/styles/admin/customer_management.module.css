@@ -154,19 +154,19 @@
     color: white;
 }
 
-.analyticsCard:nth-child(1) .cardIcon {
+.analyticsCard:nth-child(1) .card-icon {
     background: var(--primary-color);
 }
 
-.analyticsCard:nth-child(2) .cardIcon {
+.analyticsCard:nth-child(2) .card-icon {
     background: var(--secondary-color);
 }
 
-.analyticsCard:nth-child(3) .cardIcon {
+.analyticsCard:nth-child(3) .card-icon {
     background: var(--warning-color);
 }
 
-.analyticsCard:nth-child(4) .cardIcon {
+.analyticsCard:nth-child(4) .card-icon {
     background: var(--danger-color);
 }
 
@@ -245,6 +245,7 @@
     background: var(--light-gray);
 }
 
+.table-header h3,
 .tableHeader h3 {
     color: var(--text-primary);
     display: flex;
@@ -258,6 +259,8 @@
     align-items: center;
 }
 
+.table-filters select,
+.table-filters input,
 .tableFilters select,
 .tableFilters input {
     padding: 8px 12px;
@@ -293,6 +296,7 @@
     border-collapse: collapse;
 }
 
+.customers-table th,
 .customersTable th {
     background: var(--light-gray);
     padding: 15px;
@@ -359,20 +363,21 @@
 .actionBtn {
     background: none;
     border: none;
-    padding: 8px;
+    padding: 8px 10px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 0.9rem;
-    margin: 0 2px;
+    font-size: 1rem;
+    margin-right: 8px;
     transition: all 0.3s;
 }
 
 .viewBtn {
-    color: var(--primary-color);
+    color: #64b5f6;
 }
 
 .viewBtn:hover {
-    background: rgba(66, 133, 244, 0.1);
+    background: rgba(100, 181, 246, 0.15);
+    color: #42a5f5;
 }
 
 .editBtn {
@@ -416,7 +421,8 @@
     }
 }
 
-.modal-content {
+.modal-content,
+.modalContent {
     background-color: white;
     margin: 5% auto;
     padding: 0;
@@ -439,6 +445,7 @@
     }
 }
 
+.modal-header,
 .modalHeader {
     padding: 20px 25px;
     border-bottom: 1px solid var(--border-color);
@@ -449,6 +456,7 @@
     border-radius: 12px 12px 0 0;
 }
 
+.modal-header h3,
 .modalHeader h3 {
     margin: 0;
     color: var(--text-primary);
@@ -469,6 +477,7 @@
     color: var(--danger-color);
 }
 
+.modal-body,
 .modalBody {
     padding: 25px;
 }
@@ -534,7 +543,8 @@
     border-color: var(--primary-color);
 }
 
-.form-actions {
+.form-actions,
+.formActions {
     display: flex;
     gap: 15px;
     justify-content: flex-end;
