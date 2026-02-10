@@ -47,6 +47,12 @@ const campaignInfoSchema = new mongoose.Schema({
         required: [true, 'Budget is required'],
         min: [0, 'Budget cannot be negative']
     },
+    commissionRate: {
+        type: Number,
+        min: [0, 'Commission rate cannot be negative'],
+        max: [100, 'Commission rate cannot exceed 100'],
+        default: 0
+    },
     target_audience: {
         type: String,
         required: false, // Will be filled by brand
@@ -210,6 +216,16 @@ const campaignInfluencersSchema = new mongoose.Schema({
     conversions: {
         type: Number,
         min: [0, 'Conversions cannot be negative']
+    },
+    revenue: {
+        type: Number,
+        default: 0,
+        min: [0, 'Revenue cannot be negative']
+    },
+    commission_earned: {
+        type: Number,
+        default: 0,
+        min: [0, 'Commission earned cannot be negative']
     },
     timeliness_score: {
         type: Number,

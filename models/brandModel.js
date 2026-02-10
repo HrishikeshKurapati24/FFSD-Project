@@ -1258,6 +1258,8 @@ class brandModel {
           engagement_rate: campaignMetrics.engagement_rate || 0,
           reach: campaignMetrics.reach || 0,
           conversion_rate: campaignMetrics.conversion_rate || 0,
+          revenue: campaignMetrics.revenue || 0,
+          roi: campaignMetrics.roi || 0,
           influencers_count: influencerCountMap.get(campaign._id.toString()) || 0
         };
       });

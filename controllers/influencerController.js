@@ -118,7 +118,8 @@ const getInfluencerDashboard = async (req, res) => {
       avgEngagementRate: influencer.metrics?.avgEngagementRate || 0,
       monthlyEarnings: influencer.monthlyEarnings || 0,
       socials: influencer.socials || [],
-      metrics: influencer.metrics || {}
+      metrics: influencer.metrics || {},
+      referralCode: influencer.referralCode // Added referralCode
     };
 
     console.log('Transformed influencer data:', transformedInfluencer);

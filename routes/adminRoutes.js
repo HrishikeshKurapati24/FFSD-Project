@@ -1,15 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {
-    DashboardController,
-    AnalyticsController,
-    FeedbackController,
-    PaymentController,
-    UserManagementController,
-    CollaborationController,
-    CustomerController,
-    NotificationController
-} = require('../controllers/AdminController');
+const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController } = require('../controllers/AdminController');
+const AdminAnalyticsController = require('../controllers/AdminAnalyticsController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -275,6 +267,16 @@ router.post('/notifications/mark-all-read', NotificationController.markAllAsRead
 router.get('/brand-analytics', AnalyticsController.getBrandAnalytics);
 router.get('/influencer-analytics', AnalyticsController.getInfluencerAnalytics);
 router.get('/campaign-analytics', AnalyticsController.getCampaignAnalytics);
+
+// Advanced Analytics (God Mode)
+router.get('/analytics', async (req, res) => {
+    // Fetch brands for the dropdown
+    const brands = await require('../config/BrandMongo').BrandInfo.find({}).select('brandName _id').lean();
+    res.render('admin/analytics', { brands });
+});
+router.get('/analytics/influencer-roi', AdminAnalyticsController.getInfluencerROI);
+router.get('/matchmaking/brand/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
+router.get('/analytics/ecosystem', AdminAnalyticsController.getEcosystemGraphData);
 
 // User Management routes
 router.get('/user_management', UserManagementController.getUserManagementPage);

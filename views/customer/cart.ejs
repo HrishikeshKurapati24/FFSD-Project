@@ -51,7 +51,8 @@
                                         </div>
                                         <form class="d-inline" method="post" action="/customer/cart/remove"
                                             onsubmit="return removeItem(event, '<%= item.productId %>')">
-                                            <button class="btn btn-sm btn-outline-danger mt-2 cart-item-remove">Remove</button>
+                                            <button
+                                                class="btn btn-sm btn-outline-danger mt-2 cart-item-remove">Remove</button>
                                         </form>
                                     </div>
                                 </li>
@@ -159,9 +160,27 @@
                 return;
             }
 
+            // Enhanced Validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+
+            if (phone && phone.length < 10) {
+                alert('Please enter a valid phone number.');
+                return;
+            }
+
+            if (cardNumber && cardNumber.replace(/\s/g, '').length < 13) {
+                alert('Please check your card number.');
+                return;
+            }
+
             const payload = {
                 customerInfo: { name, email, phone, address },
-                paymentInfo: { cardNumber, expMonth, expYear, cvv }
+                paymentInfo: { cardNumber, expMonth, expYear, cvv },
+                referralCode: localStorage.getItem('referralCode') || undefined // Add Referral Code
             };
 
             const res = await fetch('/customer/checkout', {

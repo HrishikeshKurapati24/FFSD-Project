@@ -65,6 +65,15 @@ const CustomerNavbar = ({
                 Rankings
               </Link>
             </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${activePath === '/customer/orders' ? 'active' : ''}`}
+                to="/customer/orders"
+                aria-current={activePath === '/customer/orders' ? 'page' : undefined}
+              >
+                My Orders
+              </Link>
+            </li>
           </ul>
         </div>
 

@@ -82,6 +82,9 @@ router.post('/checkout', CustomerPurchaseController.checkoutCart);
 // Rankings page
 router.get('/rankings', CustomerPurchaseController.getRankingsPage);
 
+// Customer Order History
+router.get('/orders', CustomerPurchaseController.getOrderHistory);
+
 // Public API for customer to fetch brand profile by ID
 router.get('/brand/:brandId/profile', async (req, res) => {
     const brandId = req.params.brandId;
