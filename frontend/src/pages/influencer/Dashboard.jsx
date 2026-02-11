@@ -59,6 +59,8 @@ const Dashboard = () => {
   const subscriptionStatus = contextSubscriptionStatus || null;
   const subscriptionLimits = contextSubscriptionLimits || null;
 
+  const referralCode = contextInfluencer?.referralCode || '';
+
   // Modal states
   const [contentModalOpen, setContentModalOpen] = useState(false);
   const [contentModalData, setContentModalData] = useState({
@@ -221,7 +223,7 @@ const Dashboard = () => {
 
   // Handle copy shop URL
   const handleCopyShopUrl = async (campaignId) => {
-    const url = `${baseUrl}/customer/campaign/${campaignId}/shop`;
+    const url = `${baseUrl}/customer/campaign/${campaignId}/shop${referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ''}`;
     try {
       await copyToClipboard(url);
       // Visual feedback could be added here
@@ -519,6 +521,7 @@ const Dashboard = () => {
         <ActiveCollaborations
           collaborations={activeCollaborations}
           baseUrl={baseUrl}
+          referralCode={referralCode}
           onCopyShopUrl={handleCopyShopUrl}
           onOpenProgressModal={handleOpenProgressModal}
           onOpenContentModal={handleOpenContentModal}

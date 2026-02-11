@@ -665,7 +665,9 @@ class CustomerPurchaseController {
 
             // 2. Aggregate "Bought From" (Brands and Influencers)
             // We need to look at all orders for this user
-            // Influencers: from order.influencer_id
+            // Influencers:
+            //   - From order.influencer_id (referral-based attribution)
+            //   - From campaigns linked to purchased products (CampaignInfluencers)
             // Brands: from order.items.product_id -> Product -> brand_id
 
             const influencerIds = new Set();
@@ -684,19 +686,51 @@ class CustomerPurchaseController {
                 }
             });
 
-            // Fetch Influencer Details
-            const purchasedInfluencers = await InfluencerInfo.find({ _id: { $in: Array.from(influencerIds) } })
-                .select('displayName fullName profilePicUrl niche')
+            // Fetch Products once to derive both Brand and Campaign attribution
+            const products = await Product.find({ _id: { $in: Array.from(productIds) } })
+                .select('brand_id campaign_id')
                 .lean();
 
-            // Fetch Brand Details (via Products)
-            // First get products to find brand IDs
-            const products = await Product.find({ _id: { $in: Array.from(productIds) } }).select('brand_id').lean();
-            const brandIds = new Set(products.map(p => p.brand_id ? p.brand_id.toString() : null).filter(Boolean));
+            // Derive Brand IDs from purchased products
+            const brandIds = new Set(
+                products
+                    .map(p => (p.brand_id ? p.brand_id.toString() : null))
+                    .filter(Boolean)
+            );
 
             const purchasedBrands = await BrandInfo.find({ _id: { $in: Array.from(brandIds) } })
                 .select('brandName logoUrl industry website')
                 .lean();
+
+            // Derive Campaign IDs from purchased products
+            const campaignIds = new Set(
+                products
+                    .map(p => (p.campaign_id ? p.campaign_id.toString() : null))
+                    .filter(Boolean)
+            );
+
+            // Fetch Influencers from those campaigns (CampaignInfluencers: active/completed)
+            if (campaignIds.size > 0) {
+                const campaignInfluencerDocs = await CampaignInfluencers.find({
+                    campaign_id: { $in: Array.from(campaignIds) },
+                    status: { $in: ['active', 'completed'] }
+                })
+                    .select('influencer_id')
+                    .lean();
+
+                campaignInfluencerDocs.forEach(ci => {
+                    if (ci.influencer_id) {
+                        influencerIds.add(ci.influencer_id.toString());
+                    }
+                });
+            }
+
+            // Fetch Influencer Details for all collected influencerIds
+            const purchasedInfluencers = influencerIds.size
+                ? await InfluencerInfo.find({ _id: { $in: Array.from(influencerIds) } })
+                    .select('displayName fullName profilePicUrl niche')
+                    .lean()
+                : [];
 
             const data = {
                 title: 'My Orders & History',

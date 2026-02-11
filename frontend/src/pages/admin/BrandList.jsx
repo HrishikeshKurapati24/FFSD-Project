@@ -106,7 +106,6 @@ export default function BrandList() {
                                         <th>Website</th>
                                         <th>Category</th>
                                         <th>Audience</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -141,12 +140,11 @@ export default function BrandList() {
                                                     </div>
                                                 </td>
                                                 <td>{(brand.totalAudience || 0).toLocaleString()}</td>
-                                                <td><span className={styles.verifiedBadge}>Verified</span></td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6" className={styles.noData}>No verified brands found.</td>
+                                            <td colSpan="5" className={styles.noData}>No verified brands found.</td>
                                         </tr>
                                     )}
                                 </tbody>

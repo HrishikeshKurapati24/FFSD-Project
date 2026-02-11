@@ -10,6 +10,7 @@ const { InfluencerInfo, InfluencerAnalytics } = require("../config/InfluencerMon
 const { Customer } = require("../config/CustomerMongo");
 const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
 const { Product, Customer: ProductCustomer, ContentTracking } = require("../config/ProductMongo");
+const { Order } = require("../config/OrderMongo");
 
 // Remove the broken import for FeedbackModel
 // const { FeedbackModel } = require("../models/FeedbackModel");
@@ -696,8 +697,101 @@ const AnalyticsController = {
                     totalCollabs: [145, 162, 178, 195, 210, 235],
                     completedCollabs: [120, 138, 152, 168, 185, 205],
                     avgDuration: [14, 16, 15, 18, 17, 19]
-                }
+                },
+                brandLoyalty: [] // populated below
             };
+
+            // --- Brand Loyalty Index (repeat customers per brand) ---
+            try {
+                const loyaltyAgg = await Order.aggregate([
+                    {
+                        $match: {
+                            status: { $in: ['paid', 'shipped', 'delivered'] },
+                            customer_id: { $ne: null }
+                        }
+                    },
+                    { $unwind: '$items' },
+                    {
+                        $lookup: {
+                            from: 'products',
+                            localField: 'items.product_id',
+                            foreignField: '_id',
+                            as: 'product'
+                        }
+                    },
+                    { $unwind: '$product' },
+                    {
+                        $group: {
+                            _id: {
+                                brand: '$product.brand_id',
+                                customer: '$customer_id'
+                            },
+                            orderCount: { $sum: 1 }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: '$_id.brand',
+                            totalCustomers: { $sum: 1 },
+                            repeatCustomers: {
+                                $sum: {
+                                    $cond: [{ $gt: ['$orderCount', 1] }, 1, 0]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            brandId: '$_id',
+                            totalCustomers: 1,
+                            repeatCustomers: 1,
+                            loyaltyIndex: {
+                                $cond: [
+                                    { $gt: ['$totalCustomers', 0] },
+                                    {
+                                        $multiply: [
+                                            { $divide: ['$repeatCustomers', '$totalCustomers'] },
+                                            100
+                                        ]
+                                    },
+                                    0
+                                ]
+                            }
+                        }
+                    },
+                    { $sort: { loyaltyIndex: -1 } },
+                    { $limit: 10 }
+                ]);
+
+                const loyaltyBrandIds = loyaltyAgg
+                    .map((r) => r.brandId)
+                    .filter(Boolean);
+
+                const loyaltyBrandsMap = loyaltyBrandIds.length
+                    ? new Map(
+                        (await BrandInfo.find({ _id: { $in: loyaltyBrandIds } })
+                            .select('brandName logoUrl industry')
+                            .lean()
+                        ).map((b) => [b._id.toString(), b])
+                    )
+                    : new Map();
+
+                metrics.brandLoyalty = loyaltyAgg.map((r) => {
+                    const b = loyaltyBrandsMap.get(r.brandId?.toString()) || {};
+                    return {
+                        brandId: r.brandId,
+                        name: b.brandName || 'Brand',
+                        logoUrl: b.logoUrl,
+                        industry: b.industry || '',
+                        totalCustomers: r.totalCustomers || 0,
+                        repeatCustomers: r.repeatCustomers || 0,
+                        loyaltyIndex: Math.round((r.loyaltyIndex || 0) * 10) / 10
+                    };
+                });
+            } catch (err) {
+                console.error('Error computing brand loyalty index:', err);
+                metrics.brandLoyalty = [];
+            }
 
             console.log("Metrics received:", metrics);
 
@@ -1573,6 +1667,13 @@ const UserManagementController = {
                                     }
                                 }
                             }
+                        },
+                        audienceSize: {
+                            $reduce: {
+                                input: { $ifNull: [{ $arrayElemAt: ['$socials.platforms', 0] }, []] },
+                                initialValue: 0,
+                                in: { $add: ['$$value', { $ifNull: ['$$this.followers', 0] }] }
+                            }
                         }
                     }
                 }
@@ -2005,6 +2106,20 @@ const CustomerController = {
                 .limit(20)
                 .lean();
 
+            // Whale Detector - high value customers in recent window
+            const whaleThreshold = 1000; // configurable threshold
+            const whaleWindowDays = 30;
+            const whaleWindowStart = new Date();
+            whaleWindowStart.setDate(whaleWindowStart.getDate() - whaleWindowDays);
+
+            const whales = await Customer.find({
+                total_spent: { $gte: whaleThreshold },
+                last_purchase_date: { $gte: whaleWindowStart }
+            })
+                .sort({ total_spent: -1 })
+                .limit(20)
+                .lean();
+
             // Generate customer growth data (last 6 months)
             const customerGrowthData = [];
             const customerGrowthLabels = [];
@@ -2049,7 +2164,8 @@ const CustomerController = {
                     success: true,
                     analytics,
                     topCustomers,
-                    recentCustomers
+                    recentCustomers,
+                    whales
                 });
             }
 

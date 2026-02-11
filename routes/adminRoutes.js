@@ -275,7 +275,7 @@ router.get('/analytics', async (req, res) => {
     res.render('admin/analytics', { brands });
 });
 router.get('/analytics/influencer-roi', AdminAnalyticsController.getInfluencerROI);
-router.get('/matchmaking/brand/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
+router.get('/analytics/matchmaking/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
 router.get('/analytics/ecosystem', AdminAnalyticsController.getEcosystemGraphData);
 
 // User Management routes

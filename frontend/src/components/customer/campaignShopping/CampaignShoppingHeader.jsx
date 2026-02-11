@@ -15,14 +15,19 @@ const CampaignShoppingHeader = ({
   onSearchChange,
   onTabChange,
   formatDateRange,
-  styles
+  styles,
+  customerName = ''
 }) => {
   const brandLogo = campaign?.brand?.logoUrl || DEFAULT_BRAND_LOGO;
   const brandName = campaign?.brand?.brandName || 'Brand';
 
   return (
     <>
-      <CustomerNavbar searchValue={searchValue} onSearchChange={onSearchChange} />
+      <CustomerNavbar
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
+        customerName={customerName}
+      />
 
       <header className={styles['campaign-header']}>
         <div className="container">

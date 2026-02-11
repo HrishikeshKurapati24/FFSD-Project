@@ -108,7 +108,6 @@ export default function InfluencerList() {
                                         <th>Category</th>
                                         <th>Platform</th>
                                         <th>Audience</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -137,12 +136,11 @@ export default function InfluencerList() {
                                                 </td>
                                                 <td>{inf.platform || 'N/A'}</td>
                                                 <td>{(inf.audienceSize || 0).toLocaleString()}</td>
-                                                <td><span className={styles.verifiedBadge}>Verified</span></td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6" className={styles.noData}>No verified influencers found.</td>
+                                            <td colSpan="5" className={styles.noData}>No verified influencers found.</td>
                                         </tr>
                                     )}
                                 </tbody>

@@ -18,6 +18,7 @@ export default function CustomerManagement() {
     });
     const [topCustomers, setTopCustomers] = useState([]);
     const [recentCustomers, setRecentCustomers] = useState([]);
+    const [whales, setWhales] = useState([]);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [showCustomerModal, setShowCustomerModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -225,6 +226,7 @@ export default function CustomerManagement() {
                     setAnalytics(data.analytics || analytics);
                     setTopCustomers(data.topCustomers || []);
                     setRecentCustomers(data.recentCustomers || []);
+                    setWhales(data.whales || []);
                 }
             } else {
                 // Fallback: try to get analytics separately
@@ -449,6 +451,43 @@ export default function CustomerManagement() {
 
                     {/* Customer Tables Section */}
                     <div className={styles.tablesSection}>
+                        {/* Whale Detector / High Rollers */}
+                        {whales.length > 0 && (
+                            <div className={styles.tableContainer}>
+                                <div className={styles['table-header']}>
+                                    <h3><i className="fas fa-gem"></i> High Rollers (Last 30 Days)</h3>
+                                </div>
+                                <div className={styles.tableWrapper}>
+                                    <table className={styles['customers-table']}>
+                                        <thead>
+                                            <tr>
+                                                <th>Customer</th>
+                                                <th>Email</th>
+                                                <th>Total Spent</th>
+                                                <th>Last Purchase</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {whales.map(customer => (
+                                                <tr key={customer._id}>
+                                                    <td>
+                                                        <div className={styles['customer-info']}>
+                                                            <div className={styles['customer-avatar']}>
+                                                                {(customer.name || 'C').charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <span>{customer.name || 'Unknown Customer'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>{customer.email || 'N/A'}</td>
+                                                    <td className={styles.amount}>${(customer.total_spent || 0).toLocaleString()}</td>
+                                                    <td>{customer.last_purchase_date ? new Date(customer.last_purchase_date).toLocaleDateString() : 'Never'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                         {/* Top Customers */}
                         <div className={styles.tableContainer}>
                             <div className={styles['table-header']}>

@@ -37,13 +37,25 @@ const AdminAnalyticsController = {
                 },
                 {
                     $project: {
-                        _id: 1,
-                        name: '$influencer.fullName',
+                        _id: 0,
+                        influencerId: '$_id',
+                        influencerName: {
+                            $ifNull: ['$influencer.fullName', '$influencer.username']
+                        },
                         username: '$influencer.username',
                         totalRevenue: 1,
                         totalCommission: 1,
                         orderCount: 1,
-                        // ROI metric: (Revenue - Commission) / Commission
+                        // Approximate campaignCount as distinct orders for now
+                        campaignCount: '$orderCount',
+                        avgOrderValue: {
+                            $cond: [
+                                { $eq: ['$orderCount', 0] },
+                                0,
+                                { $divide: ['$totalRevenue', '$orderCount'] }
+                            ]
+                        },
+                        // Real-value / ROI metric: (Revenue - Commission) / Commission
                         // If commission is 0, avoid division by zero
                         roiScore: {
                             $cond: [
@@ -82,57 +94,75 @@ const AdminAnalyticsController = {
                 let score = 0;
                 let matches = [];
 
-                // 1. Industry/Niche Match (40 points)
-                // Normalize strings for comparison
+                // 1. Category Overlap Match (Critical - 50 points)
+                const brandCats = Array.isArray(brand.categories) ? brand.categories : [];
+                const infCats = Array.isArray(inf.categories) ? inf.categories : [];
+
+                const matchedCats = brandCats.filter(cat =>
+                    infCats.some(infCat => (infCat || '').toLowerCase() === (cat || '').toLowerCase())
+                );
+
+                if (matchedCats.length > 0) {
+                    score += 50;
+                    matches.push(`Category Match: ${matchedCats[0]}${matchedCats.length > 1 ? ' +' + (matchedCats.length - 1) : ''}`);
+                }
+
+                // 2. Industry/Niche Match (30 points)
                 const brandIndustry = (brand.industry || '').toLowerCase();
                 const infNiche = (inf.niche || '').toLowerCase();
-                // Simple inclusion check
                 if (brandIndustry && infNiche && (brandIndustry.includes(infNiche) || infNiche.includes(brandIndustry))) {
-                    score += 40;
-                    matches.push('Industry Match');
-                }
-
-                // 2. Location Match (30 points)
-                // Assuming brand.target_regions is an array of strings
-                const brandRegions = Array.isArray(brand.location) ? brand.location : [brand.location];
-                const infLocation = (inf.location || '').toLowerCase();
-                // Check if influencer location matches any brand target region
-                const locationMatch = brandRegions.some(region =>
-                    region && infLocation.includes(region.toLowerCase())
-                );
-                if (locationMatch) {
                     score += 30;
-                    matches.push('Location Match');
+                    matches.push('Industry/Niche Match');
                 }
 
-                // 3. Audience Match (30 points)
-                // Match Gender
+                // 3. Target Interests Match (20 points)
+                const targetInterests = Array.isArray(brand.targetInterests) ? brand.targetInterests : [];
+                const interestMatches = targetInterests.filter(interest =>
+                    infCats.some(infCat => (infCat || '').toLowerCase() === (interest || '').toLowerCase()) ||
+                    (inf.niche || '').toLowerCase().includes((interest || '').toLowerCase())
+                );
+                if (interestMatches.length > 0) {
+                    score += 20;
+                    matches.push('Target Interest Match');
+                }
+
+                // 4. Location Match (15 points)
+                const brandLocation = (brand.location || '').toLowerCase();
+                const infLocation = (inf.location || '').toLowerCase();
+                const brandRegions = (brand.influenceRegions || '').toLowerCase();
+
+                if (brandLocation && infLocation && (brandLocation.includes(infLocation) || infLocation.includes(brandLocation))) {
+                    score += 15;
+                    matches.push('Location Match');
+                } else if (brandRegions && infLocation && brandRegions.includes(infLocation)) {
+                    score += 10;
+                    matches.push('Region Match');
+                }
+
+                // 5. Audience Demographic Match (15 points)
                 if (brand.targetGender && inf.audienceGender &&
                     (brand.targetGender === 'All' || brand.targetGender === inf.audienceGender)) {
                     score += 15;
                     matches.push('Audience Gender Match');
                 }
 
-                // Match Age Range (Simple string match for now)
-                if (brand.targetAgeRange && inf.audienceAgeRange &&
-                    brand.targetAgeRange === inf.audienceAgeRange) {
-                    score += 15;
-                    matches.push('Audience Age Match');
-                }
-
-                // Random jitter for demo purposes if score is 0, so list isn't empty
-                if (score === 0) score = Math.floor(Math.random() * 10);
+                // Random jitter for demo purposes if score is 0
+                if (score === 0) score = Math.floor(Math.random() * 15);
 
                 return {
                     influencer: {
                         _id: inf._id,
                         fullName: inf.fullName,
+                        influencerName: inf.fullName || inf.username,
                         username: inf.username,
                         profilePicUrl: inf.profilePicUrl,
+                        profilePicture: inf.profilePicUrl,
                         niche: inf.niche,
+                        categories: inf.categories,
                         totalFollowers: inf.totalFollowers
                     },
-                    matchScore: score,
+                    matchScore: Math.min(score, 100),
+                    score: Math.min(score, 100),
                     matchReasons: matches
                 };
             });
@@ -186,9 +216,11 @@ const AdminAnalyticsController = {
             const links = collaborations
                 .filter(c => c.campaign_id && c.campaign_id.brand_id) // Ensure valid refs
                 .map(c => ({
-                    source: c.campaign_id.brand_id.toString(),
-                    target: c.influencer_id.toString(),
-                    value: c.revenue || c.campaign_id.budget || 1, // Thickness based on money
+                    from: c.campaign_id.brand_id.toString(),
+                    to: c.influencer_id.toString(),
+                    value: 2, // Constant thickness for all collabs
+                    color: { color: '#4CAF50', opacity: 0.8 }, // Green for collaborations
+                    title: `Revenue: $${c.revenue || 0}`, // Tooltip
                     status: c.status
                 }));
 
@@ -196,7 +228,8 @@ const AdminAnalyticsController = {
                 success: true,
                 data: {
                     nodes: [...brandNodes, ...influencerNodes],
-                    links: links
+                    links: links,
+                    edges: links // Add edges for vis-network compatibility
                 }
             });
 

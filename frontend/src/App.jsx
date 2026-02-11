@@ -115,8 +115,8 @@ function App() {
                 <Route path="/influencer/brand_profile/:id" element={<ProtectedRoute requiredRole="influencer"><BrandProfileView /></ProtectedRoute>} />
 
                 {/* Customer Routes */}
-                <Route path="/customer" element={<ProtectedRoute requiredRole="customer"><AllCampaigns /></ProtectedRoute>} />
-                <Route path="/customer/campaign/:campaignId/shop" element={<ProtectedRoute requiredRole="customer"><CampaignShopping /></ProtectedRoute>} />
+                <Route path="/customer" element={<AllCampaigns />} />
+                <Route path="/customer/campaign/:campaignId/shop" element={<CampaignShopping />} />
                 <Route path="/customer/cart" element={<ProtectedRoute requiredRole="customer"><Cart /></ProtectedRoute>} />
                 <Route path="/customer/rankings" element={<ProtectedRoute requiredRole="customer"><Rankings /></ProtectedRoute>} />
                 <Route path="/customer/orders" element={<ProtectedRoute requiredRole="customer"><OrderHistory /></ProtectedRoute>} />

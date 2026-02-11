@@ -395,6 +395,7 @@ const getInfluencerProfile = async (req, res) => {
       // Basic Profile Info
       displayName: influencer.displayName || influencer.name || '',
       username: influencer.username || '',
+      referralCode: influencer.referralCode || '',
       email: influencer.email || '',
       website: influencer.website || '',
       bio: influencer.bio || '',

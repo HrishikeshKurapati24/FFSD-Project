@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 const ActiveCollaborations = ({
   collaborations,
   baseUrl,
+  referralCode,
   onCopyShopUrl,
   onOpenProgressModal,
   onOpenContentModal
@@ -78,21 +79,29 @@ const ActiveCollaborations = ({
                   <span className="shop-url-label">Customer Shop Link</span>
                 </div>
                 <div className="shop-url-container">
-                  <input
-                    type="text"
-                    className="shop-url-input"
-                    id={`shopUrl_${collab.campaign_id}`}
-                    value={`${baseUrl}/customer/campaign/${collab.campaign_id}/shop`}
-                    readOnly
-                  />
-                  <button
-                    className="btn btn-copy"
-                    style={{ width: '75px' }}
-                    onClick={() => onCopyShopUrl(collab.campaign_id)}
-                    title="Copy to clipboard"
-                  >
-                    <i className="fas fa-copy"></i>
-                  </button>
+                  {(() => {
+                    const shopUrl = `${baseUrl}/customer/campaign/${collab.campaign_id}/shop${referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ''
+                      }`;
+                    return (
+                      <>
+                        <input
+                          type="text"
+                          className="shop-url-input"
+                          id={`shopUrl_${collab.campaign_id}`}
+                          value={shopUrl}
+                          readOnly
+                        />
+                        <button
+                          className="btn btn-copy"
+                          style={{ width: '75px' }}
+                          onClick={() => onCopyShopUrl(collab.campaign_id)}
+                          title="Copy to clipboard"
+                        >
+                          <i className="fas fa-copy"></i>
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
                 <div className="shop-url-note">
                   <i className="fas fa-info-circle"></i>

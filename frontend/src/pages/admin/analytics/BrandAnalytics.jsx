@@ -1000,6 +1000,45 @@ const BrandAnalytics = () => {
               </tbody>
             </table>
           </div>
+
+          {metrics.brandLoyalty && metrics.brandLoyalty.length > 0 && (
+            <div className={styles.brandsTableContainer}>
+              <div className={styles.tableHeader}>
+                <h3>Brand Loyalty Index (Repeat Customers)</h3>
+              </div>
+              <table className={styles.brandsTable}>
+                <thead>
+                  <tr>
+                    <th>Brand</th>
+                    <th>Industry</th>
+                    <th>Repeat Customers</th>
+                    <th>Total Customers</th>
+                    <th>Loyalty Index</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metrics.brandLoyalty.map((brand, i) => (
+                    <tr key={brand.brandId || i}>
+                      <td>
+                        <div className={styles.brandInfo}>
+                          <img
+                            src={brand.logoUrl || '/images/default-brand-logo.jpg'}
+                            alt={brand.name || 'N/A'}
+                            className={styles.brandLogo}
+                          />
+                          <span>{brand.name || 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td>{brand.industry || 'N/A'}</td>
+                      <td>{brand.repeatCustomers ?? 0}</td>
+                      <td>{brand.totalCustomers ?? 0}</td>
+                      <td>{brand.loyaltyIndex != null ? `${brand.loyaltyIndex}%` : '0%'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       ) : (
         <div className={styles.noDataMessage}>
