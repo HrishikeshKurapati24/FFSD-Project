@@ -74,6 +74,15 @@ const CustomerNavbar = ({
                 My Orders
               </Link>
             </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${activePath === '/feedback' ? 'active' : ''}`}
+                to="/feedback"
+                aria-current={activePath === '/feedback' ? 'page' : undefined}
+              >
+                Feedback
+              </Link>
+            </li>
           </ul>
         </div>
 

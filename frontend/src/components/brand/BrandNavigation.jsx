@@ -5,7 +5,8 @@ import styles from '../../styles/brand/dashboard.module.css';
 const PRIMARY_LINKS = [
   { label: 'Home', path: '/brand/home' },
   { label: 'Explore Influencers', path: '/brand/explore' },
-  { label: 'My Brand Profile', path: '/brand/profile' }
+  { label: 'My Brand Profile', path: '/brand/profile' },
+  { label: 'Feedback', path: '/feedback' }
 ];
 
 const MENU_LINKS = [
@@ -102,7 +103,7 @@ const BrandNavigation = ({ onSignOut, onNotificationClick, showNotification = tr
           <button
             type="button"
             className="notification-bell"
-            style={{ width: '40px', height: '40px', backgroundcolor: "transparent"}}
+            style={{ width: '40px', height: '40px', backgroundcolor: "transparent" }}
             onClick={() => onNotificationClick?.()}
             aria-label="Open notifications"
             title="Notifications"

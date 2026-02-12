@@ -12,18 +12,7 @@ const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require("../conf
 const { Product, Customer: ProductCustomer, ContentTracking } = require("../config/ProductMongo");
 const { Order } = require("../config/OrderMongo");
 
-// Remove the broken import for FeedbackModel
-// const { FeedbackModel } = require("../models/FeedbackModel");
-
-
-const UserManagementModel = AdminModel.UserManagementModel;
-
-// Add a fallback FeedbackModel to prevent runtime errors if the real model does not exist
-const FeedbackModel = {
-    async getAllFeedback() { return []; },
-    async getFeedbackById() { return null; },
-    async updateFeedbackStatus() { return { success: false, message: "Not implemented" }; }
-};
+const FeedbackModel = require("../models/FeedbackModel");
 
 const DashboardController = {
     async verifyUser(req, res) {
@@ -1322,7 +1311,7 @@ const FeedbackController = {
                 return pathOnly === '/admin/feedback_and_moderation' || pathOnly === '/feedback_and_moderation';
             };
 
-            const feedbacks = await FeedbackModel.getAllFeedback();
+            const feedbacks = await FeedbackModel.find().sort({ createdAt: -1 });
             const data = { feedbacks: feedbacks || [] };
 
             // Check if this is an API request
@@ -1371,7 +1360,7 @@ const FeedbackController = {
     async getFeedbackDetails(req, res) {
         try {
             const feedbackId = req.params.id;
-            const feedback = await FeedbackModel.getFeedbackById(feedbackId);
+            const feedback = await FeedbackModel.findById(feedbackId);
             if (!feedback) {
                 return res.status(404).send("Feedback Not Found");
             }
@@ -1384,12 +1373,78 @@ const FeedbackController = {
 
     async updateFeedbackStatus(req, res) {
         try {
-            const { id, status } = req.body;
-            const result = await FeedbackModel.updateFeedbackStatus(id, status);
-            res.json(result);
+            const { id } = req.params;
+            const { status } = req.body;
+            const result = await FeedbackModel.findByIdAndUpdate(id, { status }, { new: true });
+            if (result) {
+                res.json({ success: true, message: 'Feedback status updated successfully', feedback: result });
+            } else {
+                res.status(404).json({ success: false, message: 'Feedback not found' });
+            }
         } catch (error) {
             console.error("Error updating feedback status:", error);
             res.status(500).send("Internal Server Error");
+        }
+    },
+
+    async submitFeedback(req, res) {
+        try {
+            const { userId, userName, userType, type, subject, message } = req.body;
+
+            if (!userId) {
+                return res.status(400).json({ success: false, message: 'Missing required field: userId' });
+            }
+            if (!userType) {
+                return res.status(400).json({ success: false, message: 'Missing required field: userType' });
+            }
+            if (!type) {
+                return res.status(400).json({ success: false, message: 'Missing required field: type' });
+            }
+            if (!subject) {
+                return res.status(400).json({ success: false, message: 'Missing required field: subject' });
+            }
+            if (!message) {
+                return res.status(400).json({ success: false, message: 'Missing required field: message' });
+            }
+
+            const newFeedback = new FeedbackModel({
+                userId,
+                userName,
+                userType,
+                type,
+                subject,
+                message
+            });
+
+            await newFeedback.save();
+
+            res.status(201).json({
+                success: true,
+                message: 'Feedback submitted successfully',
+                feedback: newFeedback
+            });
+        } catch (error) {
+            console.error("Error submitting feedback:", error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to submit feedback',
+                error: error.message
+            });
+        }
+    },
+
+    async deleteFeedback(req, res) {
+        try {
+            const { id } = req.params;
+            const result = await FeedbackModel.findByIdAndDelete(id);
+            if (result) {
+                res.json({ success: true, message: 'Feedback deleted successfully' });
+            } else {
+                res.status(404).json({ success: false, message: 'Feedback not found' });
+            }
+        } catch (error) {
+            console.error("Error deleting feedback:", error);
+            res.status(500).json({ success: false, message: 'Failed to delete feedback' });
         }
     }
 };
