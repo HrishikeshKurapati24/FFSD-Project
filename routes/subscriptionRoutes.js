@@ -192,86 +192,86 @@ router.get('/payment', async (req, res) => {
         throw error;
     }
 
-        // Fetch user's last payment details to pre-fill the form
-        const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
-        let lastPaymentDetails = null;
+    // Fetch user's last payment details to pre-fill the form
+    const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+    let lastPaymentDetails = null;
 
-        try {
-            const { PaymentHistory } = require('../config/SubscriptionMongo');
-            const { Transaction } = require('../models/brandModel');
+    try {
+        const { PaymentHistory } = require('../config/SubscriptionMongo');
+        const { Transaction } = require('../models/brandModel');
 
-            // Try to get the last payment from PaymentHistory
-            let lastPayment = await PaymentHistory.findOne({
+        // Try to get the last payment from PaymentHistory
+        let lastPayment = await PaymentHistory.findOne({
+            userId: userId,
+            userType: mappedUserType,
+            status: 'success'
+        })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // If not found in PaymentHistory, try Transaction
+        if (!lastPayment) {
+            lastPayment = await Transaction.findOne({
                 userId: userId,
                 userType: mappedUserType,
-                status: 'success'
+                status: 'completed'
             })
                 .sort({ createdAt: -1 })
                 .lean();
-
-            // If not found in PaymentHistory, try Transaction
-            if (!lastPayment) {
-                lastPayment = await Transaction.findOne({
-                    userId: userId,
-                    userType: mappedUserType,
-                    status: 'completed'
-                })
-                    .sort({ createdAt: -1 })
-                    .lean();
-            }
-
-            // Extract relevant details if payment found
-            if (lastPayment) {
-                const { decrypt } = require('../utils/encryption');
-
-                // Decrypt card number if available
-                let decryptedCardNumber = null;
-                if (lastPayment.cardDetails?.encryptedCardNumber) {
-                    decryptedCardNumber = decrypt(lastPayment.cardDetails.encryptedCardNumber);
-                }
-
-                // Format expiry date if available
-                let expiryDate = null;
-                if (lastPayment.cardDetails?.expiryMonth && lastPayment.cardDetails?.expiryYear) {
-                    const month = String(lastPayment.cardDetails.expiryMonth).padStart(2, '0');
-                    const year = String(lastPayment.cardDetails.expiryYear).padStart(2, '0');
-                    expiryDate = `${month}/${year}`;
-                }
-
-                lastPaymentDetails = {
-                    cardName: lastPayment.cardDetails?.cardName || null,
-                    cardNumber: decryptedCardNumber,
-                    expiryDate: expiryDate,
-                    last4: lastPayment.cardDetails?.last4 || null,
-                    billingAddress: lastPayment.billingAddress || null
-                };
-                console.log('Found previous payment details for user:', userId);
-            }
-        } catch (fetchError) {
-            console.error('Error fetching last payment details:', fetchError);
-            // Continue without pre-filled data
         }
 
-        // Return JSON for API requests (React frontend)
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.json({
-                success: true,
-                userId,
-                userType,
-                selectedPlan,
-                billingCycle,
-                lastPaymentDetails
-            });
-        }
+        // Extract relevant details if payment found
+        if (lastPayment) {
+            const { decrypt } = require('../utils/encryption');
 
-        res.render('subscription/payment', {
+            // Decrypt card number if available
+            let decryptedCardNumber = null;
+            if (lastPayment.cardDetails?.encryptedCardNumber) {
+                decryptedCardNumber = decrypt(lastPayment.cardDetails.encryptedCardNumber);
+            }
+
+            // Format expiry date if available
+            let expiryDate = null;
+            if (lastPayment.cardDetails?.expiryMonth && lastPayment.cardDetails?.expiryYear) {
+                const month = String(lastPayment.cardDetails.expiryMonth).padStart(2, '0');
+                const year = String(lastPayment.cardDetails.expiryYear).padStart(2, '0');
+                expiryDate = `${month}/${year}`;
+            }
+
+            lastPaymentDetails = {
+                cardName: lastPayment.cardDetails?.cardName || null,
+                cardNumber: decryptedCardNumber,
+                expiryDate: expiryDate,
+                last4: lastPayment.cardDetails?.last4 || null,
+                billingAddress: lastPayment.billingAddress || null
+            };
+            console.log('Found previous payment details for user:', userId);
+        }
+    } catch (fetchError) {
+        console.error('Error fetching last payment details:', fetchError);
+        // Continue without pre-filled data
+    }
+
+    // Return JSON for API requests (React frontend)
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json({
+            success: true,
             userId,
             userType,
             selectedPlan,
             billingCycle,
             lastPaymentDetails
         });
+    }
+
+    res.render('subscription/payment', {
+        userId,
+        userType,
+        selectedPlan,
+        billingCycle,
+        lastPaymentDetails
     });
+});
 
 // Process payment
 router.post('/process-payment', async (req, res) => {
@@ -290,11 +290,11 @@ router.post('/process-payment', async (req, res) => {
         if (!userType || userType === 'undefined' || userType === 'null') {
             const { BrandInfo } = require('../config/BrandMongo');
             const { InfluencerInfo } = require('../config/InfluencerMongo');
-            
+
             if (userId) {
                 const brand = await BrandInfo.findById(userId);
                 const influencer = await InfluencerInfo.findById(userId);
-                
+
                 if (brand) {
                     userType = 'brand';
                 } else if (influencer) {
@@ -578,6 +578,7 @@ router.get('/payment-success', async (req, res) => {
             billingCycle: billingCycle,
             amount: payment.amount,
             transactionId: payment.transactionId,
+            userType: payment.userType === 'BrandInfo' ? 'brand' : 'influencer',
             features
         };
 
@@ -655,43 +656,68 @@ router.get('/current', async (req, res) => {
 router.post('/subscribe', async (req, res) => {
     try {
         const userId = req.session.user.id;
-        const userType = req.session.user.role;
+        let userType = (req.session.user.role || '').toLowerCase();
         const { planId, billingCycle } = req.body;
+
+        // Ensure userType is valid, fallback to DB check if needed
+        if (!userType || (userType !== 'brand' && userType !== 'influencer')) {
+            const { BrandInfo } = require('../config/BrandMongo');
+            const { InfluencerInfo } = require('../config/InfluencerMongo');
+            const brandUser = await BrandInfo.findById(userId);
+            if (brandUser) {
+                userType = 'brand';
+            } else {
+                const influencerUser = await InfluencerInfo.findById(userId);
+                if (influencerUser) userType = 'influencer';
+            }
+        }
+
+        console.log(`[Subscription] Switch request - User: ${userId}, Role: ${userType}, Target Plan: ${planId}`);
+        const allPlans = await SubscriptionService.getPlansForUserType(userType);
+
+        // Debug available plans
+        console.log(`[Subscription] Available plans for ${userType}:`, allPlans.map(p => ({ id: p._id.toString(), name: p.name })));
+
+        const selectedPlan = allPlans.find(p => String(p._id) === String(planId));
+
+        if (!selectedPlan) {
+            console.error(`[Subscription] Plan NOT found! Target ID: ${planId}, Role: ${userType}, Available:`, allPlans.map(p => p._id.toString()));
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid plan selected'
+            });
+        }
 
         // Check if user already has an active subscription
         const existingSubscription = await SubscriptionService.getUserSubscription(userId, userType);
 
-        if (existingSubscription && existingSubscription.status === 'active') {
-            // Check if it's the same plan and billing cycle
-            if (existingSubscription.planId.toString() === planId && existingSubscription.billingCycle === billingCycle) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'You already have this subscription plan with the same billing cycle active'
-                });
-            }
+        // If it's a paid plan, redirect to payment
+        const isPaidPlan = billingCycle === 'monthly' ? selectedPlan.price.monthly > 0 : selectedPlan.price.yearly > 0;
 
-            // Allow upgrade by updating existing subscription
-            const updatedSubscription = await SubscriptionService.updateSubscription(existingSubscription._id, {
-                planId,
-                billingCycle,
-                updatedAt: new Date()
-            });
-
+        if (isPaidPlan) {
             return res.json({
-                success: true,
-                message: 'Subscription upgraded successfully',
-                subscription: updatedSubscription
-            });
-        }
-
-        // Check if existing subscription is expired - redirect to payment
-        if (existingSubscription && (existingSubscription.status === 'expired' || new Date(existingSubscription.endDate) < new Date())) {
-            return res.status(400).json({
-                success: false,
-                message: 'Your subscription has expired. Please complete payment to renew.',
+                success: false, // Set to false to trigger client-side handling but with redirect data
+                message: 'Redirecting to payment',
                 redirectToPayment: true,
                 paymentUrl: `/subscription/payment?userId=${userId}&userType=${userType}&planId=${planId}&billingCycle=${billingCycle}`
             });
+        }
+
+        // If it's the Free plan and user already has this specific plan as active, ignore
+        if (existingSubscription &&
+            existingSubscription.status === 'active' &&
+            existingSubscription.planId?._id?.toString() === planId) {
+            return res.status(400).json({
+                success: false,
+                message: 'You already have this plan active'
+            });
+        }
+
+        // Switch to Free Plan: Expire current active subscription if any
+        if (existingSubscription && existingSubscription.status === 'active') {
+            const { UserSubscription } = require('../config/SubscriptionMongo');
+            await UserSubscription.findByIdAndUpdate(existingSubscription._id, { status: 'expired' });
+            console.log(`[Subscription] Expired current plan ${existingSubscription.planId?.name} for user ${userId}`);
         }
 
         const subscriptionData = {
@@ -986,7 +1012,7 @@ router.get('/manage', async (req, res) => {
         console.error('=== ERROR in /subscription/manage ===');
         console.error('Error details:', error);
         console.error('Stack trace:', error.stack);
-        
+
         // Return JSON for API requests
         if (req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(500).json({
@@ -995,7 +1021,7 @@ router.get('/manage', async (req, res) => {
                 error: error.message
             });
         }
-        
+
         res.status(500).render('error', {
             message: 'Failed to load subscription management',
             error: { status: 500, details: error.message }

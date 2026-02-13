@@ -17,6 +17,7 @@ export default function FeedbackAndModeration() {
         search: '',
         status: 'all',
         type: 'all',
+        userRole: 'all',
         date: ''
     });
 
@@ -53,10 +54,7 @@ export default function FeedbackAndModeration() {
                         read: readNotifications.includes(n.id || n._id) || n.read
                     }));
 
-                    setDashboardData(prev => ({
-                        ...prev,
-                        notifications: updatedNotifications
-                    }));
+                    setNotifications(updatedNotifications);
                 }
             }
         } catch (error) {
@@ -156,26 +154,39 @@ export default function FeedbackAndModeration() {
     const filterFeedbacks = () => {
         let filtered = [...feedbacks];
 
+        // Search text
         if (filters.search) {
             const searchLower = filters.search.toLowerCase();
             filtered = filtered.filter(feedback => {
-                const text = Object.values(feedback).join(' ').toLowerCase();
-                return text.includes(searchLower);
+                const subjectMatch = (feedback.subject || feedback.title || '').toLowerCase().includes(searchLower);
+                const userMatch = (feedback.userName || feedback.user || '').toLowerCase().includes(searchLower);
+                const messageMatch = (feedback.message || feedback.content || '').toLowerCase().includes(searchLower);
+                return subjectMatch || userMatch || messageMatch;
             });
         }
 
+        // Status filter
         if (filters.status !== 'all') {
             filtered = filtered.filter(feedback =>
                 (feedback.status || 'pending').toLowerCase() === filters.status.toLowerCase()
             );
         }
 
+        // Category filter (type: complaint, suggestion, etc.)
         if (filters.type !== 'all') {
             filtered = filtered.filter(feedback =>
-                (feedback.type || 'general').toLowerCase() === filters.type.toLowerCase().replace('_', ' ')
+                (feedback.type || 'general').toLowerCase() === filters.type.toLowerCase()
             );
         }
 
+        // User role filter (influencer, brand, customer)
+        if (filters.userRole !== 'all') {
+            filtered = filtered.filter(feedback =>
+                (feedback.userType || '').toLowerCase() === filters.userRole.toLowerCase()
+            );
+        }
+
+        // Date filter
         if (filters.date) {
             filtered = filtered.filter(feedback => {
                 const feedbackDate = feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : feedback.date || '';
@@ -198,6 +209,7 @@ export default function FeedbackAndModeration() {
             search: '',
             status: 'all',
             type: 'all',
+            userRole: 'all',
             date: ''
         });
     };
@@ -291,6 +303,12 @@ export default function FeedbackAndModeration() {
         }
     };
 
+    const stats = {
+        total: feedbacks.length,
+        pending: feedbacks.filter(f => (f.status || 'pending').toLowerCase() === 'pending').length,
+        resolved: feedbacks.filter(f => (f.status || 'pending').toLowerCase() === 'resolved').length
+    };
+
     return (
         <AdminNavbar
             user={user}
@@ -299,52 +317,107 @@ export default function FeedbackAndModeration() {
         >
             <main className={adminStyles.mainContent}>
                 <section className={styles.feedbackModeration}>
-                    <h1>Feedback & Moderation</h1>
+                    <div className={styles.headerSection}>
+                        <h1>Feedback & Moderation</h1>
+                        <p className={styles.subtitle}>Review and manage user feedback across the platform</p>
+                    </div>
+
+                    {/* Stats Cards */}
+                    <div className={styles.statsCards}>
+                        <div className={`${styles.statCard} ${styles.totalCard}`}>
+                            <div className={styles.statIcon}>
+                                <i className="fas fa-inbox"></i>
+                            </div>
+                            <div className={styles.statInfo}>
+                                <h3>Total Feedback</h3>
+                                <p className={styles.statNumber}>{stats.total}</p>
+                            </div>
+                        </div>
+                        <div className={`${styles.statCard} ${styles.pendingCard}`}>
+                            <div className={styles.statIcon}>
+                                <i className="fas fa-clock"></i>
+                            </div>
+                            <div className={styles.statInfo}>
+                                <h3>Pending</h3>
+                                <p className={styles.statNumber}>{stats.pending}</p>
+                            </div>
+                        </div>
+                        <div className={`${styles.statCard} ${styles.resolvedCard}`}>
+                            <div className={styles.statIcon}>
+                                <i className="fas fa-check-circle"></i>
+                            </div>
+                            <div className={styles.statInfo}>
+                                <h3>Resolved</h3>
+                                <p className={styles.statNumber}>{stats.resolved}</p>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Filters */}
                     <div className={styles.filters}>
-                        <input
-                            type="text"
-                            id="search-feedback"
-                            placeholder="Search feedback..."
-                            value={filters.search}
-                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                        />
+                        <div className={styles.searchGroup}>
+                            <i className="fas fa-search"></i>
+                            <input
+                                type="text"
+                                id="search-feedback"
+                                placeholder="Search subject or user..."
+                                title="Search through feedback text"
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                            />
+                        </div>
+
+                        <select
+                            id="user-role-filter"
+                            title="Filter by user who sent the feedback"
+                            value={filters.userRole}
+                            onChange={(e) => handleFilterChange('userRole', e.target.value)}
+                        >
+                            <option value="all">All Users</option>
+                            <option value="influencer">Influencers</option>
+                            <option value="brand">Brands</option>
+                            <option value="customer">Customers</option>
+                        </select>
+
                         <select
                             id="status-filter"
+                            title="Filter by moderation status"
                             value={filters.status}
                             onChange={(e) => handleFilterChange('status', e.target.value)}
                         >
                             <option value="all">All Statuses</option>
                             <option value="pending">Pending</option>
-                            <option value="reviewed">Reviewed</option>
                             <option value="resolved">Resolved</option>
                         </select>
+
                         <select
                             id="type-filter"
+                            title="Filter by feedback category"
                             value={filters.type}
                             onChange={(e) => handleFilterChange('type', e.target.value)}
                         >
-                            <option value="all">All Types</option>
+                            <option value="all">All Categories</option>
                             <option value="complaint">Complaint</option>
                             <option value="suggestion">Suggestion</option>
                             <option value="bug_report">Bug Report</option>
                             <option value="general">General</option>
                         </select>
+
                         <input
                             type="date"
                             id="date-filter"
-                            placeholder="Filter by date"
+                            title="Filter by creation date"
                             value={filters.date}
                             onChange={(e) => handleFilterChange('date', e.target.value)}
                         />
-                        <button id="reset-filters" onClick={resetFilters}>
-                            <i className="fas fa-sync"></i> Reset Filters
+
+                        <button id="reset-filters" onClick={resetFilters} title="Clear all filters">
+                            <i className="fas fa-sync"></i> Reset
                         </button>
                     </div>
 
                     {/* Feedback table */}
-                    <div className={adminStyles.mainContent}>
+                    <div className={styles.tableContainer}>
                         {filteredFeedbacks.length > 0 ? (
                             <table className={styles.feedbackTable}>
                                 <thead>

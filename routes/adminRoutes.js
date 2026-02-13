@@ -244,6 +244,9 @@ router.get('/verify', async (req, res) => {
 
 router.post('/login/verify', DashboardController.verifyUser);
 
+// Feedback submission route (public for Brands, Influencers, Customers)
+router.post('/feedback/submit', FeedbackController.submitFeedback);
+
 // Protected routes - require authentication
 router.use(adminAuth);
 
@@ -300,6 +303,7 @@ router.post('/payment_verification/update/:id', PaymentController.updatePaymentS
 router.get('/feedback_and_moderation', FeedbackController.getAllFeedback);
 router.get('/feedback_and_moderation/:id', FeedbackController.getFeedbackDetails);
 router.post('/feedback_and_moderation/update/:id', FeedbackController.updateFeedbackStatus);
+router.delete('/feedback_and_moderation/:id', FeedbackController.deleteFeedback);
 
 // Customer Management routes
 router.get('/customer-management', CustomerController.getCustomerManagement);

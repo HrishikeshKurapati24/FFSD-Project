@@ -54,6 +54,7 @@ import Profile from './pages/influencer/Profile';
 import BrandProfileView from './pages/influencer/BrandProfileView';
 import NotificationCenter from './components/notifications/NotificationCenter';
 import ProtectedRoute from './components/ProtectedRoute';
+import UserFeedback from './pages/common/UserFeedback';
 import NotFound from './pages/NotFound';
 import { Navigate } from 'react-router-dom';
 
@@ -120,6 +121,7 @@ function App() {
                 <Route path="/customer/cart" element={<ProtectedRoute requiredRole="customer"><Cart /></ProtectedRoute>} />
                 <Route path="/customer/rankings" element={<ProtectedRoute requiredRole="customer"><Rankings /></ProtectedRoute>} />
                 <Route path="/customer/orders" element={<ProtectedRoute requiredRole="customer"><OrderHistory /></ProtectedRoute>} />
+                <Route path="/feedback" element={<UserFeedback />} />
 
                 {/* 404 Fallback */}
                 <Route path="/not-found" element={<NotFound />} />
