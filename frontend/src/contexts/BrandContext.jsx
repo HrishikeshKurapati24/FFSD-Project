@@ -130,7 +130,7 @@ export const BrandProvider = ({ children }) => {
   // Check if we should fetch on mount (only if on brand pages)
   useEffect(() => {
     const path = window.location.pathname;
-    if ((path.startsWith('/brand') || path === '/feedback') && !brand && !loading) {
+    if ((path.startsWith('/brand') || path.startsWith('/subscription') || path === '/feedback') && !brand && !loading) {
       fetchBrandData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

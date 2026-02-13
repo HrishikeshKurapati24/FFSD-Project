@@ -130,7 +130,7 @@ export const InfluencerProvider = ({ children }) => {
   // Check if we should fetch on mount (only if on influencer pages)
   useEffect(() => {
     const path = window.location.pathname;
-    if ((path.startsWith('/influencer') || path === '/feedback') && !influencer && !loading) {
+    if ((path.startsWith('/influencer') || path.startsWith('/subscription') || path === '/feedback') && !influencer && !loading) {
       fetchInfluencerData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
