@@ -365,6 +365,18 @@ class CustomerPurchaseController {
             if (referralCode) {
                 // Find influencer by referral code
                 attributedInfluencer = await InfluencerInfo.findOne({ referralCode: referralCode.toUpperCase() });
+
+                // SELF-REFERRAL CHECK
+                // If user is logged in, check if they are the influencer
+                if (attributedInfluencer && authenticatedCustomerId) {
+                    // Check if authenticatedCustomerId matches the influencer's user ID (if InfluencerInfo uses same ID or linked)
+                    // Config says InfluencerInfo _id IS the user ID.
+                    if (attributedInfluencer._id.toString() === authenticatedCustomerId.toString()) {
+                        console.log(`[Checkout] Self-referral detected for user ${authenticatedCustomerId}. Ignoring attribution.`);
+                        attributedInfluencer = null;
+                        referralCode = undefined; // Clear it so it doesn't get saved to Order
+                    }
+                }
             }
 
             // Create Order Record
@@ -471,8 +483,17 @@ class CustomerPurchaseController {
                                 revenue: stats.revenue,
                                 commission_earned: stats.commission,
                                 conversions: 1 // Count order as 1 conversion? Or items? Usually orders.
+                            },
+                            $setOnInsert: {
+                                status: 'active', // Default status if creating new record
+                                progress: 0,
+                                engagement_rate: 0,
+                                reach: 0,
+                                clicks: 0,
+                                timeliness_score: 100
                             }
-                        }
+                        },
+                        { upsert: true, new: true, setDefaultsOnInsert: true }
                     );
                 }
             }
