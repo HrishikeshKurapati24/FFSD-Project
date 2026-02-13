@@ -2004,6 +2004,12 @@ router.post('/campaigns/:campaignId/end', async (req, res) => {
             }
         );
 
+        // Deactivate all associated products
+        await Product.updateMany(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId) },
+            { $set: { status: 'inactive' } }
+        );
+
         console.log('Campaign ended successfully:', campaignId);
         res.json({
             success: true,
