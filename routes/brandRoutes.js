@@ -200,7 +200,7 @@ router.get('/explore', async (req, res) => {
         });
 
         // Combine influencer info with analytics data
-        const enrichedInfluencers = influencers.map(influencer => {
+        let enrichedInfluencers = influencers.map(influencer => {
             const analytics = analyticsMap.get(influencer._id.toString()) || {};
             return {
                 _id: influencer._id,
@@ -223,6 +223,40 @@ router.get('/explore', async (req, res) => {
                 }
             };
         });
+
+        // Get brand ID from session to check previous collaborations
+        const brandId = req.session.user?.id;
+        if (brandId) {
+            // Get previous collaborations for this brand
+            const collaborations = await CampaignInfluencers.find({
+                campaign_id: {
+                    $in: await CampaignInfo.find({ brand_id: brandId }).distinct('_id')
+                },
+                status: { $in: ['active', 'completed'] }
+            })
+                .populate('campaign_id', 'title')
+                .populate('influencer_id', '_id')
+                .lean();
+
+            // Create a map of influencer_id to their collaboration details
+            const collaborationMap = {};
+            collaborations.forEach(collab => {
+                const influencerId = collab.influencer_id._id.toString();
+                if (!collaborationMap[influencerId]) {
+                    collaborationMap[influencerId] = [];
+                }
+                collaborationMap[influencerId].push({
+                    campaignTitle: collab.campaign_id.title,
+                    revenue: collab.revenue || 0
+                });
+            });
+
+            // Add collaboration info to influencers
+            enrichedInfluencers = enrichedInfluencers.map(influencer => ({
+                ...influencer,
+                previousCollaborations: collaborationMap[influencer._id.toString()] || []
+            }));
+        }
 
         const responseData = {
             success: true,

@@ -651,7 +651,7 @@ router.get('/current', async (req, res) => {
     }
 });
 
-// Create new subscription
+// Create new subscription or upgrade existing
 router.post('/subscribe', async (req, res) => {
     try {
         const userId = req.session.user.id;
@@ -660,10 +660,27 @@ router.post('/subscribe', async (req, res) => {
 
         // Check if user already has an active subscription
         const existingSubscription = await SubscriptionService.getUserSubscription(userId, userType);
+
         if (existingSubscription && existingSubscription.status === 'active') {
-            return res.status(400).json({
-                success: false,
-                message: 'You already have an active subscription'
+            // Check if it's the same plan and billing cycle
+            if (existingSubscription.planId.toString() === planId && existingSubscription.billingCycle === billingCycle) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'You already have this subscription plan with the same billing cycle active'
+                });
+            }
+
+            // Allow upgrade by updating existing subscription
+            const updatedSubscription = await SubscriptionService.updateSubscription(existingSubscription._id, {
+                planId,
+                billingCycle,
+                updatedAt: new Date()
+            });
+
+            return res.json({
+                success: true,
+                message: 'Subscription upgraded successfully',
+                subscription: updatedSubscription
             });
         }
 
@@ -703,10 +720,10 @@ router.post('/subscribe', async (req, res) => {
             subscription
         });
     } catch (error) {
-        console.error('Error creating subscription:', error);
+        console.error('Error creating/upgrading subscription:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create subscription'
+            message: 'Failed to create/upgrade subscription'
         });
     }
 });

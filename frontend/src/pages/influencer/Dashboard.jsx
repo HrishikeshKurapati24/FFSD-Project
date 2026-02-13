@@ -9,6 +9,8 @@ import ActiveCollaborations from '../../components/influencer/dashboard/ActiveCo
 import BrandInvitations from '../../components/influencer/dashboard/BrandInvitations';
 import SentRequests from '../../components/influencer/dashboard/SentRequests';
 import RecentCampaignHistory from '../../components/influencer/dashboard/RecentCampaignHistory';
+import BrandRankingsSection from '../../components/influencer/dashboard/BrandRankingsSection';
+import ProductsByRevenueSection from '../../components/influencer/dashboard/ProductsByRevenueSection';
 import ContentCreationModal from '../../components/influencer/dashboard/ContentCreationModal';
 import ProgressModal from '../../components/influencer/dashboard/ProgressModal';
 import styles from '../../styles/influencer/dashboard.module.css';
@@ -54,6 +56,15 @@ const Dashboard = () => {
   const [sentRequests, setSentRequests] = useState([]);
   const [recentCampaignHistory, setRecentCampaignHistory] = useState([]);
   const [baseUrl, setBaseUrl] = useState('');
+  
+  // New data for brand rankings and products
+  const [brandRankings, setBrandRankings] = useState([]);
+  const [productsByRevenue, setProductsByRevenue] = useState({
+    high: [],
+    medium: [],
+    low: [],
+    noRevenue: []
+  });
 
   // Use subscription data from context if available, otherwise from dashboard response
   const subscriptionStatus = contextSubscriptionStatus || null;
@@ -145,6 +156,16 @@ const Dashboard = () => {
         setSentRequests(data.sentRequests || []);
         setRecentCampaignHistory(data.recentCampaignHistory || []);
         setBaseUrl(window.location.origin);
+
+        // Fetch brand rankings (brands previously collaborated with, ranked by payment)
+        if (data.brandRankings) {
+          setBrandRankings(data.brandRankings);
+        }
+
+        // Fetch products by revenue (segregated by revenue categories)
+        if (data.productsByRevenue) {
+          setProductsByRevenue(data.productsByRevenue);
+        }
 
         // Cache subscription data in context if available
         if (data.subscriptionStatus || data.subscriptionLimits) {
@@ -532,7 +553,16 @@ const Dashboard = () => {
           onDecline={handleDeclineInvite}
         />
         <SentRequests requests={sentRequests} onCancel={handleCancelRequest} />
+
+                
+        {/* Brand Rankings - Previously collaborated brands ranked by payment */}
+        <BrandRankingsSection brandRankings={brandRankings} />
+        
+        {/* Products by Revenue - Products promoted segregated by revenue */}
+        <ProductsByRevenueSection productsByRevenue={productsByRevenue} />
+        
         <RecentCampaignHistory campaigns={recentCampaignHistory} />
+
       </div>
 
       <ContentCreationModal

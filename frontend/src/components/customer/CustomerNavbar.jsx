@@ -14,7 +14,7 @@ const CustomerNavbar = ({
   const navigate = useNavigate();
   const activePath = location.pathname;
   const [showDropdown, setShowDropdown] = useState(false);
-  const { logout: clearCustomerContext } = useCustomer();
+  const { customer, logout: clearCustomerContext } = useCustomer();
 
   const handleLogout = async () => {
     try {
@@ -56,15 +56,17 @@ const CustomerNavbar = ({
                 All Campaigns
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className={`nav-link ${activePath === '/customer/rankings' ? 'active' : ''}`}
-                to="/customer/rankings"
-                aria-current={activePath === '/customer/rankings' ? 'page' : undefined}
-              >
-                Rankings
-              </Link>
-            </li>
+            {customer && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${activePath === '/customer/rankings' ? 'active' : ''}`}
+                  to="/customer/rankings"
+                  aria-current={activePath === '/customer/rankings' ? 'page' : undefined}
+                >
+                  Rankings
+                </Link>
+              </li>
+            )}
             <li className="nav-item">
               <Link
                 className={`nav-link ${activePath === '/customer/orders' ? 'active' : ''}`}
