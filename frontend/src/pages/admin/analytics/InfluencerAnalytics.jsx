@@ -764,6 +764,12 @@ const InfluencerAnalytics = () => {
                 >
                   Sort by Followers
                 </button>
+                <button
+                  className={`${styles.sortButton} ${sortBy === 'commissionEarned' ? styles.active : ''}`}
+                  onClick={() => setSortBy('commissionEarned')}
+                >
+                  Sort by Commission Earned
+                </button>
               </div>
             </div>
 
@@ -774,12 +780,14 @@ const InfluencerAnalytics = () => {
                   <th>Category</th>
                   <th>Total Followers</th>
                   <th>Engagement Rate</th>
+                  <th>Commission Earned</th>
                 </tr>
               </thead>
               <tbody>
                 {metrics.topInfluencers && [...metrics.topInfluencers]
                   .sort((a, b) => {
                     if (sortBy === 'followers') return (b.followers || 0) - (a.followers || 0);
+                    if (sortBy === 'commissionEarned') return (b.commissionEarned || 0) - (a.commissionEarned || 0);
                     return (b.engagement || 0) - (a.engagement || 0);
                   })
                   .map((influencer, index) => (
@@ -797,6 +805,7 @@ const InfluencerAnalytics = () => {
                       <td>{influencer.category || 'N/A'}</td>
                       <td>{influencer.followers != null ? influencer.followers.toLocaleString() : 'N/A'}</td>
                       <td>{influencer.engagement != null ? `${influencer.engagement}%` : 'N/A'}</td>
+                      <td>${influencer.commissionEarned != null ? influencer.commissionEarned.toLocaleString() : '0'}</td>
                     </tr>
                   ))}
               </tbody>

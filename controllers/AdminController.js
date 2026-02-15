@@ -969,12 +969,21 @@ const AnalyticsController = {
                     },
                     { $unwind: "$info" },
                     {
+                        $lookup: {
+                            from: "campaigninfluencers",
+                            localField: "influencerId",
+                            foreignField: "influencer_id",
+                            as: "campaigns"
+                        }
+                    },
+                    {
                         $project: {
                             name: "$info.fullName",
                             logo: "$info.profilePicUrl",
                             engagement: { $ifNull: ["$avgEngagementRate", 0] },
                             followers: { $ifNull: ["$totalFollowers", 0] },
-                            category: { $ifNull: ["$info.niche", "General"] }
+                            category: { $ifNull: ["$info.niche", "General"] },
+                            commissionEarned: { $sum: "$campaigns.commission_earned" }
                         }
                     },
                     { $sort: { followers: -1 } },
@@ -984,11 +993,11 @@ const AnalyticsController = {
             } catch (err) {
                 console.error("Error fetching top influencers:", err);
                 topInfluencers = [
-                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000 },
-                    { name: 'Mike Chen', engagement: 7.2, followers: 98000 },
-                    { name: 'Emma Davis', engagement: 6.8, followers: 156000 },
-                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000 },
-                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000 }
+                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000, commissionEarned: 0 },
+                    { name: 'Mike Chen', engagement: 7.2, followers: 98000, commissionEarned: 0 },
+                    { name: 'Emma Davis', engagement: 6.8, followers: 156000, commissionEarned: 0 },
+                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000, commissionEarned: 0 },
+                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000, commissionEarned: 0 }
                 ];
             }
 

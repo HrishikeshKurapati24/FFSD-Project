@@ -278,6 +278,7 @@ router.get('/analytics', async (req, res) => {
     res.render('admin/analytics', { brands });
 });
 router.get('/analytics/influencer-roi', AdminAnalyticsController.getInfluencerROI);
+router.get('/analytics/campaign-revenue', AdminAnalyticsController.getCampaignRevenueLeaderboard);
 router.get('/analytics/matchmaking/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
 router.get('/analytics/ecosystem', AdminAnalyticsController.getEcosystemGraphData);
 

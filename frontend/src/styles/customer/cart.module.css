@@ -376,36 +376,67 @@
 }
 
 .connectionCard {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
     background: #ffffff;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    backdrop-filter: blur(10px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.25rem !important;
 }
 
 .connectionCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+    border-color: #0d6efd44;
 }
 
 .connectionAvatar {
-    border: 2px solid #e9ecef;
-    transition: border-color 0.3s ease;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s ease;
+    padding: 2px;
+    background: #fff;
 }
 
 .connectionCard:hover .connectionAvatar {
     border-color: #0d6efd;
+    transform: scale(1.1) rotate(5deg);
 }
 
 .connectionViewButton {
-    border-radius: 999px;
-    padding-inline: 12px;
-    transition: all 0.2s ease;
+    border-radius: 100px;
+    padding: 6px 16px !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1.5px solid #e9ecef !important;
+    background-color: transparent !important;
+    color: #495057 !important;
+    transition: all 0.3s ease !important;
 }
 
 .connectionViewButton:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
     color: #fff !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.connectionCard .fw-bold {
+    color: #1e293b;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.connectionCard .text-muted {
+    font-size: 0.7rem !important;
+    color: #64748b !important;
+    margin-bottom: 0.75rem;
 }

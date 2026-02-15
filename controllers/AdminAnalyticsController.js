@@ -80,6 +80,62 @@ const AdminAnalyticsController = {
         }
     },
 
+    // New Feature: Campaign Revenue Leaderboard
+    getCampaignRevenueLeaderboard: async (req, res) => {
+        try {
+            const { CampaignMetrics } = require('../config/CampaignMongo');
+
+            const leaderboard = await CampaignMetrics.aggregate([
+                {
+                    $group: {
+                        _id: '$campaign_id',
+                        totalRevenue: { $sum: { $ifNull: ['$revenue', 0] } },
+                        avgEngagementRate: { $avg: { $ifNull: ['$engagement_rate', 0] } },
+                        totalClicks: { $sum: { $ifNull: ['$clicks', 0] } },
+                        totalImpressions: { $sum: { $ifNull: ['$impressions', 0] } }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'campaigninfos',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'campaign'
+                    }
+                },
+                { $unwind: '$campaign' },
+                {
+                    $project: {
+                        _id: 0,
+                        campaignId: '$_id',
+                        title: '$campaign.title',
+                        totalRevenue: 1,
+                        avgEngagementRate: 1,
+                        totalClicks: 1,
+                        totalImpressions: 1,
+                        roi: {
+                            $cond: [
+                                { $eq: ['$campaign.budget', 0] },
+                                0,
+                                { $divide: ['$totalRevenue', '$campaign.budget'] }
+                            ]
+                        }
+                    }
+                },
+                { $sort: { totalRevenue: -1 } },
+                { $limit: 10 }
+            ]);
+
+            res.status(200).json({
+                success: true,
+                data: leaderboard
+            });
+        } catch (error) {
+            console.error('Error in getCampaignRevenueLeaderboard:', error);
+            res.status(500).json({ success: false, message: 'Server Error' });
+        }
+    },
+
     // Feature 2: Brand-Influencer Matchmaking
     // Returns influencers recommended for a specific brand based on matching attributes
     getMatchmakingRecommendations: async (req, res) => {

@@ -21,8 +21,7 @@ const BrandAnalytics = () => {
   const revenueChartRef = useRef(null);
   const categoryChartRef = useRef(null);
   const performanceChartRef = useRef(null);
-  const collabTrendsChartRef = useRef(null);
-  const brandComparisonChartRef = useRef(null);
+
   const timeRangeRef = useRef(null);
   const chartsInitializedRef = useRef(false);
 
@@ -73,7 +72,7 @@ const BrandAnalytics = () => {
   // Destroy charts on unmount
   useEffect(() => {
     return () => {
-      [brandGrowthChartRef, revenueChartRef, categoryChartRef, performanceChartRef, collabTrendsChartRef, brandComparisonChartRef]
+      [brandGrowthChartRef, revenueChartRef, categoryChartRef, performanceChartRef]
         .forEach(ref => ref.current?.chart?.destroy());
     };
   }, []);
@@ -107,21 +106,7 @@ const BrandAnalytics = () => {
       }
       performanceChartRef.current = null;
 
-      if (collabTrendsChartRef.current?.chart) {
-        collabTrendsChartRef.current.chart.destroy();
-      }
-      if (collabTrendsChartRef.current?.container && collabTrendsChartRef.current.container.parentNode) {
-        collabTrendsChartRef.current.container.remove();
-      }
-      collabTrendsChartRef.current = null;
 
-      if (brandComparisonChartRef.current?.chart) {
-        brandComparisonChartRef.current.chart.destroy();
-      }
-      if (brandComparisonChartRef.current?.container && brandComparisonChartRef.current.container.parentNode) {
-        brandComparisonChartRef.current.container.remove();
-      }
-      brandComparisonChartRef.current = null;
     };
 
     // Clean up any existing charts first
@@ -142,8 +127,7 @@ const BrandAnalytics = () => {
       initializeRevenueChart(metrics);
       initializeCategoryChart(metrics);
       initializeBrandPerformanceChart(metrics);
-      initializeCollaborationTrendsChart(metrics);
-      initializeBrandComparisonChart(metrics);
+
     }, 100);
 
     // Return cleanup function
@@ -581,203 +565,7 @@ const BrandAnalytics = () => {
     performanceChartRef.current = { chart, container: div };
   };
 
-  const initializeCollaborationTrendsChart = (metrics) => {
-    const container = document.querySelector(`.${styles.chartsContainer}`);
-    if (!container) return;
 
-    // Destroy existing chart and remove container if it exists
-    if (collabTrendsChartRef.current?.chart) {
-      collabTrendsChartRef.current.chart.destroy();
-    }
-    if (collabTrendsChartRef.current?.container && collabTrendsChartRef.current.container.parentNode) {
-      collabTrendsChartRef.current.container.remove();
-    }
-
-    // Check if canvas already exists to prevent duplicates
-    const existingCanvas = document.getElementById('collaborationTrendsChart');
-    if (existingCanvas) {
-      existingCanvas.remove();
-    }
-
-    const div = document.createElement('div');
-    div.className = styles.chartCard;
-    div.innerHTML = `<h3>Collaboration Trends</h3><div style="position: relative; height: 400px; width: 100%;"><canvas id="collaborationTrendsChart"></canvas></div>`;
-    container.appendChild(div);
-
-    const rawCollabData = metrics.collaborationTrends || {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      totalCollabs: [145, 162, 178, 195, 210, 235],
-      completedCollabs: [120, 138, 152, 168, 185, 205],
-      avgDuration: [14, 16, 15, 18, 17, 19]
-    };
-
-    // Limit data points to prevent infinite growth (max 12 months)
-    const MAX_DATA_POINTS = 12;
-    const collabData = {
-      labels: Array.isArray(rawCollabData.labels)
-        ? rawCollabData.labels.slice(-MAX_DATA_POINTS)
-        : rawCollabData.labels,
-      totalCollabs: Array.isArray(rawCollabData.totalCollabs)
-        ? rawCollabData.totalCollabs.slice(-MAX_DATA_POINTS)
-        : rawCollabData.totalCollabs,
-      completedCollabs: Array.isArray(rawCollabData.completedCollabs)
-        ? rawCollabData.completedCollabs.slice(-MAX_DATA_POINTS)
-        : rawCollabData.completedCollabs,
-      avgDuration: Array.isArray(rawCollabData.avgDuration)
-        ? rawCollabData.avgDuration.slice(-MAX_DATA_POINTS)
-        : rawCollabData.avgDuration
-    };
-
-    const ctx = document.getElementById('collaborationTrendsChart')?.getContext('2d');
-    if (!ctx) return;
-
-    const chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: collabData.labels,
-        datasets: [
-          {
-            label: 'Total Collaborations',
-            data: collabData.totalCollabs,
-            backgroundColor: 'rgba(33, 150, 243, 0.8)',
-            borderColor: '#2196F3',
-            borderWidth: 1
-          },
-          {
-            label: 'Completed Collaborations',
-            data: collabData.completedCollabs,
-            backgroundColor: 'rgba(76, 175, 80, 0.8)',
-            borderColor: '#4CAF50',
-            borderWidth: 1
-          },
-          {
-            label: 'Avg Duration (days)',
-            data: collabData.avgDuration,
-            type: 'line',
-            borderColor: '#FF9800',
-            backgroundColor: 'rgba(255, 152, 0, 0.2)',
-            fill: false,
-            tension: 0.4,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        resizeDelay: 0,
-        plugins: {
-          legend: { position: 'top' },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const label = context.dataset.label || '';
-                return context.datasetIndex === 2
-                  ? `${label}: ${context.parsed.y} days`
-                  : `${label}: ${context.parsed.y} collaborations`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            display: true,
-            title: { display: true, text: 'Month' },
-            ticks: {
-              maxRotation: 45,
-              minRotation: 0,
-              callback: function (value, index) {
-                const label = this.getLabelForValue(value);
-                return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
-              }
-            }
-          },
-          y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Number of Collaborations' }, beginAtZero: true },
-          y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Duration (days)' }, grid: { drawOnChartArea: false } }
-        }
-      }
-    });
-
-    collabTrendsChartRef.current = { chart, container: div };
-  };
-
-  const initializeBrandComparisonChart = (metrics) => {
-    const container = document.querySelector(`.${styles.chartsContainer}`);
-    if (!container) return;
-
-    // Destroy existing chart and remove container if it exists
-    if (brandComparisonChartRef.current?.chart) {
-      brandComparisonChartRef.current.chart.destroy();
-    }
-    if (brandComparisonChartRef.current?.container && brandComparisonChartRef.current.container.parentNode) {
-      brandComparisonChartRef.current.container.remove();
-    }
-
-    // Check if canvas already exists to prevent duplicates
-    const existingCanvas = document.getElementById('brandComparisonChart');
-    if (existingCanvas) {
-      existingCanvas.remove();
-    }
-
-    const div = document.createElement('div');
-    div.className = styles.chartCard;
-    div.innerHTML = `<h3>Top Brands Comparison</h3><div style="position: relative; height: 400px; width: 100%;"><canvas id="brandComparisonChart"></canvas></div>`;
-    container.appendChild(div);
-
-    const topBrands = (metrics.topBrands || []).slice(0, 5).length > 0 ? metrics.topBrands.slice(0, 5) : [
-      { name: 'Nike', revenue: 125000, engagementRate: 7.2, activeCampaigns: 12 },
-      { name: 'Adidas', revenue: 98000, engagementRate: 6.8, activeCampaigns: 9 },
-      { name: 'Apple', revenue: 156000, engagementRate: 8.1, activeCampaigns: 15 },
-      { name: 'Samsung', revenue: 87000, engagementRate: 5.9, activeCampaigns: 8 },
-      { name: 'Coca-Cola', revenue: 142000, engagementRate: 6.5, activeCampaigns: 11 }
-    ];
-
-    const ctx = document.getElementById('brandComparisonChart')?.getContext('2d');
-    if (!ctx) return;
-
-    const chart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: ['Revenue (K)', 'Engagement Rate', 'Active Campaigns', 'Brand Score', 'Market Reach'],
-        datasets: topBrands.slice(0, 3).map((brand, i) => ({
-          label: brand.name,
-          data: [
-            brand.revenue / 1000,
-            brand.engagementRate,
-            brand.activeCampaigns,
-            brand.engagementRate * 10,
-            brand.revenue / 2000
-          ],
-          borderColor: ['#FF6384', '#36A2EB', '#FFCE56'][i],
-          backgroundColor: [`rgba(255, 99, 132, 0.2)`, `rgba(54, 162, 235, 0.2)`, `rgba(255, 206, 86, 0.2)`][i],
-          borderWidth: 2,
-          pointBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'][i],
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2
-        }))
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        resizeDelay: 0,
-        plugins: { legend: { position: 'top' } },
-        scales: {
-          r: {
-            beginAtZero: true,
-            grid: { color: 'rgba(0, 0, 0, 0.1)' },
-            pointLabels: {
-              font: { size: 12 },
-              callback: function (label) {
-                return label && label.length > 10 ? label.substring(0, 10) + '...' : label;
-              }
-            }
-          }
-        }
-      }
-    });
-
-    brandComparisonChartRef.current = { chart, container: div };
-  };
 
   const updateBrandChartsWithTimeRange = (timeRange) => {
     console.log('Updating brand charts for time range:', timeRange);
@@ -833,6 +621,7 @@ const BrandAnalytics = () => {
   const sortedBrands = metrics?.topBrands
     ? [...metrics.topBrands].sort((a, b) => {
       if (sortBy === 'revenue') return (b.revenue || 0) - (a.revenue || 0);
+      if (sortBy === 'activeCampaigns') return (b.activeCampaigns || 0) - (a.activeCampaigns || 0);
       return (b.engagementRate || 0) - (a.engagementRate || 0);
     })
     : [];
@@ -950,6 +739,12 @@ const BrandAnalytics = () => {
                   onClick={() => setSortBy('revenue')}
                 >
                   Sort by Revenue
+                </button>
+                <button
+                  className={`${styles.sortButton} ${sortBy === 'activeCampaigns' ? styles.active : ''}`}
+                  onClick={() => setSortBy('activeCampaigns')}
+                >
+                  Sort by Campaigns
                 </button>
               </div>
             </div>
