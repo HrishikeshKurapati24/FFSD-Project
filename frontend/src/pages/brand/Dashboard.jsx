@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/brand/dashboard.module.css';
@@ -22,8 +23,10 @@ import CampaignRequestsSection from '../../components/brand/dashboard/CampaignRe
 import RecentCampaignHistory from '../../components/brand/dashboard/RecentCampaignHistory';
 import CampaignDetailsModal from '../../components/brand/dashboard/CampaignDetailsModal';
 import ContentReviewModal from '../../components/brand/dashboard/ContentReviewModal';
-import InfluencersListModal from '../../components/brand/dashboard/InfluencersListModal';
 import InfluencerContributionModal from '../../components/brand/dashboard/InfluencerContributionModal';
+import InfluencerRankingsSection from '../../components/brand/dashboard/InfluencerRankingsSection';
+import BrandProductsSection from '../../components/brand/dashboard/BrandProductsSection';
+import InfluencersListModal from '../../components/brand/dashboard/InfluencersListModal';
 
 const EXTERNAL_ASSETS = {
   styles: [
@@ -57,6 +60,8 @@ const Dashboard = () => {
   const [campaignRequests, setCampaignRequests] = useState([]);
   const [recentCompletedCampaigns, setRecentCompletedCampaigns] = useState([]);
   const [completedProgressCampaigns, setCompletedProgressCampaigns] = useState([]);
+  const [influencerRankings, setInfluencerRankings] = useState([]);
+  const [brandProducts, setBrandProducts] = useState([]);
   const [successMessage, setSuccessMessage] = useState(null);
 
   // Use subscription data from context if available, otherwise from dashboard response
@@ -117,6 +122,8 @@ const Dashboard = () => {
         setCampaignRequests(data.campaignRequests || []);
         setRecentCompletedCampaigns(data.recentCompletedCampaigns || []);
         setCompletedProgressCampaigns(data.completedProgressCampaigns || []);
+        setInfluencerRankings(data.influencerRankings || []);
+        setBrandProducts(data.brandProducts || []);
         setSuccessMessage(data.successMessage);
         setSuccessVisible(true);
 
@@ -565,7 +572,12 @@ const Dashboard = () => {
           onViewDetails={handleViewDetails}
         />
 
+        <InfluencerRankingsSection rankings={influencerRankings} />
+
+        <BrandProductsSection products={brandProducts} />
+
         <RecentCampaignHistory campaigns={recentCompletedCampaigns} />
+
       </div>
 
       <CampaignDetailsModal

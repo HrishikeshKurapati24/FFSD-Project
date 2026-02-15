@@ -515,6 +515,26 @@ class SubscriptionService {
     }
   }
 
+  // Update subscription (for upgrades)
+  static async updateSubscription(subscriptionId, updateData) {
+    try {
+      const updatedSubscription = await UserSubscription.findByIdAndUpdate(
+        subscriptionId,
+        { ...updateData, updatedAt: new Date() },
+        { new: true, runValidators: true }
+      ).populate('planId');
+
+      if (!updatedSubscription) {
+        throw new Error('Subscription not found');
+      }
+
+      return updatedSubscription;
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      throw error;
+    }
+  }
+
   // Initialize default subscription plans
   static async initializeDefaultPlans() {
     const brandPlans = [

@@ -652,7 +652,7 @@ router.get('/current', async (req, res) => {
     }
 });
 
-// Create new subscription
+// Create new subscription or upgrade existing
 router.post('/subscribe', async (req, res) => {
     try {
         const userId = req.session.user.id;
@@ -746,10 +746,10 @@ router.post('/subscribe', async (req, res) => {
             subscription
         });
     } catch (error) {
-        console.error('Error creating subscription:', error);
+        console.error('Error creating/upgrading subscription:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create subscription'
+            message: 'Failed to create/upgrade subscription'
         });
     }
 });

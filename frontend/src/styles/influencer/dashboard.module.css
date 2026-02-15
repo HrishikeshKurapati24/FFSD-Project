@@ -1144,7 +1144,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    /* backdrop-filter: blur(4px); */
     animation: modalFadeIn 0.3s ease-out;
 }
 
@@ -1950,4 +1950,124 @@
     background: #1765cc;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(60, 64, 67, 0.3);
+}
+
+/* Brand Rankings Section Styles */
+.brand-rankings-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    margin: 2rem auto;
+    max-width: 1400px;
+    overflow: hidden;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-bottom: none;
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-content {
+    padding: 1.5rem;
+    background: #ffffff;
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 2rem;
+    color: #888;
+    font-size: 0.95rem;
+}
+
+.section-description {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.rankings-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.95rem;
+}
+
+.rankings-table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.rankings-table thead th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.rankings-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+.rankings-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.rankings-table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* First column (Rank) styling - black text color */
+.rankings-table tbody td:first-child {
+    color: #000 !important;
+    font-weight: 700;
+}
+
+.brand-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.brand-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.payment-cell {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.campaigns-cell {
+    color: #666;
 }

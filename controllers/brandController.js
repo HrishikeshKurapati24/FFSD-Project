@@ -1,5 +1,7 @@
 const { brandModel, SubscriptionService } = require('../models/brandModel');
+const { getAllInfluencers } = require('../models/influencerModel');
 const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../config/CampaignMongo');
+const { Order } = require('../config/OrderMongo');
 const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploadError } = require('../utils/imageUpload');
 const { validationResult } = require('express-validator');
 
@@ -150,6 +152,68 @@ const buildCampaignHistoryPayload = (campaigns = []) => ({
   }
 });
 
+// Get influencer rankings based on revenue from their links
+const getInfluencerRankings = async (brandId) => {
+  try {
+    // Get all campaigns for this brand
+    const campaigns = await CampaignInfo.find({ brand_id: brandId }).select('_id title');
+
+    if (campaigns.length === 0) {
+      return [];
+    }
+
+    const campaignIds = campaigns.map(c => c._id);
+
+    // Aggregate campaign influencers by revenue for these campaigns
+    const rankings = await CampaignInfluencers.aggregate([
+      {
+        $match: {
+          campaign_id: { $in: campaignIds },
+          status: { $in: ['active', 'completed'] }
+        }
+      },
+      {
+        $lookup: {
+          from: 'influencerinfos',
+          localField: 'influencer_id',
+          foreignField: '_id',
+          as: 'influencer'
+        }
+      },
+      {
+        $unwind: '$influencer'
+      },
+      {
+        $group: {
+          _id: '$influencer_id',
+          name: { $first: '$influencer.fullName' },
+          totalRevenue: { $sum: '$revenue' },
+          campaignCount: { $addToSet: '$campaign_id' }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          totalRevenue: 1,
+          campaignCount: { $size: '$campaignCount' }
+        }
+      },
+      {
+        $sort: { totalRevenue: -1 }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    return rankings;
+  } catch (error) {
+    console.error('Error getting influencer rankings:', error);
+    return [];
+  }
+};
+
 const brandController = {
   // Get explore page
   async getExplorePage(req, res) {
@@ -158,46 +222,107 @@ const brandController = {
       const searchQuery = search || '';
       const selectedCategory = category || 'all';
 
-      // Get all brands first to extract categories
-      const allBrands = await brandModel.getAllBrands();
-      // Extract unique industries (from brand signup)
+      // Get all influencers first to extract categories
+      const allInfluencers = await brandModel.getAllInfluencers();
+      // Extract unique categories (from influencer profiles)
       const categoriesSet = new Set();
-      allBrands.forEach(brand => {
-        if (brand.industry && typeof brand.industry === 'string') {
-          categoriesSet.add(brand.industry.trim());
+      allInfluencers.forEach(influencer => {
+        if (influencer.categories && Array.isArray(influencer.categories)) {
+          influencer.categories.forEach(cat => categoriesSet.add(cat.trim()));
         }
       });
       const categories = Array.from(categoriesSet).sort();
 
-      // Filter brands based on search and category
-      let filteredBrands = allBrands;
+      // Filter influencers based on search and category
+      let filteredInfluencers = allInfluencers;
       if (selectedCategory && selectedCategory !== 'all') {
-        filteredBrands = filteredBrands.filter(brand =>
-          brand.industry && brand.industry.toLowerCase().includes(selectedCategory.toLowerCase())
+        filteredInfluencers = filteredInfluencers.filter(influencer =>
+          influencer.categories && influencer.categories.some(cat =>
+            cat.toLowerCase().includes(selectedCategory.toLowerCase())
+          )
         );
       }
 
       if (searchQuery) {
         const searchLower = searchQuery.toLowerCase();
-        filteredBrands = filteredBrands.filter(brand =>
-          (brand.brandName && brand.brandName.toLowerCase().includes(searchLower)) ||
-          (brand.name && brand.name.toLowerCase().includes(searchLower)) ||
-          (brand.industry && brand.industry.toLowerCase().includes(searchLower)) ||
-          (brand.mission && brand.mission.toLowerCase().includes(searchLower)) ||
-          (brand.tagline && brand.tagline.toLowerCase().includes(searchLower))
+        filteredInfluencers = filteredInfluencers.filter(influencer =>
+          (influencer.fullName && influencer.fullName.toLowerCase().includes(searchLower)) ||
+          (influencer.username && influencer.username.toLowerCase().includes(searchLower)) ||
+          (influencer.bio && influencer.bio.toLowerCase().includes(searchLower)) ||
+          (influencer.categories && influencer.categories.some(cat =>
+            cat.toLowerCase().includes(searchLower)
+          ))
         );
       }
 
-      res.render('influencer/explore', {
-        brands: filteredBrands,
+      // Get brand ID from session to check previous collaborations
+      const brandId = req.session.user?.id;
+      let influencersWithCollaboration = filteredInfluencers;
+
+      if (brandId) {
+        // Get previous collaborations for this brand
+        const collaborations = await CampaignInfluencers.find({
+          campaign_id: {
+            $in: await CampaignInfo.find({ brand_id: brandId }).distinct('_id')
+          },
+          status: { $in: ['active', 'completed'] }
+        })
+        .populate('campaign_id', 'title')
+        .populate('influencer_id', '_id')
+        .lean();
+
+        // Create a map of influencer_id to their collaboration details
+        const collaborationMap = {};
+        collaborations.forEach(collab => {
+          const influencerId = collab.influencer_id._id.toString();
+          if (!collaborationMap[influencerId]) {
+            collaborationMap[influencerId] = [];
+          }
+          collaborationMap[influencerId].push({
+            campaignTitle: collab.campaign_id.title,
+            revenue: collab.revenue || 0
+          });
+        });
+
+        // Add collaboration info to influencers
+        influencersWithCollaboration = filteredInfluencers.map(influencer => ({
+          ...influencer,
+          previousCollaborations: collaborationMap[influencer._id.toString()] || []
+        }));
+
+        // Add Rohan Joshi as a demo influencer with previous collaborations
+        const demoInfluencer = {
+          _id: 'demo-rohan-joshi',
+          fullName: 'Rohan Joshi',
+          displayName: 'Rohan Joshi',
+          profilePicUrl: '/images/default-profile.jpg',
+          verified: true,
+          categories: ['Comedy', 'Writing', 'Acting', 'Entertainment'],
+          totalFollowers: 2200000,
+          avgEngagementRate: 4.10,
+          audienceDemographics: {
+            gender: 'Mixed',
+            ageRange: '20-40'
+          },
+          previousCollaborations: [
+            { campaignTitle: 'Summer Fashion Campaign', revenue: 25000 },
+            { campaignTitle: 'Tech Gadgets Review', revenue: 18000 }
+          ]
+        };
+
+        influencersWithCollaboration = [demoInfluencer, ...influencersWithCollaboration];
+      }
+
+      res.render('brand/explore', {
+        influencers: influencersWithCollaboration,
         searchQuery,
         selectedCategory,
         categories
       });
     } catch (err) {
-      console.error('Error fetching brands:', err);
+      console.error('Error fetching influencers:', err);
       res.status(500).render('error', {
-        message: 'Error fetching brands',
+        message: 'Error fetching influencers',
         error: { status: 500 }
       });
     }
@@ -480,14 +605,49 @@ const brandController = {
       ]);
 
       // Fetch all required data concurrently
-      const [brand, stats, activeCampaigns, analytics, campaignRequests, recentCompletedCampaigns, completedProgressCampaigns] = await Promise.all([
+      const [brand, stats, activeCampaigns, analytics, campaignRequests, recentCompletedCampaigns, completedProgressCampaigns, influencerRankings, brandProducts] = await Promise.all([
         brandModel.getBrandById(brandId),
         brandModel.getBrandStats(brandId),
         brandModel.getActiveCampaigns(brandId),
         brandModel.getBrandAnalytics(brandId),
         brandModel.getCampaignRequests(brandId),
         brandModel.getRecentCompletedCampaigns(brandId, 3),
-        brandModel.getCompletedProgressCampaigns(brandId)
+        brandModel.getCompletedProgressCampaigns(brandId),
+        getInfluencerRankings(brandId),
+        (async () => {
+          try {
+            const { Product } = require('../config/ProductMongo');
+            const products = await Product.find({
+              brand_id: brandId
+            })
+              .populate('campaign_id', 'title status')
+              .sort({ createdAt: -1 })
+              .lean();
+
+            return products.map(product => ({
+              _id: product._id,
+              name: product.name,
+              description: product.description,
+              images: product.images,
+              original_price: product.original_price,
+              campaign_price: product.campaign_price,
+              discount_percentage: product.discount_percentage,
+              category: product.category,
+              tags: product.tags,
+              target_quantity: product.target_quantity,
+              sold_quantity: product.sold_quantity,
+              status: product.status,
+              campaign: product.campaign_id ? {
+                title: product.campaign_id.title,
+                status: product.campaign_id.status
+              } : null,
+              createdAt: product.createdAt
+            }));
+          } catch (error) {
+            console.error('Error fetching brand products:', error);
+            return [];
+          }
+        })()
       ]);
 
       if (!brand) {
@@ -596,7 +756,9 @@ const brandController = {
         return res.json({
           success: true,
           ...transformedData,
-          recentCompletedCampaigns
+          recentCompletedCampaigns,
+          influencerRankings,
+          brandProducts
         });
       }
 
@@ -806,6 +968,50 @@ const brandController = {
     } catch (error) {
       console.error('Error fetching influencer contribution:', error);
       res.status(500).json({ success: false, message: 'Error fetching contribution details' });
+    }
+  },
+
+  // Get products for brand
+  async getBrandProducts(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const { Product } = require('../config/ProductMongo');
+
+      const products = await Product.find({
+        brand_id: brandId,
+        status: { $in: ['active', 'inactive'] }
+      })
+        .populate('campaign_id', 'title status')
+        .sort({ createdAt: -1 })
+        .lean();
+
+      const formattedProducts = products.map(product => ({
+        _id: product._id,
+        name: product.name,
+        description: product.description,
+        images: product.images,
+        original_price: product.original_price,
+        campaign_price: product.campaign_price,
+        discount_percentage: product.discount_percentage,
+        category: product.category,
+        tags: product.tags,
+        target_quantity: product.target_quantity,
+        sold_quantity: product.sold_quantity,
+        status: product.status,
+        campaign: product.campaign_id ? {
+          title: product.campaign_id.title,
+          status: product.campaign_id.status
+        } : null,
+        createdAt: product.createdAt
+      }));
+
+      res.json({
+        success: true,
+        products: formattedProducts
+      });
+    } catch (error) {
+      console.error('Error fetching brand products:', error);
+      res.status(500).json({ success: false, message: 'Error fetching products' });
     }
   }
 };
