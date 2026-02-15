@@ -27,6 +27,13 @@ export default function CustomerManagement() {
     const [searchQuery, setSearchQuery] = useState('');
     const [notifications, setNotifications] = useState([]);
 
+    // Completed Orders State
+    const [orders, setOrders] = useState([]);
+    const [orderStats, setOrderStats] = useState({ totalOrders: 0, totalRevenue: 0 });
+    const [showOrders, setShowOrders] = useState(false);
+    const [ordersLoading, setOrdersLoading] = useState(false);
+    const [ordersError, setOrdersError] = useState(null);
+
     const customerGrowthChartRef = useRef(null);
     const purchaseTrendsChartRef = useRef(null);
     const customerGrowthChartInstance = useRef(null);
@@ -244,6 +251,34 @@ export default function CustomerManagement() {
             }
         } catch (error) {
             console.error('Error fetching customer data:', error);
+        }
+    };
+
+    const fetchCompletedOrders = async () => {
+        try {
+            setOrdersLoading(true);
+            const response = await fetch(`${API_BASE_URL}/admin/completed-orders`, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/admin/login';
+                return;
+            }
+
+            if (!response.ok) throw new Error('Failed to fetch orders');
+
+            const data = await response.json();
+            if (data.success) {
+                setOrders(data.orders);
+                setOrderStats(data.stats);
+            }
+        } catch (err) {
+            console.error('Error:', err);
+            setOrdersError(err.message);
+        } finally {
+            setOrdersLoading(false);
         }
     };
 
@@ -610,6 +645,105 @@ export default function CustomerManagement() {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        {/* Completed Orders Section (New Feature) */}
+                        <div className={styles.tableContainer}>
+                            <div className={styles['table-header']}>
+                                <h3><i className="fas fa-check-circle"></i> Completed Orders</h3>
+                                <div className={styles.headerActions} style={{ display: 'flex', gap: '10px' }}>
+                                    <button
+                                        onClick={() => {
+                                            if (!showOrders && orders.length === 0) fetchCompletedOrders();
+                                            setShowOrders(!showOrders);
+                                        }}
+                                        className={styles.actionBtn}
+                                        style={{
+                                            backgroundColor: showOrders ? '#4285f4' : '#f3f4f6',
+                                            color: showOrders ? 'white' : '#4b5563',
+                                            padding: '8px 16px',
+                                            borderRadius: '6px',
+                                            fontWeight: '600',
+                                            border: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {showOrders ? 'Hide Orders' : 'View Orders'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {showOrders && (
+                                <div className={styles.tableWrapper}>
+                                    {ordersLoading ? (
+                                        <div className="text-center p-4">Loading orders...</div>
+                                    ) : ordersError ? (
+                                        <div className="text-center p-4 text-danger">{ordersError}</div>
+                                    ) : (
+                                        <table className={styles['customers-table']}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Customer</th>
+                                                    <th>Items</th>
+                                                    <th>Amount</th>
+                                                    <th>Influencer</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {orders.length > 0 ? (
+                                                    orders.map(order => (
+                                                        <tr key={order._id}>
+                                                            <td><span style={{ background: '#e8f0fe', color: '#1967d2', padding: '2px 6px', borderRadius: '4px', fontSize: '0.85em', fontWeight: 'bold' }}>#{order.orderId}</span></td>
+                                                            <td>
+                                                                <div className={styles['customer-info']}>
+                                                                    <span>{order.customerName}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div style={{ fontSize: '0.85em', color: '#666' }}>
+                                                                    {order.items.map((item, idx) => (
+                                                                        <div key={idx}>{item.quantity}x {item.productName}</div>
+                                                                    ))}
+                                                                </div>
+                                                            </td>
+                                                            <td className={styles.amount}>${order.totalAmount.toLocaleString()}</td>
+                                                            <td>
+                                                                <span style={{
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '12px',
+                                                                    fontSize: '0.8em',
+                                                                    background: order.influencerName === 'Direct' ? '#f1f3f4' : '#f3e5f5',
+                                                                    color: order.influencerName === 'Direct' ? '#5f6368' : '#7b1fa2'
+                                                                }}>
+                                                                    {order.influencerName}
+                                                                </span>
+                                                            </td>
+                                                            <td>{new Date(order.date).toLocaleDateString()}</td>
+                                                            <td>
+                                                                <span className={`${styles.statusBadge} ${styles[order.status] || ''}`} style={{ background: '#dcfce7', color: '#166534' }}>
+                                                                    {order.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="7" className="text-center p-4">No completed orders found.</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            )}
+                            {!showOrders && (
+                                <div style={{ padding: '30px', textAlign: 'center', color: '#888' }}>
+                                    <p>Click "View Orders" to see detailed transaction history.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

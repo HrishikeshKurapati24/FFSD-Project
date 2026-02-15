@@ -2405,6 +2405,119 @@ const CustomerController = {
             }
             return res.status(500).send('Failed to load customers page');
         }
+    },
+
+    // Get completed orders for monitoring
+    async getCompletedOrders(req, res) {
+        try {
+            const orders = await Order.find({
+                status: { $in: ['paid', 'shipped', 'delivered'] }
+            })
+                .sort({ createdAt: -1 })
+                .populate('customer_id')
+                .populate('items.product_id')
+                .populate('influencer_id', 'fullName')
+                .lean();
+
+            // Transform data for the frontend
+            const transformedOrders = orders.map(order => ({
+                _id: order._id,
+                orderId: order._id.toString().slice(-8).toUpperCase(),
+                customerName: order.customer_id?.name || order.guest_info?.name || 'Guest',
+                customerEmail: order.customer_id?.email || order.guest_info?.email || 'N/A',
+                items: order.items.map(item => ({
+                    productName: item.product_id?.name || 'Unknown Product',
+                    quantity: item.quantity,
+                    price: item.price_at_purchase
+                })),
+                totalAmount: order.total_amount,
+                status: order.status,
+                date: order.createdAt,
+                influencerName: order.influencer_id?.fullName || 'Direct'
+            }));
+
+            const totalOrders = transformedOrders.length;
+            const totalRevenue = transformedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+            return res.status(200).json({
+                success: true,
+                orders: transformedOrders,
+                stats: {
+                    totalOrders,
+                    totalRevenue
+                }
+            });
+        } catch (error) {
+            console.error('Error in getCompletedOrders:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch completed orders',
+                message: error.message
+            });
+        }
+    },
+
+    // Get product analytics
+    async getProductAnalytics(req, res) {
+        try {
+            // Aggregate product sales from Orders
+            const productStats = await Order.aggregate([
+                { $match: { status: { $in: ['paid', 'shipped', 'delivered'] } } },
+                { $unwind: "$items" },
+                {
+                    $group: {
+                        _id: "$items.product_id",
+                        totalSold: { $sum: "$items.quantity" },
+                        totalRevenue: { $sum: "$items.subtotal" }
+                    }
+                },
+                { $sort: { totalRevenue: -1 } }
+            ]);
+
+            // Get all products to include those with 0 sales
+            const allProducts = await Product.find().select('name images category brand_id campaign_price original_price status').populate('brand_id', 'brandName').lean();
+
+            // Create a map of sales stats
+            const statsMap = new Map();
+            productStats.forEach(stat => {
+                if (stat._id) statsMap.set(stat._id.toString(), stat);
+            });
+
+            // Merge stats with product details
+            const analyticsData = allProducts.map(product => {
+                const stats = statsMap.get(product._id.toString()) || { totalSold: 0, totalRevenue: 0 };
+                return {
+                    id: product._id,
+                    name: product.name,
+                    image: product.images && product.images[0] ? product.images[0].url : '/images/default-product.png',
+                    category: product.category || 'Uncategorized',
+                    brand: product.brand_id ? product.brand_id.brandName : 'Unknown Brand',
+                    price: product.campaign_price || product.original_price,
+                    status: product.status,
+                    totalSold: stats.totalSold,
+                    totalRevenue: stats.totalRevenue
+                };
+            });
+
+            // Calculate global totals
+            const totalProductsSold = analyticsData.reduce((sum, item) => sum + item.totalSold, 0);
+            const totalRevenueEarned = analyticsData.reduce((sum, item) => sum + item.totalRevenue, 0);
+            const topProducts = [...analyticsData].sort((a, b) => b.totalSold - a.totalSold).slice(0, 5);
+
+            res.status(200).json({
+                success: true,
+                analytics: {
+                    totalProductsSold,
+                    totalRevenueEarned,
+                    products: analyticsData,
+                    topProducts
+                }
+            });
+
+        } catch (error) {
+            console.error('Error fetching product analytics:', error);
+            res.status(500).json({ success: false, message: 'Server error' });
+        }
     }
 };
 

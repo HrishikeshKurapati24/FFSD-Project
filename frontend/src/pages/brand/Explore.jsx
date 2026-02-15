@@ -402,7 +402,7 @@ export default function Explore() {
                         <p><strong>Audience:</strong> {influencer.audienceDemographics.gender}, {influencer.audienceDemographics.ageRange}</p>
                       )}
                       {influencer.previousCollaborations && influencer.previousCollaborations.length > 0 && (
-                        <p><strong>Previously Collaborated:</strong> {influencer.previousCollaborations.map(pc => `${pc.campaignTitle} ($${pc.revenue})`).join(', ')}</p>
+                        <p><strong>Previously Collaborated:</strong> {influencer.previousCollaborations.map(pc => `${pc.campaignTitle}`).join(', ')}</p>
                       )}
                     </div>
                   </div>

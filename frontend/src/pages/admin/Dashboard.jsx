@@ -425,6 +425,11 @@ export default function Dashboard() {
                             <h3>Campaign Analytics</h3>
                             <p>In-depth analysis of campaign performance, engagement, and ROI metrics</p>
                         </Link>
+                        <Link to="/admin/product-analytics" className={styles.dashboardLink}>
+                            <i className="fas fa-box-open"></i>
+                            <h3>Product Analytics</h3>
+                            <p>Track product sales, revenue, and performance across all campaigns</p>
+                        </Link>
                     </div>
                 </div>
 

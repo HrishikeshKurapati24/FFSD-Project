@@ -1,6 +1,7 @@
 const { brandModel, SubscriptionService } = require('../models/brandModel');
 const { getAllInfluencers } = require('../models/influencerModel');
 const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../config/CampaignMongo');
+const { Product } = require('../config/ProductMongo');
 const { Order } = require('../config/OrderMongo');
 const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploadError } = require('../utils/imageUpload');
 const { validationResult } = require('express-validator');
@@ -267,9 +268,9 @@ const brandController = {
           },
           status: { $in: ['active', 'completed'] }
         })
-        .populate('campaign_id', 'title')
-        .populate('influencer_id', '_id')
-        .lean();
+          .populate('campaign_id', 'title')
+          .populate('influencer_id', '_id')
+          .lean();
 
         // Create a map of influencer_id to their collaboration details
         const collaborationMap = {};
@@ -616,10 +617,7 @@ const brandController = {
         getInfluencerRankings(brandId),
         (async () => {
           try {
-            const { Product } = require('../config/ProductMongo');
-            const products = await Product.find({
-              brand_id: brandId
-            })
+            const products = await Product.find({ brand_id: brandId })
               .populate('campaign_id', 'title status')
               .sort({ createdAt: -1 })
               .lean();
@@ -720,19 +718,29 @@ const brandController = {
           daysRemaining: Math.max(0, Math.ceil((new Date(campaign.end_date) - new Date()) / (1000 * 60 * 60 * 24))),
           influencersCount: campaign.influencers_count || 0
         })),
-        campaignRequests: campaignRequests.map(request => ({
-          _id: request._id,
-          title: request.title,
-          description: request.description,
-          status: request.status,
-          start_date: request.start_date,
-          duration: request.duration,
-          budget: request.budget,
-          target_audience: request.target_audience,
-          required_channels: request.required_channels,
-          min_followers: request.min_followers,
-          objectives: request.objectives,
-          influencers_count: request.influencers_count || 0
+        campaignRequests: await Promise.all(campaignRequests.map(async (request) => {
+          const products = await Product.find({ campaign_id: request._id }).lean();
+          return {
+            _id: request._id,
+            title: request.title,
+            description: request.description,
+            status: request.status,
+            start_date: request.start_date, // Keep for legacy
+            startDate: request.start_date, // Common frontend expectation
+            duration: request.duration,
+            budget: request.budget,
+            target_audience: request.target_audience,
+            required_channels: request.required_channels,
+            min_followers: request.min_followers,
+            objectives: request.objectives,
+            influencers_count: request.influencers_count || 0,
+            products: products.map(p => ({
+              _id: p._id,
+              name: p.name,
+              campaign_price: p.campaign_price,
+              images: p.images
+            }))
+          };
         })),
         analytics: {
           months: analytics.months || [],
@@ -810,19 +818,28 @@ const brandController = {
       const campaigns = await brandModel.getCampaignHistory(brandId);
       console.log('Retrieved campaigns:', campaigns.length);
 
-      const transformedCampaigns = campaigns.map(campaign => ({
-        ...campaign,
-        performance_score: campaign.performance_score || 0,
-        engagement_rate: campaign.engagement_rate || 0,
-        reach: campaign.reach || 0,
-        conversion_rate: campaign.conversion_rate || 0,
-        influencers_count: campaign.influencers?.length || 0,
-        budget: campaign.budget || 0,
-        end_date: campaign.end_date,
-        status: campaign.status,
-        title: campaign.title,
-        description: campaign.description,
-        influencers: campaign.influencers || []
+      const transformedCampaigns = await Promise.all(campaigns.map(async (campaign) => {
+        const products = await Product.find({ campaign_id: campaign._id }).lean();
+        return {
+          ...campaign,
+          performance_score: campaign.performance_score || 0,
+          engagement_rate: campaign.engagement_rate || 0,
+          reach: campaign.reach || 0,
+          conversion_rate: campaign.conversion_rate || 0,
+          influencers_count: campaign.influencers?.length || 0,
+          budget: campaign.budget || 0,
+          end_date: campaign.end_date,
+          status: campaign.status,
+          title: campaign.title,
+          description: campaign.description,
+          influencers: campaign.influencers || [],
+          products: products.map(p => ({
+            _id: p._id,
+            name: p.name,
+            campaign_price: p.campaign_price,
+            images: p.images
+          }))
+        };
       }));
       const historyPayload = buildCampaignHistoryPayload(transformedCampaigns);
 

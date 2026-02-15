@@ -36,6 +36,25 @@ const CampaignRequestCard = ({ request, onActivate, onViewDetails }) => {
           <span>Min Followers: {(request.min_followers || 0).toLocaleString()}</span>
         </div>
       </div>
+
+      {request.products && request.products.length > 0 && (
+        <div className="request-products mt-3">
+          <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#666', marginBottom: '8px' }}>Products</h4>
+          <div className="d-flex flex-wrap gap-2">
+            {request.products.map(product => (
+              <div key={product._id} className="request-product-tag d-flex align-items-center p-1 px-2 border rounded-pill bg-light" style={{ fontSize: '0.8rem' }}>
+                <img
+                  src={product.images?.[0]?.url || '/images/default-product.png'}
+                  alt={product.name}
+                  style={{ width: '20px', height: '20px', borderRadius: '50%', marginRight: '6px', objectFit: 'cover' }}
+                />
+                <span className="text-truncate" style={{ maxWidth: '100px' }}>{product.name}</span>
+                <span className="ms-1 fw-bold text-primary">${product.campaign_price}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="request-actions">
         {request.status === 'request' && request._id && (
           <button className="btn-activate" onClick={() => onActivate(request._id)}>
