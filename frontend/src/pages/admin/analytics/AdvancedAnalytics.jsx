@@ -7,7 +7,7 @@ import adminStyles from '../../../styles/admin/admin_dashboard.module.css';
 
 export default function AdvancedAnalytics() {
     const [user, setUser] = useState({ name: 'Admin' });
-    const [roiData, setRoiData] = useState([]);
+    const [campaignRevenueData, setCampaignRevenueData] = useState([]);
     const [brands, setBrands] = useState([]);
     const [matchmakingResults, setMatchmakingResults] = useState([]);
     const [selectedBrand, setSelectedBrand] = useState('');
@@ -27,7 +27,7 @@ export default function AdvancedAnalytics() {
 
     // Fetch all analytics data
     useEffect(() => {
-        fetchROIData();
+        fetchCampaignRevenue();
         fetchBrands();
         fetchEcosystemData();
     }, []);
@@ -85,9 +85,9 @@ export default function AdvancedAnalytics() {
         }
     };
 
-    const fetchROIData = async () => {
+    const fetchCampaignRevenue = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/analytics/influencer-roi`, {
+            const response = await fetch(`${API_BASE_URL}/admin/analytics/campaign-revenue`, {
                 credentials: 'include'
             });
 
@@ -98,11 +98,11 @@ export default function AdvancedAnalytics() {
 
             if (response.ok) {
                 const data = await response.json();
-                setRoiData(data.data || []);
+                setCampaignRevenueData(data.data || []);
             }
         } catch (error) {
-            console.error('Error fetching ROI data:', error);
-            setError('Failed to load ROI data');
+            console.error('Error fetching campaign revenue data:', error);
+            setError('Failed to load campaign revenue data');
         }
     };
 
@@ -250,54 +250,57 @@ export default function AdvancedAnalytics() {
             <div className={adminStyles.mainContent}>
                 <div className={styles.header}>
                     <h1>🚀 Advanced Analytics - God Mode</h1>
-                    <p>Deep insights into influencer ROI, matchmaking intelligence, and ecosystem visualization</p>
+                    <p>Deep insights into campaign performance, matchmaking intelligence, and ecosystem visualization</p>
                 </div>
 
-                {/* ROI Leaderboard Section */}
+                {/* Campaign Revenue Leaderboard Section */}
                 <div className={styles.section}>
                     <div className={styles.sectionHeader}>
-                        <h2>💰 Influencer ROI Leaderboard</h2>
-                        <p>Top performing influencers ranked by revenue generation</p>
+                        <h2>📊 Campaign Revenue Leaderboard</h2>
+                        <p>Top Campaigns Ranked by Revenue Generation</p>
                     </div>
 
                     <div className={styles.card}>
-                        {roiData.length > 0 ? (
+                        {campaignRevenueData.length > 0 ? (
                             <div className={styles.tableContainer}>
                                 <table className={styles.roiTable}>
                                     <thead>
                                         <tr>
                                             <th>Rank</th>
-                                            <th>Influencer</th>
+                                            <th>Campaign Title</th>
                                             <th>Total Revenue</th>
-                                            <th>Campaigns</th>
-                                            <th>Avg. Order Value</th>
-                                            <th>ROI Score</th>
+                                            <th>Avg. Engagement</th>
+                                            <th>Total Clicks</th>
+                                            <th>ROI Index</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {roiData.map((influencer, index) => (
-                                            <tr key={influencer.influencerId || index}>
+                                        {campaignRevenueData.map((campaign, index) => (
+                                            <tr key={campaign.campaignId || index}>
                                                 <td className={styles.rank}>
                                                     <span className={styles.rankBadge}>#{index + 1}</span>
                                                 </td>
                                                 <td className={styles.influencerInfo}>
                                                     <div className={styles.influencerName}>
-                                                        {influencer.influencerName || 'Unknown'}
+                                                        {campaign.title || 'Unknown Campaign'}
                                                     </div>
                                                 </td>
                                                 <td className={styles.revenue}>
-                                                    ${influencer.totalRevenue?.toLocaleString() || '0'}
+                                                    ${campaign.totalRevenue?.toLocaleString() || '0'}
                                                 </td>
-                                                <td>{influencer.campaignCount || 0}</td>
-                                                <td>${influencer.avgOrderValue?.toFixed(2) || '0.00'}</td>
+                                                <td>{campaign.avgEngagementRate?.toFixed(2) || '0.00'}%</td>
+                                                <td>{campaign.totalClicks?.toLocaleString() || '0'}</td>
                                                 <td>
                                                     <div className={styles.scoreBar}>
                                                         <div
                                                             className={styles.scoreProgress}
-                                                            style={{ width: `${Math.min(influencer.roiScore * 10, 100)}%` }}
+                                                            style={{
+                                                                width: `${Math.min((campaign.roi || 0) * 10, 100)}%`,
+                                                                backgroundColor: (campaign.roi || 0) > 1 ? '#4CAF50' : '#2196F3'
+                                                            }}
                                                         ></div>
                                                         <span className={styles.scoreText}>
-                                                            {influencer.roiScore?.toFixed(1) || '0.0'}x
+                                                            {(campaign.roi || 0).toFixed(1)}x
                                                         </span>
                                                     </div>
                                                 </td>
@@ -308,9 +311,9 @@ export default function AdvancedAnalytics() {
                             </div>
                         ) : (
                             <div className={styles.emptyState}>
-                                <i className="fas fa-chart-line"></i>
-                                <p>No sales data available yet to calculate ROI</p>
-                                <small>Revenue tracking begins when customers make purchases through influencer referrals</small>
+                                <i className="fas fa-chart-bar"></i>
+                                <p>No campaign performance data available yet</p>
+                                <small>Performance metrics are updated as campaigns progress and generate sales</small>
                             </div>
                         )}
                     </div>
@@ -439,36 +442,7 @@ export default function AdvancedAnalytics() {
                     </div>
                 </div>
 
-                {/* Attribution Graph Section */}
-                <div className={styles.section}>
-                    <div className={styles.sectionHeader}>
-                        <h2>🧵 The "Golden Thread" Journey Map</h2>
-                        <p>Visualize the complete path from customer interaction to revenue</p>
-                    </div>
 
-                    <div className={styles.card}>
-                        <div className={styles.attributionGraph}>
-                            <AttributionGraphNode label="Influencer Post" icon="fa-ad" color="#BA68C8" />
-                            <div className={styles.connector}><i className="fas fa-arrow-right"></i></div>
-                            <AttributionGraphNode label="Customer Impression" icon="fa-eye" color="#4FC3F7" />
-                            <div className={styles.connector}><i className="fas fa-arrow-right"></i></div>
-                            <AttributionGraphNode label="Product Click" icon="fa-mouse-pointer" color="#FFD54F" />
-                            <div className={styles.connector}><i className="fas fa-arrow-right"></i></div>
-                            <AttributionGraphNode label="Brand Revenue" icon="fa-money-bill-wave" color="#81C784" />
-                        </div>
-                        <div className={styles.attributionDetails}>
-                            <div className={styles.detailsBox}>
-                                <h4>Sample Attribution Flow</h4>
-                                <ul>
-                                    <li><strong>Influencer:</strong> TechUnbox Pro</li>
-                                    <li><strong>Action:</strong> Published Video Review</li>
-                                    <li><strong>Customer:</strong> Jane Doe (ID: 4421)</li>
-                                    <li><strong>Result:</strong> $299 Purchase for Brand X</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Ecosystem Network Graph Section */}
                 <div className={styles.section}>

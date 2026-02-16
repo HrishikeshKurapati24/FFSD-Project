@@ -77,6 +77,26 @@ const RecentCampaignHistory = ({ campaigns }) => {
               )}
             </div>
 
+            {campaign.products && campaign.products.length > 0 && (
+              <div className="campaign-products" style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '10px', color: '#555' }}>Associated Products</h4>
+                <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
+                  {campaign.products.map(product => (
+                    <div key={product._id} style={{ minWidth: '60px', textAlign: 'center' }}>
+                      <img
+                        src={product.images && product.images[0] ? product.images[0] : '/images/default-product.png'}
+                        alt={product.name}
+                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px', marginBottom: '4px' }}
+                      />
+                      <div style={{ fontSize: '0.75rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60px' }}>
+                        {product.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {campaign.required_channels && campaign.required_channels.length > 0 && (
               <div className="campaign-performance" style={{ marginTop: '10px', gridTemplateColumns: '1fr 1fr' }}>
                 <div className="performance-metric">

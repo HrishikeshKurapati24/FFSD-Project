@@ -413,12 +413,12 @@ const OrderHistory = () => {
                                             Current Campaigns
                                         </h6>
                                         {Array.isArray(brandProfileData?.currentCampaigns) &&
-                                        brandProfileData.currentCampaigns.length > 0 ? (
+                                            brandProfileData.currentCampaigns.filter(c => c.status && c.status.toLowerCase() === 'active').length > 0 ? (
                                             <ul
                                                 className="list-group mt-3"
                                                 style={{ border: 'none' }}
                                             >
-                                                {brandProfileData.currentCampaigns.map((c) => (
+                                                {brandProfileData.currentCampaigns.filter(c => c.status && c.status.toLowerCase() === 'active').map((c) => (
                                                     <li
                                                         key={c.id || c._id}
                                                         className="list-group-item d-flex justify-content-between align-items-center"
@@ -673,12 +673,12 @@ const OrderHistory = () => {
                                             Current Campaigns
                                         </h6>
                                         {Array.isArray(influencerProfileData?.currentCampaigns) &&
-                                        influencerProfileData.currentCampaigns.length > 0 ? (
+                                            influencerProfileData.currentCampaigns.filter(c => c.status && c.status.toLowerCase() === 'active').length > 0 ? (
                                             <ul
                                                 className="list-group mt-3"
                                                 style={{ border: 'none' }}
                                             >
-                                                {influencerProfileData.currentCampaigns.map((c) => (
+                                                {influencerProfileData.currentCampaigns.filter(c => c.status && c.status.toLowerCase() === 'active').map((c) => (
                                                     <li
                                                         key={c.id || c._id}
                                                         className="list-group-item d-flex justify-content-between align-items-center"
@@ -778,7 +778,7 @@ const OrderHistory = () => {
                                             <div className={`card-header d-flex justify-content-between align-items-center pt-3 ${styles.orderCardHeader}`}>
                                                 <div>
                                                     <span className="text-white-50 small">Order #{order._id.toString().slice(-6).toUpperCase()}</span>
-                                                    <div className="fw-bold">{formatDate(order.created_at)}</div>
+                                                    <div className="fw-bold">{formatDate(order.createdAt)}</div>
                                                 </div>
                                                 <div className="text-end">
                                                     <span className={`badge rounded-pill px-3 py-2 bg-${order.status === 'delivered' ? 'success' : order.status === 'shipped' ? 'info' : 'warning'}`}>

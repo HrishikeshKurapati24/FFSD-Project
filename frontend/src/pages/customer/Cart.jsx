@@ -114,16 +114,17 @@ const Cart = () => {
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setFormData((prev) => ({
-            ...prev,
+        const nextState = {
+            ...formData,
             [name]: value
-        }));
+        };
+        setFormData(nextState);
 
-        // Live-validate individual field
-        validateField(name, value);
+        // Live-validate individual field using the next state
+        validateField(name, value, nextState);
     };
 
-    const validateField = (fieldName, value) => {
+    const validateField = (fieldName, value, currentState = formData) => {
         let message = '';
         const trimmed = value.trim();
 
@@ -133,21 +134,30 @@ const Cart = () => {
                     message = 'Full name is required.';
                 } else if (trimmed.length < 2) {
                     message = 'Name must be at least 2 characters.';
+                } else if (/\d/.test(trimmed)) {
+                    message = 'Full name should not contain digits.';
                 }
                 break;
             case 'email':
                 if (!trimmed) {
                     message = 'Email is required.';
+                } else if (!trimmed.endsWith('@gmail.com')) {
+                    message = 'Email must end with @gmail.com.';
                 } else {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(trimmed)) {
+                    const localPart = trimmed.slice(0, trimmed.indexOf('@'));
+                    if (!localPart || localPart.length < 1) {
                         message = 'Please enter a valid email address.';
                     }
                 }
                 break;
             case 'phone':
-                if (trimmed && trimmed.replace(/\D/g, '').length < 10) {
-                    message = 'Please enter a valid phone number.';
+                if (!trimmed) {
+                    message = 'Phone number is required.';
+                } else {
+                    const digits = trimmed.replace(/\D/g, '');
+                    if (digits.length !== 10) {
+                        message = 'Phone number must be exactly 10 digits.';
+                    }
                 }
                 break;
             case 'address':
@@ -159,29 +169,46 @@ const Cart = () => {
                 const digits = trimmed.replace(/\s+/g, '');
                 if (!digits) {
                     message = 'Card number is required.';
-                } else if (!/^\d{13,19}$/.test(digits)) {
-                    message = 'Card number should be 13–19 digits.';
+                } else if (!/^\d{16}$/.test(digits)) {
+                    message = 'Card number must be exactly 16 digits.';
                 }
                 break;
             }
             case 'expMonth': {
                 const mm = parseInt(trimmed, 10);
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                const yy = parseInt(currentState.expYear, 10);
+
                 if (!trimmed) {
                     message = 'Expiry month is required.';
                 } else if (Number.isNaN(mm) || mm < 1 || mm > 12) {
                     message = 'Enter a valid month (01–12).';
+                } else if (!Number.isNaN(yy) && yy === currentYear && mm < currentMonth) {
+                    message = 'Card has already expired.';
+                } else {
+                    // Clear expiry error on year if month is now valid
+                    setErrors(prev => ({ ...prev, expYear: prev.expYear === 'Card has already expired.' ? '' : prev.expYear }));
                 }
                 break;
             }
             case 'expYear': {
                 const yy = parseInt(trimmed, 10);
                 const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                const mm = parseInt(currentState.expMonth, 10);
+
                 if (!trimmed) {
                     message = 'Expiry year is required.';
                 } else if (Number.isNaN(yy) || trimmed.length !== 4) {
                     message = 'Enter a 4-digit year.';
                 } else if (yy < currentYear) {
                     message = 'Card has already expired.';
+                } else if (yy === currentYear && !Number.isNaN(mm) && mm < currentMonth) {
+                    message = 'Card has already expired.';
+                } else {
+                    // Clear expiry error on month if year is now valid
+                    setErrors(prev => ({ ...prev, expMonth: prev.expMonth === 'Card has already expired.' ? '' : prev.expMonth }));
                 }
                 break;
             }
@@ -189,8 +216,8 @@ const Cart = () => {
                 const digits = trimmed;
                 if (!digits) {
                     message = 'CVV is required.';
-                } else if (!/^\d{3,4}$/.test(digits)) {
-                    message = 'CVV should be 3–4 digits.';
+                } else if (!/^\d{3}$/.test(digits)) {
+                    message = 'CVV must be exactly 3 digits.';
                 }
                 break;
             }

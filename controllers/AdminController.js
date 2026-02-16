@@ -551,39 +551,66 @@ const AnalyticsController = {
             const activeBrands = await BrandInfo.countDocuments({ verified: true });
             const brandGrowth = 5; // Static for now
 
-            // Get top brands with proper data structure
-            const topBrandsRaw = await BrandInfo.find({})
-                .sort({ completedCampaigns: -1 })
-                .limit(5)
-                .lean();
-
-            // Structure top brands data for the table
-            const topBrands = await Promise.all(topBrandsRaw.map(async (brand) => {
-                const brandIdObj = brand._id instanceof mongoose.Types.ObjectId ? brand._id : new mongoose.Types.ObjectId(brand._id);
-
-                // Get active campaigns count (case-insensitive) from CampaignInfo
-                const activeCampaigns = await CampaignInfo.countDocuments({
-                    brand_id: brandIdObj,
-                    status: { $regex: /^active$/i }
-                });
-
-                // Get total revenue for this brand
-                const revenueAgg = await CampaignPayments.aggregate([
-                    { $match: { brand_id: brandIdObj, status: { $regex: /^completed$/i } } },
-                    { $group: { _id: null, total: { $sum: "$amount" } } }
+            // Get top brands by revenue via aggregation
+            let topBrands = [];
+            try {
+                const topBrandsAgg = await CampaignPayments.aggregate([
+                    { $match: { status: { $regex: /^completed$/i } } },
+                    { $group: { _id: "$brand_id", totalRevenue: { $sum: "$amount" } } },
+                    { $sort: { totalRevenue: -1 } },
+                    { $limit: 10 } // Get more to be safe
                 ]);
-                const revenue = revenueAgg[0]?.total || 0;
 
-                return {
-                    name: brand.brandName || 'Unknown Brand',
-                    logo: brand.logoUrl || '/images/default-brand-logo.jpg',
-                    category: brand.industry || brand.businessCategory || 'N/A',
-                    activeCampaigns: activeCampaigns,
-                    revenue: revenue,
-                    engagementRate: Math.floor(Math.random() * 10) + 1, // Mock data for now
-                    status: brand.verified ? 'Active' : 'Pending'
-                };
-            }));
+                if (topBrandsAgg.length > 0) {
+                    topBrands = await Promise.all(topBrandsAgg.map(async (agg) => {
+                        const brand = await BrandInfo.findById(agg._id).lean();
+                        if (!brand) return null;
+
+                        const brandIdObj = brand._id;
+                        const activeCampaigns = await CampaignInfo.countDocuments({
+                            brand_id: brandIdObj,
+                            status: { $regex: /^active$/i }
+                        });
+
+                        return {
+                            name: brand.brandName || 'Unknown Brand',
+                            logo: brand.logoUrl || '/images/default-brand-logo.jpg',
+                            category: brand.industry || brand.businessCategory || 'N/A',
+                            activeCampaigns: activeCampaigns,
+                            revenue: agg.totalRevenue,
+                            engagementRate: Math.floor(Math.random() * 10) + 1, // Mock as real data isn't easily available
+                            status: brand.verified ? 'Active' : 'Pending'
+                        };
+                    }));
+                    topBrands = topBrands.filter(b => b !== null);
+                } else {
+                    // Fallback to top brands from BrandInfo if no payments exist
+                    const topBrandsRaw = await BrandInfo.find({})
+                        .sort({ completedCampaigns: -1 })
+                        .limit(5)
+                        .lean();
+
+                    topBrands = await Promise.all(topBrandsRaw.map(async (brand) => {
+                        const brandIdObj = brand._id;
+                        const activeCampaigns = await CampaignInfo.countDocuments({
+                            brand_id: brandIdObj,
+                            status: { $regex: /^active$/i }
+                        });
+
+                        return {
+                            name: brand.brandName || 'Unknown Brand',
+                            logo: brand.logoUrl || '/images/default-brand-logo.jpg',
+                            category: brand.industry || brand.businessCategory || 'N/A',
+                            activeCampaigns: activeCampaigns,
+                            revenue: 0,
+                            engagementRate: Math.floor(Math.random() * 10) + 1,
+                            status: brand.verified ? 'Active' : 'Pending'
+                        };
+                    }));
+                }
+            } catch (err) {
+                console.error("Error fetching top brands for analytics:", err);
+            }
 
             // Get highest collaboration brand (by revenue)
             const highestCollabAgg = await CampaignPayments.aggregate([
@@ -958,6 +985,7 @@ const AnalyticsController = {
             // Fetch real top influencers using aggregation
             let topInfluencers = [];
             try {
+                // First, try getting from InfluencerAnalytics joined with info and campaign info
                 const topInfluencersRaw = await InfluencerAnalytics.aggregate([
                     {
                         $lookup: {
@@ -969,26 +997,61 @@ const AnalyticsController = {
                     },
                     { $unwind: "$info" },
                     {
+                        $lookup: {
+                            from: "campaigninfluencers",
+                            localField: "influencerId",
+                            foreignField: "influencer_id",
+                            as: "campaigns"
+                        }
+                    },
+                    {
                         $project: {
-                            name: "$info.fullName",
-                            logo: "$info.profilePicUrl",
+                            name: { $ifNull: ["$info.displayName", "$info.fullName"] },
+                            logo: { $ifNull: ["$info.profilePicUrl", "/images/default-avatar.jpg"] },
                             engagement: { $ifNull: ["$avgEngagementRate", 0] },
                             followers: { $ifNull: ["$totalFollowers", 0] },
-                            category: { $ifNull: ["$info.niche", "General"] }
+                            category: { $ifNull: ["$info.niche", "General"] },
+                            commissionEarned: { $sum: "$campaigns.commission_earned" }
                         }
                     },
                     { $sort: { followers: -1 } },
-                    { $limit: 5 }
+                    { $limit: 10 }
                 ]);
-                topInfluencers = topInfluencersRaw;
+
+                if (topInfluencersRaw.length > 0) {
+                    topInfluencers = topInfluencersRaw;
+                } else {
+                    // Fallback: If no analytics data, get top 5 influencers by completedCollabs from InfluencerInfo
+                    const fallbackInfluencers = await InfluencerInfo.find({ verified: true })
+                        .sort({ completedCollabs: -1 })
+                        .limit(5)
+                        .lean();
+
+                    topInfluencers = await Promise.all(fallbackInfluencers.map(async (inf) => {
+                        // Get sum of commissions from CampaignInfluencers
+                        const campaignStats = await CampaignInfluencers.aggregate([
+                            { $match: { influencer_id: inf._id } },
+                            { $group: { _id: null, totalCommission: { $sum: "$commission_earned" } } }
+                        ]);
+
+                        return {
+                            name: inf.displayName || inf.fullName,
+                            logo: inf.profilePicUrl || '/images/default-avatar.jpg',
+                            engagement: 0,
+                            followers: 0,
+                            category: inf.niche || 'General',
+                            commissionEarned: campaignStats[0]?.totalCommission || 0
+                        };
+                    }));
+                }
             } catch (err) {
-                console.error("Error fetching top influencers:", err);
+                console.error("Error fetching top influencers for analytics:", err);
                 topInfluencers = [
-                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000 },
-                    { name: 'Mike Chen', engagement: 7.2, followers: 98000 },
-                    { name: 'Emma Davis', engagement: 6.8, followers: 156000 },
-                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000 },
-                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000 }
+                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000, commissionEarned: 1250 },
+                    { name: 'Mike Chen', engagement: 7.2, followers: 98000, commissionEarned: 850 },
+                    { name: 'Emma Davis', engagement: 6.8, followers: 156000, commissionEarned: 2100 },
+                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000, commissionEarned: 920 },
+                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000, commissionEarned: 1800 }
                 ];
             }
 
@@ -2395,6 +2458,119 @@ const CustomerController = {
                 });
             }
             return res.status(500).send('Failed to load customers page');
+        }
+    },
+
+    // Get completed orders for monitoring
+    async getCompletedOrders(req, res) {
+        try {
+            const orders = await Order.find({
+                status: { $in: ['paid', 'shipped', 'delivered'] }
+            })
+                .sort({ createdAt: -1 })
+                .populate('customer_id')
+                .populate('items.product_id')
+                .populate('influencer_id', 'fullName')
+                .lean();
+
+            // Transform data for the frontend
+            const transformedOrders = orders.map(order => ({
+                _id: order._id,
+                orderId: order._id.toString().slice(-8).toUpperCase(),
+                customerName: order.customer_id?.name || order.guest_info?.name || 'Guest',
+                customerEmail: order.customer_id?.email || order.guest_info?.email || 'N/A',
+                items: order.items.map(item => ({
+                    productName: item.product_id?.name || 'Unknown Product',
+                    quantity: item.quantity,
+                    price: item.price_at_purchase
+                })),
+                totalAmount: order.total_amount,
+                status: order.status,
+                date: order.createdAt,
+                influencerName: order.influencer_id?.fullName || 'Direct'
+            }));
+
+            const totalOrders = transformedOrders.length;
+            const totalRevenue = transformedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+            return res.status(200).json({
+                success: true,
+                orders: transformedOrders,
+                stats: {
+                    totalOrders,
+                    totalRevenue
+                }
+            });
+        } catch (error) {
+            console.error('Error in getCompletedOrders:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch completed orders',
+                message: error.message
+            });
+        }
+    },
+
+    // Get product analytics
+    async getProductAnalytics(req, res) {
+        try {
+            // Aggregate product sales from Orders
+            const productStats = await Order.aggregate([
+                { $match: { status: { $in: ['paid', 'shipped', 'delivered'] } } },
+                { $unwind: "$items" },
+                {
+                    $group: {
+                        _id: "$items.product_id",
+                        totalSold: { $sum: "$items.quantity" },
+                        totalRevenue: { $sum: "$items.subtotal" }
+                    }
+                },
+                { $sort: { totalRevenue: -1 } }
+            ]);
+
+            // Get all products to include those with 0 sales
+            const allProducts = await Product.find().select('name images category brand_id campaign_price original_price status').populate('brand_id', 'brandName').lean();
+
+            // Create a map of sales stats
+            const statsMap = new Map();
+            productStats.forEach(stat => {
+                if (stat._id) statsMap.set(stat._id.toString(), stat);
+            });
+
+            // Merge stats with product details
+            const analyticsData = allProducts.map(product => {
+                const stats = statsMap.get(product._id.toString()) || { totalSold: 0, totalRevenue: 0 };
+                return {
+                    id: product._id,
+                    name: product.name,
+                    image: product.images && product.images[0] ? product.images[0].url : '/images/default-product.png',
+                    category: product.category || 'Uncategorized',
+                    brand: product.brand_id ? product.brand_id.brandName : 'Unknown Brand',
+                    price: product.campaign_price || product.original_price,
+                    status: product.status,
+                    totalSold: stats.totalSold,
+                    totalRevenue: stats.totalRevenue
+                };
+            });
+
+            // Calculate global totals
+            const totalProductsSold = analyticsData.reduce((sum, item) => sum + item.totalSold, 0);
+            const totalRevenueEarned = analyticsData.reduce((sum, item) => sum + item.totalRevenue, 0);
+            const topProducts = [...analyticsData].sort((a, b) => b.totalSold - a.totalSold).slice(0, 5);
+
+            res.status(200).json({
+                success: true,
+                analytics: {
+                    totalProductsSold,
+                    totalRevenueEarned,
+                    products: analyticsData,
+                    topProducts
+                }
+            });
+
+        } catch (error) {
+            console.error('Error fetching product analytics:', error);
+            res.status(500).json({ success: false, message: 'Server error' });
         }
     }
 };

@@ -120,7 +120,7 @@ const CustomerNavbar = ({
                 Cart
               </Link>
 
-              {customerName ? (
+              {customerName && (
                 <div className="dropdown ms-3" style={{ position: 'relative' }}>
                   <button
                     className="btn btn-outline-secondary dropdown-toggle"
@@ -167,15 +167,6 @@ const CustomerNavbar = ({
                     </div>
                   )}
                 </div>
-              ) : (
-                <Link
-                  to="/signin"
-                  className="btn btn-outline-primary ms-3"
-                  style={{ whiteSpace: 'nowrap' }}
-                >
-                  <i className="fas fa-sign-in-alt me-2" aria-hidden="true" />
-                  Sign In
-                </Link>
               )}
             </div>
           )}

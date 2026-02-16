@@ -25,10 +25,12 @@ import PaymentVerification from './pages/admin/PaymentVerification';
 import Settings from './pages/admin/Settings';
 import UserManagement from './pages/admin/UserManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
+import CustomerMonitoring from './pages/admin/CustomerMonitoring';
 import CollaborationMonitoring from './pages/admin/CollaborationMonitoring';
 import BrandList from './pages/admin/BrandList';
 import InfluencerList from './pages/admin/InfluencerList';
 import CustomerList from './pages/admin/CustomerList';
+import ProductAnalytics from './pages/admin/ProductAnalytics';
 import Login from './pages/admin/Login';
 import AllCampaigns from './pages/customer/AllCampaigns';
 import CampaignShopping from './pages/customer/CampaignShopping';
@@ -89,12 +91,14 @@ function App() {
                 <Route path='/admin/collaboration_monitoring' element={<CollaborationMonitoring />} />
                 <Route path="/admin/user_management" element={<UserManagement />} />
                 <Route path="/admin/customer-management" element={<CustomerManagement />} />
+                <Route path="/admin/customer-monitoring" element={<CustomerMonitoring />} />
                 <Route path="/admin/login" element={<Login />} />
                 <Route path="/admin/payment_verification" element={<PaymentVerification />} />
                 <Route path="/admin/settings" element={<Settings />} />
                 <Route path="/admin/brand-list" element={<BrandList />} />
                 <Route path="/admin/influencer-list" element={<InfluencerList />} />
                 <Route path="/admin/customer-list" element={<CustomerList />} />
+                <Route path="/admin/product-analytics" element={<ProductAnalytics />} />
 
                 {/* Brand Routes */}
                 <Route path="/brand/home" element={<ProtectedRoute requiredRole="brand"><BrandDashboard /></ProtectedRoute>} />

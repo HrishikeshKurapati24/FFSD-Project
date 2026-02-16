@@ -699,7 +699,7 @@ const InfluencerAnalytics = () => {
               <h3>Top Performing Influencer</h3>
               <div className={styles.metricValue}>
                 {metrics.topInfluencer?.name || 'N/A'} with{' '}
-                {metrics.topInfluencer?.engagementRate != null ? `${metrics.topInfluencer.engagementRate}%` : 'N/A'} engagement
+                {metrics.topInfluencer?.engagementRate != null ? `${Number(metrics.topInfluencer.engagementRate).toFixed(4)}%` : 'N/A'} engagement
               </div>
             </div>
           </div>
@@ -751,19 +751,18 @@ const InfluencerAnalytics = () => {
           <div className={styles.topInfluencersTableContainer}>
             <div className={styles.tableHeader}>
               <h3>Top Performing Influencers</h3>
-              <div className={styles.sortControls}>
-                <button
-                  className={`${styles.sortButton} ${sortBy === 'engagement' ? styles.active : ''}`}
-                  onClick={() => setSortBy('engagement')}
+              <div className={styles.sortControls} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className={styles.sortLabel} style={{ fontWeight: '500', color: '#000000' }}>Sort by </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className={styles.sortSelect}
+                  style={{ padding: '5px 10px', borderRadius: '5px', border: '1px solid #ddd' }}
                 >
-                  Sort by Engagement
-                </button>
-                <button
-                  className={`${styles.sortButton} ${sortBy === 'followers' ? styles.active : ''}`}
-                  onClick={() => setSortBy('followers')}
-                >
-                  Sort by Followers
-                </button>
+                  <option value="engagement">Engagement</option>
+                  <option value="followers">Followers</option>
+                  <option value="commissionEarned">Commission</option>
+                </select>
               </div>
             </div>
 
@@ -774,12 +773,14 @@ const InfluencerAnalytics = () => {
                   <th>Category</th>
                   <th>Total Followers</th>
                   <th>Engagement Rate</th>
+                  <th>Commission Earned</th>
                 </tr>
               </thead>
               <tbody>
                 {metrics.topInfluencers && [...metrics.topInfluencers]
                   .sort((a, b) => {
                     if (sortBy === 'followers') return (b.followers || 0) - (a.followers || 0);
+                    if (sortBy === 'commissionEarned') return (b.commissionEarned || 0) - (a.commissionEarned || 0);
                     return (b.engagement || 0) - (a.engagement || 0);
                   })
                   .map((influencer, index) => (
@@ -797,6 +798,7 @@ const InfluencerAnalytics = () => {
                       <td>{influencer.category || 'N/A'}</td>
                       <td>{influencer.followers != null ? influencer.followers.toLocaleString() : 'N/A'}</td>
                       <td>{influencer.engagement != null ? `${influencer.engagement}%` : 'N/A'}</td>
+                      <td>${influencer.commissionEarned != null ? influencer.commissionEarned.toLocaleString() : '0'}</td>
                     </tr>
                   ))}
               </tbody>

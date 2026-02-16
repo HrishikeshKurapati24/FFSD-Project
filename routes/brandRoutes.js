@@ -246,8 +246,7 @@ router.get('/explore', async (req, res) => {
                     collaborationMap[influencerId] = [];
                 }
                 collaborationMap[influencerId].push({
-                    campaignTitle: collab.campaign_id.title,
-                    revenue: collab.revenue || 0
+                    campaignTitle: collab.campaign_id.title
                 });
             });
 
@@ -1944,14 +1943,21 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
 
         console.log('Found accepted influencers:', acceptedInfluencers.length);
 
+        // Fetch products associated with this campaign
+        const products = await Product.find({
+            campaign_id: new mongoose.Types.ObjectId(campaignId)
+        }).lean();
+
         // Transform the data for the response
         const campaignDetails = {
             _id: campaign._id,
             title: campaign.title,
             description: campaign.description,
             status: campaign.status,
-            start_date: campaign.start_date,
+            start_date: campaign.start_date, // Keep for legacy
+            startDate: campaign.start_date, // Common frontend expectation
             end_date: campaign.end_date,
+            endDate: campaign.end_date,
             duration: campaign.duration,
             budget: campaign.budget,
             target_audience: campaign.target_audience,
@@ -1964,6 +1970,19 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
                 profilePicUrl: ci.influencer_id?.profilePicUrl || '/images/default-avatar.jpg',
                 followers: ci.influencer_id?.followers || 0,
                 engagement_rate: ci.influencer_id?.engagement_rate || 0
+            })),
+            products: products.map(p => ({
+                _id: p._id,
+                name: p.name,
+                category: p.category,
+                description: p.description,
+                original_price: p.original_price,
+                campaign_price: p.campaign_price,
+                discount_percentage: p.discount_percentage,
+                images: p.images,
+                special_instructions: p.special_instructions,
+                target_quantity: p.target_quantity,
+                sold_quantity: p.sold_quantity
             }))
         };
 

@@ -278,6 +278,7 @@ router.get('/analytics', async (req, res) => {
     res.render('admin/analytics', { brands });
 });
 router.get('/analytics/influencer-roi', AdminAnalyticsController.getInfluencerROI);
+router.get('/analytics/campaign-revenue', AdminAnalyticsController.getCampaignRevenueLeaderboard);
 router.get('/analytics/matchmaking/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
 router.get('/analytics/ecosystem', AdminAnalyticsController.getEcosystemGraphData);
 
@@ -307,6 +308,8 @@ router.delete('/feedback_and_moderation/:id', FeedbackController.deleteFeedback)
 
 // Customer Management routes
 router.get('/customer-management', CustomerController.getCustomerManagement);
+router.get('/completed-orders', CustomerController.getCompletedOrders);
+router.get('/product-analytics', CustomerController.getProductAnalytics);
 router.get('/customer-details/:id', CustomerController.getCustomerDetails);
 router.put('/customer-status/:id', CustomerController.updateCustomerStatus);
 router.get('/customer-analytics', CustomerController.getCustomerAnalytics);
