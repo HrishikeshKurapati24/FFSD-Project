@@ -73,7 +73,34 @@ const campaignInfoSchema = new mongoose.Schema({
         required: false, // Will be filled by brand
         trim: true,
         maxlength: [500, 'Objectives cannot exceed 500 characters']
-    }
+    },
+    deliverables: [{
+        task_description: {
+            type: String,
+            required: false,
+            trim: true
+        },
+        platform: {
+            type: String,
+            enum: ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Twitter', 'LinkedIn'],
+            required: false
+        },
+        num_posts: {
+            type: Number,
+            min: [0, 'Number of posts cannot be negative'],
+            default: 0
+        },
+        num_reels: {
+            type: Number,
+            min: [0, 'Number of reels cannot be negative'],
+            default: 0
+        },
+        num_videos: {
+            type: Number,
+            min: [0, 'Number of videos cannot be negative'],
+            default: 0
+        }
+    }]
 }, {
     timestamps: true
 });

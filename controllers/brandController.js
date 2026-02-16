@@ -1,9 +1,28 @@
+const mongoose = require('mongoose');
 const { brandModel, SubscriptionService } = require('../models/brandModel');
 const { getAllInfluencers } = require('../models/influencerModel');
 const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../config/CampaignMongo');
 const { Order } = require('../config/OrderMongo');
 const { uploadProfilePic, uploadBanner, deleteOldImage, getImageUrl, handleUploadError } = require('../utils/imageUpload');
 const { validationResult } = require('express-validator');
+
+// Helper: compute progress from deliverables (exists only once)
+const computeProgressFromDeliverables = (deliverables = []) => {
+  try {
+    if (!Array.isArray(deliverables) || deliverables.length === 0) return 0;
+    const total = deliverables.length;
+    const completed = deliverables.filter(d => {
+      const flag = d && (d.completed === true || d.completed === 'true');
+      const statusDone = d && typeof d.status === 'string' && ['done', 'completed', 'approved'].includes(d.status.toLowerCase());
+      return flag || statusDone;
+    }).length;
+    return Math.min(100, Math.max(0, Math.round((completed / total) * 100)));
+  } catch {
+    return 0;
+  }
+};
+
+
 
 const platformIconMap = {
   instagram: 'instagram',
@@ -214,8 +233,204 @@ const getInfluencerRankings = async (brandId) => {
   }
 };
 
+
+
 const brandController = {
-  // Get explore page
+  // Return campaign deliverables aggregated from CampaignInfluencers documents
+  async getCampaignDeliverables(req, res) {
+    try {
+      const { campaignId } = req.params;
+      const brandId = req.session.user.id;
+
+      console.log('[getCampaignDeliverables] ========== START ==========');
+      console.log('[getCampaignDeliverables] Campaign ID:', campaignId);
+      console.log('[getCampaignDeliverables] Brand ID:', brandId);
+
+      if (!campaignId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Campaign ID is required',
+          debug: { campaignId, brandId }
+        });
+      }
+
+      // Validate and convert campaignId to ObjectId
+      if (!mongoose.Types.ObjectId.isValid(campaignId)) {
+        console.log('[getCampaignDeliverables] INVALID campaign ID format');
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid campaign ID format',
+          debug: { campaignId, isValid: false }
+        });
+      }
+      const campaignObjectId = new mongoose.Types.ObjectId(campaignId);
+
+      // Verify ownership
+      console.log('[getCampaignDeliverables] Finding campaign...');
+      const campaign = await CampaignInfo.findOne({ 
+        _id: campaignObjectId, 
+        brand_id: brandId 
+      }).select('_id title deliverables');
+      
+      if (!campaign) {
+        console.log('[getCampaignDeliverables] Campaign NOT FOUND or access denied');
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Campaign not found or you do not have access',
+          debug: { campaignId, brandId, found: false }
+        });
+      }
+
+      console.log('[getCampaignDeliverables] Campaign FOUND:', campaign.title);
+      console.log('[getCampaignDeliverables] Campaign has', campaign.deliverables?.length || 0, 'template deliverables');
+
+      // Pull deliverables per influencer from CampaignInfluencers
+      console.log('[getCampaignDeliverables] Finding collaborations...');
+      const collabs = await CampaignInfluencers.find({
+        campaign_id: campaignObjectId,
+        status: { $in: ['active', 'completed'] }
+      })
+        .populate('influencer_id', 'fullName username profilePicUrl')
+        .lean();
+
+      console.log('[getCampaignDeliverables] Found', collabs.length, 'collaborations');
+
+      if (collabs.length === 0) {
+        console.log('[getCampaignDeliverables] NO COLLABORATIONS found');
+        return res.json({
+          success: true,
+          campaign: { id: campaign._id, title: campaign.title },
+          items: [],
+          message: 'No active or completed influencers found for this campaign',
+          debug: { collaborationsFound: 0 }
+        });
+      }
+
+      // If campaign has global deliverables but collabs don't, seed them
+      if (campaign.deliverables && campaign.deliverables.length > 0) {
+        console.log('[getCampaignDeliverables] Seeding deliverables from campaign template...');
+        for (const collab of collabs) {
+          if (!collab.deliverables || collab.deliverables.length === 0) {
+            console.log('[getCampaignDeliverables] Seeding for collab:', collab._id);
+            const seededDeliverables = campaign.deliverables.map(d => ({
+              task_description: d.task_description || '',
+              platform: d.platform || '',
+              num_posts: d.num_posts || 0,
+              num_reels: d.num_reels || 0,
+              num_videos: d.num_videos || 0,
+              status: 'pending',
+              completed: false
+            }));
+            
+            await CampaignInfluencers.updateOne(
+              { _id: collab._id },
+              { $set: { deliverables: seededDeliverables } }
+            );
+            collab.deliverables = seededDeliverables;
+          }
+        }
+      }
+
+      const payload = collabs.map(c => {
+        const deliverables = Array.isArray(c.deliverables) ? c.deliverables : [];
+        console.log(`[getCampaignDeliverables] Collab ${c._id}:`, {
+          influencer: c.influencer_id?.fullName || 'N/A',
+          deliverables_count: deliverables.length,
+          sample: deliverables[0] || 'none'
+        });
+        
+        return {
+          collab_id: c._id,
+          influencer: {
+            id: c.influencer_id?._id,
+            name: c.influencer_id?.fullName || 'Unknown',
+            username: c.influencer_id?.username || 'unknown',
+            profilePicUrl: c.influencer_id?.profilePicUrl || '/images/default-profile.jpg'
+          },
+          progress: c.progress || 0,
+          deliverables: deliverables.map((d, idx) => ({
+            id: d._id || d.id || idx,
+            task_description: d.task_description || '',
+            platform: d.platform || '',
+            num_posts: parseInt(d.num_posts) || 0,
+            num_reels: parseInt(d.num_reels) || 0,
+            num_videos: parseInt(d.num_videos) || 0,
+            status: d.status || 'pending',
+            completed: d.completed || false
+          }))
+        };
+      });
+
+      console.log('[getCampaignDeliverables] Returning', payload.length, 'items');
+      console.log('[getCampaignDeliverables] ========== END ==========');
+
+      return res.json({
+        success: true,
+        campaign: { id: campaign._id, title: campaign.title },
+        items: payload,
+        debug: {
+          campaignId,
+          brandId,
+          collaborationsCount: collabs.length,
+          totalDeliverables: payload.reduce((sum, p) => sum + p.deliverables.length, 0)
+        }
+      });
+    } catch (err) {
+      console.error('[getCampaignDeliverables] ========== ERROR ==========');
+      console.error('[getCampaignDeliverables] Error:', err);
+      console.error('[getCampaignDeliverables] Stack:', err.stack);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server error while fetching deliverables',
+        error: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
+    }
+  },
+
+  // Update deliverables for one or more influencer collaborations and recompute progress
+  async updateCampaignDeliverables(req, res) {
+    try {
+      const { campaignId } = req.params;
+      const brandId = req.session.user.id;
+      const { updates } = req.body; // [{ collab_id, deliverables: [...]}]
+
+      if (!campaignId) {
+        return res.status(400).json({ success: false, message: 'Campaign ID is required' });
+      }
+      if (!updates || !Array.isArray(updates) || updates.length === 0) {
+        return res.status(400).json({ success: false, message: 'No deliverable updates provided' });
+      }
+
+      // Verify ownership
+      const campaign = await CampaignInfo.findOne({ _id: campaignId, brand_id: brandId }).select('_id');
+      if (!campaign) {
+        return res.status(404).json({ success: false, message: 'Campaign not found' });
+      }
+
+      const results = [];
+      for (const u of updates) {
+        if (!u || !u.collab_id || !Array.isArray(u.deliverables)) continue;
+
+        const collab = await CampaignInfluencers.findOne({ _id: u.collab_id, campaign_id: campaignId });
+        if (!collab) continue;
+
+        // Persist deliverables to the collaboration (do not change schema)
+        collab.deliverables = u.deliverables;
+        // Recompute progress from deliverable statuses/completed flags
+        const progress = computeProgressFromDeliverables(u.deliverables);
+        collab.progress = progress;
+        await collab.save();
+
+        results.push({ collab_id: collab._id, progress });
+      }
+
+      res.json({ success: true, results });
+    } catch (err) {
+      console.error('Error updating campaign deliverables:', err);
+      res.status(500).json({ success: false, message: 'Error updating campaign deliverables' });
+    }
+  },  // Get explore page
   async getExplorePage(req, res) {
     try {
       const { category, search } = req.query;
@@ -713,6 +928,7 @@ const brandController = {
         },
         activeCampaigns: activeCampaigns.map(campaign => ({
           ...campaign,
+          // Progress remains as stored, checklist updates should have updated influencer/campaign progress server-side
           progress: Math.min(100, Math.max(0, campaign.progress || 0)),
           engagement_rate: campaign.engagement_rate || 0,
           reach: campaign.reach || 0,

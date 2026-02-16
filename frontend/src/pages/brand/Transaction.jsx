@@ -11,6 +11,7 @@ import InfluencerInfoSection from '../../components/brand/transaction/Influencer
 import CampaignCompletionForm from '../../components/brand/transaction/CampaignCompletionForm';
 import ProductDetailsForm from '../../components/brand/transaction/ProductDetailsForm';
 import PaymentFormFields from '../../components/brand/transaction/PaymentFormFields';
+import DeliverablesSection from '../../components/brand/createCampaign/DeliverablesSection';
 
 const EXTERNAL_ASSETS = {
     styles: [
@@ -58,6 +59,21 @@ const Transaction = () => {
 
     const [formErrors, setFormErrors] = useState({});
     const [productImagePreview, setProductImagePreview] = useState('');
+
+    // Deliverables state
+    const [deliverables, setDeliverables] = useState([
+        {
+            id: 0,
+            task_description: '',
+            platform: '',
+            num_posts: 0,
+            num_reels: 0,
+            num_videos: 0
+        }
+    ]);
+
+    // Deliverables validation errors
+    const [deliverableErrors, setDeliverableErrors] = useState({});
 
     // Fetch transaction data on mount
     useEffect(() => {
@@ -168,6 +184,53 @@ const Transaction = () => {
         }
     };
 
+    // Handle deliverable field changes
+    const handleDeliverableChange = (deliverableId, field, value) => {
+        setDeliverables(prev => prev.map(d =>
+            d.id === deliverableId ? { ...d, [field]: value } : d
+        ));
+        // Clear error for this field
+        if (deliverableErrors[deliverableId] && deliverableErrors[deliverableId][field]) {
+            setDeliverableErrors(prev => ({
+                ...prev,
+                [deliverableId]: {
+                    ...prev[deliverableId],
+                    [field]: ''
+                }
+            }));
+        }
+    };
+
+    // Add new deliverable
+    const handleAddDeliverable = () => {
+        const newDeliverable = {
+            id: deliverables.length > 0 ? Math.max(...deliverables.map(d => d.id)) + 1 : 0,
+            task_description: '',
+            platform: '',
+            num_posts: 0,
+            num_reels: 0,
+            num_videos: 0
+        };
+        setDeliverables(prev => [...prev, newDeliverable]);
+    };
+
+    // Remove deliverable
+    const handleRemoveDeliverable = (deliverableId) => {
+        if (deliverables.length === 1) {
+            alert('You must have at least one deliverable.');
+            return;
+        }
+        setDeliverables(prev => prev.filter(d => d.id !== deliverableId));
+        // Clear errors for removed deliverable
+        if (deliverableErrors[deliverableId]) {
+            setDeliverableErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[deliverableId];
+                return newErrors;
+            });
+        }
+    };
+
     // Format card number
     const handleCardNumberChange = (e) => {
         let value = e.target.value.replace(/\s/g, '');
@@ -261,6 +324,42 @@ const Transaction = () => {
             }
         }
 
+        // Deliverables validation
+        const newDeliverableErrors = {};
+        let hasDeliverableErrors = false;
+        
+        if (deliverables.length === 0) {
+            errors.deliverables = 'Please add at least one deliverable.';
+            hasDeliverableErrors = true;
+        } else {
+            deliverables.forEach(deliverable => {
+                const deliverableError = {};
+
+                // Task description
+                if (!deliverable.task_description || !deliverable.task_description.trim()) {
+                    deliverableError.task_description = 'Task description is required';
+                    hasDeliverableErrors = true;
+                }
+
+                // Platform
+                if (!deliverable.platform) {
+                    deliverableError.platform = 'Please select a platform';
+                    hasDeliverableErrors = true;
+                }
+
+                // At least one of posts, reels, or videos should be greater than 0
+                if (deliverable.num_posts === 0 && deliverable.num_reels === 0 && deliverable.num_videos === 0) {
+                    deliverableError.num_posts = 'Please specify at least one deliverable (posts, reels, or videos)';
+                    hasDeliverableErrors = true;
+                }
+
+                if (Object.keys(deliverableError).length > 0) {
+                    newDeliverableErrors[deliverable.id] = deliverableError;
+                }
+            });
+            setDeliverableErrors(newDeliverableErrors);
+        }
+
         // Payment validation
         if (!formData.amount || parseFloat(formData.amount) <= 0) {
             errors.amount = 'Please enter a valid amount.';
@@ -301,7 +400,7 @@ const Transaction = () => {
         }
 
         setFormErrors(errors);
-        return Object.keys(errors).length === 0;
+        return Object.keys(errors).length === 0 && !hasDeliverableErrors;
     };
 
     // Handle form submission
@@ -355,6 +454,9 @@ const Transaction = () => {
                 submitData.append('routingNumber', formData.routingNumber);
                 submitData.append('bankName', formData.bankName);
             }
+
+            // Include deliverables data
+            submitData.append('deliverables', JSON.stringify(deliverables))
 
             const response = await fetch(`${API_BASE_URL}/brand/${requestId1}/${requestId2}/transaction`, {
                 method: 'POST',
@@ -469,6 +571,14 @@ const Transaction = () => {
                             handleCardNumberChange={handleCardNumberChange}
                             handleExpiryDateChange={handleExpiryDateChange}
                             styles={styles}
+                        />
+
+                        <DeliverablesSection
+                            deliverables={deliverables}
+                            deliverableErrors={deliverableErrors}
+                            onDeliverableChange={handleDeliverableChange}
+                            onRemoveDeliverable={handleRemoveDeliverable}
+                            onAddDeliverable={handleAddDeliverable}
                         />
 
                         <button type="submit" disabled={loading}>

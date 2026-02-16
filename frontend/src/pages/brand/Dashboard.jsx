@@ -27,6 +27,7 @@ import InfluencerContributionModal from '../../components/brand/dashboard/Influe
 import InfluencerRankingsSection from '../../components/brand/dashboard/InfluencerRankingsSection';
 import BrandProductsSection from '../../components/brand/dashboard/BrandProductsSection';
 import InfluencersListModal from '../../components/brand/dashboard/InfluencersListModal';
+import DeliverablesSection from '../../components/brand/createCampaign/DeliverablesSection';
 
 const EXTERNAL_ASSETS = {
   styles: [
@@ -74,6 +75,12 @@ const Dashboard = () => {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [detailsModalData, setDetailsModalData] = useState({ loading: false, details: null });
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+
+  // Deliverables review modal state
+  const [deliverablesModalOpen, setDeliverablesModalOpen] = useState(false);
+  const [deliverablesData, setDeliverablesData] = useState({ campaignId: null, campaignName: '', items: [], loading: false, errors: {} });
+  const deliverablesModalRef = useRef(null);
+  const deliverablesModalInstanceRef = useRef(null);
 
   // Bootstrap modal refs
   const contentModalRef = useRef(null);
@@ -213,6 +220,24 @@ const Dashboard = () => {
       }
     };
 
+    // Initialize Deliverables Modal
+    const initDeliverablesModal = () => {
+      if (typeof window !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
+        if (deliverablesModalRef.current && !deliverablesModalInstanceRef.current) {
+          try {
+            deliverablesModalInstanceRef.current = new window.bootstrap.Modal(deliverablesModalRef.current, {
+              backdrop: true,
+              keyboard: true,
+              focus: true
+            });
+            deliverablesModalRef.current.addEventListener('hidden.bs.modal', () => setDeliverablesModalOpen(false));
+          } catch (error) {
+            console.error('Error initializing deliverables modal:', error);
+          }
+        }
+      }
+    };
+
     // Initialize New Modals
     const initNewModals = () => {
       if (typeof window !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
@@ -232,6 +257,7 @@ const Dashboard = () => {
     // Try to initialize immediately
     initModals();
     initNewModals();
+    initDeliverablesModal();
 
     // If Bootstrap isn't loaded yet, wait for it
     if (typeof window !== 'undefined' && !window.bootstrap) {
@@ -284,6 +310,12 @@ const Dashboard = () => {
       contributionOpen ? contributionInstanceRef.current.show() : contributionInstanceRef.current.hide();
     }
   }, [contributionOpen]);
+
+  useEffect(() => {
+    if (deliverablesModalInstanceRef.current) {
+      deliverablesModalOpen ? deliverablesModalInstanceRef.current.show() : deliverablesModalInstanceRef.current.hide();
+    }
+  }, [deliverablesModalOpen]);
 
   const handleSignOut = async (e) => {
     e?.preventDefault();
@@ -347,21 +379,195 @@ const Dashboard = () => {
     try {
       setContentModalData({ campaignId, campaignName, content: [], loading: true });
       setContentModalOpen(true);
-      const result = await loadCampaignContent(campaignId);
-      if (result.success) {
-        setContentModalData({
-          campaignId,
-          campaignName: result.campaignName || campaignName,
-          content: result.content || [],
-          loading: false
-        });
+
+      const res = await fetch(`${API_BASE_URL}/brand/campaigns/${campaignId}/pending-content`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to load campaign content');
       }
+
+      const data = await res.json();
+      const content = Array.isArray(data?.items) ? data.items : (data?.content || data || []);
+      const name = data?.campaignName || campaignName;
+
+      setContentModalData({
+        campaignId,
+        campaignName: name,
+        content,
+        loading: false
+      });
     } catch (error) {
       alert(error.message || 'Failed to load campaign content');
       setContentModalData({ campaignId, campaignName, content: [], loading: false });
     }
   };
+  // New: open DeliverablesSection modal on Review button
+  const handleOpenDeliverablesModal = async (campaignId, campaignName) => {
+    try {
+      console.log('[handleOpenDeliverablesModal] ========== START ==========');
+      console.log('[handleOpenDeliverablesModal] Campaign ID:', campaignId);
+      console.log('[handleOpenDeliverablesModal] Campaign Name:', campaignName);
+      
+      setDeliverablesData({ 
+        campaignId, 
+        campaignName, 
+        items: [], 
+        loading: true, 
+        errors: {},
+        error: null,
+        debug: null
+      });
+      setDeliverablesModalOpen(true);
 
+      const url = `${API_BASE_URL}/brand/campaigns/${campaignId}/deliverables`;
+      console.log('[handleOpenDeliverablesModal] Fetching from:', url);
+      
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
+      
+      console.log('[handleOpenDeliverablesModal] Response status:', res.status);
+      console.log('[handleOpenDeliverablesModal] Response headers:', Object.fromEntries(res.headers.entries()));
+      
+      if (!res.ok) {
+        let errorData;
+        try {
+          errorData = await res.json();
+        } catch (e) {
+          errorData = { message: await res.text() };
+        }
+        console.error('[handleOpenDeliverablesModal] Error data:', errorData);
+        
+        setDeliverablesData(prev => ({ 
+          ...prev, 
+          loading: false,
+          error: errorData.message || `HTTP ${res.status}: Failed to load deliverables`,
+          debug: errorData.debug || { status: res.status, campaignId }
+        }));
+        return;
+      }
+      
+      const data = await res.json();
+      console.log('[handleOpenDeliverablesModal] Received data:', data);
+      console.log('[handleOpenDeliverablesModal] Success:', data.success);
+      console.log('[handleOpenDeliverablesModal] Items count:', data.items?.length || 0);
+      
+      if (!data.success) {
+        setDeliverablesData(prev => ({ 
+          ...prev, 
+          loading: false,
+          error: data.message || 'Failed to load deliverables',
+          debug: data.debug || {}
+        }));
+        return;
+      }
+      
+      const items = Array.isArray(data.items) ? data.items : [];
+      console.log('[handleOpenDeliverablesModal] Processing', items.length, 'items');
+      
+      // Log first item structure for debugging
+      if (items.length > 0) {
+        console.log('[handleOpenDeliverablesModal] First item sample:', JSON.stringify(items[0], null, 2));
+      }
+      
+      setDeliverablesData({ 
+        campaignId, 
+        campaignName: data?.campaign?.title || campaignName, 
+        items, 
+        loading: false, 
+        errors: {},
+        error: null,
+        debug: data.debug || null
+      });
+      
+      console.log('[handleOpenDeliverablesModal] ========== SUCCESS ==========');
+    } catch (err) {
+      console.error('[handleOpenDeliverablesModal] ========== EXCEPTION ==========');
+      console.error('[handleOpenDeliverablesModal] Error:', err);
+      console.error('[handleOpenDeliverablesModal] Stack:', err.stack);
+      
+      setDeliverablesData(prev => ({ 
+        ...prev, 
+        loading: false,
+        error: err.message || 'An unexpected error occurred',
+        debug: { 
+          error: err.message,
+          campaignId,
+          timestamp: new Date().toISOString()
+        }
+      }));
+    }
+  };
+
+  const handleDeliverableChange = (collabId, index, field, value) => {
+    setDeliverablesData(prev => {
+      const items = prev.items.map(item => {
+        if (item.collab_id !== collabId) return item;
+        const updated = { ...item };
+        const list = Array.isArray(updated.deliverables) ? [...updated.deliverables] : [];
+        list[index] = { ...list[index], [field]: value };
+        updated.deliverables = list;
+        return updated;
+      });
+      return { ...prev, items };
+    });
+  };
+
+  const handleAddDeliverable = (collabId) => {
+    setDeliverablesData(prev => {
+      const items = prev.items.map(item => {
+        if (item.collab_id !== collabId) return item;
+        const list = Array.isArray(item.deliverables) ? [...item.deliverables] : [];
+        list.push({ title: '', description: '', status: 'pending', due_date: new Date().toISOString().slice(0,10) });
+        return { ...item, deliverables: list };
+      });
+      return { ...prev, items };
+    });
+  };
+
+  const handleRemoveDeliverable = (collabId, index) => {
+    setDeliverablesData(prev => {
+      const items = prev.items.map(item => {
+        if (item.collab_id !== collabId) return item;
+        const list = Array.isArray(item.deliverables) ? [...item.deliverables] : [];
+        list.splice(index, 1);
+        return { ...item, deliverables: list };
+      });
+      return { ...prev, items };
+    });
+  };
+
+  const handleSaveDeliverables = async () => {
+    try {
+      const updates = deliverablesData.items.map(it => ({ collab_id: it.collab_id, deliverables: it.deliverables }));
+      const res = await fetch(`${API_BASE_URL}/brand/campaigns/${deliverablesData.campaignId}/deliverables`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ updates })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed to save deliverables');
+
+      setSuccessMessage('Deliverables updated successfully');
+      setSuccessVisible(true);
+      setDeliverablesModalOpen(false);
+      // Refresh dashboard to reflect updated progress
+      await fetchDashboardData();
+    } catch (err) {
+      console.error('Error saving deliverables:', err);
+      alert(err.message || 'Failed to save deliverables');
+    }
+  };
   const handleReviewContent = async (contentId, action) => {
     const feedback = prompt(`Please provide feedback for ${action === 'approve' ? 'approving' : 'rejecting'} this content:`);
     if (feedback === null) return;
@@ -397,7 +603,6 @@ const Dashboard = () => {
       alert(error.message || 'An error occurred while reviewing the content. Please try again.');
     }
   };
-
   const handleViewDetails = async (campaignId) => {
     try {
       // Ensure modal instance is initialized
@@ -561,7 +766,7 @@ const Dashboard = () => {
 
         <ActiveCampaignsSection
           campaigns={activeCampaigns}
-          onReviewContent={handleOpenContentModal}
+          onReviewContent={handleOpenDeliverablesModal}
           onEndCampaign={handleEndCampaign}
           onViewInfluencers={handleViewInfluencers}
         />
@@ -611,6 +816,95 @@ const Dashboard = () => {
         }}
         onReview={handleReviewContent}
       />
+
+      {/* Deliverables Review Modal */}
+      <div className="modal fade" tabIndex="-1" ref={deliverablesModalRef} aria-hidden={!deliverablesModalOpen}>
+        <div className="modal-dialog modal-xl modal-dialog-scrollable">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Review Deliverables {deliverablesData.campaignName ? `- ${deliverablesData.campaignName}` : ''}</h5>
+              <button type="button" className="btn-close" aria-label="Close" onClick={() => {
+                if (deliverablesModalInstanceRef.current) {
+                  deliverablesModalInstanceRef.current.hide();
+                } else {
+                  setDeliverablesModalOpen(false);
+                }
+              }}></button>
+            </div>
+            <div className="modal-body">
+              {deliverablesData.loading ? (
+                <div className="alert alert-info">
+                  <i className="fas fa-spinner fa-spin me-2"></i>
+                  Loading deliverables...
+                </div>
+              ) : deliverablesData.error ? (
+                <div className="alert alert-danger">
+                  <h6><i className="fas fa-exclamation-triangle me-2"></i>Error Loading Deliverables</h6>
+                  <p>{deliverablesData.error}</p>
+                  {deliverablesData.debug && (
+                    <details className="mt-2">
+                      <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Debug Info</summary>
+                      <pre style={{ fontSize: 12, background: '#f8f9fa', padding: 10, borderRadius: 4, marginTop: 8 }}>
+                        {JSON.stringify(deliverablesData.debug, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {deliverablesData.items.length === 0 ? (
+                    <div className="alert alert-warning">
+                      <h6><i className="fas fa-info-circle me-2"></i>No Deliverables Found</h6>
+                      <p>This campaign has no active or completed influencers with deliverables yet.</p>
+                      <p className="mb-0"><small>Deliverables are created when you accept influencer requests or complete campaign setup.</small></p>
+                    </div>
+                  ) : (
+                    deliverablesData.items.map(item => (
+                      <div key={item.collab_id} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                          <img src={item.influencer?.profilePicUrl || '/images/default-profile.jpg'} alt="" style={{ width: 36, height: 36, borderRadius: '50%' }} />
+                          <div style={{ fontWeight: 600 }}>{item.influencer?.name || item.influencer?.username || 'Influencer'}</div>
+                          <div style={{ marginLeft: 'auto' }}>Progress: {item.progress || 0}%</div>
+                        </div>
+                        <DeliverablesSection
+                          title=""
+                          deliverables={item.deliverables}
+                          deliverableErrors={deliverablesData.errors[item.collab_id] || {}}
+                          onDeliverableChange={(_, field, value) => {}}
+                          onRemoveDeliverable={(index) => handleRemoveDeliverable(item.collab_id, index)}
+                          onAddDeliverable={() => handleAddDeliverable(item.collab_id)}
+                          onItemFieldChange={(index, field, value) => handleDeliverableChange(item.collab_id, index, field, value)}
+                          mode="edit"
+                        />
+                        {/* Inline controls tied to this influencer's deliverables */}
+                        <div className="d-flex gap-2 justify-content-end mt-2">
+                          <button className="btn btn-outline-secondary" onClick={() => handleAddDeliverable(item.collab_id)}>
+                            Add Deliverable
+                          </button>
+                        </div>
+                        {/* Custom field wiring below to edit the embedded list using our change handler */}
+                        <div style={{ display: 'none' }}>{/* placeholder for future per-field wiring if needed */}</div>
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => {
+                if (deliverablesModalInstanceRef.current) {
+                  deliverablesModalInstanceRef.current.hide();
+                } else {
+                  setDeliverablesModalOpen(false);
+                }
+              }}>Close</button>
+              <button className="btn btn-primary" onClick={handleSaveDeliverables} disabled={deliverablesData.loading}>
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* New Modals */}
       <InfluencersListModal

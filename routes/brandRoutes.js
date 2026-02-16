@@ -1911,6 +1911,10 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
 router.get('/campaigns/:campaignId/influencers', isAuthenticated, isBrand, brandController.getCampaignInfluencers);
 router.get('/campaigns/:campaignId/influencers/:influencerId/contribution', isAuthenticated, isBrand, brandController.getInfluencerContribution);
 
+// Deliverables routes
+router.get('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandController.getCampaignDeliverables);
+router.post('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandController.updateCampaignDeliverables);
+
 // Add this route after the campaign activation route
 router.get('/campaigns/:campaignId/details', async (req, res) => {
     try {

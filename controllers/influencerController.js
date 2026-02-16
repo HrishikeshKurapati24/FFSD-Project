@@ -85,6 +85,27 @@ const getInfluencerDashboard = async (req, res) => {
 
     const nearingCompletion = activeCollaborations.filter(collab => (collab.progress || 0) >= 75).length;
 
+    // Get total commissions earned from CampaignPayments (campaign influencers)
+    const totalCommissionsPipeline = await CampaignPayments.aggregate([
+      {
+        $match: {
+          influencer_id: new mongoose.Types.ObjectId(influencerId),
+          status: 'completed'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalCommissions: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const totalCommissionsEarned = totalCommissionsPipeline.length > 0 ? totalCommissionsPipeline[0].totalCommissions : 0;
+
+    // Get revenue generated (same as total commissions for now - could be extended to include other revenue sources)
+    const revenueGenerated = totalCommissionsEarned;
+
     // Get dashboard stats
     const stats = {
       activeCollaborations: activeCollaborations.length,
@@ -100,6 +121,8 @@ const getInfluencerDashboard = async (req, res) => {
       avgRating: influencer.metrics?.avgRating || 0,
       completedCollabs: influencer.metrics?.completedCollabs || 0,
       totalEarnings: influencer.monthlyEarnings * 12 || 0, // Simple calculation for now
+      totalCommissionsEarned: totalCommissionsEarned,
+      revenueGenerated: revenueGenerated,
       upcomingDeadlines: activeCollaborations.filter(collab => {
         const endDate = new Date(collab.end_date);
         const today = new Date();
@@ -823,17 +846,42 @@ const getCampaignHistory = async (req, res) => {
 const updateProgress = async (req, res) => {
   try {
     const { collabId } = req.params;
-    const { progress, reach, clicks, performance_score, conversions, engagement_rate, conversion_rate, impressions, revenue, roi } = req.body;
+    const { progress, reach, clicks, performance_score, conversions, engagement_rate, conversion_rate, impressions, revenue, roi, deliverablesChecklist } = req.body;
 
-    if (!collabId || progress === undefined) {
+    if (!collabId) {
       return res.status(400).json({
         success: false,
         message: 'Missing required parameters'
       });
     }
 
+    // If deliverablesChecklist is provided, compute progress from it
+    let progressValue;
+    if (deliverablesChecklist) {
+      try {
+        const checklist = Array.isArray(deliverablesChecklist)
+          ? deliverablesChecklist
+          : JSON.parse(deliverablesChecklist);
+        const total = checklist.length;
+        const completed = checklist.filter(d => d.completed).length;
+        progressValue = total > 0 ? Math.round((completed / total) * 100) : 0;
+      } catch (e) {
+        // ignore checklist parsing errors
+      }
+    }
+
+    // Fallback to explicit progress
+    if (progressValue === undefined) {
+      if (progress === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: 'Progress is required'
+        });
+      }
+      progressValue = parseInt(progress);
+    }
+
     // Validate progress value
-    const progressValue = parseInt(progress);
     if (isNaN(progressValue) || progressValue < 0 || progressValue > 100) {
       return res.status(400).json({
         success: false,
@@ -851,7 +899,7 @@ const updateProgress = async (req, res) => {
     }
 
     // Update progress in CampaignInfluencers
-    const result = await collaborationModel.updateCollaborationProgress(collabId, progressValue);
+    await collaborationModel.updateCollaborationProgress(collabId, progressValue);
 
     // Update metrics in CampaignMetrics if provided
     if (reach !== undefined || clicks !== undefined || performance_score !== undefined || conversions !== undefined || engagement_rate !== undefined || conversion_rate !== undefined || impressions !== undefined || revenue !== undefined || roi !== undefined) {

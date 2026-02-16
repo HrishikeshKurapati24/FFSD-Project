@@ -12,10 +12,8 @@ const IntroSection = ({ influencer, subscriptionStatus, stats }) => {
                         stats?.totalFollowers || 
                         0;
   
-  // Get monthly earnings - check multiple possible sources
-  const monthlyEarnings = influencer?.monthlyEarnings || 
-                          stats?.monthlyEarnings || 
-                          0;
+  // Get total commissions earned - from campaign influencers (stats from backend)
+  const totalCommissionsEarned = stats?.totalCommissionsEarned || 0;
   
   // Get avg engagement rate - check multiple possible sources
   const avgEngagementRate = influencer?.avgEngagementRate || 
@@ -33,8 +31,8 @@ const IntroSection = ({ influencer, subscriptionStatus, stats }) => {
       value: totalAudience.toLocaleString()
     },
     {
-      label: 'Monthly Earnings',
-      value: `$${monthlyEarnings.toLocaleString()}`
+      label: 'Total Commissions Earned',
+      value: `$${totalCommissionsEarned.toLocaleString()}`
     }
   ];
 
