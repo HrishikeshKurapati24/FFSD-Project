@@ -76,6 +76,9 @@ const ProductAnalytics = () => {
     return (
         <AdminNavbar user={user}>
             <main className={adminStyles.mainContent}>
+                <button type="button" onClick={() => window.history.back()} className={styles.backButton}>
+                    ← Go Back
+                </button>
                 <div className={styles.pageHeader}>
                     <h1>Product Analytics</h1>
                     <p className={styles.welcomeText}>Track sales performance across all products</p>
@@ -84,36 +87,36 @@ const ProductAnalytics = () => {
                 {analytics && (
                     <>
                         {/* Summary Cards */}
-                        <div className={styles.statsGrid}>
-                            <div className={styles.statCard}>
+                        <div className={styles.metricsOverview}>
+                            <div className={styles.metricCard}>
                                 <div className={styles.statIcon} style={{ background: '#e0f2fe', color: '#0284c7' }}>
                                     <i className="fas fa-box-open"></i>
                                 </div>
                                 <div className={styles.statInfo}>
                                     <h3>Total Sold</h3>
-                                    <p className={styles.statValue}>{analytics.totalProductsSold?.toLocaleString() || 0}</p>
+                                    <p className={styles.metricValue}>{analytics.totalProductsSold?.toLocaleString() || 0}</p>
                                     <span className={styles.statLabel}>Units across all campaigns</span>
                                 </div>
                             </div>
 
-                            <div className={styles.statCard}>
+                            <div className={styles.metricCard}>
                                 <div className={styles.statIcon} style={{ background: '#dcfce7', color: '#16a34a' }}>
                                     <i className="fas fa-dollar-sign"></i>
                                 </div>
                                 <div className={styles.statInfo}>
                                     <h3>Total Revenue</h3>
-                                    <p className={styles.statValue}>${analytics.totalRevenueEarned?.toLocaleString() || 0}</p>
+                                    <p className={styles.metricValue}>${analytics.totalRevenueEarned?.toLocaleString() || 0}</p>
                                     <span className={styles.statLabel}>Generated from sales</span>
                                 </div>
                             </div>
 
-                            <div className={styles.statCard}>
+                            <div className={styles.metricCard}>
                                 <div className={styles.statIcon} style={{ background: '#fef3c7', color: '#d97706' }}>
                                     <i className="fas fa-chart-line"></i>
                                 </div>
                                 <div className={styles.statInfo}>
                                     <h3>Avg. Revenue</h3>
-                                    <p className={styles.statValue}>
+                                    <p className={styles.metricValue}>
                                         ${analytics.products?.length > 0
                                             ? Math.round(analytics.totalRevenueEarned / analytics.products.length).toLocaleString()
                                             : 0}
@@ -124,12 +127,12 @@ const ProductAnalytics = () => {
                         </div>
 
                         {/* Top Products Table */}
-                        <div className={styles.tableCard}>
-                            <div className={styles.sectionHeader} style={{ padding: '1.5rem 1.5rem 0' }}>
-                                <h2>Product Performance</h2>
+                        <div className={styles.productsTableContainer}>
+                            <div className={styles.tableHeader}>
+                                <h3>Product Performance</h3>
                             </div>
                             <div className={styles.tableContainer}>
-                                <table className={styles.analyticsTable}>
+                                <table className={styles.productsTable}>
                                     <thead>
                                         <tr>
                                             <th>Product</th>
@@ -149,7 +152,7 @@ const ProductAnalytics = () => {
                                                 .map(product => (
                                                     <tr key={product.id}>
                                                         <td>
-                                                            <div className={styles.productCell}>
+                                                            <div className={styles.productInfo}>
                                                                 <img
                                                                     src={product.image}
                                                                     alt={product.name}

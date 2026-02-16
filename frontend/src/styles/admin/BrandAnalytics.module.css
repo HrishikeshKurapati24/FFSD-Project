@@ -13,7 +13,8 @@
   padding: 0.75rem 0.8rem;
   border: none;
   border-radius: 6px;
-  background-color: #2196F3;
+  background-color: #06b6d4;
+  /* Cyan */
   color: #ffffff;
   cursor: pointer;
   margin-bottom: 1.25rem;
@@ -23,13 +24,13 @@
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px rgba(33, 150, 243, 0.2);
+  box-shadow: 0 4px 6px rgba(6, 182, 212, 0.2);
 }
 
 .backButton:hover {
-  background-color: #1976D2;
+  background-color: #0891b2;
   transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 8px 15px rgba(6, 182, 212, 0.3);
 }
 
 .errorAlert {
@@ -52,6 +53,9 @@
   font-size: 1.8rem;
   font-weight: 600;
   color: #2c3e50;
+  border-left: 5px solid #06b6d4;
+  /* Cyan accent */
+  padding-left: 1rem;
 }
 
 .dateFilter select {
@@ -59,6 +63,7 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
+  border-left: 3px solid #06b6d4;
 }
 
 .metricsOverview {
@@ -74,6 +79,8 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+  border-top: 4px solid #06b6d4;
+  /* Cyan accent */
 }
 
 .metricCard h3 {
@@ -86,7 +93,7 @@
 
 .metricCard:hover {
   transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 24px rgba(6, 182, 212, 0.15);
 }
 
 .metricValue {
@@ -112,7 +119,7 @@
 }
 
 .highlightCard {
-  border-left: 4px solid #2196F3;
+  border-left: 4px solid #06b6d4;
 }
 
 .brandDetail {
@@ -148,6 +155,8 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 4px solid #67e8f9;
+  /* Light Cyan */
 }
 
 .chartCard:hover {
@@ -168,6 +177,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow-x: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 4px solid #0891b2;
+  /* Darker Cyan */
+  margin-bottom: 2rem;
 }
 
 .brandsTableContainer:hover {
@@ -212,9 +224,9 @@
 }
 
 .sortButton.active {
-  background: #2563eb;
+  background: #06b6d4;
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25);
 }
 
 .brandsTable {
@@ -226,10 +238,12 @@
 .brandsTable th {
   text-align: left;
   padding: 1rem 0.75rem;
-  color: #1e293b;
+  color: #155e75;
+  /* Cyan text */
   font-weight: 700;
   border-bottom: 2px solid #e2e8f0;
-  background-color: #f8fafc;
+  background-color: #ecfeff;
+  /* Cyan tint */
 }
 
 .brandsTable td {

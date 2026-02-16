@@ -279,15 +279,15 @@ export default function Dashboard() {
 
                     {dashboardData.stats.filter(stat => stat.label !== "Total Revenue").map((stat, index) => (
                         <div key={index} className={styles.dashboardCard}>
-                            <p>{stat.label}</p>
-                            <h2>
+                            <h3>{stat.label}</h3>
+                            <p>
                                 {stat.value}
                                 {stat.growth && (
                                     <span className={`${styles.badge} ${styles[stat.color || 'green']}`}>
                                         {stat.growth}
                                     </span>
                                 )}
-                            </h2>
+                            </p>
                             <p>{stat.description}</p>
                         </div>
                     ))}
@@ -296,7 +296,7 @@ export default function Dashboard() {
                 <div className={styles.analyticsContainer}>
                     <h2>Revenue Analytics</h2>
                     <div className={styles.analyticsGrid}>
-                        <div className={styles.analyticsCard}>
+                        <div className={`${styles.analyticsCard} ${styles.commissionCard}`}>
                             <h3>Commission Overview</h3>
                             <div className={styles.commissionStats}>
                                 <div className={styles.statItem}>
@@ -349,7 +349,7 @@ export default function Dashboard() {
                     <h2>Performance Analytics Dashboard</h2>
                     <div className={styles.analyticsGrid}>
                         {dashboardData.analytics.map((metric) => (
-                            <div key={metric.chartId} className={styles.analyticsCard}>
+                            <div key={metric.chartId} className={`${styles.analyticsCard} ${styles.performanceCard}`}>
                                 <h3>{metric.title}</h3>
                                 <canvas id={metric.chartId}></canvas>
                             </div>

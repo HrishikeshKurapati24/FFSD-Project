@@ -1,148 +1,209 @@
 /* Product Analytics Container */
-.container {
+.productAnalyticsPage {
     padding: 2rem;
-    background-color: #f8fafc;
+    background-color: #f8f9fa;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-.pageHeader {
-    margin-bottom: 2rem;
-}
-
-.pageHeader h1 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-}
-
-.welcomeText {
-    color: #64748b;
-    font-size: 1rem;
-}
-
-/* Stats Grid */
-.statsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.statCard {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    display: flex;
+/* Back Button */
+.backButton {
+    padding: 0.75rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #f59e0b;
+    /* Amber to match the page theme */
+    color: #ffffff;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    display: inline-flex;
     align-items: center;
-    gap: 1.5rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.statCard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.statIcon {
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-
-.statInfo {
-    flex: 1;
-}
-
-.statInfo h3 {
-    font-size: 0.875rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: #64748b;
-    margin-bottom: 0.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
+}
+
+.backButton:hover {
+    background-color: #d97706;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(245, 158, 11, 0.3);
+    color: #ffffff;
+}
+
+/* Header Section */
+.analyticsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.analyticsHeader h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    border-left: 5px solid #f59e0b;
+    /* Amber accent */
+    padding-left: 1rem;
+}
+
+.dateFilter select {
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background-color: white;
+    color: #374151;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border-left: 3px solid #f59e0b;
+}
+
+/* Metrics Overview Grid */
+.metricsOverview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.metricCard {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-top: 4px solid #f59e0b;
+    /* Amber accent */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metricCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(245, 158, 11, 0.15);
+}
+
+.metricCard h3 {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.statValue {
+.metricValue {
     font-size: 1.875rem;
     font-weight: 700;
-    color: #0f172a;
-    line-height: 1.2;
+    color: #111827;
+}
+
+.statIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.statInfo h3 {
     margin-bottom: 0.25rem;
 }
 
 .statLabel {
-    font-size: 0.875rem;
-    color: #94a3b8;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    display: block;
+    margin-top: 0.25rem;
 }
 
-/* Table Section */
-.sectionHeader {
+/* Table Container */
+.productsTableContainer {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+    border-top: 4px solid #d97706;
+    /* Darker Amber */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.productsTableContainer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(217, 119, 6, 0.1);
+}
+
+.tableHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.sectionHeader h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1e293b;
+.tableHeader h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
 }
 
-.tableCard {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-}
-
-.tableContainer {
-    overflow-x: auto;
-}
-
-.analyticsTable {
+/* Table Styles */
+.productsTable {
     width: 100%;
-    border-collapse: collapse;
-    white-space: nowrap;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
-.analyticsTable th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-weight: 600;
+.productsTable th {
+    text-align: left;
+    padding: 1rem;
+    background-color: #fef3c7;
+    /* Amber tint */
+    color: #92400e;
+    /* Amber text */
+    font-weight: 700;
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 1rem 1.5rem;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 2px solid #e5e7eb;
 }
 
-.analyticsTable td {
-    padding: 1rem 1.5rem;
-    color: #334155;
-    font-size: 0.95rem;
-    border-bottom: 1px solid #f1f5f9;
+.productsTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    font-size: 0.9375rem;
     vertical-align: middle;
 }
 
-.analyticsTable tr:last-child td {
+.productsTable tr:last-child td {
     border-bottom: none;
 }
 
-.analyticsTable tr:hover td {
-    background-color: #f8fafc;
+.productsTable tr {
+    transition: all 0.2s ease;
 }
 
-/* Product Cell */
-.productCell {
+.productsTable tr:hover td {
+    background-color: #fffbeb;
+    /* Amber tint on hover */
+    transform: scale(1.002);
+}
+
+/* Product Info Cell */
+.productInfo {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -151,66 +212,46 @@
 .productImage {
     width: 48px;
     height: 48px;
-    border-radius: 0.5rem;
+    border-radius: 8px;
     object-fit: cover;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e5e7eb;
 }
 
 .productName {
     font-weight: 600;
-    color: #0f172a;
+    color: #111827;
 }
 
-/* Status Badges */
-.statusBadge {
-    padding: 0.35rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: capitalize;
-    display: inline-block;
-}
-
-.statusActive {
-    background-color: #dcfce7;
-    color: #166534;
-}
-
-.statusInactive {
-    background-color: #f1f5f9;
-    color: #475569;
-}
-
-.statusOutOfStock {
-    background-color: #fee2e2;
-    color: #991b1b;
-}
-
-/* Revenue Highlight */
 .revenueCell {
     font-weight: 700;
     color: #059669;
 }
 
-/* Loading & Error */
-.loadingContainer,
-.errorContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
-    color: #64748b;
-    gap: 1rem;
+.statusBadge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
-.errorContainer {
-    color: #ef4444;
+.statusActive {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.statusOutOfStock {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.statusInactive {
+    background-color: #f3f4f6;
+    color: #4b5563;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .statsGrid {
+    .metricsOverview {
         grid-template-columns: 1fr;
     }
 }

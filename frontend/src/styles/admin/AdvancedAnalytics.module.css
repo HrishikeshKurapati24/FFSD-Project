@@ -35,10 +35,14 @@
 }
 
 .card {
-    background: white;
+    background: transparent;
+    /* Changed to transparent to allow row cards to pop */
     border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 0;
+    box-shadow: none;
+    overflow: visible;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
 }
 
 /* ROI Leaderboard Styles */
@@ -48,33 +52,70 @@
 
 .roiTable {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+    /* Vertical gap between rows */
 }
 
 .roiTable thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
 }
 
+.roiTable thead tr th {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
 .roiTable th {
-    padding: 1rem;
+    padding: 1.25rem 1.5rem;
     text-align: left;
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: none;
+}
+
+.roiTable th:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.roiTable th:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 .roiTable tbody tr {
-    border-bottom: 1px solid #e0e0e0;
-    transition: background-color 0.2s;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .roiTable tbody tr:hover {
-    background-color: #f5f5f5;
+    transform: scale(1.01) translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .roiTable td {
-    padding: 1rem;
-    font-size: 0.9rem;
+    padding: 1.5rem;
+    font-size: 0.95rem;
+    color: #374151;
+    border: none;
+    background: white;
+}
+
+.roiTable td:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+.roiTable td:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 .rank {
@@ -82,13 +123,17 @@
 }
 
 .rankBadge {
-    display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
     color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-weight: 600;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-weight: 700;
     font-size: 0.85rem;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
 }
 
 .influencerInfo {

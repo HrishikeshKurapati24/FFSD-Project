@@ -727,25 +727,18 @@ const BrandAnalytics = () => {
           <div className={styles.brandsTableContainer}>
             <div className={styles.tableHeader}>
               <h3>Top Performing Brands</h3>
-              <div className={styles.sortControls}>
-                <button
-                  className={`${styles.sortButton} ${sortBy === 'engagementRate' ? styles.active : ''}`}
-                  onClick={() => setSortBy('engagementRate')}
+              <div className={styles.sortControls} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className={styles.sortLabel} style={{ fontWeight: '500', color: '#000000' }}>Sort by </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className={styles.sortSelect}
+                  style={{ padding: '5px 10px', borderRadius: '5px', border: '1px solid #ddd' }}
                 >
-                  Sort by Engagement
-                </button>
-                <button
-                  className={`${styles.sortButton} ${sortBy === 'revenue' ? styles.active : ''}`}
-                  onClick={() => setSortBy('revenue')}
-                >
-                  Sort by Revenue
-                </button>
-                <button
-                  className={`${styles.sortButton} ${sortBy === 'activeCampaigns' ? styles.active : ''}`}
-                  onClick={() => setSortBy('activeCampaigns')}
-                >
-                  Sort by Campaigns
-                </button>
+                  <option value="engagementRate">Engagement</option>
+                  <option value="revenue">Revenue</option>
+                  <option value="activeCampaigns">Campaigns</option>
+                </select>
               </div>
             </div>
             <table className={styles.brandsTable}>
