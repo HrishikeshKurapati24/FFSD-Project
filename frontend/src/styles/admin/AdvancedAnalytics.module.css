@@ -191,16 +191,28 @@
     color: #333;
 }
 
-.brandSelect {
+.selectWrapper {
+    position: relative;
     width: 100%;
     max-width: 400px;
+    background: rgb(255, 255, 255) !important;
+}
+
+.brandSelect {
+    width: 100%;
     padding: 0.75rem 1rem;
     font-size: 1rem;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
-    background: white;
+    background-color: white !important;
+    color: black !important;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+.brandSelect option {
+    color: rgb(0, 0, 0) !important;
+    padding: 10px;
 }
 
 .brandSelect:hover {
@@ -648,4 +660,73 @@
 .badgeCancelled {
     background: #ffebee;
     color: #e53935;
+}
+
+/* New Refinement Styles */
+.whiteCard {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.dateRangeContainer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.dateInputGroup {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s;
+}
+
+.dateInputGroup:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.dateLabel {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    margin-right: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dateInput {
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    color: #333;
+    padding: 0.25rem;
+    background: transparent;
+}
+
+.resetButton {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.resetButton:hover {
+    background: #f1f5f9;
+    color: #1a1a1a;
+    border-color: #cbd5e1;
 }

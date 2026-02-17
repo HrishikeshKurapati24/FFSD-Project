@@ -299,27 +299,27 @@ export default function AdvancedAnalytics() {
                             <h2>📈 Platform Performance</h2>
                             <p>Real-time overview of orders, revenue, and fulfillment efficiency</p>
                         </div>
-                        <div className="d-flex gap-2 align-items-center mb-1">
-                            <div className="input-group input-group-sm">
-                                <span className="input-group-text bg-white small">From</span>
+                        <div className={styles.dateRangeContainer}>
+                            <div className={styles.dateInputGroup}>
+                                <span className={styles.dateLabel}>From</span>
                                 <input
                                     type="date"
-                                    className="form-control form-control-sm"
+                                    className={styles.dateInput}
                                     value={dateRange.start}
                                     onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                                 />
                             </div>
-                            <div className="input-group input-group-sm">
-                                <span className="input-group-text bg-white small">To</span>
+                            <div className={styles.dateInputGroup}>
+                                <span className={styles.dateLabel}>To</span>
                                 <input
                                     type="date"
-                                    className="form-control form-control-sm"
+                                    className={styles.dateInput}
                                     value={dateRange.end}
                                     onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                                 />
                             </div>
                             <button
-                                className="btn btn-sm btn-outline-secondary"
+                                className={styles.resetButton}
                                 onClick={() => setDateRange({ start: '', end: '' })}
                                 title="Reset Range"
                             >
@@ -600,30 +600,39 @@ export default function AdvancedAnalytics() {
 
                     <div className={styles.matchmakingTool}>
                         <label>Select Brand for Recommendations:</label>
-                        <select
-                            className={styles.brandSelect}
-                            value={selectedBrand}
-                            onChange={handleBrandChange}
-                        >
-                            <option value="">-- Choose a Verified Brand --</option>
-                            {brands.map(brand => (
-                                <option key={brand._id} value={brand._id}>{brand.businessName}</option>
-                            ))}
-                        </select>
+                        <div className={styles.selectWrapper}>
+                            <select
+                                className={styles.brandSelect}
+                                value={selectedBrand}
+                                onChange={handleBrandChange}
+                            >
+                                <option value="">-- Choose a Verified Brand --</option>
+                                {brands.map(brand => (
+                                    <option key={brand._id} value={brand._id} style={{ color: 'black' }}>{brand.brandName}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
+
 
                     {matchmakingResults.length > 0 && (
                         <div className={styles.matchmakingResults}>
                             <h3>Top Compatible Influencers</h3>
                             <div className={styles.recommendationGrid}>
                                 {matchmakingResults.map((match, idx) => (
-                                    <div key={idx} className={styles.matchCard}>
+                                    <div
+                                        key={idx}
+                                        className={`${styles.matchCard} ${match.score >= 80 ? styles.perfectMatchCard : ''}`}
+                                    >
                                         <div className={styles.matchHeader}>
                                             <div className={styles.influencerAvatar}>
-                                                <img src={match.profilePic || '/images/default-profile.jpg'} alt={match.name} />
+                                                <img
+                                                    src={match.influencer?.profilePicUrl || '/images/default-profile.jpg'}
+                                                    alt={match.influencer?.fullName || match.influencer?.username}
+                                                />
                                             </div>
                                             <div className={styles.matchInfo}>
-                                                <h4>{match.name}</h4>
+                                                <h4>{match.influencer?.fullName || match.influencer?.username}</h4>
                                                 <div className={styles.matchScore}>
                                                     <span className={styles.scoreLabel}>Match Score:</span>
                                                     <div className={styles.matchProgress}>
@@ -640,8 +649,13 @@ export default function AdvancedAnalytics() {
                                             </div>
                                         </div>
                                         <div className={styles.matchCriteria}>
-                                            {match.reasons?.map((reason, rIdx) => (
-                                                <span key={rIdx} className={styles.criteriaBadge}>{reason}</span>
+                                            {match.matchReasons?.map((reason, rIdx) => (
+                                                <span
+                                                    key={rIdx}
+                                                    className={`${styles.criteriaBadge} ${match.score >= 80 ? styles.categoryBadge : ''}`}
+                                                >
+                                                    {reason}
+                                                </span>
                                             ))}
                                         </div>
                                     </div>
@@ -649,6 +663,7 @@ export default function AdvancedAnalytics() {
                             </div>
                         </div>
                     )}
+
                 </div>
 
                 {/* Ecosystem Graph Section */}
@@ -657,18 +672,20 @@ export default function AdvancedAnalytics() {
                         <h2>🕸️ Collab Ecosystem</h2>
                         <p>Interactive visualization of brands, influencers, and product distribution networks</p>
                     </div>
-                    {ecosystemData ? (
-                        <div
-                            ref={networkContainerRef}
-                            className={styles.graphContainer}
-                            style={{ height: '600px', border: '1px solid #eee', borderRadius: '12px' }}
-                        />
-                    ) : (
-                        <div className={styles.loadingState}>
-                            <i className="fas fa-spinner fa-spin"></i>
-                            <p>Mapping ecosystem nodes...</p>
-                        </div>
-                    )}
+                    <div className={styles.whiteCard}>
+                        {ecosystemData ? (
+                            <div
+                                ref={networkContainerRef}
+                                className={styles.graphContainer}
+                                style={{ height: '600px', borderRadius: '12px' }}
+                            />
+                        ) : (
+                            <div className={styles.loadingState}>
+                                <i className="fas fa-spinner fa-spin"></i>
+                                <p>Mapping ecosystem nodes...</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Order Details Modal Integration */}
