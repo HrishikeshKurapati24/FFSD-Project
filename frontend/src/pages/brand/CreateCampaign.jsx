@@ -7,6 +7,7 @@ import BrandNavigation from '../../components/brand/BrandNavigation';
 import ErrorAlert from '../../components/brand/createCampaign/ErrorAlert';
 import CampaignFormFields from '../../components/brand/createCampaign/CampaignFormFields';
 import ProductsSection from '../../components/brand/createCampaign/ProductsSection';
+// import DeliverablesSection from '../../components/brand/createCampaign/DeliverablesSection';
 
 const EXTERNAL_ASSETS = {
   styles: [
@@ -59,6 +60,21 @@ const CreateCampaign = () => {
   // Form validation errors
   const [formErrors, setFormErrors] = useState({});
   const [productErrors, setProductErrors] = useState({});
+  
+  // // Deliverables state
+  // const [deliverables, setDeliverables] = useState([
+  //   {
+  //     id: 0,
+  //     task_description: '',
+  //     platform: '',
+  //     num_posts: 0,
+  //     num_reels: 0,
+  //     num_videos: 0
+  //   }
+  // ]);
+  
+  // // Deliverables validation errors
+  // const [deliverableErrors, setDeliverableErrors] = useState({});
 
   const handleSignOut = async (e) => {
     e?.preventDefault();
@@ -217,6 +233,53 @@ const CreateCampaign = () => {
     // Reset file input
     const input = document.getElementById(`product-image-${productId}`);
     if (input) input.value = '';
+  };
+
+  // Handle deliverable field changes
+  const handleDeliverableChange = (deliverableId, field, value) => {
+    setDeliverables(prev => prev.map(d =>
+      d.id === deliverableId ? { ...d, [field]: value } : d
+    ));
+    // Clear error for this field
+    if (deliverableErrors[deliverableId] && deliverableErrors[deliverableId][field]) {
+      setDeliverableErrors(prev => ({
+        ...prev,
+        [deliverableId]: {
+          ...prev[deliverableId],
+          [field]: ''
+        }
+      }));
+    }
+  };
+
+  // Add new deliverable
+  const handleAddDeliverable = () => {
+    const newDeliverable = {
+      id: deliverables.length,
+      task_description: '',
+      platform: '',
+      num_posts: 0,
+      num_reels: 0,
+      num_videos: 0
+    };
+    setDeliverables(prev => [...prev, newDeliverable]);
+  };
+
+  // Remove deliverable
+  const handleRemoveDeliverable = (deliverableId) => {
+    if (deliverables.length === 1) {
+      alert('You must have at least one deliverable for the campaign.');
+      return;
+    }
+    setDeliverables(prev => prev.filter(d => d.id !== deliverableId));
+    // Clear errors for removed deliverable
+    if (deliverableErrors[deliverableId]) {
+      setDeliverableErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[deliverableId];
+        return newErrors;
+      });
+    }
   };
 
   // Validation helper
@@ -420,6 +483,40 @@ const CreateCampaign = () => {
       setProductErrors(newProductErrors);
       }
 
+    // Validate deliverables
+    if (deliverables.length === 0) {
+      alert('Please add at least one deliverable for the campaign.');
+      hasErrors = true;
+    } else {
+      const newDeliverableErrors = {};
+      deliverables.forEach(deliverable => {
+        const deliverableError = {};
+
+        // Task description
+        if (!deliverable.task_description.trim()) {
+          deliverableError.task_description = 'Task description is required';
+          hasErrors = true;
+        }
+
+        // Platform
+        if (!deliverable.platform) {
+          deliverableError.platform = 'Please select a platform';
+          hasErrors = true;
+        }
+
+        // At least one of posts, reels, or videos should be greater than 0
+        if (deliverable.num_posts === 0 && deliverable.num_reels === 0 && deliverable.num_videos === 0) {
+          deliverableError.num_posts = 'Please specify at least one deliverable (posts, reels, or videos)';
+          hasErrors = true;
+        }
+
+        if (Object.keys(deliverableError).length > 0) {
+          newDeliverableErrors[deliverable.id] = deliverableError;
+        }
+      });
+      setDeliverableErrors(newDeliverableErrors);
+    }
+
     setFormErrors(newErrors);
     return !hasErrors;
   };
@@ -478,6 +575,15 @@ const CreateCampaign = () => {
           formDataToSend.append(`products[${index}][image]`, product.image);
         }
       });
+
+      // Add deliverables
+      // deliverables.forEach((deliverable, index) => {
+      //   formDataToSend.append(`deliverables[${index}][task_description]`, deliverable.task_description);
+      //   formDataToSend.append(`deliverables[${index}][platform]`, deliverable.platform);
+      //   formDataToSend.append(`deliverables[${index}][num_posts]`, deliverable.num_posts);
+      //   formDataToSend.append(`deliverables[${index}][num_reels]`, deliverable.num_reels);
+      //   formDataToSend.append(`deliverables[${index}][num_videos]`, deliverable.num_videos);
+      // });
 
       const response = await fetch(`${API_BASE_URL}/brand/campaigns/create`, {
         method: 'POST',
@@ -591,6 +697,8 @@ const CreateCampaign = () => {
             onAddProduct={handleAddProduct}
           />
 
+          
+
           <div className="btn-group">
             <button type="submit" className="submit-btn" disabled={loading}>
               {loading ? 'Creating Campaign...' : 'Create Campaign'}
@@ -601,5 +709,13 @@ const CreateCampaign = () => {
             </div>
       );
 };
+
+{/* <DeliverablesSection
+            deliverables={deliverables}
+            deliverableErrors={deliverableErrors}
+            onDeliverableChange={handleDeliverableChange}
+            onRemoveDeliverable={handleRemoveDeliverable}
+            onAddDeliverable={handleAddDeliverable}
+          /> */}
 
 export default CreateCampaign;

@@ -200,7 +200,7 @@ router.get('/explore', async (req, res) => {
         });
 
         // Combine influencer info with analytics data
-        const enrichedInfluencers = influencers.map(influencer => {
+        let enrichedInfluencers = influencers.map(influencer => {
             const analytics = analyticsMap.get(influencer._id.toString()) || {};
             return {
                 _id: influencer._id,
@@ -223,6 +223,39 @@ router.get('/explore', async (req, res) => {
                 }
             };
         });
+
+        // Get brand ID from session to check previous collaborations
+        const brandId = req.session.user?.id;
+        if (brandId) {
+            // Get previous collaborations for this brand
+            const collaborations = await CampaignInfluencers.find({
+                campaign_id: {
+                    $in: await CampaignInfo.find({ brand_id: brandId }).distinct('_id')
+                },
+                status: { $in: ['active', 'completed'] }
+            })
+                .populate('campaign_id', 'title')
+                .populate('influencer_id', '_id')
+                .lean();
+
+            // Create a map of influencer_id to their collaboration details
+            const collaborationMap = {};
+            collaborations.forEach(collab => {
+                const influencerId = collab.influencer_id._id.toString();
+                if (!collaborationMap[influencerId]) {
+                    collaborationMap[influencerId] = [];
+                }
+                collaborationMap[influencerId].push({
+                    campaignTitle: collab.campaign_id.title
+                });
+            });
+
+            // Add collaboration info to influencers
+            enrichedInfluencers = enrichedInfluencers.map(influencer => ({
+                ...influencer,
+                previousCollaborations: collaborationMap[influencer._id.toString()] || []
+            }));
+        }
 
         const responseData = {
             success: true,
@@ -1189,6 +1222,41 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             }
         );
 
+        // Handle deliverables if provided (Stage 2 addition)
+        let deliverables = req.body.deliverables;
+
+        // Parse deliverables if they're sent as a JSON string (from FormData)
+        if (typeof deliverables === 'string') {
+            try {
+                deliverables = JSON.parse(deliverables);
+            } catch (e) {
+                console.error('Failed to parse deliverables:', e);
+                deliverables = [];
+            }
+        }
+
+        if (deliverables && Array.isArray(deliverables) && deliverables.length > 0) {
+            console.log('Adding deliverables to collaboration:', deliverables.length);
+
+            if (Array.isArray(deliverables) && deliverables.length > 0) {
+                const formattedDeliverables = deliverables.map(d => ({
+                    title: d.title || 'Untitled Deliverable',
+                    description: d.description || '',
+                    due_date: d.due_date ? new Date(d.due_date) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default: 7 days from now
+                    deliverable_type: d.deliverable_type || 'Other',
+                    status: 'pending'
+                }));
+
+                await CampaignInfluencers.updateOne(
+                    { _id: campaignId, influencer_id: influencerId },
+                    { $set: { deliverables: formattedDeliverables } }
+                );
+
+                console.log('Deliverables added successfully');
+            }
+        }
+
+
         // Create notification for influencer to inform that their request was accepted / campaign completed
         try {
             // Fetch campaign title for a nicer message
@@ -1223,16 +1291,23 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         const successMessage = 'Campaign completed and payment processed successfully!';
         req.session.successMessage = successMessage;
 
-        // Return JSON for API requests (React frontend)
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.json({
-                success: true,
-                message: successMessage
-            });
-        }
+        // Save session before responding to ensure flash message persists
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+            }
 
-        // Redirect to received requests page
-        res.redirect(`/brand/home`);
+            // Return JSON for API requests (React frontend)
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.json({
+                    success: true,
+                    message: successMessage
+                });
+            }
+
+            // Redirect to received requests page
+            res.redirect(`/brand/home`);
+        });
     } catch (error) {
         console.error('Error processing payment:', error);
 
@@ -1877,6 +1952,10 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
 router.get('/campaigns/:campaignId/influencers', isAuthenticated, isBrand, brandController.getCampaignInfluencers);
 router.get('/campaigns/:campaignId/influencers/:influencerId/contribution', isAuthenticated, isBrand, brandController.getInfluencerContribution);
 
+// Deliverables routes
+router.get('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandController.getCampaignDeliverables);
+router.post('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandController.updateCampaignDeliverables);
+
 // Add this route after the campaign activation route
 router.get('/campaigns/:campaignId/details', async (req, res) => {
     try {
@@ -1906,14 +1985,21 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
 
         console.log('Found accepted influencers:', acceptedInfluencers.length);
 
+        // Fetch products associated with this campaign
+        const products = await Product.find({
+            campaign_id: new mongoose.Types.ObjectId(campaignId)
+        }).lean();
+
         // Transform the data for the response
         const campaignDetails = {
             _id: campaign._id,
             title: campaign.title,
             description: campaign.description,
             status: campaign.status,
-            start_date: campaign.start_date,
+            start_date: campaign.start_date, // Keep for legacy
+            startDate: campaign.start_date, // Common frontend expectation
             end_date: campaign.end_date,
+            endDate: campaign.end_date,
             duration: campaign.duration,
             budget: campaign.budget,
             target_audience: campaign.target_audience,
@@ -1926,6 +2012,19 @@ router.get('/campaigns/:campaignId/details', async (req, res) => {
                 profilePicUrl: ci.influencer_id?.profilePicUrl || '/images/default-avatar.jpg',
                 followers: ci.influencer_id?.followers || 0,
                 engagement_rate: ci.influencer_id?.engagement_rate || 0
+            })),
+            products: products.map(p => ({
+                _id: p._id,
+                name: p.name,
+                category: p.category,
+                description: p.description,
+                original_price: p.original_price,
+                campaign_price: p.campaign_price,
+                discount_percentage: p.discount_percentage,
+                images: p.images,
+                special_instructions: p.special_instructions,
+                target_quantity: p.target_quantity,
+                sold_quantity: p.sold_quantity
             }))
         };
 
@@ -2002,6 +2101,12 @@ router.post('/campaigns/:campaignId/end', async (req, res) => {
             {
                 $set: { status: 'completed' }
             }
+        );
+
+        // Deactivate all associated products
+        await Product.updateMany(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId) },
+            { $set: { status: 'inactive' } }
         );
 
         console.log('Campaign ended successfully:', campaignId);
@@ -2333,6 +2438,7 @@ router.get('/influencer_details/:influencerId', isAuthenticated, isBrand, async 
     }
 });
 
+
 // ========== CAMPAIGN CONTENT MANAGEMENT ROUTES ==========
 
 // Product management routes
@@ -2342,5 +2448,12 @@ router.get('/campaigns/:campaignId/products', CampaignContentController.getCampa
 // Content review routes
 router.get('/campaigns/:campaignId/pending-content', CampaignContentController.getCampaignPendingContentForBrand);
 router.post('/content/:contentId/review', CampaignContentController.reviewContent);
+
+// ========== ORDER MANAGEMENT ROUTES ==========
+
+// Order tracking routes
+router.get('/orders', isAuthenticated, isBrand, brandController.getBrandOrders);
+router.post('/orders/:orderId/status', isAuthenticated, isBrand, brandController.updateOrderStatus);
+router.get('/orders/analytics', isAuthenticated, isBrand, brandController.getOrderAnalytics);
 
 module.exports = router;

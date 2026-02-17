@@ -4,10 +4,16 @@ import styles from '../../styles/brand/campaign_history.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
 import BrandNavigation from '../../components/brand/BrandNavigation';
+import CampaignDetailsModal from '../../components/brand/dashboard/CampaignDetailsModal';
+import { viewCampaignDetails } from '../../utils/BrandDashboard';
 
 const EXTERNAL_ASSETS = {
     styles: [
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css'
+    ],
+    scripts: [
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js'
     ]
 };
 
@@ -17,6 +23,10 @@ const CampaignHistory = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [campaigns, setCampaigns] = useState([]);
+    const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+    const [detailsModalData, setDetailsModalData] = useState({ loading: false, details: null });
+    const detailsModalRef = React.useRef(null);
+    const detailsModalInstanceRef = React.useRef(null);
 
     // Fetch campaign history
     const fetchCampaignHistory = async () => {
@@ -83,8 +93,48 @@ const CampaignHistory = () => {
     // Initial fetch on mount
     useEffect(() => {
         fetchCampaignHistory();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        // Initialize Bootstrap modal
+        const initModal = () => {
+            if (typeof window !== 'undefined' && window.bootstrap && window.bootstrap.Modal) {
+                if (detailsModalRef.current && !detailsModalInstanceRef.current) {
+                    detailsModalInstanceRef.current = new window.bootstrap.Modal(detailsModalRef.current);
+                }
+            }
+        };
+
+        initModal();
+        const checkBootstrap = setInterval(() => {
+            if (window.bootstrap) {
+                clearInterval(checkBootstrap);
+                initModal();
+            }
+        }, 100);
+        setTimeout(() => clearInterval(checkBootstrap), 5000);
+
+        return () => {
+            if (detailsModalInstanceRef.current) detailsModalInstanceRef.current.dispose();
+        };
     }, []);
+
+    const handleViewDetails = async (campaignId) => {
+        setDetailsModalOpen(true);
+        setDetailsModalData({ loading: true, details: null });
+        if (detailsModalInstanceRef.current) detailsModalInstanceRef.current.show();
+
+        try {
+            const details = await viewCampaignDetails(campaignId);
+            setDetailsModalData({ loading: false, details });
+        } catch (err) {
+            console.error('Error loading details:', err);
+            setDetailsModalData({ loading: false, details: null });
+        }
+    };
+
+    const handleCloseModal = () => {
+        setDetailsModalOpen(false);
+        if (detailsModalInstanceRef.current) detailsModalInstanceRef.current.hide();
+    };
 
     const handleSignOut = async (e) => {
         e?.preventDefault();
@@ -223,6 +273,34 @@ const CampaignHistory = () => {
                                         </div>
                                     </div>
                                 )}
+
+                                {campaign.products && campaign.products.length > 0 && (
+                                    <div className={styles.campaignProducts} style={{ marginTop: '15px' }}>
+                                        <h4 style={{ fontSize: '0.9rem', marginBottom: '8px', color: '#666' }}>Associated Products</h4>
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {campaign.products.map(product => (
+                                                <div key={product._id} className="d-flex align-items-center p-1 px-2 border rounded-pill bg-light" style={{ fontSize: '0.8rem' }}>
+                                                    <img
+                                                        src={product.images?.[0]?.url || '/images/default-product.png'}
+                                                        alt={product.name}
+                                                        style={{ width: '20px', height: '20px', borderRadius: '50%', marginRight: '6px', objectFit: 'cover' }}
+                                                    />
+                                                    <span className="text-truncate" style={{ maxWidth: '100px' }}>{product.name}</span>
+                                                    <span className="ms-1 fw-bold text-primary">${product.campaign_price}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-3">
+                                    <button
+                                        className="btn btn-outline-primary btn-sm w-100"
+                                        onClick={() => handleViewDetails(campaign._id || campaign.id)}
+                                    >
+                                        View Full Details
+                                    </button>
+                                </div>
                             </div>
                         ))
                     ) : (
@@ -234,6 +312,15 @@ const CampaignHistory = () => {
                     )}
                 </div>
             </div>
+
+            <CampaignDetailsModal
+                modalRef={detailsModalRef}
+                modalInstanceRef={detailsModalInstanceRef}
+                isOpen={detailsModalOpen}
+                details={detailsModalData.details}
+                loading={detailsModalData.loading}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 };

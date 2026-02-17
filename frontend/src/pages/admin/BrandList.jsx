@@ -10,6 +10,7 @@ export default function BrandList() {
     const [user, setUser] = useState({ name: 'Admin' });
     const [notifications, setNotifications] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortDirection, setSortDirection] = useState('desc'); // 'desc' or 'asc'
 
     useEffect(() => {
         fetchUserData();
@@ -75,6 +76,10 @@ export default function BrandList() {
         return brandName.includes(searchVal) ||
             email.includes(searchVal) ||
             categories.some(cat => cat.includes(searchVal));
+    }).sort((a, b) => {
+        const audA = a.totalAudience || 0;
+        const audB = b.totalAudience || 0;
+        return sortDirection === 'desc' ? audB - audA : audA - audB;
     });
 
     return (
@@ -83,14 +88,27 @@ export default function BrandList() {
                 <div className={styles.container}>
                     <div className={styles.header}>
                         <h1>Verified Brands</h1>
-                        <div className={styles.searchBar}>
-                            <i className="fas fa-search"></i>
-                            <input
-                                type="text"
-                                placeholder="Search brands or categories..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className={styles.headerActions}>
+                            <div className={styles.sortControls}>
+                                <span className={styles.sortLabel}>Sort by Audience:</span>
+                                <select
+                                    className={styles.sortSelect}
+                                    value={sortDirection}
+                                    onChange={(e) => setSortDirection(e.target.value)}
+                                >
+                                    <option value="desc">High to Low</option>
+                                    <option value="asc">Low to High</option>
+                                </select>
+                            </div>
+                            <div className={styles.searchBar}>
+                                <i className="fas fa-search"></i>
+                                <input
+                                    type="text"
+                                    placeholder="Search brands or categories..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -106,7 +124,6 @@ export default function BrandList() {
                                         <th>Website</th>
                                         <th>Category</th>
                                         <th>Audience</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -115,9 +132,13 @@ export default function BrandList() {
                                             <tr key={brand._id}>
                                                 <td>
                                                     <div className={styles.brandInfo}>
-                                                        <div className={styles.avatar}>
-                                                            {(brand.brandName || brand.name || 'B').charAt(0).toUpperCase()}
-                                                        </div>
+                                                        {brand.logoUrl ? (
+                                                            <img src={brand.logoUrl} alt="" className={styles.logo} onError={(e) => e.target.style.display = 'none'} />
+                                                        ) : (
+                                                            <div className={styles.avatar}>
+                                                                {(brand.brandName || brand.name || 'B').charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
                                                         <span className={styles.brandName}>{brand.brandName || brand.name}</span>
                                                     </div>
                                                 </td>
@@ -141,12 +162,11 @@ export default function BrandList() {
                                                     </div>
                                                 </td>
                                                 <td>{(brand.totalAudience || 0).toLocaleString()}</td>
-                                                <td><span className={styles.verifiedBadge}>Verified</span></td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6" className={styles.noData}>No verified brands found.</td>
+                                            <td colSpan="5" className={styles.noData}>No verified brands found.</td>
                                         </tr>
                                     )}
                                 </tbody>

@@ -66,6 +66,40 @@ const CampaignDetailsModal = ({ modalRef, modalInstanceRef, isOpen, details, loa
                     <h6>Description</h6>
                     <p>{details.description || 'No description available'}</p>
                   </div>
+                  {details.products && details.products.length > 0 && (
+                    <div className="detail-section">
+                      <h6>Product Details</h6>
+                      <div className="products-list">
+                        {details.products.map((product, idx) => (
+                          <div key={idx} className="product-card mb-3 p-3 border rounded shadow-sm">
+                            <div className="d-flex align-items-center">
+                              <img
+                                src={product.images?.[0]?.url || '/images/default-product.png'}
+                                alt={product.name}
+                                style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }}
+                                className="me-3"
+                                onError={(e) => { e.target.src = '/images/default-product.png'; }}
+                              />
+                              <div className="flex-grow-1">
+                                <h6 className="mb-1" style={{ fontSize: '1.1rem', fontWeight: 600 }}>{product.name}</h6>
+                                <div className="text-muted small mb-2">{product.category}</div>
+                                <div className="d-flex align-items-baseline">
+                                  <span className="text-primary fw-bold me-2" style={{ fontSize: '1.2rem' }}>${product.campaign_price}</span>
+                                  {product.original_price > product.campaign_price && (
+                                    <span className="text-muted text-decoration-line-through small">${product.original_price}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-2 text-muted small">
+                              {product.description}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {details.influencers && details.influencers.length > 0 && (
                     <div className="detail-section">
                       <h6>Accepted Influencers</h6>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const IntroSection = ({ brand, stats, subscriptionStatus, subscriptionLimits }) => {
+const IntroSection = ({ brand, stats, subscriptionStatus, subscriptionLimits, activeOrders = [], completedOrders = [] }) => {
   return (
     <div className="intro">
       <h1>Welcome, {brand?.displayName || 'Brand'}</h1>
@@ -20,6 +20,18 @@ const IntroSection = ({ brand, stats, subscriptionStatus, subscriptionLimits }) 
             <div className="trend-indicator trend-up">
               <i className="fas fa-arrow-up"></i>
               {stats?.campaignGrowth || 0}% from last month
+            </div>
+          </div>
+
+          <div className="dashboard-card">
+            <h3>Active Orders</h3>
+            <div className="metric-value">
+              {activeOrders.length || 0}
+            </div>
+            <div className="metric-label">Orders pending fulfillment</div>
+            <div className="trend-indicator trend-neutral">
+              <i className="fas fa-shopping-cart"></i>
+              {completedOrders.length || 0} completed
             </div>
           </div>
 

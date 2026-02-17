@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController } = require('../controllers/AdminController');
+const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController, OrderAnalyticsController } = require('../controllers/AdminController');
+const AdminAnalyticsController = require('../controllers/AdminAnalyticsController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -54,7 +55,8 @@ const isAPIRequest = (req) => {
         '/admin/notifications', '/notifications',
         '/admin/verified-brands', '/verified-brands',
         '/admin/verified-influencers', '/verified-influencers',
-        '/admin/all-customers', '/all-customers'
+        '/admin/all-customers', '/all-customers',
+        '/admin/orders/all', '/orders/all'
     ];
 
     const isAdminAPIRoute = adminAPIRoutes.some(route =>
@@ -243,6 +245,9 @@ router.get('/verify', async (req, res) => {
 
 router.post('/login/verify', DashboardController.verifyUser);
 
+// Feedback submission route (public for Brands, Influencers, Customers)
+router.post('/feedback/submit', FeedbackController.submitFeedback);
+
 // Protected routes - require authentication
 router.use(adminAuth);
 
@@ -267,6 +272,17 @@ router.get('/brand-analytics', AnalyticsController.getBrandAnalytics);
 router.get('/influencer-analytics', AnalyticsController.getInfluencerAnalytics);
 router.get('/campaign-analytics', AnalyticsController.getCampaignAnalytics);
 
+// Advanced Analytics (God Mode)
+router.get('/analytics', async (req, res) => {
+    // Fetch brands for the dropdown
+    const brands = await require('../config/BrandMongo').BrandInfo.find({}).select('brandName _id').lean();
+    res.render('admin/analytics', { brands });
+});
+router.get('/analytics/influencer-roi', AdminAnalyticsController.getInfluencerROI);
+router.get('/analytics/campaign-revenue', AdminAnalyticsController.getCampaignRevenueLeaderboard);
+router.get('/analytics/matchmaking/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
+router.get('/analytics/ecosystem', AdminAnalyticsController.getEcosystemGraphData);
+
 // User Management routes
 router.get('/user_management', UserManagementController.getUserManagementPage);
 router.post('/user_management/approve/:id', UserManagementController.approveUser);
@@ -289,13 +305,20 @@ router.post('/payment_verification/update/:id', PaymentController.updatePaymentS
 router.get('/feedback_and_moderation', FeedbackController.getAllFeedback);
 router.get('/feedback_and_moderation/:id', FeedbackController.getFeedbackDetails);
 router.post('/feedback_and_moderation/update/:id', FeedbackController.updateFeedbackStatus);
+router.delete('/feedback_and_moderation/:id', FeedbackController.deleteFeedback);
 
 // Customer Management routes
 router.get('/customer-management', CustomerController.getCustomerManagement);
+router.get('/completed-orders', CustomerController.getCompletedOrders);
+router.get('/product-analytics', CustomerController.getProductAnalytics);
 router.get('/customer-details/:id', CustomerController.getCustomerDetails);
 router.put('/customer-status/:id', CustomerController.updateCustomerStatus);
 router.get('/customer-analytics', CustomerController.getCustomerAnalytics);
 router.get('/all-customers', CustomerController.getAllCustomers);
+
+// Order Analytics routes
+router.get('/orders/analytics', OrderAnalyticsController.getAdminOrderAnalytics);
+router.get('/orders/all', OrderAnalyticsController.getAdminAllOrders);
 
 // Settings route
 router.get('/settings', (req, res) => {

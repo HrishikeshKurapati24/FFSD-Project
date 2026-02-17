@@ -1441,3 +1441,163 @@
   color: #dc3545;
   transform: rotate(90deg);
 }
+
+/* Influencer Rankings Section Styles - Matching BrandRankingsSection from Influencer Dashboard */
+.brandDashboardPage :global(.card) {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    margin: 2rem auto;
+    max-width: 1400px;
+    overflow: hidden;
+}
+
+.brandDashboardPage :global(.card-header) {
+    background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-bottom: none;
+}
+
+.brandDashboardPage :global(.card-header h5) {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brandDashboardPage :global(.card-header h5 i) {
+    margin: 0;
+}
+
+.brandDashboardPage :global(.card-body) {
+    padding: 1.5rem;
+    background: #ffffff;
+}
+
+.brandDashboardPage :global(.text-muted) {
+    color: #666 !important;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.brandDashboardPage :global(.table-responsive) {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.brandDashboardPage :global(.table) {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+.brandDashboardPage :global(.table thead) {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.brandDashboardPage :global(.table thead th) {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.brandDashboardPage :global(.table tbody tr) {
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+.brandDashboardPage :global(.table tbody tr:hover) {
+    background-color: #f8f9fa;
+}
+
+.brandDashboardPage :global(.table tbody tr:last-child) {
+    border-bottom: none;
+}
+
+.brandDashboardPage :global(.table tbody td) {
+    padding: 1rem;
+    vertical-align: middle;
+    color: #333;
+}
+
+.brandDashboardPage :global(.table tbody td:first-child) {
+    font-weight: 700;
+    color: #4285f4;
+    width: 60px;
+    text-align: center;
+}
+
+.brandDashboardPage :global(.table tbody td:nth-child(3)) {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.brandDashboardPage :global(.table-striped tbody tr:nth-of-type(odd)) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.brandDashboardPage :global(.table-striped tbody tr:nth-of-type(odd):hover) {
+    background-color: #f8f9fa;
+}
+
+/* Influencer cell styling - for future use if needed */
+.influencerCell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.influencerAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.influencerName {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Responsive adjustments for InfluencerRankingsSection */
+@media (max-width: 768px) {
+    .brandDashboardPage :global(.card-body) {
+        padding: 1rem;
+    }
+
+    .brandDashboardPage :global(.table thead th),
+    .brandDashboardPage :global(.table tbody td) {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .brandDashboardPage :global(.card-header h5) {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .brandDashboardPage :global(.card) {
+        margin: 1rem auto;
+    }
+
+    .brandDashboardPage :global(.card-header) {
+        padding: 1rem;
+    }
+
+    .brandDashboardPage :global(.card-body) {
+        padding: 0.75rem;
+    }
+}

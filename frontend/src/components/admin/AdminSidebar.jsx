@@ -12,6 +12,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
             label: 'Dashboard'
         },
         {
+            path: '/admin/advanced-analytics',
+            icon: 'fas fa-chart-line',
+            label: 'Advanced Analytics'
+        },
+        {
             path: '/admin/user_management',
             icon: 'fas fa-users',
             label: 'User Management'

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import styles from '../../styles/customer/campaign_shopping.module.css';
 import { API_BASE_URL } from '../../services/api';
 import { useExternalAssets } from '../../hooks/useExternalAssets';
@@ -23,6 +23,8 @@ const DEFAULT_AVATAR = '/images/default-avatar.jpg';
 const CampaignShopping = () => {
     useExternalAssets(EXTERNAL_ASSETS);
     const { campaignId } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
     const { addToCart } = useCart();
     const [campaign, setCampaign] = useState(null);
     const [products, setProducts] = useState([]);
@@ -33,6 +35,38 @@ const CampaignShopping = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
     const [alert, setAlert] = useState({ type: '', message: '' });
+    const [customerName, setCustomerName] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
+
+    // Check authentication on mount
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated && data.user?.userType === 'customer') {
+                        setIsAuthenticated(true);
+                        setCustomerName(data.user?.displayName || '');
+                    }
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            } finally {
+                setAuthChecked(true);
+            }
+        };
+
+        checkAuth();
+    }, []);
 
     const fetchCampaignDetails = useCallback(async () => {
         if (!campaignId) {
@@ -68,21 +102,22 @@ const CampaignShopping = () => {
     }, [campaignId]);
 
     useEffect(() => {
-        let isMounted = true;
-
-        const loadCampaign = async () => {
-            if (!isMounted) {
-                return;
-            }
-            await fetchCampaignDetails();
-        };
-
-        loadCampaign();
-
-        return () => {
-            isMounted = false;
-        };
+        fetchCampaignDetails();
     }, [fetchCampaignDetails]);
+
+    // Capture referral code from URL (?ref=XYZ) and persist it
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const refCode = searchParams.get('ref');
+        if (refCode) {
+            try {
+                // Store as-is; backend uppercases when matching
+                localStorage.setItem('referralCode', refCode);
+            } catch (e) {
+                console.warn('Unable to persist referral code', e);
+            }
+        }
+    }, [location.search]);
 
     useEffect(() => {
         const debounceTimeout = window.setTimeout(() => {
@@ -169,6 +204,11 @@ const CampaignShopping = () => {
 
     const handleAddToCart = useCallback(
         async (productId, availableStock) => {
+            if (!isAuthenticated) {
+                navigate('/signin');
+                return;
+            }
+
             try {
                 const maxQty = Number.isFinite(availableStock) ? Math.max(0, availableStock) : 0;
                 if (maxQty === 0) {
@@ -202,7 +242,7 @@ const CampaignShopping = () => {
                 showAlert('danger', error.message || 'Failed to add to cart');
             }
         },
-        [addToCart, showAlert]
+        [addToCart, showAlert, isAuthenticated, navigate]
     );
 
     const handleSearchChange = (event) => {
@@ -223,6 +263,30 @@ const CampaignShopping = () => {
         }, 200);
     };
 
+    if (!authChecked) {
+        return (
+            <div className={styles.campaignShoppingPage}>
+                <CampaignShoppingHeader
+                    campaign={campaign}
+                    products={products}
+                    contentItems={contentItems}
+                    activeTab={activeTab}
+                    searchValue={searchValue}
+                    alert={alert}
+                    errorMessage={errorMessage}
+                    loading={loading}
+                    onSearchChange={handleSearchChange}
+                    onTabChange={handleTabChange}
+                    formatDateRange={formatDateRange}
+                    styles={styles}
+                />
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status" aria-label="Loading" />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.campaignShoppingPage}>
             <CampaignShoppingHeader
@@ -238,6 +302,7 @@ const CampaignShopping = () => {
                 onTabChange={handleTabChange}
                 formatDateRange={formatDateRange}
                 styles={styles}
+                customerName={customerName}
             />
 
             {!loading && (

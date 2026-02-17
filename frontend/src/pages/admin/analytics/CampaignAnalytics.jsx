@@ -372,7 +372,9 @@ const CampaignAnalytics = () => {
           </div>
 
           <div className={styles.campaignsTableContainer}>
-            <h3>Top Performing Campaigns</h3>
+            <div className={styles.tableHeader}>
+              <h3>Top Performing Campaigns</h3>
+            </div>
             <table className={styles.campaignsTable}>
               <thead>
                 <tr>

@@ -209,6 +209,16 @@
     outline: none;
 }
 
+.cartPage :global(.form-control.is-invalid) {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+.cartPage :global(.invalid-feedback) {
+    font-size: 0.8rem;
+    color: #dc3545;
+}
+
 .payment-section {
     margin-top: 1.5rem;
     padding-top: 1rem;
@@ -320,4 +330,113 @@
     .cart-item-image {
         align-self: center;
     }
+}
+
+/* Order History Layout Enhancements */
+.orderHistoryContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.orderHistoryTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin-bottom: 0.5rem;
+}
+
+.orderHistorySubtitle {
+    color: #6c757d;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.orderCard {
+    border-radius: 14px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.orderCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
+}
+
+.orderCardHeader {
+    background: linear-gradient(135deg, #0d6efd, #4dabf7);
+    color: #fff;
+    border-bottom: none;
+}
+
+.connectionsColumn {
+    position: sticky;
+    top: 90px;
+}
+
+.connectionCard {
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    backdrop-filter: blur(10px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.25rem !important;
+}
+
+.connectionCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+    border-color: #0d6efd44;
+}
+
+.connectionAvatar {
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s ease;
+    padding: 2px;
+    background: #fff;
+}
+
+.connectionCard:hover .connectionAvatar {
+    border-color: #0d6efd;
+    transform: scale(1.1) rotate(5deg);
+}
+
+.connectionViewButton {
+    border-radius: 100px;
+    padding: 6px 16px !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1.5px solid #e9ecef !important;
+    background-color: transparent !important;
+    color: #495057 !important;
+    transition: all 0.3s ease !important;
+}
+
+.connectionViewButton:hover {
+    transform: translateY(-2px);
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.connectionCard .fw-bold {
+    color: #1e293b;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.connectionCard .text-muted {
+    font-size: 0.7rem !important;
+    color: #64748b !important;
+    margin-bottom: 0.75rem;
 }

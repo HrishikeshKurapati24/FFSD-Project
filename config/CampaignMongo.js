@@ -47,6 +47,12 @@ const campaignInfoSchema = new mongoose.Schema({
         required: [true, 'Budget is required'],
         min: [0, 'Budget cannot be negative']
     },
+    commissionRate: {
+        type: Number,
+        min: [0, 'Commission rate cannot be negative'],
+        max: [100, 'Commission rate cannot exceed 100'],
+        default: 0
+    },
     target_audience: {
         type: String,
         required: false, // Will be filled by brand
@@ -67,7 +73,34 @@ const campaignInfoSchema = new mongoose.Schema({
         required: false, // Will be filled by brand
         trim: true,
         maxlength: [500, 'Objectives cannot exceed 500 characters']
-    }
+    },
+    deliverables: [{
+        task_description: {
+            type: String,
+            required: false,
+            trim: true
+        },
+        platform: {
+            type: String,
+            enum: ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Twitter', 'LinkedIn'],
+            required: false
+        },
+        num_posts: {
+            type: Number,
+            min: [0, 'Number of posts cannot be negative'],
+            default: 0
+        },
+        num_reels: {
+            type: Number,
+            min: [0, 'Number of reels cannot be negative'],
+            default: 0
+        },
+        num_videos: {
+            type: Number,
+            min: [0, 'Number of videos cannot be negative'],
+            default: 0
+        }
+    }]
 }, {
     timestamps: true
 });
@@ -211,6 +244,16 @@ const campaignInfluencersSchema = new mongoose.Schema({
         type: Number,
         min: [0, 'Conversions cannot be negative']
     },
+    revenue: {
+        type: Number,
+        default: 0,
+        min: [0, 'Revenue cannot be negative']
+    },
+    commission_earned: {
+        type: Number,
+        default: 0,
+        min: [0, 'Commission earned cannot be negative']
+    },
     timeliness_score: {
         type: Number,
         min: [0, 'Timeliness score cannot be negative'],
@@ -229,7 +272,7 @@ const campaignInfluencersSchema = new mongoose.Schema({
         },
         status: {
             type: String,
-            enum: ['request', 'active', 'completed', 'cancelled', 'pending'],
+            enum: ['pending', 'submitted', 'approved', 'rejected', 'published'],
             default: 'pending',
             required: [true, 'Deliverable status is required']
         },
@@ -239,6 +282,46 @@ const campaignInfluencersSchema = new mongoose.Schema({
         },
         completed_at: {
             type: Date
+        },
+        content_url: {
+            type: String,
+            trim: true
+        },
+        deliverable_type: {
+            type: String,
+            enum: ['Post', 'Reel', 'Video', 'Story', 'Other'],
+            default: 'Other'
+        },
+        task_description: {
+            type: String,
+            trim: true
+        },
+        platform: {
+            type: String,
+            enum: ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Twitter', 'LinkedIn'],
+        },
+        num_posts: {
+            type: Number,
+            default: 0
+        },
+        num_reels: {
+            type: Number,
+            default: 0
+        },
+        num_videos: {
+            type: Number,
+            default: 0
+        },
+        submitted_at: {
+            type: Date
+        },
+        reviewed_at: {
+            type: Date
+        },
+        review_feedback: {
+            type: String,
+            trim: true,
+            maxlength: [500, 'Review feedback cannot exceed 500 characters']
         }
     }]
 }, {

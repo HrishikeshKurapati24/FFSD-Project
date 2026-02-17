@@ -6,9 +6,9 @@ import { API_BASE_URL } from '../../services/api';
 const PaymentSuccess = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    
+
     const transactionId = searchParams.get('transactionId');
-    
+
     const [paymentData, setPaymentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -46,6 +46,7 @@ const PaymentSuccess = () => {
                         billingCycle: data.billingCycle,
                         amount: data.amount,
                         transactionId: data.transactionId,
+                        userType: data.userType,
                         features: data.features || []
                     });
                 } else {
@@ -70,12 +71,15 @@ const PaymentSuccess = () => {
             setCountdown((prev) => {
                 if (prev <= 1) {
                     clearInterval(interval);
-                    navigate('/signin');
+                    const dashboardUrl = paymentData.userType === 'brand'
+                        ? '/brand/home'
+                        : (paymentData.userType === 'influencer' ? '/influencer/home' : '/signin');
+                    navigate(dashboardUrl);
                     return 0;
                 }
                 return prev - 1;
             });
-    }, 1000);
+        }, 1000);
 
         return () => clearInterval(interval);
     }, [paymentData, navigate]);
@@ -93,12 +97,12 @@ const PaymentSuccess = () => {
     }
 
     if (error || !paymentData) {
-    return (
+        return (
             <div className={styles['payment-success-page']}>
                 <div className={styles['success-container']}>
                     <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>
                         <p>{error || 'Payment details not found'}</p>
-                        <button 
+                        <button
                             onClick={() => navigate('/signin')}
                             style={{ marginTop: '20px', padding: '10px 20px' }}
                         >
@@ -115,56 +119,59 @@ const PaymentSuccess = () => {
             <div className={styles['success-container']}>
                 <div className={styles['success-icon']}>
                     <i className="fas fa-check"></i>
-            </div>
+                </div>
 
                 <h1 className={styles['success-title']}>Payment Successful!</h1>
                 <p className={styles['success-message']}>
                     Thank you for upgrading to {paymentData.planName}! Your subscription has been activated and you now have access to
-                all premium features.
-            </p>
+                    all premium features.
+                </p>
 
                 <div className={styles['transaction-details']}>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Plan:</span>
                         <span className={styles['detail-value']}>
                             {paymentData.planName}
-                    </span>
-                </div>
+                        </span>
+                    </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Billing Cycle:</span>
                         <span className={styles['detail-value']}>
                             {paymentData.billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                    </span>
-                </div>
+                        </span>
+                    </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Amount Paid:</span>
                         <span className={styles['detail-value']}>${paymentData.amount}</span>
-                </div>
+                    </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Transaction ID:</span>
                         <span className={styles['detail-value']}>
                             {paymentData.transactionId}
-                    </span>
-                </div>
+                        </span>
+                    </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Status:</span>
                         <span className={styles['detail-value']} style={{ color: '#28a745' }}>Active</span>
+                    </div>
                 </div>
-            </div>
 
                 <div className={styles['action-buttons']}>
-                    <a 
-                        href="/signin"
+                    <a
+                        href={paymentData.userType === 'brand' ? '/brand/home' : (paymentData.userType === 'influencer' ? '/influencer/home' : '/signin')}
                         className={`${styles.btn} ${styles['btn-primary']}`}
                         onClick={(e) => {
                             e.preventDefault();
-                            navigate('/signin');
+                            const dashboardUrl = paymentData.userType === 'brand'
+                                ? '/brand/home'
+                                : (paymentData.userType === 'influencer' ? '/influencer/home' : '/signin');
+                            navigate(dashboardUrl);
                         }}
                     >
                         <i className="fas fa-sign-in-alt"></i>
-                    Continue to Dashboard
-                </a>
-                    <a 
+                        Continue to Dashboard
+                    </a>
+                    <a
                         href="/subscription/manage"
                         className={`${styles.btn} ${styles['btn-secondary']}`}
                         onClick={(e) => {
@@ -173,29 +180,29 @@ const PaymentSuccess = () => {
                         }}
                     >
                         <i className="fas fa-cog"></i>
-                    Manage Subscription
-                </a>
-            </div>
+                        Manage Subscription
+                    </a>
+                </div>
 
                 {paymentData.features && paymentData.features.length > 0 && (
                     <div className={styles['features-preview']}>
                         <h3 className={styles['features-title']}>
                             <i className="fas fa-star"></i>
-                    Your New Features
-                </h3>
+                            Your New Features
+                        </h3>
                         <ul className={styles['features-list']}>
                             {paymentData.features.map((feature, index) => (
                                 <li key={index}>
                                     <i className="fas fa-check-circle"></i>
                                     {feature}
-                        </li>
+                                </li>
                             ))}
-                </ul>
+                        </ul>
                     </div>
                 )}
 
                 <div className={styles.countdown}>
-                    Redirecting to sign in in {countdown} seconds...
+                    Redirecting to dashboard in {countdown} seconds...
                 </div>
             </div>
         </div>

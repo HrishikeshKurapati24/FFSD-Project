@@ -19,20 +19,24 @@ import Dashboard from './pages/admin/Dashboard';
 import BrandAnalytics from './pages/admin/analytics/BrandAnalytics';
 import CampaignAnalytics from './pages/admin/analytics/CampaignAnalytics';
 import InfluencerAnalytics from './pages/admin/analytics/InfluencerAnalytics';
+import AdvancedAnalytics from './pages/admin/analytics/AdvancedAnalytics';
 import FeedbackAndModeration from './pages/admin/FeedbackAndModeration';
 import PaymentVerification from './pages/admin/PaymentVerification';
 import Settings from './pages/admin/Settings';
 import UserManagement from './pages/admin/UserManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
+import CustomerMonitoring from './pages/admin/CustomerMonitoring';
 import CollaborationMonitoring from './pages/admin/CollaborationMonitoring';
 import BrandList from './pages/admin/BrandList';
 import InfluencerList from './pages/admin/InfluencerList';
 import CustomerList from './pages/admin/CustomerList';
+import ProductAnalytics from './pages/admin/ProductAnalytics';
 import Login from './pages/admin/Login';
 import AllCampaigns from './pages/customer/AllCampaigns';
 import CampaignShopping from './pages/customer/CampaignShopping';
 import Cart from './pages/customer/Cart.jsx';
 import Rankings from './pages/customer/Rankings';
+import OrderHistory from './pages/customer/OrderHistory';
 import BrandDashboard from './pages/brand/Dashboard';
 import BrandExplore from './pages/brand/Explore';
 import BrandProfile from './pages/brand/Profile';
@@ -52,6 +56,7 @@ import Profile from './pages/influencer/Profile';
 import BrandProfileView from './pages/influencer/BrandProfileView';
 import NotificationCenter from './components/notifications/NotificationCenter';
 import ProtectedRoute from './components/ProtectedRoute';
+import UserFeedback from './pages/common/UserFeedback';
 import NotFound from './pages/NotFound';
 import { Navigate } from 'react-router-dom';
 
@@ -81,16 +86,19 @@ function App() {
                 <Route path="/admin/brand-analytics" element={<BrandAnalytics />} />
                 <Route path="/admin/campaign-analytics" element={<CampaignAnalytics />} />
                 <Route path="/admin/influencer-analytics" element={<InfluencerAnalytics />} />
+                <Route path="/admin/advanced-analytics" element={<AdvancedAnalytics />} />
                 <Route path="/admin/feedback_and_moderation" element={<FeedbackAndModeration />} />
                 <Route path='/admin/collaboration_monitoring' element={<CollaborationMonitoring />} />
                 <Route path="/admin/user_management" element={<UserManagement />} />
                 <Route path="/admin/customer-management" element={<CustomerManagement />} />
+                <Route path="/admin/customer-monitoring" element={<CustomerMonitoring />} />
                 <Route path="/admin/login" element={<Login />} />
                 <Route path="/admin/payment_verification" element={<PaymentVerification />} />
                 <Route path="/admin/settings" element={<Settings />} />
                 <Route path="/admin/brand-list" element={<BrandList />} />
                 <Route path="/admin/influencer-list" element={<InfluencerList />} />
                 <Route path="/admin/customer-list" element={<CustomerList />} />
+                <Route path="/admin/product-analytics" element={<ProductAnalytics />} />
 
                 {/* Brand Routes */}
                 <Route path="/brand/home" element={<ProtectedRoute requiredRole="brand"><BrandDashboard /></ProtectedRoute>} />
@@ -112,10 +120,12 @@ function App() {
                 <Route path="/influencer/brand_profile/:id" element={<ProtectedRoute requiredRole="influencer"><BrandProfileView /></ProtectedRoute>} />
 
                 {/* Customer Routes */}
-                <Route path="/customer" element={<ProtectedRoute requiredRole="customer"><AllCampaigns /></ProtectedRoute>} />
-                <Route path="/customer/campaign/:campaignId/shop" element={<ProtectedRoute requiredRole="customer"><CampaignShopping /></ProtectedRoute>} />
+                <Route path="/customer" element={<AllCampaigns />} />
+                <Route path="/customer/campaign/:campaignId/shop" element={<CampaignShopping />} />
                 <Route path="/customer/cart" element={<ProtectedRoute requiredRole="customer"><Cart /></ProtectedRoute>} />
                 <Route path="/customer/rankings" element={<ProtectedRoute requiredRole="customer"><Rankings /></ProtectedRoute>} />
+                <Route path="/customer/orders" element={<ProtectedRoute requiredRole="customer"><OrderHistory /></ProtectedRoute>} />
+                <Route path="/feedback" element={<UserFeedback />} />
 
                 {/* 404 Fallback */}
                 <Route path="/not-found" element={<NotFound />} />

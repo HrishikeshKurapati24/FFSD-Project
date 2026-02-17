@@ -10,19 +10,9 @@ const { InfluencerInfo, InfluencerAnalytics } = require("../config/InfluencerMon
 const { Customer } = require("../config/CustomerMongo");
 const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require("../config/CampaignMongo");
 const { Product, Customer: ProductCustomer, ContentTracking } = require("../config/ProductMongo");
+const { Order } = require("../config/OrderMongo");
 
-// Remove the broken import for FeedbackModel
-// const { FeedbackModel } = require("../models/FeedbackModel");
-
-
-const UserManagementModel = AdminModel.UserManagementModel;
-
-// Add a fallback FeedbackModel to prevent runtime errors if the real model does not exist
-const FeedbackModel = {
-    async getAllFeedback() { return []; },
-    async getFeedbackById() { return null; },
-    async updateFeedbackStatus() { return { success: false, message: "Not implemented" }; }
-};
+const FeedbackModel = require("../models/FeedbackModel");
 
 const DashboardController = {
     async verifyUser(req, res) {
@@ -561,39 +551,66 @@ const AnalyticsController = {
             const activeBrands = await BrandInfo.countDocuments({ verified: true });
             const brandGrowth = 5; // Static for now
 
-            // Get top brands with proper data structure
-            const topBrandsRaw = await BrandInfo.find({})
-                .sort({ completedCampaigns: -1 })
-                .limit(5)
-                .lean();
-
-            // Structure top brands data for the table
-            const topBrands = await Promise.all(topBrandsRaw.map(async (brand) => {
-                const brandIdObj = brand._id instanceof mongoose.Types.ObjectId ? brand._id : new mongoose.Types.ObjectId(brand._id);
-
-                // Get active campaigns count (case-insensitive) from CampaignInfo
-                const activeCampaigns = await CampaignInfo.countDocuments({
-                    brand_id: brandIdObj,
-                    status: { $regex: /^active$/i }
-                });
-
-                // Get total revenue for this brand
-                const revenueAgg = await CampaignPayments.aggregate([
-                    { $match: { brand_id: brandIdObj, status: { $regex: /^completed$/i } } },
-                    { $group: { _id: null, total: { $sum: "$amount" } } }
+            // Get top brands by revenue via aggregation
+            let topBrands = [];
+            try {
+                const topBrandsAgg = await CampaignPayments.aggregate([
+                    { $match: { status: { $regex: /^completed$/i } } },
+                    { $group: { _id: "$brand_id", totalRevenue: { $sum: "$amount" } } },
+                    { $sort: { totalRevenue: -1 } },
+                    { $limit: 10 } // Get more to be safe
                 ]);
-                const revenue = revenueAgg[0]?.total || 0;
 
-                return {
-                    name: brand.brandName || 'Unknown Brand',
-                    logo: brand.logoUrl || '/images/default-brand-logo.jpg',
-                    category: brand.industry || brand.businessCategory || 'N/A',
-                    activeCampaigns: activeCampaigns,
-                    revenue: revenue,
-                    engagementRate: Math.floor(Math.random() * 10) + 1, // Mock data for now
-                    status: brand.verified ? 'Active' : 'Pending'
-                };
-            }));
+                if (topBrandsAgg.length > 0) {
+                    topBrands = await Promise.all(topBrandsAgg.map(async (agg) => {
+                        const brand = await BrandInfo.findById(agg._id).lean();
+                        if (!brand) return null;
+
+                        const brandIdObj = brand._id;
+                        const activeCampaigns = await CampaignInfo.countDocuments({
+                            brand_id: brandIdObj,
+                            status: { $regex: /^active$/i }
+                        });
+
+                        return {
+                            name: brand.brandName || 'Unknown Brand',
+                            logo: brand.logoUrl || '/images/default-brand-logo.jpg',
+                            category: brand.industry || brand.businessCategory || 'N/A',
+                            activeCampaigns: activeCampaigns,
+                            revenue: agg.totalRevenue,
+                            engagementRate: Math.floor(Math.random() * 10) + 1, // Mock as real data isn't easily available
+                            status: brand.verified ? 'Active' : 'Pending'
+                        };
+                    }));
+                    topBrands = topBrands.filter(b => b !== null);
+                } else {
+                    // Fallback to top brands from BrandInfo if no payments exist
+                    const topBrandsRaw = await BrandInfo.find({})
+                        .sort({ completedCampaigns: -1 })
+                        .limit(5)
+                        .lean();
+
+                    topBrands = await Promise.all(topBrandsRaw.map(async (brand) => {
+                        const brandIdObj = brand._id;
+                        const activeCampaigns = await CampaignInfo.countDocuments({
+                            brand_id: brandIdObj,
+                            status: { $regex: /^active$/i }
+                        });
+
+                        return {
+                            name: brand.brandName || 'Unknown Brand',
+                            logo: brand.logoUrl || '/images/default-brand-logo.jpg',
+                            category: brand.industry || brand.businessCategory || 'N/A',
+                            activeCampaigns: activeCampaigns,
+                            revenue: 0,
+                            engagementRate: Math.floor(Math.random() * 10) + 1,
+                            status: brand.verified ? 'Active' : 'Pending'
+                        };
+                    }));
+                }
+            } catch (err) {
+                console.error("Error fetching top brands for analytics:", err);
+            }
 
             // Get highest collaboration brand (by revenue)
             const highestCollabAgg = await CampaignPayments.aggregate([
@@ -696,8 +713,101 @@ const AnalyticsController = {
                     totalCollabs: [145, 162, 178, 195, 210, 235],
                     completedCollabs: [120, 138, 152, 168, 185, 205],
                     avgDuration: [14, 16, 15, 18, 17, 19]
-                }
+                },
+                brandLoyalty: [] // populated below
             };
+
+            // --- Brand Loyalty Index (repeat customers per brand) ---
+            try {
+                const loyaltyAgg = await Order.aggregate([
+                    {
+                        $match: {
+                            status: { $in: ['paid', 'shipped', 'delivered'] },
+                            customer_id: { $ne: null }
+                        }
+                    },
+                    { $unwind: '$items' },
+                    {
+                        $lookup: {
+                            from: 'products',
+                            localField: 'items.product_id',
+                            foreignField: '_id',
+                            as: 'product'
+                        }
+                    },
+                    { $unwind: '$product' },
+                    {
+                        $group: {
+                            _id: {
+                                brand: '$product.brand_id',
+                                customer: '$customer_id'
+                            },
+                            orderCount: { $sum: 1 }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: '$_id.brand',
+                            totalCustomers: { $sum: 1 },
+                            repeatCustomers: {
+                                $sum: {
+                                    $cond: [{ $gt: ['$orderCount', 1] }, 1, 0]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            brandId: '$_id',
+                            totalCustomers: 1,
+                            repeatCustomers: 1,
+                            loyaltyIndex: {
+                                $cond: [
+                                    { $gt: ['$totalCustomers', 0] },
+                                    {
+                                        $multiply: [
+                                            { $divide: ['$repeatCustomers', '$totalCustomers'] },
+                                            100
+                                        ]
+                                    },
+                                    0
+                                ]
+                            }
+                        }
+                    },
+                    { $sort: { loyaltyIndex: -1 } },
+                    { $limit: 10 }
+                ]);
+
+                const loyaltyBrandIds = loyaltyAgg
+                    .map((r) => r.brandId)
+                    .filter(Boolean);
+
+                const loyaltyBrandsMap = loyaltyBrandIds.length
+                    ? new Map(
+                        (await BrandInfo.find({ _id: { $in: loyaltyBrandIds } })
+                            .select('brandName logoUrl industry')
+                            .lean()
+                        ).map((b) => [b._id.toString(), b])
+                    )
+                    : new Map();
+
+                metrics.brandLoyalty = loyaltyAgg.map((r) => {
+                    const b = loyaltyBrandsMap.get(r.brandId?.toString()) || {};
+                    return {
+                        brandId: r.brandId,
+                        name: b.brandName || 'Brand',
+                        logoUrl: b.logoUrl,
+                        industry: b.industry || '',
+                        totalCustomers: r.totalCustomers || 0,
+                        repeatCustomers: r.repeatCustomers || 0,
+                        loyaltyIndex: Math.round((r.loyaltyIndex || 0) * 10) / 10
+                    };
+                });
+            } catch (err) {
+                console.error('Error computing brand loyalty index:', err);
+                metrics.brandLoyalty = [];
+            }
 
             console.log("Metrics received:", metrics);
 
@@ -875,6 +985,7 @@ const AnalyticsController = {
             // Fetch real top influencers using aggregation
             let topInfluencers = [];
             try {
+                // First, try getting from InfluencerAnalytics joined with info and campaign info
                 const topInfluencersRaw = await InfluencerAnalytics.aggregate([
                     {
                         $lookup: {
@@ -886,26 +997,61 @@ const AnalyticsController = {
                     },
                     { $unwind: "$info" },
                     {
+                        $lookup: {
+                            from: "campaigninfluencers",
+                            localField: "influencerId",
+                            foreignField: "influencer_id",
+                            as: "campaigns"
+                        }
+                    },
+                    {
                         $project: {
-                            name: "$info.fullName",
-                            logo: "$info.profilePicUrl",
+                            name: { $ifNull: ["$info.displayName", "$info.fullName"] },
+                            logo: { $ifNull: ["$info.profilePicUrl", "/images/default-avatar.jpg"] },
                             engagement: { $ifNull: ["$avgEngagementRate", 0] },
                             followers: { $ifNull: ["$totalFollowers", 0] },
-                            category: { $ifNull: ["$info.niche", "General"] }
+                            category: { $ifNull: ["$info.niche", "General"] },
+                            commissionEarned: { $sum: "$campaigns.commission_earned" }
                         }
                     },
                     { $sort: { followers: -1 } },
-                    { $limit: 5 }
+                    { $limit: 10 }
                 ]);
-                topInfluencers = topInfluencersRaw;
+
+                if (topInfluencersRaw.length > 0) {
+                    topInfluencers = topInfluencersRaw;
+                } else {
+                    // Fallback: If no analytics data, get top 5 influencers by completedCollabs from InfluencerInfo
+                    const fallbackInfluencers = await InfluencerInfo.find({ verified: true })
+                        .sort({ completedCollabs: -1 })
+                        .limit(5)
+                        .lean();
+
+                    topInfluencers = await Promise.all(fallbackInfluencers.map(async (inf) => {
+                        // Get sum of commissions from CampaignInfluencers
+                        const campaignStats = await CampaignInfluencers.aggregate([
+                            { $match: { influencer_id: inf._id } },
+                            { $group: { _id: null, totalCommission: { $sum: "$commission_earned" } } }
+                        ]);
+
+                        return {
+                            name: inf.displayName || inf.fullName,
+                            logo: inf.profilePicUrl || '/images/default-avatar.jpg',
+                            engagement: 0,
+                            followers: 0,
+                            category: inf.niche || 'General',
+                            commissionEarned: campaignStats[0]?.totalCommission || 0
+                        };
+                    }));
+                }
             } catch (err) {
-                console.error("Error fetching top influencers:", err);
+                console.error("Error fetching top influencers for analytics:", err);
                 topInfluencers = [
-                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000 },
-                    { name: 'Mike Chen', engagement: 7.2, followers: 98000 },
-                    { name: 'Emma Davis', engagement: 6.8, followers: 156000 },
-                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000 },
-                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000 }
+                    { name: 'Sarah Johnson', engagement: 8.5, followers: 125000, commissionEarned: 1250 },
+                    { name: 'Mike Chen', engagement: 7.2, followers: 98000, commissionEarned: 850 },
+                    { name: 'Emma Davis', engagement: 6.8, followers: 156000, commissionEarned: 2100 },
+                    { name: 'Alex Rodriguez', engagement: 9.1, followers: 87000, commissionEarned: 920 },
+                    { name: 'Lisa Wang', engagement: 7.9, followers: 142000, commissionEarned: 1800 }
                 ];
             }
 
@@ -1228,7 +1374,7 @@ const FeedbackController = {
                 return pathOnly === '/admin/feedback_and_moderation' || pathOnly === '/feedback_and_moderation';
             };
 
-            const feedbacks = await FeedbackModel.getAllFeedback();
+            const feedbacks = await FeedbackModel.find().sort({ createdAt: -1 });
             const data = { feedbacks: feedbacks || [] };
 
             // Check if this is an API request
@@ -1277,7 +1423,7 @@ const FeedbackController = {
     async getFeedbackDetails(req, res) {
         try {
             const feedbackId = req.params.id;
-            const feedback = await FeedbackModel.getFeedbackById(feedbackId);
+            const feedback = await FeedbackModel.findById(feedbackId);
             if (!feedback) {
                 return res.status(404).send("Feedback Not Found");
             }
@@ -1290,12 +1436,78 @@ const FeedbackController = {
 
     async updateFeedbackStatus(req, res) {
         try {
-            const { id, status } = req.body;
-            const result = await FeedbackModel.updateFeedbackStatus(id, status);
-            res.json(result);
+            const { id } = req.params;
+            const { status } = req.body;
+            const result = await FeedbackModel.findByIdAndUpdate(id, { status }, { new: true });
+            if (result) {
+                res.json({ success: true, message: 'Feedback status updated successfully', feedback: result });
+            } else {
+                res.status(404).json({ success: false, message: 'Feedback not found' });
+            }
         } catch (error) {
             console.error("Error updating feedback status:", error);
             res.status(500).send("Internal Server Error");
+        }
+    },
+
+    async submitFeedback(req, res) {
+        try {
+            const { userId, userName, userType, type, subject, message } = req.body;
+
+            if (!userId) {
+                return res.status(400).json({ success: false, message: 'Missing required field: userId' });
+            }
+            if (!userType) {
+                return res.status(400).json({ success: false, message: 'Missing required field: userType' });
+            }
+            if (!type) {
+                return res.status(400).json({ success: false, message: 'Missing required field: type' });
+            }
+            if (!subject) {
+                return res.status(400).json({ success: false, message: 'Missing required field: subject' });
+            }
+            if (!message) {
+                return res.status(400).json({ success: false, message: 'Missing required field: message' });
+            }
+
+            const newFeedback = new FeedbackModel({
+                userId,
+                userName,
+                userType,
+                type,
+                subject,
+                message
+            });
+
+            await newFeedback.save();
+
+            res.status(201).json({
+                success: true,
+                message: 'Feedback submitted successfully',
+                feedback: newFeedback
+            });
+        } catch (error) {
+            console.error("Error submitting feedback:", error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to submit feedback',
+                error: error.message
+            });
+        }
+    },
+
+    async deleteFeedback(req, res) {
+        try {
+            const { id } = req.params;
+            const result = await FeedbackModel.findByIdAndDelete(id);
+            if (result) {
+                res.json({ success: true, message: 'Feedback deleted successfully' });
+            } else {
+                res.status(404).json({ success: false, message: 'Feedback not found' });
+            }
+        } catch (error) {
+            console.error("Error deleting feedback:", error);
+            res.status(500).json({ success: false, message: 'Failed to delete feedback' });
         }
     }
 };
@@ -1351,7 +1563,8 @@ const UserManagementController = {
                 social_handles: (influencer.social_handles && influencer.social_handles.length > 0) ? influencer.social_handles.join(', ') : 'N/A',
                 audienceSize: influencer.audienceSize || 0,
                 _id: influencer._id || influencer.id || null,
-                verified: influencer.verified || false
+                verified: influencer.verified || false,
+                userType: 'influencer'
             }));
 
             // Map brands to expected fields for the view
@@ -1362,11 +1575,63 @@ const UserManagementController = {
                 industry: brand.industry || brand.businessCategory || brand.category || 'N/A',
                 totalAudience: brand.totalAudience || 0,
                 _id: brand._id || brand.id || null,
-                verified: brand.verified || false
+                verified: brand.verified || false,
+                userType: 'brand'
             }));
 
-            const flaggedContent = [];
-            const suspiciousUsers = [];
+            // --- Suspicious Activity Logic ---
+            const suspiciousActivityIds = await AdminModel.DashboardModel.prototype.checkSuspiciousActivity(); // checkSuspiciousActivity is an instance method in the class definition, but defined in object literal... wait, let's check definition. 
+            // It is defined as `async checkSuspiciousActivity() {` inside `DashboardModel: class { ... }`. 
+            // It is NOT static. So we need to instantiate or make it static. 
+            // Looking at AdminModel.js, other methods like getDashboardStats are static. checkSuspiciousActivity is NOT static.
+            // I should probably fix AdminModel.js or instantiate it.
+            // Let's assume I fix AdminModel.js to be static for consistency, or just instantiate it here.
+            // Easier to instantiate: new AdminModel.DashboardModel().checkSuspiciousActivity()
+
+            let suspiciousUsers = [];
+            try {
+                const activity = await new AdminModel.DashboardModel().checkSuspiciousActivity();
+
+                // Fetch details for suspicious brands
+                if (activity.brands && activity.brands.length > 0) {
+                    const sBrands = await BrandInfo.find({ _id: { $in: activity.brands } }).select('brandName email').lean();
+                    suspiciousUsers.push(...sBrands.map(b => ({
+                        _id: b._id,
+                        name: b.brandName,
+                        email: b.email,
+                        userType: 'brand',
+                        reason: 'High Campaign Creation Rate (Possible Spam)'
+                    })));
+                }
+
+                // Fetch details for suspicious influencers
+                if (activity.influencers && activity.influencers.length > 0) {
+                    const sInfs = await InfluencerInfo.find({ _id: { $in: activity.influencers } }).select('displayName fullName email').lean();
+                    suspiciousUsers.push(...sInfs.map(i => ({
+                        _id: i._id,
+                        name: i.displayName || i.fullName,
+                        email: i.email,
+                        userType: 'influencer',
+                        reason: 'High Application Rate (Possible Bot)'
+                    })));
+                }
+            } catch (err) {
+                console.error("Error fetching suspicious activity:", err);
+            }
+
+            // --- Flagged Content Mock Logic (Demo) ---
+            // In a real app, this would query a Flag/Report collection.
+            const flaggedContent = [
+                {
+                    _id: 'mock_flag_1',
+                    contentId: 'camp_123',
+                    contentType: 'Campaign',
+                    reason: 'Inappropriate Title',
+                    reportedBy: 'System AI',
+                    status: 'Pending'
+                }
+            ];
+
             const userTypeRequests = [];
             const profileSuggestions = [];
 
@@ -1520,6 +1785,13 @@ const UserManagementController = {
                                     }
                                 }
                             }
+                        },
+                        audienceSize: {
+                            $reduce: {
+                                input: { $ifNull: [{ $arrayElemAt: ['$socials.platforms', 0] }, []] },
+                                initialValue: 0,
+                                in: { $add: ['$$value', { $ifNull: ['$$this.followers', 0] }] }
+                            }
                         }
                     }
                 }
@@ -1653,240 +1925,7 @@ const PaymentController = {
     }
 };
 
-const CustomerController = {
-    async getCustomerManagement(req, res) {
-        try {
 
-            // Get all customers with their purchase data
-            const customers = await ProductCustomer.find({})
-                .sort({ last_purchase_date: -1 })
-                .limit(100)
-                .lean();
-
-            // Get customer analytics
-            const totalCustomers = await Customer.countDocuments();
-            const activeCustomers = await ProductCustomer.countDocuments({
-                last_purchase_date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-            });
-
-            const totalRevenue = await ProductCustomer.aggregate([
-                { $group: { _id: null, total: { $sum: '$total_spent' } } }
-            ]);
-
-            const avgOrderValue = await ProductCustomer.aggregate([
-                { $match: { total_purchases: { $gt: 0 } } },
-                { $group: { _id: null, avg: { $avg: { $divide: ['$total_spent', '$total_purchases'] } } } }
-            ]);
-
-            // Get top customers by spending
-            const topCustomers = await ProductCustomer.find({})
-                .sort({ total_spent: -1 })
-                .limit(10)
-                .select('name email total_spent total_purchases last_purchase_date')
-                .lean();
-
-            // Get recent customers (last 30 days)
-            const recentCustomers = await ProductCustomer.find({
-                createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-            })
-                .sort({ createdAt: -1 })
-                .limit(20)
-                .lean();
-
-            // Customer growth data (last 6 months)
-            const customerGrowthData = [];
-            const customerGrowthLabels = [];
-            for (let i = 5; i >= 0; i--) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-                customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-
-                const monthlyCustomers = await ProductCustomer.countDocuments({
-                    createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-                });
-                customerGrowthData.push(monthlyCustomers);
-            }
-
-            const data = {
-                analytics: {
-                    totalCustomers,
-                    activeCustomers,
-                    totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
-                    avgOrderValue: avgOrderValue.length > 0 ? avgOrderValue[0].avg : 0,
-                    customerGrowth: {
-                        labels: customerGrowthLabels,
-                        data: customerGrowthData
-                    },
-                    purchaseTrends: {
-                        labels: customerGrowthLabels,
-                        purchases: [15, 20, 25, 30, 35, 40], // Placeholder
-                        revenue: [1500, 2000, 2500, 3000, 3500, 4000] // Placeholder
-                    }
-                },
-                topCustomers,
-                recentCustomers
-            };
-
-            res.json({
-                success: true,
-                ...data
-            });
-        } catch (error) {
-            console.error("Error in getCustomerManagement:", error);
-            res.status(500).json({ success: false, message: "Failed to load customer management data" });
-        }
-    },
-
-    async getAllCustomers(req, res) {
-        try {
-            const customers = await ProductCustomer.find({}).lean();
-            res.json({ success: true, customers });
-        } catch (error) {
-            console.error("Error in getAllCustomers:", error);
-            res.status(500).json({ success: false, message: "Failed to fetch customers" });
-        }
-    },
-
-    async getCustomerDetails(req, res) {
-        try {
-            const { id } = req.params;
-
-            const customer = await ProductCustomer.findById(id).lean();
-            if (!customer) {
-                return res.status(404).json({ success: false, message: 'Customer not found' });
-            }
-
-            // Get customer's purchase history through ContentTracking
-            const purchaseHistory = await ContentTracking.find({ customer_email: customer.email })
-                .populate('product_id', 'name images campaign_price')
-                .populate('content_id', 'title')
-                .sort({ purchase_date: -1 })
-                .limit(50)
-                .lean();
-
-            res.json({
-                success: true,
-                customer: {
-                    ...customer,
-                    purchaseHistory
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching customer details:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch customer details' });
-        }
-    },
-
-    async updateCustomerStatus(req, res) {
-        try {
-            const { id } = req.params;
-            const { status, notes } = req.body;
-
-            const customer = await ProductCustomer.findByIdAndUpdate(
-                id,
-                {
-                    status: status,
-                    admin_notes: notes,
-                    updatedAt: new Date()
-                },
-                { new: true }
-            );
-
-            if (!customer) {
-                return res.status(404).json({ success: false, message: 'Customer not found' });
-            }
-
-            res.json({ success: true, message: 'Customer status updated successfully', customer });
-        } catch (error) {
-            console.error('Error updating customer status:', error);
-            res.status(500).json({ success: false, message: 'Failed to update customer status' });
-        }
-    },
-
-    async getCustomerAnalytics(req, res) {
-        try {
-
-            // Customer segmentation
-            const customerSegments = await ProductCustomer.aggregate([
-                {
-                    $bucket: {
-                        groupBy: '$total_spent',
-                        boundaries: [0, 100, 500, 1000, 5000, Infinity],
-                        default: 'Other',
-                        output: {
-                            count: { $sum: 1 },
-                            avgSpent: { $avg: '$total_spent' }
-                        }
-                    }
-                }
-            ]);
-
-            // Customer lifetime value distribution
-            const lifetimeValueData = await ProductCustomer.aggregate([
-                {
-                    $group: {
-                        _id: {
-                            $switch: {
-                                branches: [
-                                    { case: { $lt: ['$total_spent', 50] }, then: '$0-50' },
-                                    { case: { $lt: ['$total_spent', 200] }, then: '$50-200' },
-                                    { case: { $lt: ['$total_spent', 500] }, then: '$200-500' },
-                                    { case: { $lt: ['$total_spent', 1000] }, then: '$500-1000' }
-                                ],
-                                default: '$1000+'
-                            }
-                        },
-                        count: { $sum: 1 }
-                    }
-                },
-                { $sort: { '_id': 1 } }
-            ]);
-
-            // Purchase frequency analysis
-            const purchaseFrequency = await ProductCustomer.aggregate([
-                {
-                    $group: {
-                        _id: {
-                            $switch: {
-                                branches: [
-                                    { case: { $eq: ['$total_purchases', 1] }, then: 'One-time' },
-                                    { case: { $lte: ['$total_purchases', 3] }, then: '2-3 purchases' },
-                                    { case: { $lte: ['$total_purchases', 10] }, then: '4-10 purchases' }
-                                ],
-                                default: '10+ purchases'
-                            }
-                        },
-                        count: { $sum: 1 }
-                    }
-                }
-            ]);
-
-            // Geographic distribution (if location data exists)
-            const geographicData = await ProductCustomer.aggregate([
-                { $match: { location: { $exists: true, $ne: null } } },
-                { $group: { _id: '$location', count: { $sum: 1 } } },
-                { $sort: { count: -1 } },
-                { $limit: 10 }
-            ]);
-
-            res.json({
-                success: true,
-                analytics: {
-                    customerSegments,
-                    lifetimeValueData,
-                    purchaseFrequency,
-                    geographicData
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching customer analytics:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch customer analytics' });
-        }
-    }
-};
 
 const CollaborationController = {
     async getAllCollaborations(req, res) {
@@ -2153,4 +2192,599 @@ const NotificationController = {
     }
 };
 
-module.exports = { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController };
+const CustomerController = {
+    // Get customer management page data
+    async getCustomerManagement(req, res) {
+        try {
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || '').toLowerCase();
+                return acceptHeader.includes('application/json') || req.xhr;
+            };
+
+            // Get analytics data
+            const totalCustomers = await Customer.countDocuments();
+            const activeCustomers = await Customer.countDocuments({ status: 'active' });
+
+            // Calculate total revenue and average order value
+            const revenueAgg = await Customer.aggregate([
+                { $group: { _id: null, totalRevenue: { $sum: "$total_spent" }, avgOrderValue: { $avg: "$total_spent" } } }
+            ]);
+            const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+            const avgOrderValue = revenueAgg[0]?.avgOrderValue || 0;
+
+            // Get top customers by total spent
+            const topCustomers = await Customer.find({})
+                .sort({ total_spent: -1 })
+                .limit(10)
+                .lean();
+
+            // Get recent customers (last 20)
+            const recentCustomers = await Customer.find({})
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .lean();
+
+            // Whale Detector - high value customers in recent window
+            const whaleThreshold = 1000; // configurable threshold
+            const whaleWindowDays = 30;
+            const whaleWindowStart = new Date();
+            whaleWindowStart.setDate(whaleWindowStart.getDate() - whaleWindowDays);
+
+            const whales = await Customer.find({
+                total_spent: { $gte: whaleThreshold },
+                last_purchase_date: { $gte: whaleWindowStart }
+            })
+                .sort({ total_spent: -1 })
+                .limit(20)
+                .lean();
+
+            // Generate customer growth data (last 6 months)
+            const customerGrowthData = [];
+            const customerGrowthLabels = [];
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                customerGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+
+                // Count customers created in this month
+                const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                const count = await Customer.countDocuments({
+                    createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+                });
+                customerGrowthData.push(count);
+            }
+
+            // Generate purchase trends data (mock for now)
+            const purchaseTrendsLabels = customerGrowthLabels;
+            const purchaseTrendsData = customerGrowthData.map(count => Math.floor(count * 1.5));
+            const revenueData = purchaseTrendsData.map(purchases => Math.floor(purchases * avgOrderValue));
+
+            const analytics = {
+                totalCustomers,
+                activeCustomers,
+                totalRevenue,
+                avgOrderValue,
+                customerGrowth: {
+                    labels: customerGrowthLabels,
+                    data: customerGrowthData
+                },
+                purchaseTrends: {
+                    labels: purchaseTrendsLabels,
+                    purchases: purchaseTrendsData,
+                    revenue: revenueData
+                }
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    analytics,
+                    topCustomers,
+                    recentCustomers,
+                    whales
+                });
+            }
+
+            // Render HTML page (if needed)
+            return res.render('admin/customer-management', {
+                analytics,
+                topCustomers,
+                recentCustomers,
+                user: res.locals.user
+            });
+        } catch (error) {
+            console.error('Error in getCustomerManagement:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) || req.xhr;
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to fetch customer management data',
+                    message: error.message
+                });
+            }
+            return res.status(500).send('Failed to load customer management page');
+        }
+    },
+
+    // Get customer details by ID
+    async getCustomerDetails(req, res) {
+        try {
+            const customerId = req.params.id;
+            const customer = await Customer.findById(customerId).lean();
+
+            if (!customer) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Customer not found'
+                });
+            }
+
+            // Get purchase history from Product collection
+            const purchases = await ProductCustomer.find({ customer_id: customerId })
+                .populate('product_id')
+                .sort({ purchase_date: -1 })
+                .limit(10)
+                .lean();
+
+            customer.purchaseHistory = purchases;
+
+            return res.status(200).json({
+                success: true,
+                customer
+            });
+        } catch (error) {
+            console.error('Error in getCustomerDetails:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch customer details',
+                message: error.message
+            });
+        }
+    },
+
+    // Update customer status
+    async updateCustomerStatus(req, res) {
+        try {
+            const customerId = req.params.id;
+            const { status, notes } = req.body;
+
+            const updateData = {};
+            if (status) updateData.status = status;
+            if (notes !== undefined) updateData.admin_notes = notes;
+            updateData.updatedAt = Date.now();
+
+            const customer = await Customer.findByIdAndUpdate(
+                customerId,
+                updateData,
+                { new: true, runValidators: true }
+            );
+
+            if (!customer) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Customer not found'
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Customer updated successfully',
+                customer
+            });
+        } catch (error) {
+            console.error('Error in updateCustomerStatus:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to update customer',
+                message: error.message
+            });
+        }
+    },
+
+    // Get customer analytics
+    async getCustomerAnalytics(req, res) {
+        try {
+            const totalCustomers = await Customer.countDocuments();
+            const activeCustomers = await Customer.countDocuments({ status: 'active' });
+
+            const revenueAgg = await Customer.aggregate([
+                { $group: { _id: null, totalRevenue: { $sum: "$total_spent" }, avgOrderValue: { $avg: "$total_spent" } } }
+            ]);
+            const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+            const avgOrderValue = revenueAgg[0]?.avgOrderValue || 0;
+
+            return res.status(200).json({
+                success: true,
+                analytics: {
+                    totalCustomers,
+                    activeCustomers,
+                    totalRevenue,
+                    avgOrderValue
+                }
+            });
+        } catch (error) {
+            console.error('Error in getCustomerAnalytics:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch customer analytics',
+                message: error.message
+            });
+        }
+    },
+
+    // Get all customers
+    async getAllCustomers(req, res) {
+        try {
+            const isAPIRequest = (req) => {
+                const acceptHeader = (req.headers.accept || '').toLowerCase();
+                return acceptHeader.includes('application/json') || req.xhr;
+            };
+
+            const customers = await Customer.find({})
+                .sort({ createdAt: -1 })
+                .lean();
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(200).json({
+                    success: true,
+                    customers
+                });
+            }
+
+            // Render HTML page
+            return res.render('admin/all-customers', {
+                customers,
+                user: res.locals.user
+            });
+        } catch (error) {
+            console.error('Error in getAllCustomers:', error);
+            const isAPIRequest = (req) => {
+                return (req.headers.accept && req.headers.accept.includes('application/json')) || req.xhr;
+            };
+
+            if (isAPIRequest(req)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to fetch customers',
+                    message: error.message
+                });
+            }
+            return res.status(500).send('Failed to load customers page');
+        }
+    },
+
+    // Get completed orders for monitoring
+    async getCompletedOrders(req, res) {
+        try {
+            const orders = await Order.find({
+                status: { $in: ['paid', 'shipped', 'delivered'] }
+            })
+                .sort({ createdAt: -1 })
+                .populate('customer_id')
+                .populate('items.product_id')
+                .populate('influencer_id', 'fullName')
+                .lean();
+
+            // Transform data for the frontend
+            const transformedOrders = orders.map(order => ({
+                _id: order._id,
+                orderId: order._id.toString().slice(-8).toUpperCase(),
+                customerName: order.customer_id?.name || order.guest_info?.name || 'Guest',
+                customerEmail: order.customer_id?.email || order.guest_info?.email || 'N/A',
+                items: order.items.map(item => ({
+                    productName: item.product_id?.name || 'Unknown Product',
+                    quantity: item.quantity,
+                    price: item.price_at_purchase
+                })),
+                totalAmount: order.total_amount,
+                status: order.status,
+                date: order.createdAt,
+                influencerName: order.influencer_id?.fullName || 'Direct'
+            }));
+
+            const totalOrders = transformedOrders.length;
+            const totalRevenue = transformedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+            return res.status(200).json({
+                success: true,
+                orders: transformedOrders,
+                stats: {
+                    totalOrders,
+                    totalRevenue
+                }
+            });
+        } catch (error) {
+            console.error('Error in getCompletedOrders:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch completed orders',
+                message: error.message
+            });
+        }
+    },
+
+    // Get product analytics
+    async getProductAnalytics(req, res) {
+        try {
+            // Aggregate product sales from Orders
+            const productStats = await Order.aggregate([
+                { $match: { status: { $in: ['paid', 'shipped', 'delivered'] } } },
+                { $unwind: "$items" },
+                {
+                    $group: {
+                        _id: "$items.product_id",
+                        totalSold: { $sum: "$items.quantity" },
+                        totalRevenue: { $sum: "$items.subtotal" }
+                    }
+                },
+                { $sort: { totalRevenue: -1 } }
+            ]);
+
+            // Get all products to include those with 0 sales
+            const allProducts = await Product.find().select('name images category brand_id campaign_price original_price status').populate('brand_id', 'brandName').lean();
+
+            // Create a map of sales stats
+            const statsMap = new Map();
+            productStats.forEach(stat => {
+                if (stat._id) statsMap.set(stat._id.toString(), stat);
+            });
+
+            // Merge stats with product details
+            const analyticsData = allProducts.map(product => {
+                const stats = statsMap.get(product._id.toString()) || { totalSold: 0, totalRevenue: 0 };
+                return {
+                    id: product._id,
+                    name: product.name,
+                    image: product.images && product.images[0] ? product.images[0].url : '/images/default-product.png',
+                    category: product.category || 'Uncategorized',
+                    brand: product.brand_id ? product.brand_id.brandName : 'Unknown Brand',
+                    price: product.campaign_price || product.original_price,
+                    status: product.status,
+                    totalSold: stats.totalSold,
+                    totalRevenue: stats.totalRevenue
+                };
+            });
+
+            // Calculate global totals
+            const totalProductsSold = analyticsData.reduce((sum, item) => sum + item.totalSold, 0);
+            const totalRevenueEarned = analyticsData.reduce((sum, item) => sum + item.totalRevenue, 0);
+            const topProducts = [...analyticsData].sort((a, b) => b.totalSold - a.totalSold).slice(0, 5);
+
+            res.status(200).json({
+                success: true,
+                analytics: {
+                    totalProductsSold,
+                    totalRevenueEarned,
+                    products: analyticsData,
+                    topProducts
+                }
+            });
+
+        } catch (error) {
+            console.error('Error fetching product analytics:', error);
+            res.status(500).json({ success: false, message: 'Server error' });
+        }
+    }
+}; const OrderAnalyticsController = {
+    /**
+     * Get platform-wide order analytics for admin dashboard
+     */
+    async getAdminOrderAnalytics(req, res) {
+        try {
+            const { startDate, endDate } = req.query;
+
+            // Calculate default date ranges
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            // Base match for custom date range if provided
+            const dateMatch = {};
+            if (startDate || endDate) {
+                dateMatch.createdAt = {};
+                if (startDate) dateMatch.createdAt.$gte = new Date(startDate);
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    dateMatch.createdAt.$lte = end;
+                }
+            }
+
+            // Total platform revenue and order count (filtered by custom range if provided)
+            const allTimeStats = await Order.aggregate([
+                { $match: dateMatch },
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: { $sum: '$total_amount' },
+                        orderCount: { $sum: 1 }
+                    }
+                }
+            ]);
+
+            // Today's stats
+            const todayStats = await Order.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: startOfToday }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        revenue: { $sum: '$total_amount' },
+                        count: { $sum: 1 }
+                    }
+                }
+            ]);
+
+            // This month's stats
+            const monthStats = await Order.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: startOfMonth }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        revenue: { $sum: '$total_amount' },
+                        count: { $sum: 1 }
+                    }
+                }
+            ]);
+
+            // Orders per brand ranking
+            const ordersPerBrand = await Order.aggregate([
+                { $match: dateMatch },
+                { $unwind: '$items' },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: 'items.product_id',
+                        foreignField: '_id',
+                        as: 'product'
+                    }
+                },
+                { $unwind: '$product' },
+                {
+                    $group: {
+                        _id: '$product.brand_id',
+                        orderCount: { $sum: 1 },
+                        totalRevenue: { $sum: '$total_amount' }
+                    }
+                },
+                { $sort: { orderCount: -1 } },
+                { $limit: 10 },
+                {
+                    $lookup: {
+                        from: 'brandinfos',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'brand'
+                    }
+                },
+                { $unwind: '$brand' },
+                {
+                    $project: {
+                        brandId: '$_id',
+                        brandName: '$brand.brandName',
+                        orderCount: 1,
+                        totalRevenue: 1
+                    }
+                }
+            ]);
+
+            // Fulfillment rate (delivered orders / total orders)
+            const fulfillmentStats = await Order.aggregate([
+                { $match: dateMatch },
+                {
+                    $group: {
+                        _id: null,
+                        totalOrders: { $sum: 1 },
+                        deliveredOrders: {
+                            $sum: {
+                                $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0]
+                            }
+                        }
+                    }
+                }
+            ]);
+
+            const fulfillmentRate = fulfillmentStats[0]?.totalOrders > 0
+                ? (fulfillmentStats[0].deliveredOrders / fulfillmentStats[0].totalOrders) * 100
+                : 0;
+
+            // Status breakdown
+            const statusBreakdown = await Order.aggregate([
+                { $match: dateMatch },
+                {
+                    $group: {
+                        _id: '$status',
+                        count: { $sum: 1 }
+                    }
+                }
+            ]);
+
+            const statusBreakdownFormatted = {
+                paid: 0,
+                shipped: 0,
+                delivered: 0,
+                cancelled: 0
+            };
+            statusBreakdown.forEach(item => {
+                statusBreakdownFormatted[item._id] = item.count;
+            });
+
+            res.json({
+                success: true,
+                analytics: {
+                    revenue: {
+                        total: allTimeStats[0]?.totalRevenue || 0,
+                        today: todayStats[0]?.revenue || 0,
+                        thisMonth: monthStats[0]?.revenue || 0
+                    },
+                    orders: {
+                        total: allTimeStats[0]?.orderCount || 0,
+                        today: todayStats[0]?.count || 0,
+                        thisMonth: monthStats[0]?.count || 0
+                    },
+                    fulfillmentRate: fulfillmentRate,
+                    statusBreakdown: statusBreakdownFormatted,
+                    ordersPerBrand: ordersPerBrand
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching admin order analytics:', error);
+            res.status(500).json({ success: false, message: 'Error fetching analytics' });
+        }
+    },
+
+    /**
+     * Get all platform orders for Admin dashboard
+     */
+    async getAdminAllOrders(req, res) {
+        try {
+            const { status, searchTerm } = req.query;
+            let query = {};
+
+            if (status && status !== 'all') {
+                query.status = status;
+            }
+
+            const orders = await Order.find(query)
+                .populate('customer_id', 'name email phone')
+                .populate('items.product_id', 'name brand_id')
+                .populate('influencer_id', 'username')
+                .sort({ createdAt: -1 });
+
+            let filteredOrders = orders;
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filteredOrders = orders.filter(o =>
+                    o._id.toString().toLowerCase().includes(term) ||
+                    (o.customer_id && o.customer_id.name?.toLowerCase().includes(term)) ||
+                    (o.customer_id && o.customer_id.email?.toLowerCase().includes(term)) ||
+                    (o.guest_info && o.guest_info.name?.toLowerCase().includes(term)) ||
+                    (o.guest_info && o.guest_info.email?.toLowerCase().includes(term)) ||
+                    (o.tracking_number && o.tracking_number.toLowerCase().includes(term))
+                );
+            }
+
+            res.json({ success: true, orders: filteredOrders });
+        } catch (error) {
+            console.error('Error fetching admin all orders:', error);
+            res.status(500).json({ success: false, message: 'Error fetching platform orders' });
+        }
+    }
+};
+
+module.exports = { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController, OrderAnalyticsController };

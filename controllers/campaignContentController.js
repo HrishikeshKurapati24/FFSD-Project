@@ -115,10 +115,36 @@ class CampaignContentController {
                 }
             }
 
+            // Link to deliverable if specified (Stage 2-3 integration)
+            const deliverableId = req.body.deliverable_id;
+            const deliverableTitle = req.body.deliverable_title;
+
+            let deliverableData = {};
+            if (deliverableId) {
+                console.log(`DEBUG: Linking content to deliverable ${deliverableId} for influencer ${influencerId}`);
+                // Verify deliverable exists and belongs to this influencer
+                const collab = await CampaignInfluencers.findOne({
+                    campaign_id: campaignId,
+                    influencer_id: influencerId,
+                    'deliverables._id': deliverableId
+                });
+
+                if (collab) {
+                    console.log(`DEBUG: Found matching collaboration for deliverable linkage.`);
+                    deliverableData = {
+                        deliverable_id: deliverableId,
+                        deliverable_title: deliverableTitle || 'Deliverable'
+                    };
+                } else {
+                    console.log(`DEBUG: WARNING - No matching collaboration found for deliverable ${deliverableId}. Linkage will fail.`);
+                }
+            }
+
             // Create content
             const content = new CampaignContent({
                 campaign_id: campaignId,
                 influencer_id: influencerId,
+                ...deliverableData,  // Add deliverable link if exists
                 caption: description,
                 media_urls: media_urls,
                 attached_products: [{
@@ -126,12 +152,46 @@ class CampaignContentController {
                 }],
                 special_instructions,
                 scheduled_at: publish_date ? new Date(publish_date) : null,
-                status: 'submitted', // Always submit for review, no draft option
+                status: 'submitted', // Always submit for review
                 created_at: new Date(),
                 updated_at: new Date()
             });
 
             await content.save();
+
+            // Update linked deliverable status to 'submitted' if exists
+            if (deliverableId) {
+                try {
+                    const collab = await CampaignInfluencers.findOne({
+                        campaign_id: campaignId,
+                        influencer_id: influencerId,
+                        'deliverables._id': deliverableId
+                    });
+
+                    if (collab) {
+                        const deliverable = collab.deliverables.id(deliverableId);
+                        if (deliverable && deliverable.status === 'pending') {
+                            deliverable.status = 'submitted';
+                            deliverable.submitted_at = new Date();
+                            // Use the first media URL if available, otherwise fallback to content ID
+                            const contentUrl = (media_urls && media_urls.length > 0) ? media_urls[0].url : `Content ID: ${content._id}`;
+                            deliverable.content_url = contentUrl;
+                            deliverable.deliverable_type = content_type || 'Other';
+                            await collab.save();
+                            console.log(`Updated deliverable ${deliverableId} status to submitted`);
+                        }
+                    }
+                } catch (deliverableErr) {
+                    console.error('Error updating deliverable status:', deliverableErr);
+                    // Critical error: Rollback content creation to prevent data inconsistency
+                    await CampaignContent.findByIdAndDelete(content._id);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Failed to update deliverable status. Content submission cancelled.',
+                        error: deliverableErr.message
+                    });
+                }
+            }
 
             res.json({
                 success: true,
@@ -282,6 +342,61 @@ class CampaignContentController {
             content.brand_feedback = feedback;
             await content.save();
 
+            // Update linked deliverable if exists (Stage 2-3 integration)
+            if (content.deliverable_id) {
+                try {
+                    const collab = await CampaignInfluencers.findOne({
+                        campaign_id: content.campaign_id._id,
+                        'deliverables._id': content.deliverable_id
+                    });
+
+                    if (collab) {
+                        const deliverable = collab.deliverables.id(content.deliverable_id);
+                        if (deliverable) {
+                            deliverable.status = action === 'approve' ? 'approved' : 'rejected';
+                            deliverable.review_feedback = feedback;
+                            deliverable.reviewed_at = new Date();
+
+                            // Recalculate progress locally
+                            const approved = collab.deliverables.filter(d => d.status === 'approved').length;
+                            const total = collab.deliverables.length;
+                            collab.progress = Math.round((approved / total) * 100);
+
+                            // Save once
+                            await collab.save();
+                            console.log(`Updated deliverable status to ${deliverable.status}, progress now ${collab.progress}%`);
+
+                            // Update campaign-level progress asynchronously (fire and forget)
+                            const CollaborationModel = require('../models/CollaborationModel');
+                            CollaborationModel.updateCampaignMetrics(content.campaign_id._id)
+                                .then(() => console.log(`Updated campaign metrics for ${content.campaign_id._id}`))
+                                .catch(err => console.error('Error updating campaign metrics:', err));
+
+                        }
+                    }
+                } catch (deliverableErr) {
+                    console.error('Error updating linked deliverable:', deliverableErr);
+                    // Continue even if deliverable update fails
+                }
+            }
+
+            // Send notification to influencer
+            const notificationController = require('./notificationController');
+            try {
+                await notificationController.createNotification({
+                    recipientId: content.influencer_id,
+                    recipientType: 'influencer',
+                    senderId: new mongoose.Types.ObjectId(brandId),
+                    senderType: 'brand',
+                    type: action === 'approve' ? 'content_approved' : 'content_rejected',
+                    title: `Content ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+                    body: `Your content ${content.deliverable_title ? `for "${content.deliverable_title}"` : ''} has been ${action}d. ${feedback || ''}`,
+                    relatedId: content._id
+                });
+            } catch (notifErr) {
+                console.error('Error sending notification:', notifErr);
+            }
+
             res.json({
                 success: true,
                 message: `Content ${action}d successfully`,
@@ -300,6 +415,7 @@ class CampaignContentController {
 
     /**
      * Get campaign content for brand review
+     * Returns both submitted (pending review) and approved (pending publication) content
      */
     static async getCampaignPendingContentForBrand(req, res) {
         try {
@@ -319,8 +435,8 @@ class CampaignContentController {
                 });
             }
 
-            // Get all content for this campaign with status 'submitted'
-            const content = await CampaignContent.find({
+            // Get content awaiting review (submitted but not yet approved/rejected)
+            const submittedContent = await CampaignContent.find({
                 campaign_id: campaignId,
                 status: 'submitted'
             })
@@ -328,9 +444,20 @@ class CampaignContentController {
                 .populate('attached_products.product_id', 'name campaign_price images')
                 .sort({ createdAt: -1 });
 
+            // Get approved content awaiting publication
+            const approvedContent = await CampaignContent.find({
+                campaign_id: campaignId,
+                status: 'approved'
+            })
+                .populate('influencer_id', 'fullName profilePicUrl')
+                .populate('attached_products.product_id', 'name campaign_price images')
+                .sort({ createdAt: -1 });
+
             res.json({
                 success: true,
-                content
+                submittedContent,      // Pending brand review
+                approvedContent,       // Approved but not yet published
+                totalPending: submittedContent.length + approvedContent.length
             });
 
         } catch (error) {
@@ -385,7 +512,7 @@ class CampaignContentController {
             // Get content that is approved but not yet published, including brand name and caption
             const approvedContent = await CampaignContent.find({
                 influencer_id: influencerId,
-                status: 'approved'
+                status: { $in: ['approved', 'submitted'] } // Fallback: include submitted content in case deliverable was approved but content status wasn't synced
             })
                 .populate({
                     path: 'campaign_id',
@@ -395,7 +522,7 @@ class CampaignContentController {
                         select: 'brandName'
                     }
                 })
-                .select('caption campaign_id') // Ensure caption and campaign_id are returned
+                // Removed .select() to ensure all fields like deliverable_id are returned
                 .sort({ createdAt: -1 });
 
             // Format for brand name at top-level if needed
@@ -407,6 +534,11 @@ class CampaignContentController {
                 campaignTitle: item.campaign_id ? item.campaign_id.title : null,
                 caption: item.caption
             }));
+
+            console.log(`DEBUG: Found ${contentWithBrandInfo.length} approved content items for influencer ${influencerId}`);
+            contentWithBrandInfo.forEach(c => {
+                console.log(` - Content ${c._id}: status=${c.status}, deliverable_id=${c.deliverable_id}`);
+            });
 
             res.json({
                 success: true,
@@ -430,13 +562,13 @@ class CampaignContentController {
         try {
             const { contentId } = req.params;
             const influencerId = req.session.user.id;
-            const { status } = req.body;
+            const { status, externalPostUrl } = req.body;
 
             // Verify content belongs to the influencer
             const content = await CampaignContent.findOne({
                 _id: contentId,
                 influencer_id: influencerId
-            });
+            }).populate('campaign_id', 'title brand_id');
 
             if (!content) {
                 return res.status(404).json({
@@ -445,10 +577,89 @@ class CampaignContentController {
                 });
             }
 
+            // Validate that content is approved before publishing
+            if (status === 'published' && content.status !== 'approved') {
+                // FALLBACK: If content is not approved, check if the deliverable record itself is approved
+                // because brands might approve deliverables from other sections of the dashboard.
+                if (content.deliverable_id) {
+                    const collab = await CampaignInfluencers.findOne({
+                        campaign_id: content.campaign_id._id,
+                        'deliverables._id': content.deliverable_id
+                    });
+
+                    const deliverable = collab ? collab.deliverables.id(content.deliverable_id) : null;
+                    if (deliverable && (deliverable.status === 'approved' || deliverable.status === 'published')) {
+                        console.log(`DEBUG: Allowing publication for content ${contentId} because deliverable ${content.deliverable_id} is ${deliverable.status}`);
+                    } else {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Only approved content can be published'
+                        });
+                    }
+                } else {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Only approved content can be published'
+                    });
+                }
+            }
+
+            // Require external post URL when publishing
+            if (status === 'published' && !externalPostUrl) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'External post URL is required when publishing content'
+                });
+            }
+
             // Update content status
             content.status = status;
             content.published_at = new Date();
+            if (externalPostUrl) {
+                content.external_post_url = externalPostUrl;
+            }
             await content.save();
+
+            // Update linked deliverable with actual URL if published
+            if (status === 'published' && content.deliverable_id && externalPostUrl) {
+                try {
+                    const collab = await CampaignInfluencers.findOne({
+                        campaign_id: content.campaign_id._id,
+                        'deliverables._id': content.deliverable_id
+                    });
+
+                    if (collab) {
+                        const deliverable = collab.deliverables.id(content.deliverable_id);
+                        if (deliverable) {
+                            deliverable.content_url = externalPostUrl; // Update with actual social media URL
+                            deliverable.status = 'published'; // New: Update status to published
+                            await collab.save();
+                            console.log(`Updated deliverable ${content.deliverable_id} with published URL: ${externalPostUrl} and status: published`);
+                        }
+                    }
+                } catch (deliverableErr) {
+                    console.error('Error updating deliverable URL:', deliverableErr);
+                    // Continue even if deliverable update fails
+                }
+
+                // Notify brand that content has been published
+                const notificationController = require('./notificationController');
+                try {
+                    await notificationController.createNotification({
+                        recipientId: content.campaign_id.brand_id,
+                        recipientType: 'brand',
+                        senderId: new mongoose.Types.ObjectId(influencerId),
+                        senderType: 'influencer',
+                        type: 'content_published',
+                        title: 'Content Published',
+                        body: `Content ${content.deliverable_title ? `for "${content.deliverable_title}"` : ''} has been published to social media.`,
+                        relatedId: content._id
+                    });
+                    console.log('Brand notified of content publication');
+                } catch (notifErr) {
+                    console.error('Error sending publication notification:', notifErr);
+                }
+            }
 
             res.json({
                 success: true,
@@ -466,121 +677,9 @@ class CampaignContentController {
         }
     }
 
-    /**
-     * Create content for a campaign
-     */
-    static async createContent(req, res) {
-        try {
-            const influencerId = req.session.user.id;
-            const { campaignId } = req.params;
-            const contentData = req.body;
-
-            // Verify influencer is part of the campaign
-            const collaboration = await CampaignInfluencers.findOne({
-                campaign_id: campaignId,
-                influencer_id: influencerId,
-                status: 'active'
-            });
-
-            if (!collaboration) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You are not part of this campaign or collaboration is not active'
-                });
-            }
-
-            // Create content
-            const content = new CampaignContent({
-                ...contentData,
-                campaign_id: campaignId,
-                influencer_id: influencerId,
-                status: 'draft'
-            });
-
-            await content.save();
-
-            // Populate the created content
-            await content.populate([
-                { path: 'campaign_id', select: 'title brand_id' },
-                { path: 'influencer_id', select: 'fullName profilePicUrl' }
-            ]);
-
-            res.status(201).json({
-                success: true,
-                message: 'Content created successfully',
-                content
-            });
-
-        } catch (error) {
-            console.error('Error creating content:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error creating content',
-                error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-            });
-        }
-    }
-
-    /**
-     * Submit content for brand review
-     */
-    static async submitContent(req, res) {
-        try {
-            const { contentId } = req.params;
-            const influencerId = req.session.user.id;
-
-            const content = await CampaignContent.findOne({
-                _id: contentId,
-                influencer_id: influencerId
-            });
-
-            if (!content) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Content not found or access denied'
-                });
-            }
-
-            if (content.status !== 'draft') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Only draft content can be submitted for review'
-                });
-            }
-
-            // Validate content before submission
-            if (!content.attached_products || content.attached_products.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Content must have at least one attached product'
-                });
-            }
-
-            if (!content.disclosures || content.disclosures.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Content must include proper disclosures'
-                });
-            }
-
-            content.status = 'submitted';
-            await content.save();
-
-            res.json({
-                success: true,
-                message: 'Content submitted for review',
-                content
-            });
-
-        } catch (error) {
-            console.error('Error submitting content:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error submitting content',
-                error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-            });
-        }
-    }
+    // Removed redundant functions (integrated deliverables workflow):
+    // - createContent(): Replaced by createContentFromForm with deliverable_id support
+    // - submitContent(): Not needed - createContentFromForm submits directly with status 'submitted'
 
     /**
      * Publish approved content

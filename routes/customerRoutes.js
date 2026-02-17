@@ -82,6 +82,9 @@ router.post('/checkout', CustomerPurchaseController.checkoutCart);
 // Rankings page
 router.get('/rankings', CustomerPurchaseController.getRankingsPage);
 
+// Customer Order History
+router.get('/orders', CustomerPurchaseController.getOrderHistory);
+
 // Public API for customer to fetch brand profile by ID
 router.get('/brand/:brandId/profile', async (req, res) => {
     const brandId = req.params.brandId;
@@ -98,9 +101,24 @@ router.get('/brand/:brandId/profile', async (req, res) => {
             : brand; // fallback
 
         // Normalize currentCampaigns field for frontend expectations
-        transformed.currentCampaigns = Array.isArray(topCampaigns)
+        // First get campaigns from topCampaigns (metrics-based)
+        const metricsBasedCampaigns = Array.isArray(topCampaigns)
             ? topCampaigns.map(c => ({ id: c.id || c._id, title: c.title, status: c.status || c.state || 'active' }))
             : [];
+
+        // Also fetch active campaigns directly from CampaignInfo to catch campaigns without metrics
+        const activeCampaigns = await CampaignInfo.find({
+            brand_id: brandId,
+            status: 'active'
+        }).select('_id title status').lean();
+
+        // Merge: add any active campaigns not already in the metrics-based list
+        const existingIds = new Set(metricsBasedCampaigns.map(c => String(c.id)));
+        const additionalCampaigns = (activeCampaigns || [])
+            .filter(c => !existingIds.has(String(c._id)))
+            .map(c => ({ id: c._id, title: c.title, status: c.status }));
+
+        transformed.currentCampaigns = [...metricsBasedCampaigns, ...additionalCampaigns];
 
         return res.json({ success: true, brand: transformed });
     } catch (error) {

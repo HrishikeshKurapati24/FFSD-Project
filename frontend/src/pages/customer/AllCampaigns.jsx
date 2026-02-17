@@ -26,6 +26,7 @@ const AllCampaigns = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
 
     // Check authentication on mount
     useEffect(() => {
@@ -44,20 +45,26 @@ const AllCampaigns = () => {
                     if (data.authenticated && data.user?.userType === 'customer') {
                         setIsAuthenticated(true);
                         setCustomerName(data.user?.displayName || '');
-                    } else {
-                        navigate('/signin');
                     }
-                } else {
-                    navigate('/signin');
                 }
             } catch (error) {
                 console.error('Auth check error:', error);
-                navigate('/signin');
+            } finally {
+                setAuthChecked(true);
             }
         };
 
         checkAuth();
-    }, [navigate]);
+    }, []);
+
+    // Capture referral code from URL (?ref=XYZ) and persist it
+    useEffect(() => {
+        const query = new URLSearchParams(window.location.search);
+        const ref = query.get('ref');
+        if (ref) {
+            localStorage.setItem('referralCode', ref);
+        }
+    }, []);
 
     const fetchCampaigns = useCallback(async () => {
         try {
@@ -87,20 +94,7 @@ const AllCampaigns = () => {
     }, []);
 
     useEffect(() => {
-        let isMounted = true;
-
-        const loadCampaigns = async () => {
-            if (!isMounted) {
-                return;
-            }
-            await fetchCampaigns();
-        };
-
-        loadCampaigns();
-
-        return () => {
-            isMounted = false;
-        };
+        fetchCampaigns();
     }, [fetchCampaigns]);
 
     useEffect(() => {
@@ -118,11 +112,20 @@ const AllCampaigns = () => {
     }, [pageTitle]);
 
     const filteredCampaigns = useMemo(() => {
-        if (!debouncedSearch) {
-            return campaigns;
+        let filtered = campaigns;
+
+        // Handle campaignId filtering from URL
+        const query = new URLSearchParams(window.location.search);
+        const campaignIdHint = query.get('campaignId');
+        if (campaignIdHint) {
+            filtered = filtered.filter(c => c._id === campaignIdHint);
         }
 
-        return campaigns.filter((campaign) => {
+        if (!debouncedSearch) {
+            return filtered;
+        }
+
+        return filtered.filter((campaign) => {
             const brandName = campaign?.brand_id?.brandName || '';
             const description = campaign?.description || '';
             const title = campaign?.title || '';
@@ -159,7 +162,7 @@ const AllCampaigns = () => {
         setSearchValue(event.target.value);
     };
 
-    if (!isAuthenticated) {
+    if (!authChecked) {
         return (
             <div className={styles.allCampaignsPage}>
                 <CustomerNavbar

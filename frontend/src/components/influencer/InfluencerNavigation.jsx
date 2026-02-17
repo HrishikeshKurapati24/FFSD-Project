@@ -7,7 +7,8 @@ import NotificationModal from '../brand/NotificationModal';
 const NAV_LINKS = [
   { label: 'Home', path: '/influencer/home' },
   { label: 'Explore Brands', path: '/influencer/explore' },
-  { label: 'My Profile', path: '/influencer/profile' }
+  { label: 'My Profile', path: '/influencer/profile' },
+  { label: 'Feedback', path: '/feedback' }
 ];
 
 const MENU_LINKS = [

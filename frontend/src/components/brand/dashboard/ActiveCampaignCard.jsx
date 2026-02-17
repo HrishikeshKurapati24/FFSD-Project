@@ -1,6 +1,13 @@
 import React from 'react';
 
 const ActiveCampaignCard = ({ campaign, onReviewContent, onEndCampaign, onViewInfluencers }) => {
+  const handleReviewClick = (e) => {
+    e.preventDefault();
+    if (onReviewContent) {
+      onReviewContent(campaign._id, campaign.name || campaign.title);
+    }
+  };
+
   return (
     <div className="campaign-card">
       <span className={`campaign-status ${campaign.status === 'active' ? 'status-active' : 'status-upcoming'}`}>
@@ -76,7 +83,7 @@ const ActiveCampaignCard = ({ campaign, onReviewContent, onEndCampaign, onViewIn
       <div className="campaign-actions">
         <button
           className="btn-review-content"
-          onClick={() => onReviewContent(campaign._id, campaign.name || campaign.title)}
+          onClick={handleReviewClick}
         >
           <i className="fas fa-eye"></i> Review Content
         </button>

@@ -33,6 +33,16 @@ const Cart = () => {
         expYear: '',
         cvv: ''
     });
+    const [errors, setErrors] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        cardNumber: '',
+        expMonth: '',
+        expYear: '',
+        cvv: ''
+    });
 
     // Check authentication on mount (optional - don't redirect if not authenticated)
     useEffect(() => {
@@ -104,17 +114,143 @@ const Cart = () => {
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setFormData((prev) => ({
-            ...prev,
+        const nextState = {
+            ...formData,
             [name]: value
+        };
+        setFormData(nextState);
+
+        // Live-validate individual field using the next state
+        validateField(name, value, nextState);
+    };
+
+    const validateField = (fieldName, value, currentState = formData) => {
+        let message = '';
+        const trimmed = value.trim();
+
+        switch (fieldName) {
+            case 'name':
+                if (!trimmed) {
+                    message = 'Full name is required.';
+                } else if (trimmed.length < 2) {
+                    message = 'Name must be at least 2 characters.';
+                } else if (/\d/.test(trimmed)) {
+                    message = 'Full name should not contain digits.';
+                }
+                break;
+            case 'email':
+                if (!trimmed) {
+                    message = 'Email is required.';
+                } else if (!trimmed.endsWith('@gmail.com')) {
+                    message = 'Email must end with @gmail.com.';
+                } else {
+                    const localPart = trimmed.slice(0, trimmed.indexOf('@'));
+                    if (!localPart || localPart.length < 1) {
+                        message = 'Please enter a valid email address.';
+                    }
+                }
+                break;
+            case 'phone':
+                if (!trimmed) {
+                    message = 'Phone number is required.';
+                } else {
+                    const digits = trimmed.replace(/\D/g, '');
+                    if (digits.length !== 10) {
+                        message = 'Phone number must be exactly 10 digits.';
+                    }
+                }
+                break;
+            case 'address':
+                if (!trimmed) {
+                    message = 'Address is required for delivery.';
+                }
+                break;
+            case 'cardNumber': {
+                const digits = trimmed.replace(/\s+/g, '');
+                if (!digits) {
+                    message = 'Card number is required.';
+                } else if (!/^\d{16}$/.test(digits)) {
+                    message = 'Card number must be exactly 16 digits.';
+                }
+                break;
+            }
+            case 'expMonth': {
+                const mm = parseInt(trimmed, 10);
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                const yy = parseInt(currentState.expYear, 10);
+
+                if (!trimmed) {
+                    message = 'Expiry month is required.';
+                } else if (Number.isNaN(mm) || mm < 1 || mm > 12) {
+                    message = 'Enter a valid month (01–12).';
+                } else if (!Number.isNaN(yy) && yy === currentYear && mm < currentMonth) {
+                    message = 'Card has already expired.';
+                } else {
+                    // Clear expiry error on year if month is now valid
+                    setErrors(prev => ({ ...prev, expYear: prev.expYear === 'Card has already expired.' ? '' : prev.expYear }));
+                }
+                break;
+            }
+            case 'expYear': {
+                const yy = parseInt(trimmed, 10);
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                const mm = parseInt(currentState.expMonth, 10);
+
+                if (!trimmed) {
+                    message = 'Expiry year is required.';
+                } else if (Number.isNaN(yy) || trimmed.length !== 4) {
+                    message = 'Enter a 4-digit year.';
+                } else if (yy < currentYear) {
+                    message = 'Card has already expired.';
+                } else if (yy === currentYear && !Number.isNaN(mm) && mm < currentMonth) {
+                    message = 'Card has already expired.';
+                } else {
+                    // Clear expiry error on month if year is now valid
+                    setErrors(prev => ({ ...prev, expMonth: prev.expMonth === 'Card has already expired.' ? '' : prev.expMonth }));
+                }
+                break;
+            }
+            case 'cvv': {
+                const digits = trimmed;
+                if (!digits) {
+                    message = 'CVV is required.';
+                } else if (!/^\d{3}$/.test(digits)) {
+                    message = 'CVV must be exactly 3 digits.';
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        setErrors((prev) => ({
+            ...prev,
+            [fieldName]: message
         }));
+
+        return message;
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        Object.entries(formData).forEach(([key, value]) => {
+            newErrors[key] = validateField(key, value);
+        });
+
+        // Check if any errors
+        const hasError = Object.values(newErrors).some((msg) => msg);
+        return !hasError;
     };
 
     const handleCheckout = async () => {
         const { name, email, phone, address, cardNumber, expMonth, expYear, cvv } = formData;
 
-        if (!name.trim() || !email.trim()) {
-            showAlert('danger', 'Please provide your name and email to proceed.');
+        // Run full validation before checkout
+        const isValid = validateForm();
+        if (!isValid) {
+            showAlert('danger', 'Please fix the highlighted fields before proceeding.');
             return;
         }
 
@@ -137,7 +273,14 @@ const Cart = () => {
                 expYear: expYear.trim(),
                 cvv: cvv.trim()
             },
-            cart: cartDataForBackend // Send cart data from context since backend reads from session
+            cart: cartDataForBackend, // Send cart data from context since backend reads from session
+            referralCode: (() => {
+                try {
+                    return localStorage.getItem('referralCode') || undefined;
+                } catch {
+                    return undefined;
+                }
+            })()
         };
 
         try {
@@ -283,12 +426,15 @@ const Cart = () => {
                                             type="text"
                                             id="custName"
                                             name="name"
-                                            className="form-control"
+                                            className={`form-control ${errors.name ? 'is-invalid' : ''}`}
                                             placeholder="John Doe"
                                             value={formData.name}
                                             onChange={handleInputChange}
                                             required
                                         />
+                                        {errors.name && (
+                                            <div className="invalid-feedback">{errors.name}</div>
+                                        )}
                                     </div>
                                     <div className="mb-2">
                                         <label htmlFor="custEmail" className="form-label">
@@ -298,12 +444,15 @@ const Cart = () => {
                                             type="email"
                                             id="custEmail"
                                             name="email"
-                                            className="form-control"
+                                            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
                                             placeholder="john@example.com"
                                             value={formData.email}
                                             onChange={handleInputChange}
                                             required
                                         />
+                                        {errors.email && (
+                                            <div className="invalid-feedback">{errors.email}</div>
+                                        )}
                                     </div>
                                     <div className="mb-2">
                                         <label htmlFor="custPhone" className="form-label">
@@ -313,11 +462,14 @@ const Cart = () => {
                                             type="tel"
                                             id="custPhone"
                                             name="phone"
-                                            className="form-control"
+                                            className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
                                             placeholder="+1 555 555 5555"
                                             value={formData.phone}
                                             onChange={handleInputChange}
                                         />
+                                        {errors.phone && (
+                                            <div className="invalid-feedback">{errors.phone}</div>
+                                        )}
                                     </div>
                                     <div className="mb-2">
                                         <label htmlFor="custAddress" className="form-label">
@@ -327,11 +479,14 @@ const Cart = () => {
                                             type="text"
                                             id="custAddress"
                                             name="address"
-                                            className="form-control"
+                                            className={`form-control ${errors.address ? 'is-invalid' : ''}`}
                                             placeholder="Street, City, ZIP"
                                             value={formData.address}
                                             onChange={handleInputChange}
                                         />
+                                        {errors.address && (
+                                            <div className="invalid-feedback">{errors.address}</div>
+                                        )}
                                     </div>
 
                                     <div className={styles['payment-section']}>
@@ -344,12 +499,15 @@ const Cart = () => {
                                                 type="text"
                                                 id="cardNumber"
                                                 name="cardNumber"
-                                                className="form-control"
+                                                className={`form-control ${errors.cardNumber ? 'is-invalid' : ''}`}
                                                 placeholder="4111 1111 1111 1111"
                                                 inputMode="numeric"
                                                 value={formData.cardNumber}
                                                 onChange={handleInputChange}
                                             />
+                                            {errors.cardNumber && (
+                                                <div className="invalid-feedback">{errors.cardNumber}</div>
+                                            )}
                                         </div>
                                         <div className="row g-2">
                                             <div className="col">
@@ -360,12 +518,15 @@ const Cart = () => {
                                                     type="text"
                                                     id="expMonth"
                                                     name="expMonth"
-                                                    className="form-control"
+                                                    className={`form-control ${errors.expMonth ? 'is-invalid' : ''}`}
                                                     placeholder="MM"
                                                     inputMode="numeric"
                                                     value={formData.expMonth}
                                                     onChange={handleInputChange}
                                                 />
+                                                {errors.expMonth && (
+                                                    <div className="invalid-feedback">{errors.expMonth}</div>
+                                                )}
                                             </div>
                                             <div className="col">
                                                 <label htmlFor="expYear" className="form-label">
@@ -375,12 +536,15 @@ const Cart = () => {
                                                     type="text"
                                                     id="expYear"
                                                     name="expYear"
-                                                    className="form-control"
+                                                    className={`form-control ${errors.expYear ? 'is-invalid' : ''}`}
                                                     placeholder="YYYY"
                                                     inputMode="numeric"
                                                     value={formData.expYear}
                                                     onChange={handleInputChange}
                                                 />
+                                                {errors.expYear && (
+                                                    <div className="invalid-feedback">{errors.expYear}</div>
+                                                )}
                                             </div>
                                             <div className="col">
                                                 <label htmlFor="cvv" className="form-label">
@@ -390,12 +554,15 @@ const Cart = () => {
                                                     type="password"
                                                     id="cvv"
                                                     name="cvv"
-                                                    className="form-control"
+                                                    className={`form-control ${errors.cvv ? 'is-invalid' : ''}`}
                                                     placeholder="123"
                                                     inputMode="numeric"
                                                     value={formData.cvv}
                                                     onChange={handleInputChange}
                                                 />
+                                                {errors.cvv && (
+                                                    <div className="invalid-feedback">{errors.cvv}</div>
+                                                )}
                                             </div>
                                         </div>
                                         <button

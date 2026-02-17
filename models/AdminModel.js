@@ -413,7 +413,7 @@ const AdminModel = {
         static async getAllCollaborations() {
             try {
                 const campaigns = await CampaignInfo.find()
-                    .select('brand_id status')
+                    .select('brand_id title status start_date end_date')
                     .populate('brand_id', 'brandName')
                     .lean();
 
@@ -423,10 +423,21 @@ const AdminModel = {
                         .populate('influencer_id', 'fullName displayName')
                         .lean();
 
+                    // Calculate revenue
+                    const revenueAgg = await CampaignPayments.aggregate([
+                        { $match: { campaign_id: campaign._id, status: 'completed' } },
+                        { $group: { _id: null, total: { $sum: "$amount" } } }
+                    ]);
+                    const revenue = revenueAgg[0]?.total || 0;
+
                     return {
                         id: campaign._id,
+                        title: campaign.title,
                         brand: campaign.brand_id ? campaign.brand_id.brandName : '',
                         status: campaign.status,
+                        startDate: campaign.start_date,
+                        endDate: campaign.end_date,
+                        revenue: revenue,
                         influencers: influencers.map(inf => ({
                             influencer: inf.influencer_id ? (inf.influencer_id.displayName || inf.influencer_id.fullName || '') : '',
                             engagementRate: inf.engagement_rate,
@@ -452,7 +463,7 @@ const AdminModel = {
                 if (!campaign) return null;
 
                 const influencers = await CampaignInfluencers.find({ campaign_id: id })
-                    .select('influencer_id engagement_rate progress')
+                    .select('influencer_id engagement_rate progress deliverables')
                     .populate('influencer_id', 'fullName displayName')
                     .lean();
 
@@ -463,7 +474,8 @@ const AdminModel = {
                     influencers: influencers.map(inf => ({
                         influencer: inf.influencer_id ? (inf.influencer_id.displayName || inf.influencer_id.fullName || '') : '',
                         engagementRate: inf.engagement_rate,
-                        reach: inf.progress
+                        reach: inf.progress,
+                        deliverables: inf.deliverables || []
                     }))
                 };
             } catch (error) {

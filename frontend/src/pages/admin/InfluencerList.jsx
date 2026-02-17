@@ -10,6 +10,7 @@ export default function InfluencerList() {
     const [user, setUser] = useState({ name: 'Admin' });
     const [notifications, setNotifications] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortDirection, setSortDirection] = useState('desc'); // 'desc' or 'asc'
 
     useEffect(() => {
         fetchUserData();
@@ -77,6 +78,10 @@ export default function InfluencerList() {
             email.includes(searchVal) ||
             platform.includes(searchVal) ||
             categories.some(cat => cat.includes(searchVal));
+    }).sort((a, b) => {
+        const audA = a.audienceSize || 0;
+        const audB = b.audienceSize || 0;
+        return sortDirection === 'desc' ? audB - audA : audA - audB;
     });
 
     return (
@@ -85,14 +90,27 @@ export default function InfluencerList() {
                 <div className={styles.container}>
                     <div className={styles.header}>
                         <h1>Verified Influencers</h1>
-                        <div className={styles.searchBar}>
-                            <i className="fas fa-search"></i>
-                            <input
-                                type="text"
-                                placeholder="Search influencers, categories, or platforms..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className={styles.headerActions}>
+                            <div className={styles.sortControls}>
+                                <span className={styles.sortLabel}>Sort by Audience:</span>
+                                <select
+                                    className={styles.sortSelect}
+                                    value={sortDirection}
+                                    onChange={(e) => setSortDirection(e.target.value)}
+                                >
+                                    <option value="desc">High to Low</option>
+                                    <option value="asc">Low to High</option>
+                                </select>
+                            </div>
+                            <div className={styles.searchBar}>
+                                <i className="fas fa-search"></i>
+                                <input
+                                    type="text"
+                                    placeholder="Search influencers, categories, or platforms..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -108,7 +126,6 @@ export default function InfluencerList() {
                                         <th>Category</th>
                                         <th>Platform</th>
                                         <th>Audience</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -117,9 +134,13 @@ export default function InfluencerList() {
                                             <tr key={inf._id}>
                                                 <td>
                                                     <div className={styles.infInfo}>
-                                                        <div className={styles.avatar}>
-                                                            {(inf.displayName || inf.fullName || 'I').charAt(0).toUpperCase()}
-                                                        </div>
+                                                        {inf.profilePicUrl ? (
+                                                            <img src={inf.profilePicUrl} alt="" className={styles.avatar} onError={(e) => e.target.style.display = 'none'} />
+                                                        ) : (
+                                                            <div className={styles.avatarPlaceholder}>
+                                                                {(inf.displayName || inf.fullName || 'I').charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
                                                         <span className={styles.infName}>{inf.displayName || inf.fullName}</span>
                                                     </div>
                                                 </td>
@@ -137,12 +158,11 @@ export default function InfluencerList() {
                                                 </td>
                                                 <td>{inf.platform || 'N/A'}</td>
                                                 <td>{(inf.audienceSize || 0).toLocaleString()}</td>
-                                                <td><span className={styles.verifiedBadge}>Verified</span></td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6" className={styles.noData}>No verified influencers found.</td>
+                                            <td colSpan="5" className={styles.noData}>No verified influencers found.</td>
                                         </tr>
                                     )}
                                 </tbody>

@@ -57,6 +57,20 @@ const CustomerSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    location: {
+        type: String,
+        trim: true,
+        maxlength: [100, 'Location cannot exceed 100 characters']
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive', 'suspended', 'banned'],
+        default: 'active'
+    },
+    admin_notes: {
+        type: String,
+        trim: true
+    },
     last_purchase_date: {
         type: Date,
         default: null

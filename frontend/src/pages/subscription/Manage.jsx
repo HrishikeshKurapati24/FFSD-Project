@@ -29,7 +29,9 @@ const Manage = () => {
   const subscriptionLimits = brandSubLimits || influencerSubLimits;
   const user = brand || influencer;
   const subscriptionLoading = brandLoading || influencerLoading;
-  const subscriptionError = brandError || influencerError;
+
+  // Only show error from the context that is actually representing the current user
+  const subscriptionError = userType === 'brand' ? brandError : (userType === 'influencer' ? influencerError : (brandError && influencerError ? 'Authentication failed' : null));
 
   // Use subscriptionStatus as currentSubscription if it's the full subscription object
   // Otherwise construct it from subscriptionStatus and subscriptionLimits
@@ -41,6 +43,8 @@ const Manage = () => {
   const [availablePlans, setAvailablePlans] = useState([]);
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [billingCycle, setBillingCycle] = useState('monthly');
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState(false);
+  const [pendingPlanId, setPendingPlanId] = useState(null);
 
   // Combine loading states
   const overallLoading = subscriptionLoading || loading;
@@ -112,7 +116,23 @@ const Manage = () => {
   };
 
   // Subscribe to plan
-  const handleSubscribeToPlan = async (planId) => {
+  const handleSubscribeToPlan = (planId) => {
+    // If there is an active subscription and it's not the same plan, show confirmation
+    const isActive = currentSubscription &&
+      currentSubscription.status === 'active' &&
+      new Date(currentSubscription.endDate) > new Date();
+
+    if (isActive) {
+      setPendingPlanId(planId);
+      setShowSwitchConfirm(true);
+      return;
+    }
+
+    // Otherwise proceed normally
+    executeSubscription(planId);
+  };
+
+  const executeSubscription = async (planId) => {
     const isExpired = currentSubscription && (
       currentSubscription.status === 'expired' ||
       new Date(currentSubscription.endDate) < new Date()
@@ -168,6 +188,13 @@ const Manage = () => {
     } catch (error) {
       console.error('Error subscribing to plan:', error);
       alert('An error occurred while subscribing');
+    }
+  };
+
+  const confirmPlanSwitch = () => {
+    setShowSwitchConfirm(false);
+    if (pendingPlanId) {
+      executeSubscription(pendingPlanId);
     }
   };
 
@@ -252,6 +279,21 @@ const Manage = () => {
 
   return (
     <div className={styles.managePageWrapper}>
+      {/* Switch Confirmation Modal */}
+      {showSwitchConfirm && (
+        <div className="switch-modal-overlay">
+          <div className="switch-modal">
+            <i className="fas fa-exclamation-circle"></i>
+            <h3>Cancel Previous Subscription?</h3>
+            <p>Do you want to cancel your previous subscription and select a new subscription?</p>
+            <div className="modal-btn-group">
+              <button className="btn-yes" onClick={confirmPlanSwitch}>Yes</button>
+              <button className="btn-no" onClick={() => setShowSwitchConfirm(false)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header>
         <div className="header-container">
@@ -401,6 +443,15 @@ const Manage = () => {
               const isCurrentPlan = currentSubscription &&
                 currentSubscription.planId?._id?.toString() === plan._id?.toString();
 
+              // Logic to prevent downgrades: Free < Basic < Premium
+              const planHierarchy = { 'Free': 0, 'Basic': 1, 'Premium': 2 };
+              const currentPlanTier = currentSubscription ? (planHierarchy[currentSubscription.planId?.name] || 0) : -1;
+              const targetPlanTier = planHierarchy[plan.name] || 0;
+              const isDowngrade = currentPlanTier > targetPlanTier &&
+                currentSubscription &&
+                currentSubscription.status === 'active' &&
+                new Date(currentSubscription.endDate) > new Date();
+
               return (
                 <div key={plan._id} className={`plan-card ${plan.name?.toLowerCase() || ''}`}>
                   <div className="plan-header">
@@ -447,9 +498,9 @@ const Manage = () => {
                   <button
                     className="subscribe-btn"
                     onClick={() => handleSubscribeToPlan(plan._id)}
-                    disabled={isCurrentPlan}
+                    disabled={isCurrentPlan || isDowngrade}
                   >
-                    {isCurrentPlan ? 'Current Plan' : 'Choose Plan'}
+                    {isCurrentPlan ? 'Current Plan' : (isDowngrade ? 'Downgrade Unavailable' : 'Choose Plan')}
                   </button>
                 </div>
               );

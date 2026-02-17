@@ -515,6 +515,26 @@ class SubscriptionService {
     }
   }
 
+  // Update subscription (for upgrades)
+  static async updateSubscription(subscriptionId, updateData) {
+    try {
+      const updatedSubscription = await UserSubscription.findByIdAndUpdate(
+        subscriptionId,
+        { ...updateData, updatedAt: new Date() },
+        { new: true, runValidators: true }
+      ).populate('planId');
+
+      if (!updatedSubscription) {
+        throw new Error('Subscription not found');
+      }
+
+      return updatedSubscription;
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      throw error;
+    }
+  }
+
   // Initialize default subscription plans
   static async initializeDefaultPlans() {
     const brandPlans = [
@@ -679,14 +699,18 @@ class brandModel {
       if (!campaigns.length) return [];
 
       const campaignIds = campaigns.map(c => c._id);
-      console.log(campaignIds);
 
-      const [metrics, influencerCounts] = await Promise.all([
+      // Fetch metrics, influencer counts, and products in parallel
+      const [metrics, influencerCounts, allProducts] = await Promise.all([
         CampaignMetrics.find({ campaign_id: { $in: campaignIds } }).lean(),
         CampaignInfluencers.aggregate([
           { $match: { campaign_id: { $in: campaignIds } } },
           { $group: { _id: '$campaign_id', count: { $sum: 1 } } }
-        ])
+        ]),
+        // Fetch products associated with these campaigns
+        mongoose.model('Product').find({ campaign_id: { $in: campaignIds } })
+          .select('campaign_id name images campaign_price')
+          .lean()
       ]);
 
       const metricsMap = new Map();
@@ -694,6 +718,14 @@ class brandModel {
 
       const influencerCountMap = new Map();
       influencerCounts.forEach(c => influencerCountMap.set(c._id.toString(), c.count));
+
+      // Group products by campaign
+      const productsMap = new Map();
+      allProducts.forEach(p => {
+        const cId = p.campaign_id.toString();
+        if (!productsMap.has(cId)) productsMap.set(cId, []);
+        productsMap.get(cId).push(p);
+      });
 
       return campaigns.map(campaign => {
         const m = metricsMap.get(campaign._id.toString()) || {};
@@ -712,7 +744,8 @@ class brandModel {
           reach: m.reach || 0,
           conversion_rate: m.conversion_rate || 0,
           performance_score: m.performance_score || 0,
-          influencersCount: influencerCountMap.get(campaign._id.toString()) || 0
+          influencersCount: influencerCountMap.get(campaign._id.toString()) || 0,
+          products: productsMap.get(campaign._id.toString()) || []
         };
       });
     } catch (err) {
@@ -1258,6 +1291,8 @@ class brandModel {
           engagement_rate: campaignMetrics.engagement_rate || 0,
           reach: campaignMetrics.reach || 0,
           conversion_rate: campaignMetrics.conversion_rate || 0,
+          revenue: campaignMetrics.revenue || 0,
+          roi: campaignMetrics.roi || 0,
           influencers_count: influencerCountMap.get(campaign._id.toString()) || 0
         };
       });

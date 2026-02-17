@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %> - CollabSync
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/i_index/cart.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .order-card,
+        .connection-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .order-status {
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .status-paid {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-shipped {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+
+        .status-delivered {
+            background-color: #d1e7dd;
+            color: #198754;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .item-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .connection-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 3px solid #f8f9fa;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="fas fa-shopping-bag me-2"></i>CollabSync</a>
+            <ul class="nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/customer">All Campaigns</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/customer/orders">My Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/rankings">Rankings</a></li>
+            </ul>
+            <a class="btn btn-outline-primary position-relative" href="/customer/cart">
+                <i class="fas fa-shopping-cart"></i> Cart
+            </a>
+        </div>
+    </nav>
+
+    <div class="page-header text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">My Account</h1>
+            <p class="lead mb-0">Track your orders and connections</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row">
+            <!-- Left Column: Order History -->
+            <div class="col-lg-8">
+                <h3 class="section-title"><i class="fas fa-box-open me-2 text-primary"></i>Order History</h3>
+
+                <% if (!orders || orders.length===0) { %>
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-basket fa-4x text-muted mb-3"></i>
+                        <h4>No orders yet</h4>
+                        <p class="text-muted">Start shopping from active campaigns!</p>
+                        <a href="/customer" class="btn btn-primary mt-2">Browse Campaigns</a>
+                    </div>
+                    <% } else { %>
+                        <% orders.forEach(order=> { %>
+                            <div class="card order-card">
+                                <div
+                                    class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center pt-3 pb-0">
+                                    <div>
+                                        <span class="text-muted small">Order #<%=
+                                                order._id.toString().slice(-6).toUpperCase() %></span>
+                                        <div class="fw-bold">
+                                            <%= new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric'
+                                                , month: 'long' , day: 'numeric' }) %>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="order-status status-<%= order.status || 'pending' %>">
+                                            <%= order.status || 'Pending' %>
+                                        </span>
+                                        <div class="fw-bold mt-1">$<%= order.total_amount %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <% if (order.items && order.items.length> 0) { %>
+                                        <% order.items.forEach(item=> { %>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="<%= (item.product_id && item.product_id.images && item.product_id.images[0] && item.product_id.images[0].url) ? item.product_id.images[0].url : '/images/default-product.jpg' %>"
+                                                    class="item-thumb" alt="Product">
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        <%= item.product_id ? item.product_id.name : 'Unknown Product'
+                                                            %>
+                                                    </div>
+                                                    <div class="small text-muted">Qty: <%= item.quantity %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% }) %>
+                                                <% } %>
+                                </div>
+                            </div>
+                            <% }) %>
+                                <% } %>
+            </div>
+
+            <!-- Right Column: Bought From -->
+            <div class="col-lg-4">
+                <h3 class="section-title"><i class="fas fa-link me-2 text-primary"></i>My Connections</h3>
+
+                <!-- Brands -->
+                <h5 class="mb-3 text-muted">Brands You Support</h5>
+                <% if (purchasedBrands && purchasedBrands.length> 0) { %>
+                    <div class="row g-2">
+                        <% purchasedBrands.forEach(brand=> { %>
+                            <div class="col-6">
+                                <div class="card connection-card text-center p-3 h-100">
+                                    <img src="<%= brand.logoUrl || '/images/default-brand-logo.jpg' %>"
+                                        class="connection-avatar mx-auto" alt="<%= brand.brandName %>">
+                                    <div class="fw-bold text-truncate">
+                                        <%= brand.brandName %>
+                                    </div>
+                                    <small class="text-muted">
+                                        <%= brand.industry || 'Brand' %>
+                                    </small>
+                                    <% if(brand.website) { %>
+                                        <a href="<%= brand.website %>" target="_blank"
+                                            class="btn btn-sm btn-outline-secondary mt-2"><i
+                                                class="fas fa-external-link-alt"></i> Visit</a>
+                                        <% } %>
+                                </div>
+                            </div>
+                            <% }) %>
+                    </div>
+                    <% } else { %>
+                        <p class="text-muted small">No brands connected yet.</p>
+                        <% } %>
+
+                            <!-- Influencers -->
+                            <h5 class="mb-3 mt-4 text-muted">Influencers You Supported</h5>
+                            <% if (purchasedInfluencers && purchasedInfluencers.length> 0) { %>
+                                <div class="row g-2">
+                                    <% purchasedInfluencers.forEach(influencer=> { %>
+                                        <div class="col-6">
+                                            <div class="card connection-card text-center p-3 h-100">
+                                                <img src="<%= influencer.profilePicUrl || '/images/default-avatar.jpg' %>"
+                                                    class="connection-avatar mx-auto" alt="<%= influencer.fullName %>">
+                                                <div class="fw-bold text-truncate">
+                                                    <%= influencer.displayName || influencer.fullName %>
+                                                </div>
+                                                <small class="text-muted">
+                                                    <%= influencer.niche || 'Influencer' %>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <% }) %>
+                                </div>
+                                <% } else { %>
+                                    <p class="text-muted small">No influencers connected yet.</p>
+                                    <% } %>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

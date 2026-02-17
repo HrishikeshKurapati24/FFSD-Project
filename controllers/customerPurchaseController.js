@@ -2,6 +2,9 @@ const { Product, CampaignContent, ContentTracking, Customer } = require('../conf
 const { CampaignInfo, CampaignMetrics, CampaignPayments } = require('../config/CampaignMongo');
 const { BrandInfo } = require('../config/BrandMongo');
 const { InfluencerInfo } = require('../config/InfluencerMongo');
+const { Order } = require('../config/OrderMongo');
+const { CampaignInfluencers } = require('../config/CampaignMongo');
+const { sendOrderStatusEmail } = require('../utils/emailService');
 const mongoose = require('mongoose');
 
 class CustomerPurchaseController {
@@ -99,21 +102,28 @@ class CustomerPurchaseController {
                 });
             }
 
-            // 2) Published content for the campaign with products populated
-            const content = await CampaignContent.find({
-                campaign_id: campaignId,
-                status: 'published'
+            // 2) Published deliverables from CampaignInfluencers (only source of content now)
+            const collabsWithInfluencers = await CampaignInfluencers.find({
+                campaign_id: campaignId
             })
-                .populate('influencer_id', 'fullName profilePicUrl')
-                .populate('attached_products.product_id')
-                .sort({ published_at: -1 })
+                .populate('influencer_id', 'fullName displayName profilePicUrl')
                 .lean();
 
-            console.log('[Customer] Published content count:', content.length);
-            if (content.length) {
-                const attachedProductCounts = content.map(c => (c.attached_products || []).length);
-                console.log('[Customer] Attached products per content:', attachedProductCounts);
-            }
+            const content = [];
+            collabsWithInfluencers.forEach(collab => {
+                if (collab.deliverables && Array.isArray(collab.deliverables)) {
+                    collab.deliverables.forEach(d => {
+                        if (d.status === 'published') {
+                            content.push({
+                                ...d,
+                                influencer_id: collab.influencer_id, // Link influencer info to the deliverable
+                                _id: d._id || d.id
+                            });
+                        }
+                    });
+                }
+            });
+
 
             // 3) All active products tied to the campaign with all relevant fields
             const products = await Product.find({
@@ -273,7 +283,7 @@ class CustomerPurchaseController {
      */
     static async checkoutCart(req, res) {
         try {
-            const { customerInfo, paymentInfo, cart: cartFromBody } = req.body;
+            const { customerInfo, paymentInfo, cart: cartFromBody, referralCode } = req.body;
             // Use cart from request body (context) if provided, otherwise fall back to session
             const cart = Array.isArray(cartFromBody) && cartFromBody.length > 0
                 ? cartFromBody
@@ -355,6 +365,176 @@ class CustomerPurchaseController {
                 updateFields,
                 { upsert: true, new: true }
             );
+
+            // --- REFERRAL & ORDER ATTRIBUTION LOGIC ---
+            let attributedInfluencer = null;
+            let commissionAmount = 0;
+
+            if (referralCode) {
+                // Find influencer by referral code
+                attributedInfluencer = await InfluencerInfo.findOne({ referralCode: referralCode.toUpperCase() });
+
+                // SELF-REFERRAL CHECK
+                // If user is logged in, check if they are the influencer
+                if (attributedInfluencer && authenticatedCustomerId) {
+                    // Check if authenticatedCustomerId matches the influencer's user ID (if InfluencerInfo uses same ID or linked)
+                    // Config says InfluencerInfo _id IS the user ID.
+                    if (attributedInfluencer._id.toString() === authenticatedCustomerId.toString()) {
+                        console.log(`[Checkout] Self-referral detected for user ${authenticatedCustomerId}. Ignoring attribution.`);
+                        attributedInfluencer = null;
+                        referralCode = undefined; // Clear it so it doesn't get saved to Order
+                    }
+                }
+            }
+
+            // Create Order Record
+            const newOrder = new Order({
+                customer_id: authenticatedCustomerId ? authenticatedCustomerId : null, // If authenticated
+                guest_info: !authenticatedCustomerId ? { name, email, phone } : undefined,
+                items: cart.map(item => ({
+                    product_id: item.productId,
+                    quantity: item.quantity,
+                    price_at_purchase: 0, // Need to fetch actual price from DB again or map from loop. 
+                    // Optimization: We already fetched products in the loop above. 
+                    // Ideally we should have stored them. For now, we trust the subtotal calc or re-fetch?
+                    // Let's use a simpler approach: we calculated subtotal. 
+                    // For accuracy, strict systems re-fetch. 
+                    // We will set 0 here as placeholder or improve logic to pass product map.
+                    subtotal: 0
+                })),
+                total_amount: grandTotal,
+                shipping_cost: shipping,
+                status: 'paid', // Simulating instant payment success
+                payment_id: mockPaymentId,
+                shipping_address: {
+                    name: name,
+                    address_line1: customerInfo?.address || '',
+                    address_line2: '',
+                    city: '',
+                    state: '',
+                    zip_code: '',
+                    country: ''
+                },
+                referral_code: attributedInfluencer ? referralCode : undefined,
+                influencer_id: attributedInfluencer ? attributedInfluencer._id : undefined,
+                commission_amount: 0, // Will calculate below
+                attribution_status: attributedInfluencer ? 'pending' : 'pending',
+                // Initialize status history with first entry
+                status_history: [{
+                    status: 'paid',
+                    timestamp: new Date(),
+                    notes: 'Order placed and payment received'
+                }],
+                // Calculate estimated delivery date
+                estimated_delivery_date: maxDeliveryDays > 0
+                    ? new Date(Date.now() + maxDeliveryDays * 24 * 60 * 60 * 1000)
+                    : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) // Default 5 days
+            });
+
+            // Calculate Commission & Update Metrics per Campaign
+            // We need to group items by campaign to attribute correctly if mulitple campaigns involved?
+            // Requirement says "revenue generated by each influencer for each campaign".
+            // So we iterate items, find their campaign, check commission rate, and sum up.
+
+            // Re-fetch products to get campaign details accurately for attribution
+            const productIds = cart.map(i => i.productId);
+            const productsForAttribution = await Product.find({ _id: { $in: productIds } })
+                .populate('campaign_id')
+                .lean();
+
+            const productMap = new Map(productsForAttribution.map(p => [p._id.toString(), p]));
+
+            const campaignStatsUpdate = new Map(); // campaignId -> { revenue, commission }
+
+            let totalCommission = 0;
+            const orderItems = [];
+
+            for (const line of cart) {
+                const p = productMap.get(line.productId.toString());
+                if (p) {
+                    const lineTotal = (p.campaign_price || 0) * line.quantity;
+
+                    // Add to Order Items
+                    orderItems.push({
+                        product_id: p._id,
+                        quantity: line.quantity,
+                        price_at_purchase: p.campaign_price,
+                        subtotal: lineTotal
+                    });
+
+                    if (p.campaign_id) {
+                        const campId = p.campaign_id._id.toString();
+                        const rate = p.campaign_id.commissionRate || 0;
+
+                        // Update aggregated Campaign Metrics (Revenue)
+                        if (!campaignStatsUpdate.has(campId)) {
+                            campaignStatsUpdate.set(campId, { revenue: 0, commission: 0, doc: p.campaign_id });
+                        }
+                        const stat = campaignStatsUpdate.get(campId);
+                        stat.revenue += lineTotal;
+
+                        // Calculate Commission if Influencer is attributed
+                        if (attributedInfluencer) {
+                            const itemCommission = lineTotal * (rate / 100);
+                            stat.commission += itemCommission;
+                            totalCommission += itemCommission;
+                        }
+                    }
+                }
+            }
+
+            // Update Order with accurate items and commission
+            newOrder.items = orderItems;
+            newOrder.commission_amount = CustomerPurchaseController.roundTo3(totalCommission);
+            await newOrder.save();
+
+            // Update Campaign Metrics & Influencer Stats
+            for (const [campId, stats] of campaignStatsUpdate) {
+                // 1. Update Global Campaign Revenue (CampaignMetrics)
+                await CampaignMetrics.findOneAndUpdate(
+                    { campaign_id: campId },
+                    { $inc: { revenue: stats.revenue } },
+                    { upsert: true }
+                );
+
+                // 2. Update Influencer Specific Stats (CampaignInfluencers)
+                if (attributedInfluencer) {
+                    // Verify if influencer is actually part of this campaign? 
+                    // Usually yes, but "Referral" might apply even if not explicitly "joined" depending on logic.
+                    // Assuming we only attribute if they are part of it or we add them?
+                    // For now, update if record exists.
+                    await CampaignInfluencers.findOneAndUpdate(
+                        { campaign_id: campId, influencer_id: attributedInfluencer._id },
+                        {
+                            $inc: {
+                                revenue: stats.revenue,
+                                commission_earned: stats.commission,
+                                conversions: 1 // Count order as 1 conversion? Or items? Usually orders.
+                            },
+                            $setOnInsert: {
+                                status: 'active', // Default status if creating new record
+                                progress: 0,
+                                engagement_rate: 0,
+                                reach: 0,
+                                clicks: 0,
+                                timeliness_score: 100
+                            }
+                        },
+                        { upsert: true, new: true, setDefaultsOnInsert: true }
+                    );
+                }
+            }
+
+            // Phase 9: Send Order Confirmation Email
+            try {
+                const customerData = newOrder.customer_id ?
+                    await Customer.findById(newOrder.customer_id).select('name email') :
+                    newOrder.guest_info;
+
+                await sendOrderStatusEmail(newOrder, customerData, 'paid');
+            } catch (emailError) {
+                console.error('[Phase 9] Failed to send confirmation email:', emailError);
+            }
 
             // Clear cart
             req.session.cart = [];
@@ -513,6 +693,135 @@ class CustomerPurchaseController {
         } catch (error) {
             console.error('Error rendering rankings:', error);
             return res.status(500).json({ message: 'Error loading rankings', error: process.env.NODE_ENV === 'development' ? error : {} });
+        }
+    }
+    /**
+     * Get Customer Order History & Bought From List
+     */
+    static async getOrderHistory(req, res) {
+        try {
+            // Get user ID from session or req.user
+            // Support both session-based and potential JWT middleware patterns
+            const userId = (req.session?.user?.userType === 'customer' && req.session?.user?.id)
+                ? req.session.user.id
+                : (req.user?.userType === 'customer' && req.user?.id ? req.user.id : null);
+
+            if (!userId) {
+                // If using session auth, redirect. If API, return 401.
+                if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                    return res.status(401).json({ success: false, message: 'Unauthorized' });
+                }
+                // For now, redirect to home or login if existing
+                return res.redirect('/');
+            }
+
+            // 1. Fetch Orders
+            const orders = await Order.find({ customer_id: userId })
+                .sort({ created_at: -1 })
+                .populate('items.product_id', 'name images campaign_price')
+                .populate('influencer_id', 'displayName fullName') // For referral info
+                .lean();
+
+            // 2. Aggregate "Bought From" (Brands and Influencers)
+            // We need to look at all orders for this user
+            // Influencers:
+            //   - From order.influencer_id (referral-based attribution)
+            //   - From campaigns linked to purchased products (CampaignInfluencers)
+            // Brands: from order.items.product_id -> Product -> brand_id
+
+            const influencerIds = new Set();
+            const productIds = new Set();
+
+            orders.forEach(order => {
+                if (order.influencer_id) {
+                    influencerIds.add(order.influencer_id._id ? order.influencer_id._id.toString() : order.influencer_id.toString());
+                }
+                if (Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        if (item.product_id) {
+                            productIds.add(item.product_id._id ? item.product_id._id.toString() : item.product_id.toString());
+                        }
+                    });
+                }
+            });
+
+            // Fetch Products once to derive both Brand and Campaign attribution
+            const products = await Product.find({ _id: { $in: Array.from(productIds) } })
+                .select('brand_id campaign_id')
+                .lean();
+
+            // Derive Brand IDs from purchased products
+            const brandIds = new Set(
+                products
+                    .map(p => (p.brand_id ? p.brand_id.toString() : null))
+                    .filter(Boolean)
+            );
+
+            const purchasedBrands = await BrandInfo.find({ _id: { $in: Array.from(brandIds) } })
+                .select('brandName logoUrl industry website')
+                .lean();
+
+            // Derive Campaign IDs from purchased products
+            const campaignIds = new Set(
+                products
+                    .map(p => (p.campaign_id ? p.campaign_id.toString() : null))
+                    .filter(Boolean)
+            );
+
+            // Fetch Influencers from those campaigns (CampaignInfluencers: active/completed)
+            if (campaignIds.size > 0) {
+                const campaignInfluencerDocs = await CampaignInfluencers.find({
+                    campaign_id: { $in: Array.from(campaignIds) },
+                    status: { $in: ['active', 'completed'] }
+                })
+                    .select('influencer_id')
+                    .lean();
+
+                campaignInfluencerDocs.forEach(ci => {
+                    if (ci.influencer_id) {
+                        influencerIds.add(ci.influencer_id.toString());
+                    }
+                });
+            }
+
+            // Fetch Influencer Details for all collected influencerIds
+            const purchasedInfluencers = influencerIds.size
+                ? await InfluencerInfo.find({ _id: { $in: Array.from(influencerIds) } })
+                    .select('displayName fullName profilePicUrl niche')
+                    .lean()
+                : [];
+
+            // Separate orders into current and previous
+            const currentOrders = orders.filter(order => ['paid', 'shipped'].includes(order.status));
+            const previousOrders = orders.filter(order => ['delivered', 'cancelled'].includes(order.status));
+
+            const data = {
+                title: 'My Orders & History',
+                orders, // Keep all orders for backward compatibility
+                currentOrders,
+                previousOrders,
+                purchasedInfluencers,
+                purchasedBrands,
+                user: req.session.user || req.user
+            };
+
+            // Check if this is an API request
+            if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                return res.status(200).json({
+                    success: true,
+                    ...data
+                });
+            }
+
+            // Render View
+            return res.render('customer/orders', data);
+
+        } catch (error) {
+            console.error('Error fetching order history:', error);
+            if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+                return res.status(500).json({ success: false, message: 'Error loading orders' });
+            }
+            return res.status(500).render('error', { message: 'Failed to load order history' });
         }
     }
 }

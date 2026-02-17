@@ -14,7 +14,7 @@ const CustomerNavbar = ({
   const navigate = useNavigate();
   const activePath = location.pathname;
   const [showDropdown, setShowDropdown] = useState(false);
-  const { logout: clearCustomerContext } = useCustomer();
+  const { customer, logout: clearCustomerContext } = useCustomer();
 
   const handleLogout = async () => {
     try {
@@ -56,13 +56,33 @@ const CustomerNavbar = ({
                 All Campaigns
               </Link>
             </li>
+            {customer && (
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${activePath === '/customer/rankings' ? 'active' : ''}`}
+                  to="/customer/rankings"
+                  aria-current={activePath === '/customer/rankings' ? 'page' : undefined}
+                >
+                  Rankings
+                </Link>
+              </li>
+            )}
             <li className="nav-item">
               <Link
-                className={`nav-link ${activePath === '/customer/rankings' ? 'active' : ''}`}
-                to="/customer/rankings"
-                aria-current={activePath === '/customer/rankings' ? 'page' : undefined}
+                className={`nav-link ${activePath === '/customer/orders' ? 'active' : ''}`}
+                to="/customer/orders"
+                aria-current={activePath === '/customer/orders' ? 'page' : undefined}
               >
-                Rankings
+                My Orders
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link ${activePath === '/feedback' ? 'active' : ''}`}
+                to="/feedback"
+                aria-current={activePath === '/feedback' ? 'page' : undefined}
+              >
+                Feedback
               </Link>
             </li>
           </ul>
@@ -90,7 +110,7 @@ const CustomerNavbar = ({
             </div>
           )}
           {rightAction || (
-            <>
+            <div className="d-flex align-items-center">
               <Link
                 className={`btn btn-primary ${styles['btn-primary']}`}
                 to="/customer/cart"
@@ -148,7 +168,7 @@ const CustomerNavbar = ({
                   )}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>

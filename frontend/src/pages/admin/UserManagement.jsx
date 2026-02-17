@@ -474,18 +474,6 @@ export default function UserManagement() {
                         >
                             Verify Registrations
                         </button>
-                        <button
-                            className={`${styles.tabButton} ${activeTab === 'flaggedContent' ? styles.active : ''}`}
-                            onClick={() => setActiveTab('flaggedContent')}
-                        >
-                            Flagged Content
-                        </button>
-                        <button
-                            className={`${styles.tabButton} ${activeTab === 'suspiciousActivity' ? styles.active : ''}`}
-                            onClick={() => setActiveTab('suspiciousActivity')}
-                        >
-                            Suspicious Activity
-                        </button>
                     </div>
 
                     {/* Verify Registrations Tab */}
@@ -496,45 +484,47 @@ export default function UserManagement() {
                             {/* Influencer Registrations */}
                             <h3>Influencer Registrations</h3>
                             {influencers.length > 0 ? (
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Influencer Name</th>
-                                            <th>Email</th>
-                                            <th>Category</th>
-                                            <th>Social Media Handles</th>
-                                            <th>Audience Size</th>
-                                            <th>Verified</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {influencers.map((influencer) => (
-                                            <tr key={influencer._id || influencer.id}>
-                                                <td>{influencer.name || influencer.displayName || 'N/A'}</td>
-                                                <td>{influencer.email || 'N/A'}</td>
-                                                <td>{influencer.category || influencer.businessCategory || 'N/A'}</td>
-                                                <td>{influencer.social_handles || influencer.socialHandles || 'N/A'}</td>
-                                                <td>{(influencer.audienceSize || 0).toLocaleString()}</td>
-                                                <td>
-                                                    {influencer.verified ? (
-                                                        <span className={styles.verifiedBadge}>Verified</span>
-                                                    ) : (
-                                                        <span className={styles.unverifiedBadge}>Unverified</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <button
-                                                        className={styles.btnViewProfile}
-                                                        onClick={() => viewInfluencerProfile(influencer._id || influencer.id)}
-                                                    >
-                                                        View Profile
-                                                    </button>
-                                                </td>
+                                <div className={styles.tableContainer}>
+                                    <table className={styles.table}>
+                                        <thead>
+                                            <tr>
+                                                <th>Influencer Name</th>
+                                                <th>Email</th>
+                                                <th>Category</th>
+                                                <th>Social Media Handles</th>
+                                                <th>Audience Size</th>
+                                                <th>Verified</th>
+                                                <th>Action</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {influencers.map((influencer) => (
+                                                <tr key={influencer._id || influencer.id}>
+                                                    <td>{influencer.name || influencer.displayName || 'N/A'}</td>
+                                                    <td>{influencer.email || 'N/A'}</td>
+                                                    <td>{influencer.category || influencer.businessCategory || 'N/A'}</td>
+                                                    <td>{influencer.social_handles || influencer.socialHandles || 'N/A'}</td>
+                                                    <td>{(influencer.audienceSize || 0).toLocaleString()}</td>
+                                                    <td>
+                                                        {influencer.verified ? (
+                                                            <span className={styles.verifiedBadge}>Verified</span>
+                                                        ) : (
+                                                            <span className={styles.unverifiedBadge}>Unverified</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <button
+                                                            className={styles.btnViewProfile}
+                                                            onClick={() => viewInfluencerProfile(influencer._id || influencer.id)}
+                                                        >
+                                                            View Profile
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             ) : (
                                 <p>No pending influencer registrations</p>
                             )}
@@ -542,226 +532,49 @@ export default function UserManagement() {
                             {/* Brand Registrations */}
                             <h3>Verify Brand Registrations</h3>
                             {brands.length > 0 ? (
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Brand Name</th>
-                                            <th>Email</th>
-                                            <th>Website</th>
-                                            <th>Industry</th>
-                                            <th>Total Audience</th>
-                                            <th>Verified</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {brands.map((brand) => (
-                                            <tr key={brand._id || brand.id}>
-                                                <td>{brand.brandName || brand.name || 'N/A'}</td>
-                                                <td>{brand.email || 'N/A'}</td>
-                                                <td>{brand.website || 'N/A'}</td>
-                                                <td>{brand.industry || brand.businessCategory || brand.category || 'N/A'}</td>
-                                                <td>{(brand.totalAudience || 0).toLocaleString()}</td>
-                                                <td>
-                                                    {brand.verified ? (
-                                                        <span className={styles.verifiedBadge}>Verified</span>
-                                                    ) : (
-                                                        <span className={styles.unverifiedBadge}>Unverified</span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <button
-                                                        className={styles.btnViewProfile}
-                                                        onClick={() => viewBrandProfile(brand._id || brand.id)}
-                                                    >
-                                                        View Profile
-                                                    </button>
-                                                </td>
+                                <div className={styles.tableContainer}>
+                                    <table className={styles.table}>
+                                        <thead>
+                                            <tr>
+                                                <th>Brand Name</th>
+                                                <th>Email</th>
+                                                <th>Website</th>
+                                                <th>Industry</th>
+                                                <th>Total Audience</th>
+                                                <th>Verified</th>
+                                                <th>Action</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {brands.map((brand) => (
+                                                <tr key={brand._id || brand.id}>
+                                                    <td>{brand.brandName || brand.name || 'N/A'}</td>
+                                                    <td>{brand.email || 'N/A'}</td>
+                                                    <td>{brand.website || 'N/A'}</td>
+                                                    <td>{brand.industry || brand.businessCategory || brand.category || 'N/A'}</td>
+                                                    <td>{(brand.totalAudience || 0).toLocaleString()}</td>
+                                                    <td>
+                                                        {brand.verified ? (
+                                                            <span className={styles.verifiedBadge}>Verified</span>
+                                                        ) : (
+                                                            <span className={styles.unverifiedBadge}>Unverified</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <button
+                                                            className={styles.btnViewProfile}
+                                                            onClick={() => viewBrandProfile(brand._id || brand.id)}
+                                                        >
+                                                            View Profile
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             ) : (
                                 <p>No pending brand registrations</p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Flagged Content Tab */}
-                    {activeTab === 'flaggedContent' && (
-                        <div className={styles.tabContent}>
-                            <h2>Flagged Content for Review</h2>
-
-                            {/* Filters */}
-                            <div className={styles.filters}>
-                                <input
-                                    type="text"
-                                    id="search-flagged"
-                                    placeholder="Search flagged content..."
-                                    value={flaggedFilters.search}
-                                    onChange={(e) => setFlaggedFilters({ ...flaggedFilters, search: e.target.value })}
-                                />
-                                <select
-                                    id="content-type-filter"
-                                    value={flaggedFilters.contentType}
-                                    onChange={(e) => setFlaggedFilters({ ...flaggedFilters, contentType: e.target.value })}
-                                >
-                                    <option value="all">All Content Types</option>
-                                    <option value="post">Posts</option>
-                                    <option value="comment">Comments</option>
-                                    <option value="profile">Profile Content</option>
-                                    <option value="message">Messages</option>
-                                </select>
-                                <select
-                                    id="severity-filter"
-                                    value={flaggedFilters.severity}
-                                    onChange={(e) => setFlaggedFilters({ ...flaggedFilters, severity: e.target.value })}
-                                >
-                                    <option value="all">All Severities</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="critical">Critical</option>
-                                </select>
-                            </div>
-
-                            {filteredFlaggedContent.length > 0 ? (
-                                <div className={styles.flaggedContentGrid}>
-                                    {filteredFlaggedContent.map((content, index) => (
-                                        <div key={content.id || index} className={styles.flaggedItem}>
-                                            <div className={styles.flaggedHeader}>
-                                                <h4>
-                                                    <i className="fas fa-flag"></i>
-                                                    {content.type || 'Content'} Flagged
-                                                </h4>
-                                                <span className={`${styles.severityBadge} ${styles[`severity${(content.severity || 'medium').charAt(0).toUpperCase() + (content.severity || 'medium').slice(1)}`]}`}>
-                                                    {(content.severity || 'medium').toUpperCase()}
-                                                </span>
-                                            </div>
-                                            <div className={styles.flaggedDetails}>
-                                                <p><strong>User:</strong> {content.userName || content.user || 'Unknown User'}</p>
-                                                <p><strong>Reason:</strong> {content.reason || 'Inappropriate content'}</p>
-                                                <p><strong>Reported by:</strong> {content.reportedBy || 'System'}</p>
-                                                <p><strong>Date:</strong> {content.date ? new Date(content.date).toLocaleDateString() : new Date().toLocaleDateString()}</p>
-                                                {content.content && (
-                                                    <div className={styles.contentPreview}>
-                                                        <strong>Content:</strong>
-                                                        {content.content.substring(0, 200)}
-                                                        {content.content.length > 200 ? '...' : ''}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className={styles.flaggedActions}>
-                                                <button className={`${styles.btnAction} ${styles.btnView}`} onClick={() => alert(`Full Content: ${content.fullContent || content.content}`)}>
-                                                    <i className="fas fa-eye"></i> View Full
-                                                </button>
-                                                <button className={`${styles.btnAction} ${styles.btnApprove}`} onClick={() => approveFlaggedContent(content.id || index)}>
-                                                    <i className="fas fa-check"></i> Approve
-                                                </button>
-                                                <button className={`${styles.btnAction} ${styles.btnRemove}`} onClick={() => removeFlaggedContent(content.id || index)}>
-                                                    <i className="fas fa-trash"></i> Remove
-                                                </button>
-                                                <button className={`${styles.btnAction} ${styles.btnWarn}`} onClick={() => warnUser(content.userId || content.user)}>
-                                                    <i className="fas fa-exclamation-triangle"></i> Warn User
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className={styles.noDataMessage}>
-                                    <i className="fas fa-shield-alt"></i>
-                                    <p>No flagged content to review</p>
-                                    <p>All content is currently compliant with community guidelines.</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Suspicious Activity Tab */}
-                    {activeTab === 'suspiciousActivity' && (
-                        <div className={styles.tabContent}>
-                            <h2>Suspicious User Activity</h2>
-
-                            {/* Filters */}
-                            <div className={styles.filters}>
-                                <input
-                                    type="text"
-                                    id="search-suspicious"
-                                    placeholder="Search suspicious activity..."
-                                    value={suspiciousFilters.search}
-                                    onChange={(e) => setSuspiciousFilters({ ...suspiciousFilters, search: e.target.value })}
-                                />
-                                <select
-                                    id="activity-type-filter"
-                                    value={suspiciousFilters.activityType}
-                                    onChange={(e) => setSuspiciousFilters({ ...suspiciousFilters, activityType: e.target.value })}
-                                >
-                                    <option value="all">All Activity Types</option>
-                                    <option value="login">Suspicious Login</option>
-                                    <option value="spam">Spam Behavior</option>
-                                    <option value="fake_engagement">Fake Engagement</option>
-                                    <option value="multiple_accounts">Multiple Accounts</option>
-                                    <option value="payment_fraud">Payment Fraud</option>
-                                </select>
-                                <select
-                                    id="risk-level-filter"
-                                    value={suspiciousFilters.riskLevel}
-                                    onChange={(e) => setSuspiciousFilters({ ...suspiciousFilters, riskLevel: e.target.value })}
-                                >
-                                    <option value="all">All Risk Levels</option>
-                                    <option value="low">Low Risk</option>
-                                    <option value="medium">Medium Risk</option>
-                                    <option value="high">High Risk</option>
-                                    <option value="critical">Critical Risk</option>
-                                </select>
-                            </div>
-
-                            {filteredSuspiciousActivity.length > 0 ? (
-                                <div className={styles.suspiciousActivityGrid}>
-                                    {filteredSuspiciousActivity.map((activity, index) => (
-                                        <div key={activity.id || index} className={styles.suspiciousItem}>
-                                            <div className={styles.suspiciousHeader}>
-                                                <h4>
-                                                    <i className="fas fa-exclamation-triangle"></i>
-                                                    {activity.type || 'Suspicious Activity'}
-                                                </h4>
-                                                <span className={`${styles.riskBadge} ${styles[`risk${(activity.riskLevel || 'medium').charAt(0).toUpperCase() + (activity.riskLevel || 'medium').slice(1)}`]}`}>
-                                                    {(activity.riskLevel || 'medium').toUpperCase()} RISK
-                                                </span>
-                                            </div>
-                                            <div className={styles.suspiciousDetails}>
-                                                <p><strong>User:</strong> {activity.userName || activity.user || 'Unknown User'}</p>
-                                                <p><strong>Activity:</strong> {activity.description || activity.activity || 'Suspicious behavior detected'}</p>
-                                                <p><strong>Detection Method:</strong> {activity.detectionMethod || 'Automated System'}</p>
-                                                <p><strong>First Detected:</strong> {activity.firstDetected ? new Date(activity.firstDetected).toLocaleDateString() : new Date().toLocaleDateString()}</p>
-                                                <p><strong>Occurrences:</strong> {activity.occurrences || 1}</p>
-                                                {activity.ipAddress && <p><strong>IP Address:</strong> {activity.ipAddress}</p>}
-                                                {activity.location && <p><strong>Location:</strong> {activity.location}</p>}
-                                            </div>
-                                            <div className={styles.suspiciousActions}>
-                                                <button className={`${styles.btnAction} ${styles.btnInvestigate}`} onClick={() => investigateUser(activity.userId || activity.user)}>
-                                                    <i className="fas fa-search"></i> Investigate
-                                                </button>
-                                                <button className={`${styles.btnAction} ${styles.btnSuspend}`} onClick={() => suspendUser(activity.userId || activity.user)}>
-                                                    <i className="fas fa-ban"></i> Suspend
-                                                </button>
-                                                <button className={`${styles.btnAction} ${styles.btnWarn}`} onClick={() => warnUser(activity.userId || activity.user)}>
-                                                    <i className="fas fa-exclamation-triangle"></i> Warn
-                                                </button>
-                                                <button className={`${styles.btnAction} ${styles.btnWhitelist}`} onClick={() => whitelistActivity(activity.id || index)}>
-                                                    <i className="fas fa-check"></i> Mark Safe
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className={styles.noDataMessage}>
-                                    <i className="fas fa-shield-alt"></i>
-                                    <p>No suspicious activity detected</p>
-                                    <p>All user activities appear normal and secure.</p>
-                                </div>
                             )}
                         </div>
                     )}

@@ -11,6 +11,8 @@ import InfluencerInfoSection from '../../components/brand/transaction/Influencer
 import CampaignCompletionForm from '../../components/brand/transaction/CampaignCompletionForm';
 import ProductDetailsForm from '../../components/brand/transaction/ProductDetailsForm';
 import PaymentFormFields from '../../components/brand/transaction/PaymentFormFields';
+import DeliverablesSection from '../../components/brand/createCampaign/DeliverablesSection';
+import deliverablesStyles from '../../styles/brand/transaction_deliverables.module.css';
 
 const EXTERNAL_ASSETS = {
     styles: [
@@ -58,6 +60,21 @@ const Transaction = () => {
 
     const [formErrors, setFormErrors] = useState({});
     const [productImagePreview, setProductImagePreview] = useState('');
+
+    // Deliverables state
+    const [deliverables, setDeliverables] = useState([
+        {
+            id: 0,
+            task_description: '',
+            platform: '',
+            num_posts: 0,
+            num_reels: 0,
+            num_videos: 0
+        }
+    ]);
+
+    // Deliverables validation errors
+    const [deliverableErrors, setDeliverableErrors] = useState({});
 
     // Fetch transaction data on mount
     useEffect(() => {
@@ -168,6 +185,53 @@ const Transaction = () => {
         }
     };
 
+    // Handle deliverable field changes
+    const handleDeliverableChange = (deliverableId, field, value) => {
+        setDeliverables(prev => prev.map(d =>
+            d.id === deliverableId ? { ...d, [field]: value } : d
+        ));
+        // Clear error for this field
+        if (deliverableErrors[deliverableId] && deliverableErrors[deliverableId][field]) {
+            setDeliverableErrors(prev => ({
+                ...prev,
+                [deliverableId]: {
+                    ...prev[deliverableId],
+                    [field]: ''
+                }
+            }));
+        }
+    };
+
+    // Add new deliverable
+    const handleAddDeliverable = () => {
+        const newDeliverable = {
+            id: deliverables.length > 0 ? Math.max(...deliverables.map(d => d.id)) + 1 : 0,
+            task_description: '',
+            platform: '',
+            num_posts: 0,
+            num_reels: 0,
+            num_videos: 0
+        };
+        setDeliverables(prev => [...prev, newDeliverable]);
+    };
+
+    // Remove deliverable
+    const handleRemoveDeliverable = (deliverableId) => {
+        if (deliverables.length === 1) {
+            alert('You must have at least one deliverable.');
+            return;
+        }
+        setDeliverables(prev => prev.filter(d => d.id !== deliverableId));
+        // Clear errors for removed deliverable
+        if (deliverableErrors[deliverableId]) {
+            setDeliverableErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[deliverableId];
+                return newErrors;
+            });
+        }
+    };
+
     // Format card number
     const handleCardNumberChange = (e) => {
         let value = e.target.value.replace(/\s/g, '');
@@ -261,6 +325,42 @@ const Transaction = () => {
             }
         }
 
+        // Deliverables validation
+        const newDeliverableErrors = {};
+        let hasDeliverableErrors = false;
+
+        if (deliverables.length === 0) {
+            errors.deliverables = 'Please add at least one deliverable.';
+            hasDeliverableErrors = true;
+        } else {
+            deliverables.forEach(deliverable => {
+                const deliverableError = {};
+
+                // Task description
+                if (!deliverable.task_description || !deliverable.task_description.trim()) {
+                    deliverableError.task_description = 'Task description is required';
+                    hasDeliverableErrors = true;
+                }
+
+                // Platform
+                if (!deliverable.platform) {
+                    deliverableError.platform = 'Please select a platform';
+                    hasDeliverableErrors = true;
+                }
+
+                // At least one of posts, reels, or videos should be greater than 0
+                if (deliverable.num_posts === 0 && deliverable.num_reels === 0 && deliverable.num_videos === 0) {
+                    deliverableError.num_posts = 'Please specify at least one deliverable (posts, reels, or videos)';
+                    hasDeliverableErrors = true;
+                }
+
+                if (Object.keys(deliverableError).length > 0) {
+                    newDeliverableErrors[deliverable.id] = deliverableError;
+                }
+            });
+            setDeliverableErrors(newDeliverableErrors);
+        }
+
         // Payment validation
         if (!formData.amount || parseFloat(formData.amount) <= 0) {
             errors.amount = 'Please enter a valid amount.';
@@ -301,7 +401,7 @@ const Transaction = () => {
         }
 
         setFormErrors(errors);
-        return Object.keys(errors).length === 0;
+        return Object.keys(errors).length === 0 && !hasDeliverableErrors;
     };
 
     // Handle form submission
@@ -355,6 +455,52 @@ const Transaction = () => {
                 submitData.append('routingNumber', formData.routingNumber);
                 submitData.append('bankName', formData.bankName);
             }
+
+            // Include deliverables data with schema mapping
+            // Include deliverables data with schema mapping (Split Strategy)
+            const formattedDeliverables = [];
+
+            deliverables.forEach(d => {
+                const platform = d.platform || 'Platform';
+                const baseDescription = d.task_description || '';
+                const baseDueDate = d.due_date || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+                // Helper to add individual deliverables
+                const addDeliverables = (count, type) => {
+                    const num = parseInt(count) || 0;
+                    for (let i = 1; i <= num; i++) {
+                        formattedDeliverables.push({
+                            title: `${platform} ${type} ${num > 1 ? `#${i}` : ''}`,
+                            description: baseDescription,
+                            deliverable_type: type,
+                            due_date: baseDueDate,
+                            status: 'pending'
+                        });
+                    }
+                };
+
+                // derived from counts
+                addDeliverables(d.num_posts, 'Post');
+                addDeliverables(d.num_reels, 'Reel');
+                addDeliverables(d.num_videos, 'Video');
+            });
+
+            // Fallback: If no counts are > 0 but a description exists, create one generic 'Other' deliverable
+            // This handles edge cases where user might have typed a description but forgot counts, 
+            // though validation should catch this. Safe to keep for robustness.
+            if (formattedDeliverables.length === 0 && deliverables.length > 0) {
+                deliverables.forEach(d => {
+                    formattedDeliverables.push({
+                        title: `${d.platform || 'Platform'} Deliverable`,
+                        description: d.task_description || 'No description',
+                        deliverable_type: 'Other',
+                        due_date: d.due_date || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                        status: 'pending'
+                    });
+                });
+            }
+
+            submitData.append('deliverables', JSON.stringify(formattedDeliverables));
 
             const response = await fetch(`${API_BASE_URL}/brand/${requestId1}/${requestId2}/transaction`, {
                 method: 'POST',
@@ -471,7 +617,99 @@ const Transaction = () => {
                             styles={styles}
                         />
 
-                        <button type="submit" disabled={loading}>
+                        {/* Deliverables Section with Updated UI */}
+                        <div className={deliverablesStyles.deliverablesContainer}>
+                            <div className={deliverablesStyles.infoBox}>
+                                <div className={deliverablesStyles.infoIcon}>
+                                    <i className="fas fa-tasks"></i>
+                                </div>
+                                <div className={deliverablesStyles.infoContent}>
+                                    <h4>Define Deliverables</h4>
+                                    <p>
+                                        Specify what the influencer needs to deliver. These will be tracked in their dashboard.
+                                        {deliverables.length === 0 && (
+                                            <span className={deliverablesStyles.requiredWarning}>
+                                                <i className="fas fa-exclamation-circle"></i> At least 1 deliverable is required.
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className={deliverablesStyles.formArea}>
+                                <DeliverablesSection
+                                    deliverables={deliverables}
+                                    deliverableErrors={deliverableErrors}
+                                    onDeliverableChange={handleDeliverableChange}
+                                    onRemoveDeliverable={handleRemoveDeliverable}
+                                    onAddDeliverable={handleAddDeliverable}
+                                    title="Campaign Deliverables"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Deliverables Review Summary */}
+                        {deliverables.length > 0 && (
+                            <div className={deliverablesStyles.reviewSection}>
+                                <div className={deliverablesStyles.reviewHeader}>
+                                    <i className="fas fa-clipboard-check"></i>
+                                    <h4>Review Agreement</h4>
+                                </div>
+
+                                <p className={deliverablesStyles.reviewSummary}>
+                                    You agree to pay for <strong>{deliverables.reduce((acc, d) => acc + (parseInt(d.num_posts) || 0) + (parseInt(d.num_reels) || 0) + (parseInt(d.num_videos) || 0), 0)} items</strong> across the following deliverables:
+                                </p>
+
+                                <div className={deliverablesStyles.deliverablesList}>
+                                    {deliverables.map((deliverable, index) => (
+                                        <div key={index} className={deliverablesStyles.deliverableItem}>
+                                            <div className={deliverablesStyles.itemContent}>
+                                                <div className={deliverablesStyles.itemTitle}>
+                                                    {deliverable.task_description || `Deliverable #${index + 1}`}
+                                                </div>
+                                                <div className={deliverablesStyles.itemDetails}>
+                                                    <span className={deliverablesStyles.detailTag}>
+                                                        <i className="fab fa-instagram"></i>
+                                                        <strong>Platform:</strong> {deliverable.platform || 'N/A'}
+                                                    </span>
+
+                                                    {Number(deliverable.num_posts) > 0 && (
+                                                        <span className={deliverablesStyles.detailTag}>
+                                                            <i className="fas fa-image"></i>
+                                                            <strong>{deliverable.num_posts}</strong> Post(s)
+                                                        </span>
+                                                    )}
+                                                    {Number(deliverable.num_reels) > 0 && (
+                                                        <span className={deliverablesStyles.detailTag}>
+                                                            <i className="fas fa-video"></i>
+                                                            <strong>{deliverable.num_reels}</strong> Reel(s)
+                                                        </span>
+                                                    )}
+                                                    {Number(deliverable.num_videos) > 0 && (
+                                                        <span className={deliverablesStyles.detailTag}>
+                                                            <i className="fas fa-film"></i>
+                                                            <strong>{deliverable.num_videos}</strong> Video(s)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className={deliverablesStyles.itemNumber}>
+                                                #{index + 1}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className={deliverablesStyles.agreementNote}>
+                                    <i className="fas fa-shield-alt"></i>
+                                    <div>
+                                        <strong>Binding Agreement:</strong> By submitting payment, you confirm these deliverables. The influencer will be notified immediately.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <button type="submit" disabled={loading} style={{ marginTop: '20px' }}>
                             {loading ? 'Processing...' : 'Submit Payment'}
                         </button>
                     </form>

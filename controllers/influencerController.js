@@ -4,7 +4,9 @@ const collaborationModel = require('../models/CollaborationModel');
 const { brandModel, SubscriptionService } = require('../models/brandModel');
 const path = require('path');
 const fs = require('fs');
-const { CampaignInfluencers } = require('../config/CampaignMongo');
+const { CampaignInfluencers, CampaignPayments, CampaignInfo, CampaignMetrics } = require('../config/CampaignMongo');
+const { Product } = require('../config/ProductMongo');
+const { BrandInfo } = require('../config/BrandMongo');
 const notificationController = require('./notificationController');
 const { mongoose } = require('mongoose');
 const { uploadToCloudinary } = require('../utils/cloudinary');
@@ -83,6 +85,27 @@ const getInfluencerDashboard = async (req, res) => {
 
     const nearingCompletion = activeCollaborations.filter(collab => (collab.progress || 0) >= 75).length;
 
+    // Get total commissions earned from CampaignPayments (campaign influencers)
+    const totalCommissionsPipeline = await CampaignPayments.aggregate([
+      {
+        $match: {
+          influencer_id: new mongoose.Types.ObjectId(influencerId),
+          status: 'completed'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalCommissions: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const totalCommissionsEarned = totalCommissionsPipeline.length > 0 ? totalCommissionsPipeline[0].totalCommissions : 0;
+
+    // Get revenue generated (same as total commissions for now - could be extended to include other revenue sources)
+    const revenueGenerated = totalCommissionsEarned;
+
     // Get dashboard stats
     const stats = {
       activeCollaborations: activeCollaborations.length,
@@ -98,6 +121,8 @@ const getInfluencerDashboard = async (req, res) => {
       avgRating: influencer.metrics?.avgRating || 0,
       completedCollabs: influencer.metrics?.completedCollabs || 0,
       totalEarnings: influencer.monthlyEarnings * 12 || 0, // Simple calculation for now
+      totalCommissionsEarned: totalCommissionsEarned,
+      revenueGenerated: revenueGenerated,
       upcomingDeadlines: activeCollaborations.filter(collab => {
         const endDate = new Date(collab.end_date);
         const today = new Date();
@@ -118,7 +143,8 @@ const getInfluencerDashboard = async (req, res) => {
       avgEngagementRate: influencer.metrics?.avgEngagementRate || 0,
       monthlyEarnings: influencer.monthlyEarnings || 0,
       socials: influencer.socials || [],
-      metrics: influencer.metrics || {}
+      metrics: influencer.metrics || {},
+      referralCode: influencer.referralCode // Added referralCode
     };
 
     console.log('Transformed influencer data:', transformedInfluencer);
@@ -146,6 +172,101 @@ const getInfluencerDashboard = async (req, res) => {
         duration: c.duration || 0
       }));
 
+    // Get brands previously collaborated with, ranked by payment
+    const { BrandInfo } = require('../config/BrandMongo');
+    const { Product } = require('../config/ProductMongo');
+    
+    // Get all completed collaborations for this influencer
+    const completedCollaborations = await CampaignInfluencers.find({
+      influencer_id: influencerId,
+      status: 'completed'
+    }).populate('campaign_id', 'title brand_id').lean();
+
+    // Get brand payments - group by brand and sum amounts
+    const brandPaymentPipeline = await CampaignPayments.aggregate([
+      {
+        $match: {
+          influencer_id: new mongoose.Types.ObjectId(influencerId),
+          status: 'completed'
+        }
+      },
+      {
+        $group: {
+          _id: '$brand_id',
+          totalPayment: { $sum: '$amount' },
+          campaignCount: { $addToSet: '$campaign_id' }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          totalPayment: 1,
+          campaignCount: { $size: '$campaignCount' }
+        }
+      },
+      { $sort: { totalPayment: -1 } }
+    ]);
+
+    // Get brand details for the payments
+    const brandRankings = await Promise.all(
+      brandPaymentPipeline.map(async (payment) => {
+        const brand = await BrandInfo.findById(payment._id).select('brandName logoUrl').lean();
+        return {
+          _id: payment._id,
+          brandName: brand?.brandName || 'Unknown Brand',
+          logoUrl: brand?.logoUrl || '/images/default-brand.png',
+          totalPayment: payment.totalPayment,
+          campaignCount: payment.campaignCount
+        };
+      })
+    );
+
+    // Get products promoted by this influencer with revenue data
+    // Get campaign IDs the influencer has worked on
+    const campaignIds = completedCollaborations
+      .filter(c => c.campaign_id?._id)
+      .map(c => c.campaign_id._id);
+
+    // Get products from these campaigns
+    const promotedProducts = await Product.find({
+      campaign_id: { $in: campaignIds }
+    })
+      .populate({
+        path: 'campaign_id',
+        select: 'title brand_id',
+        populate: { path: 'brand_id', select: 'brandName logoUrl' }
+      })
+      .lean();
+
+    // Group products by revenue and categorize
+    const productsByRevenue = promotedProducts.map(product => ({
+      _id: product._id,
+      name: product.name,
+      category: product.category,
+      images: product.images,
+      originalPrice: product.original_price,
+      campaignPrice: product.campaign_price,
+      discountPercentage: product.discount_percentage,
+      targetQuantity: product.target_quantity,
+      soldQuantity: product.sold_quantity || 0,
+      revenue: (product.sold_quantity || 0) * (product.campaign_price || 0),
+      campaignTitle: product.campaign_id?.title || 'Unknown Campaign',
+      brandName: product.campaign_id?.brand_id?.brandName || 'Unknown Brand',
+      brandLogo: product.campaign_id?.brand_id?.logoUrl || '/images/default-brand.png'
+    }));
+
+    // Sort by revenue descending and categorize
+    const sortedProductsByRevenue = productsByRevenue.sort((a, b) => b.revenue - a.revenue);
+    
+    // Separate into high, medium, and low revenue categories
+    const highRevenueProducts = sortedProductsByRevenue.filter(p => p.revenue > 1000);
+    const mediumRevenueProducts = sortedProductsByRevenue.filter(p => p.revenue > 100 && p.revenue <= 1000);
+    const lowRevenueProducts = sortedProductsByRevenue.filter(p => p.revenue > 0 && p.revenue <= 100);
+    const noRevenueProducts = sortedProductsByRevenue.filter(p => p.revenue === 0);
+
+    console.log('Brand Rankings:', brandRankings);
+    console.log('Products by Revenue - High:', highRevenueProducts.length, 'Medium:', mediumRevenueProducts.length, 'Low:', lowRevenueProducts.length);
+
     // Prepare response data
     const responseData = {
       influencer: transformedInfluencer,
@@ -157,7 +278,15 @@ const getInfluencerDashboard = async (req, res) => {
       recentCampaignHistory,
       subscriptionStatus, // Subscription expiry and renewal info
       subscriptionLimits, // Campaign and collaboration limits
-      baseUrl: `${req.protocol}://${req.get('host')}`
+      baseUrl: `${req.protocol}://${req.get('host')}`,
+      // New data for brand rankings and products
+      brandRankings,
+      productsByRevenue: {
+        high: highRevenueProducts,
+        medium: mediumRevenueProducts,
+        low: lowRevenueProducts,
+        noRevenue: noRevenueProducts
+      }
     };
 
     // Return JSON for API requests (React frontend)
@@ -394,6 +523,7 @@ const getInfluencerProfile = async (req, res) => {
       // Basic Profile Info
       displayName: influencer.displayName || influencer.name || '',
       username: influencer.username || '',
+      referralCode: influencer.referralCode || '',
       email: influencer.email || '',
       website: influencer.website || '',
       bio: influencer.bio || '',
@@ -716,17 +846,42 @@ const getCampaignHistory = async (req, res) => {
 const updateProgress = async (req, res) => {
   try {
     const { collabId } = req.params;
-    const { progress, reach, clicks, performance_score, conversions, engagement_rate, conversion_rate, impressions, revenue, roi } = req.body;
+    const { progress, reach, clicks, performance_score, conversions, engagement_rate, conversion_rate, impressions, revenue, roi, deliverablesChecklist } = req.body;
 
-    if (!collabId || progress === undefined) {
+    if (!collabId) {
       return res.status(400).json({
         success: false,
         message: 'Missing required parameters'
       });
     }
 
+    // If deliverablesChecklist is provided, compute progress from it
+    let progressValue;
+    if (deliverablesChecklist) {
+      try {
+        const checklist = Array.isArray(deliverablesChecklist)
+          ? deliverablesChecklist
+          : JSON.parse(deliverablesChecklist);
+        const total = checklist.length;
+        const completed = checklist.filter(d => d.completed).length;
+        progressValue = total > 0 ? Math.round((completed / total) * 100) : 0;
+      } catch (e) {
+        // ignore checklist parsing errors
+      }
+    }
+
+    // Fallback to explicit progress
+    if (progressValue === undefined) {
+      if (progress === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: 'Progress is required'
+        });
+      }
+      progressValue = parseInt(progress);
+    }
+
     // Validate progress value
-    const progressValue = parseInt(progress);
     if (isNaN(progressValue) || progressValue < 0 || progressValue > 100) {
       return res.status(400).json({
         success: false,
@@ -744,7 +899,7 @@ const updateProgress = async (req, res) => {
     }
 
     // Update progress in CampaignInfluencers
-    const result = await collaborationModel.updateCollaborationProgress(collabId, progressValue);
+    await collaborationModel.updateCollaborationProgress(collabId, progressValue);
 
     // Update metrics in CampaignMetrics if provided
     if (reach !== undefined || clicks !== undefined || performance_score !== undefined || conversions !== undefined || engagement_rate !== undefined || conversion_rate !== undefined || impressions !== undefined || revenue !== undefined || roi !== undefined) {

@@ -9,6 +9,8 @@ import ActiveCollaborations from '../../components/influencer/dashboard/ActiveCo
 import BrandInvitations from '../../components/influencer/dashboard/BrandInvitations';
 import SentRequests from '../../components/influencer/dashboard/SentRequests';
 import RecentCampaignHistory from '../../components/influencer/dashboard/RecentCampaignHistory';
+import BrandRankingsSection from '../../components/influencer/dashboard/BrandRankingsSection';
+import ProductsByRevenueSection from '../../components/influencer/dashboard/ProductsByRevenueSection';
 import ContentCreationModal from '../../components/influencer/dashboard/ContentCreationModal';
 import ProgressModal from '../../components/influencer/dashboard/ProgressModal';
 import styles from '../../styles/influencer/dashboard.module.css';
@@ -55,12 +57,24 @@ const Dashboard = () => {
   const [recentCampaignHistory, setRecentCampaignHistory] = useState([]);
   const [baseUrl, setBaseUrl] = useState('');
 
+  // New data for brand rankings and products
+  const [brandRankings, setBrandRankings] = useState([]);
+  const [productsByRevenue, setProductsByRevenue] = useState({
+    high: [],
+    medium: [],
+    low: [],
+    noRevenue: []
+  });
+
   // Use subscription data from context if available, otherwise from dashboard response
   const subscriptionStatus = contextSubscriptionStatus || null;
   const subscriptionLimits = contextSubscriptionLimits || null;
 
+  const referralCode = contextInfluencer?.referralCode || '';
+
   // Modal states
   const [contentModalOpen, setContentModalOpen] = useState(false);
+  const [selectedDeliverable, setSelectedDeliverable] = useState(null); // Track selected deliverable
   const [contentModalData, setContentModalData] = useState({
     campaignId: null,
     campaignName: '',
@@ -113,9 +127,9 @@ const Dashboard = () => {
   const progressValueRef = useRef(null);
 
   // Fetch dashboard data function (only dynamic data)
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isSilent = false) => {
     try {
-      setDashboardLoading(true);
+      if (!isSilent) setDashboardLoading(true);
       setDashboardError(null);
       const response = await fetch(`${API_BASE_URL}/influencer/home`, {
         headers: {
@@ -144,6 +158,16 @@ const Dashboard = () => {
         setRecentCampaignHistory(data.recentCampaignHistory || []);
         setBaseUrl(window.location.origin);
 
+        // Fetch brand rankings (brands previously collaborated with, ranked by payment)
+        if (data.brandRankings) {
+          setBrandRankings(data.brandRankings);
+        }
+
+        // Fetch products by revenue (segregated by revenue categories)
+        if (data.productsByRevenue) {
+          setProductsByRevenue(data.productsByRevenue);
+        }
+
         // Cache subscription data in context if available
         if (data.subscriptionStatus || data.subscriptionLimits) {
           cacheDashboardData({
@@ -163,27 +187,62 @@ const Dashboard = () => {
   // Initial fetch on mount
   useEffect(() => {
     fetchDashboardData();
-
-    // Check for approved content on mount
-    checkApprovedContent().then(data => {
-      if (data.success && data.content && data.content.length > 0) {
-        data.content.forEach(async (content) => {
-          const campaignTitle = content.campaignTitle || 'Campaign';
-          const brandName = content.brandName || 'the brand';
-          const message = `Your content for "${campaignTitle}" has been approved by ${brandName}! You can now post it on social media.`;
-          alert(message);
-
-          // Update content status to published
-          try {
-            await updateContentStatus(content._id);
-          } catch (error) {
-            console.error('Error updating content status:', error);
-          }
-        });
-      }
-    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handlePublishContent = async (campaignId, deliverableId) => {
+    try {
+      // 1. Find the approved content for this deliverable
+      // In a real app, you'd fetch this or have it in state.
+      // For now, let's fetch pending-publication content for this campaign
+      const response = await fetch(`${API_BASE_URL}/influencer/content/approved`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      console.log('DEBUG: handlePublishContent - searching for deliverableId:', deliverableId);
+      if (!data.success || !data.content) {
+        throw new Error('Could not find approved content to publish');
+      }
+
+      // Attempt to find content. Try both _id and deliverable_id matching
+      const contentToPublish = data.content.find(c => {
+        const cDelId = c.deliverable_id ? String(c.deliverable_id) : null;
+        const targetId = String(deliverableId);
+        const match = cDelId === targetId && (c.status === 'approved' || c.status === 'submitted');
+
+        console.log(`Checking Content ${c._id}: c.deliverable_id=${cDelId} vs target=${targetId}, status=${c.status} -> MATCH: ${match}`);
+        return match;
+      });
+
+      if (!contentToPublish) {
+        alert('No approved content found for this deliverable. It might already be published.');
+        return;
+      }
+
+      // 2. Ask for URL
+      const postUrl = prompt('Please enter the social media URL where you published this content (e.g., Instagram/YouTube link):');
+
+      if (!postUrl) {
+        alert('Social media URL is required to mark content as published.');
+        return;
+      }
+
+      // 3. Update status
+      const publishResult = await updateContentStatus(contentToPublish._id, postUrl);
+
+      if (publishResult.success) {
+        alert('Content marked as published successfully!');
+        await fetchDashboardData(true); // Refresh to update UI
+      } else {
+        throw new Error(publishResult.message || 'Failed to publish content');
+      }
+
+    } catch (error) {
+      console.error('Error publishing content:', error);
+      alert('Error: ' + error.message);
+    }
+  };
 
   // Handle menu toggle
 
@@ -221,7 +280,7 @@ const Dashboard = () => {
 
   // Handle copy shop URL
   const handleCopyShopUrl = async (campaignId) => {
-    const url = `${baseUrl}/customer/campaign/${campaignId}/shop`;
+    const url = `${baseUrl}/customer/campaign/${campaignId}/shop${referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ''}`;
     try {
       await copyToClipboard(url);
       // Visual feedback could be added here
@@ -231,19 +290,65 @@ const Dashboard = () => {
   };
 
   // Handle open content creation modal
-  const handleOpenContentModal = async (campaignId, campaignTitle) => {
+  const handleOpenContentModal = async (campaignId, campaignTitle, deliverable = null) => {
+    // Set selected deliverable
+    setSelectedDeliverable(deliverable);
+
+    // Auto-populate form based on deliverable if provided
+    let autoContentType = '';
+    let autoPlatform = [];
+
+    if (deliverable) {
+      // Auto-set platform based on deliverable
+      if (deliverable.platform) {
+        autoPlatform = [deliverable.platform.toLowerCase()];
+      } else if (deliverable.title) {
+        // Extract platform from title (e.g. "Instagram Post" -> "instagram")
+        const platforms = ['instagram', 'youtube', 'tiktok', 'facebook', 'twitter', 'linkedin'];
+        const titleLower = deliverable.title.toLowerCase();
+        const found = platforms.find(p => titleLower.includes(p));
+        if (found) autoPlatform = [found];
+      }
+
+      // Auto-set content type based on deliverable type or counts
+      if (deliverable.deliverable_type) {
+        const typeMap = {
+          'Post': 'post',
+          'Reel': 'reel',
+          'Video': 'reel',
+          'Story': 'story',
+          'Other': ''
+        };
+        autoContentType = typeMap[deliverable.deliverable_type] || '';
+      } else {
+        // Fallback to legacy counts
+        if (deliverable.num_reels > 0) {
+          autoContentType = 'reel';
+        } else if (deliverable.num_videos > 0) {
+          autoContentType = 'reel';
+        } else if (deliverable.num_posts > 0) {
+          autoContentType = 'post';
+        }
+      }
+    }
+
+    // Find collaboration to get deliverables
+    const collab = activeCollaborations.find(c => c.campaign_id === campaignId);
+    const deliverables = collab ? collab.deliverables : [];
+
     setContentModalData({
       campaignId,
       campaignName: campaignTitle,
       products: [],
-      loading: true
+      loading: true,
+      deliverables: deliverables // Pass deliverables to modal
     });
     setContentFormData(prev => ({
       ...prev,
       campaignId,
       description: '',
-      contentType: '',
-      platforms: [],
+      contentType: autoContentType,
+      platforms: autoPlatform,
       campaignProduct: '',
       specialInstructions: '',
       publishDate: '',
@@ -258,7 +363,8 @@ const Dashboard = () => {
         setContentModalData(prev => ({
           ...prev,
           products: data.products,
-          loading: false
+          loading: false,
+          deliverables: deliverables // Ensure deliverables persist after loading products
         }));
       }
     } catch (error) {
@@ -269,6 +375,7 @@ const Dashboard = () => {
 
   const handleCloseContentModal = () => {
     setContentModalOpen(false);
+    setSelectedDeliverable(null); // Clear selected deliverable
     setContentFormData({
       campaignId: '',
       description: '',
@@ -308,6 +415,21 @@ const Dashboard = () => {
       if (contentFormData.publishDate) {
         formData.append('publish_date', contentFormData.publishDate);
       }
+      // Enforce deliverable selection
+      const deliverableId = (selectedDeliverable && (selectedDeliverable.id || selectedDeliverable._id)) || contentFormData.deliverable_id;
+
+      if (!deliverableId) {
+        alert('Please select a deliverable to fulfill.');
+        return;
+      }
+
+      formData.append('deliverable_id', deliverableId);
+
+      const deliverableTitle = (selectedDeliverable && selectedDeliverable.title) || contentFormData.deliverable_title;
+      if (deliverableTitle) {
+        formData.append('deliverable_title', deliverableTitle);
+      }
+
       Array.from(contentFormData.mediaFiles).forEach(file => {
         formData.append('media_files', file);
       });
@@ -316,7 +438,7 @@ const Dashboard = () => {
       if (result.success) {
         alert('Content submitted for review successfully!');
         handleCloseContentModal();
-        await fetchDashboardData();
+        await fetchDashboardData(true);
       }
     } catch (error) {
       alert('Error: ' + (error.message || 'Failed to create content'));
@@ -401,7 +523,7 @@ const Dashboard = () => {
       if (result.success) {
         alert('Progress and metrics updated successfully!');
         handleCloseProgressModal();
-        await fetchDashboardData();
+        await fetchDashboardData(true);
       }
     } catch (error) {
       alert('Failed to update progress: ' + (error.message || 'Unknown error'));
@@ -445,7 +567,7 @@ const Dashboard = () => {
       const result = await acceptBrandInvite(inviteId);
       if (result.success) {
         alert('Invitation accepted successfully!');
-        await fetchDashboardData();
+        await fetchDashboardData(true);
       }
     } catch (error) {
       alert('Failed to accept invitation: ' + (error.message || 'Unknown error'));
@@ -462,7 +584,7 @@ const Dashboard = () => {
       const result = await declineBrandInvite(inviteId);
       if (result.success) {
         alert('Invitation declined.');
-        await fetchDashboardData();
+        await fetchDashboardData(true);
       }
     } catch (error) {
       alert('Failed to decline invitation: ' + (error.message || 'Unknown error'));
@@ -479,7 +601,7 @@ const Dashboard = () => {
       const result = await cancelSentRequest(requestId);
       if (result.success) {
         alert('Request cancelled successfully.');
-        await fetchDashboardData();
+        await fetchDashboardData(true);
       }
     } catch (error) {
       alert('Failed to cancel request: ' + (error.message || 'Unknown error'));
@@ -519,9 +641,11 @@ const Dashboard = () => {
         <ActiveCollaborations
           collaborations={activeCollaborations}
           baseUrl={baseUrl}
+          referralCode={referralCode}
           onCopyShopUrl={handleCopyShopUrl}
           onOpenProgressModal={handleOpenProgressModal}
           onOpenContentModal={handleOpenContentModal}
+          onPublishContent={handlePublishContent}
         />
         <BrandInvitations
           invites={brandInvites}
@@ -529,13 +653,23 @@ const Dashboard = () => {
           onDecline={handleDeclineInvite}
         />
         <SentRequests requests={sentRequests} onCancel={handleCancelRequest} />
+
+
+        {/* Brand Rankings - Previously collaborated brands ranked by payment */}
+        <BrandRankingsSection brandRankings={brandRankings} />
+
+        {/* Products by Revenue - Products promoted segregated by revenue */}
+        <ProductsByRevenueSection productsByRevenue={productsByRevenue} />
+
         <RecentCampaignHistory campaigns={recentCampaignHistory} />
+
       </div>
 
       <ContentCreationModal
         isOpen={contentModalOpen}
         formData={contentFormData}
         modalData={contentModalData}
+        selectedDeliverable={selectedDeliverable}
         onClose={handleCloseContentModal}
         onSubmit={handleContentSubmit}
         setFormData={setContentFormData}

@@ -129,6 +129,31 @@ const influencerInfoSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Pre-save hook to generate referral code
+influencerInfoSchema.pre('save', async function (next) {
+    if (!this.referralCode) {
+        // Generate referral code: First name (up to 4 chars) + 3 random digits
+        const namePart = this.fullName.split(' ')[0].substring(0, 4).toUpperCase();
+        const randomPart = Math.floor(100 + Math.random() * 900); // 3 digit number
+        let code = `${namePart}${randomPart}`;
+
+        // Ensure uniqueness
+        let isUnique = false;
+        while (!isUnique) {
+            const existing = await mongoose.models.InfluencerInfo.findOne({ referralCode: code });
+            if (!existing) {
+                isUnique = true;
+            } else {
+                // Regenerate if duplicate
+                const newRandom = Math.floor(100 + Math.random() * 900);
+                code = `${namePart}${newRandom}`;
+            }
+        }
+        this.referralCode = code;
+    }
+    next();
+});
+
 // Schema for influencer_socials
 const influencerSocialsSchema = new mongoose.Schema({
     influencerId: {

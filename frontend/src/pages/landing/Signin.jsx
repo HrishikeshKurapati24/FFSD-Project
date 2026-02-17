@@ -135,7 +135,10 @@ const Signin = () => {
                 }
 
                 // Handle different error cases
-                if (response.status === 401 && errorData.error) {
+                if (response.status === 403 && errorData.error) {
+                    // Suspended account – show "Access Denied" + admin notes
+                    showMessage('Access Denied: ' + errorData.error, 'error');
+                } else if (response.status === 401 && errorData.error) {
                     showMessage(errorData.error || 'Token expired. Please sign in again.', 'error');
                 } else {
                     showMessage(errorData.message || 'Invalid credentials', 'error');
