@@ -2,15 +2,25 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../services/api';
 import CustomerNavbar from '../../components/customer/CustomerNavbar';
+import OrderDetailsModal from '../../components/shared/OrderDetailsModal';
 import styles from '../../styles/customer/cart.module.css'; // Reusing and extending cart styles
 
 const OrderHistory = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
+    const [currentOrders, setCurrentOrders] = useState([]);
+    const [previousOrders, setPreviousOrders] = useState([]);
     const [purchasedBrands, setPurchasedBrands] = useState([]);
     const [purchasedInfluencers, setPurchasedInfluencers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('current'); // 'current' or 'previous'
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+    // Order details modal state
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [showOrderDetails, setShowOrderDetails] = useState(false);
 
     // Brand profile modal state (reusing logic from Rankings page)
     const [selectedBrand, setSelectedBrand] = useState(null);
@@ -39,6 +49,8 @@ const OrderHistory = () => {
                 const data = await response.json();
                 if (data.success) {
                     setOrders(data.orders || []);
+                    setCurrentOrders(data.currentOrders || []);
+                    setPreviousOrders(data.previousOrders || []);
                     setPurchasedBrands(data.purchasedBrands || []);
                     setPurchasedInfluencers(data.purchasedInfluencers || []);
                 } else {
@@ -153,6 +165,46 @@ const OrderHistory = () => {
             day: 'numeric'
         });
     };
+
+    const getFilteredOrders = (orderList) => {
+        let filtered = [...orderList];
+
+        // 1. Filter by Search Term (Brand, Campaign, Product)
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(o =>
+                o.items.some(item =>
+                    (item.product_id?.name && item.product_id.name.toLowerCase().includes(term)) ||
+                    (item.product_id?.brand_id?.brandName && item.product_id.brand_id.brandName.toLowerCase().includes(term)) ||
+                    (item.product_id?.campaign_id?.title && item.product_id.campaign_id.title.toLowerCase().includes(term))
+                ) ||
+                (o.tracking_number && o.tracking_number.toLowerCase().includes(term)) ||
+                (o._id.toLowerCase().includes(term))
+            );
+        }
+
+        // 2. Filter by Date Range
+        if (dateRange.start) {
+            const start = new Date(dateRange.start);
+            start.setHours(0, 0, 0, 0);
+            filtered = filtered.filter(o => new Date(o.createdAt) >= start);
+        }
+        if (dateRange.end) {
+            const end = new Date(dateRange.end);
+            end.setHours(23, 59, 59, 999);
+            filtered = filtered.filter(o => new Date(o.createdAt) <= end);
+        }
+
+        return filtered;
+    };
+
+    const resetFilters = () => {
+        setSearchTerm('');
+        setDateRange({ start: '', end: '' });
+    };
+
+    const filteredCurrentOrders = getFilteredOrders(currentOrders);
+    const filteredPreviousOrders = getFilteredOrders(previousOrders);
 
     return (
         <div className={styles.cartPage} style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
@@ -760,9 +812,76 @@ const OrderHistory = () => {
                     <div className="row">
                         {/* Left Column: Order History */}
                         <div className="col-lg-8">
-                            <h3 className="mb-4 pb-2 border-bottom">
-                                <i className="fas fa-box-open me-2 text-primary"></i> Order History
-                            </h3>
+                            <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                                <h3 className="mb-0">
+                                    <i className="fas fa-box-open me-2 text-primary"></i> Order History
+                                </h3>
+                                {(currentOrders.length > 0 || previousOrders.length > 0) && (
+                                    <div className="btn-group" role="group">
+                                        <button
+                                            type="button"
+                                            className={`btn btn-sm ${activeTab === 'current' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                            onClick={() => setActiveTab('current')}
+                                        >
+                                            Current ({filteredCurrentOrders.length})
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`btn btn-sm ${activeTab === 'previous' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                            onClick={() => setActiveTab('previous')}
+                                        >
+                                            Previous ({filteredPreviousOrders.length})
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Filters Bar */}
+                            <div className="card mb-4 border-0 shadow-sm" style={{ borderRadius: '15px' }}>
+                                <div className="card-body p-3">
+                                    <div className="row g-2">
+                                        <div className="col-md-5">
+                                            <div className="input-group">
+                                                <span className="input-group-text bg-white border-end-0">
+                                                    <i className="fas fa-search text-muted"></i>
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    className="form-control border-start-0"
+                                                    placeholder="Search brand, product, or campaign..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-5">
+                                            <div className="d-flex gap-2">
+                                                <input
+                                                    type="date"
+                                                    className="form-control"
+                                                    value={dateRange.start}
+                                                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                                />
+                                                <span className="align-self-center text-muted">-</span>
+                                                <input
+                                                    type="date"
+                                                    className="form-control"
+                                                    value={dateRange.end}
+                                                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-md-2">
+                                            <button
+                                                className="btn btn-outline-secondary w-100"
+                                                onClick={resetFilters}
+                                            >
+                                                <i className="fas fa-undo me-1"></i>Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             {orders.length === 0 ? (
                                 <div className="text-center py-5 bg-white rounded shadow-sm">
@@ -773,21 +892,60 @@ const OrderHistory = () => {
                                 </div>
                             ) : (
                                 <div className="d-flex flex-column gap-3">
-                                    {orders.map(order => (
+                                    {(activeTab === 'current' ? filteredCurrentOrders : filteredPreviousOrders).map(order => (
                                         <div key={order._id} className={`card ${styles.orderCard}`}>
                                             <div className={`card-header d-flex justify-content-between align-items-center pt-3 ${styles.orderCardHeader}`}>
                                                 <div>
-                                                    <span className="text-white-50 small">Order #{order._id.toString().slice(-6).toUpperCase()}</span>
+                                                    <span className="text-white-50 small">
+                                                        {order.tracking_number ? `Tracking: ${order.tracking_number}` : `Order #${order._id.toString().slice(-6).toUpperCase()}`}
+                                                    </span>
                                                     <div className="fw-bold">{formatDate(order.createdAt)}</div>
                                                 </div>
                                                 <div className="text-end">
-                                                    <span className={`badge rounded-pill px-3 py-2 bg-${order.status === 'delivered' ? 'success' : order.status === 'shipped' ? 'info' : 'warning'}`}>
-                                                        {order.status || 'Pending'}
+                                                    <span className={`badge rounded-pill px-3 py-2 bg-${order.status === 'delivered' ? 'success' : order.status === 'shipped' ? 'info' : order.status === 'cancelled' ? 'danger' : 'warning'}`}>
+                                                        {order.status?.toUpperCase() || 'PENDING'}
                                                     </span>
-                                                    <div className="fw-bold mt-1">${order.total_amount}</div>
+                                                    <div className="fw-bold mt-1">${order.total_amount.toFixed(2)}</div>
                                                 </div>
                                             </div>
                                             <div className="card-body">
+                                                {/* Delivery Timeline for active orders */}
+                                                {['paid', 'shipped'].includes(order.status) && (
+                                                    <div className="mb-3 p-3 bg-light rounded">
+                                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                                            <strong className="small">Order Progress</strong>
+                                                            {order.estimated_delivery_date && (
+                                                                <small className="text-muted">
+                                                                    <i className="fas fa-calendar-alt me-1"></i>
+                                                                    Est. Delivery: {formatDate(order.estimated_delivery_date)}
+                                                                </small>
+                                                            )}
+                                                        </div>
+                                                        <div className="progress" style={{ height: '8px' }}>
+                                                            <div
+                                                                className="progress-bar bg-info"
+                                                                role="progressbar"
+                                                                style={{ width: order.status === 'paid' ? '33%' : '66%' }}
+                                                                aria-valuenow={order.status === 'paid' ? 33 : 66}
+                                                                aria-valuemin="0"
+                                                                aria-valuemax="100"
+                                                            ></div>
+                                                        </div>
+                                                        <div className="d-flex justify-content-between mt-2">
+                                                            <small className={order.status === 'paid' || order.status === 'shipped' ? 'text-success fw-bold' : 'text-muted'}>
+                                                                <i className="fas fa-check-circle me-1"></i>Paid
+                                                            </small>
+                                                            <small className={order.status === 'shipped' ? 'text-info fw-bold' : 'text-muted'}>
+                                                                <i className={`fas ${order.status === 'shipped' ? 'fa-shipping-fast' : 'fa-circle'} me-1`}></i>Shipped
+                                                            </small>
+                                                            <small className="text-muted">
+                                                                <i className="fas fa-circle me-1"></i>Delivered
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Products */}
                                                 {order.items && order.items.map((item, idx) => (
                                                     <div key={idx} className="d-flex align-items-center mb-2">
                                                         <img
@@ -797,15 +955,43 @@ const OrderHistory = () => {
                                                             className="me-3"
                                                             onError={(e) => { e.target.src = '/images/default-product.png'; }}
                                                         />
-                                                        <div>
+                                                        <div className="flex-grow-1">
                                                             <div className="fw-bold">{item.product_id?.name || 'Unknown Product'}</div>
                                                             <div className="small text-muted">Qty: {item.quantity}</div>
                                                         </div>
                                                     </div>
                                                 ))}
+
+                                                {/* View Details Button */}
+                                                <div className="mt-3 pt-2 border-top">
+                                                    <button
+                                                        className="btn btn-outline-primary btn-sm w-100"
+                                                        onClick={() => {
+                                                            setSelectedOrder(order);
+                                                            setShowOrderDetails(true);
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-info-circle me-2"></i>
+                                                        View Order Details
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
+
+                                    {/* No orders in current tab */}
+                                    {(activeTab === 'current' && currentOrders.length === 0) && (
+                                        <div className="text-center py-4 bg-white rounded shadow-sm">
+                                            <i className="fas fa-inbox fa-2x text-muted mb-2"></i>
+                                            <p className="text-muted mb-0">No current orders</p>
+                                        </div>
+                                    )}
+                                    {(activeTab === 'previous' && previousOrders.length === 0) && (
+                                        <div className="text-center py-4 bg-white rounded shadow-sm">
+                                            <i className="fas fa-inbox fa-2x text-muted mb-2"></i>
+                                            <p className="text-muted mb-0">No previous orders</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -878,6 +1064,13 @@ const OrderHistory = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Order Details Modal */}
+                <OrderDetailsModal
+                    order={selectedOrder}
+                    show={showOrderDetails}
+                    onClose={() => setShowOrderDetails(false)}
+                />
             </div>
         </div>
     );

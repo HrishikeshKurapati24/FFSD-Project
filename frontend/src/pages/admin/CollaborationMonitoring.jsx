@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from '../../styles/admin/collaboration_monitoring.module.css';
 import adminStyles from '../../styles/admin/admin_dashboard.module.css';
 import AdminNavbar from '../../components/admin/AdminNavbar';
+import InfluencerDeliverablesModal from '../../components/admin/InfluencerDeliverablesModal';
 import { API_BASE_URL } from '../../services/api';
 
 export default function CollaborationMonitoring() {
@@ -10,6 +11,10 @@ export default function CollaborationMonitoring() {
     const [filteredCollaborations, setFilteredCollaborations] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc' for revenue
+
+    // Modal State
+    const [selectedCollaboration, setSelectedCollaboration] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [filters, setFilters] = useState({
         search: '',
@@ -142,6 +147,30 @@ export default function CollaborationMonitoring() {
         setSortOrder('desc');
     };
 
+    const handleViewDetails = async (id) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/collaboration_monitoring/${id}`, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSelectedCollaboration(data);
+                setIsModalOpen(true);
+            } else {
+                console.error('Failed to fetch collaboration details');
+            }
+        } catch (error) {
+            console.error('Error fetching details:', error);
+        }
+    };
+
+    const closeDetailsModal = () => {
+        setIsModalOpen(false);
+        setSelectedCollaboration(null);
+    };
+
     return (
         <AdminNavbar user={user} notifications={notifications}>
             <main className={adminStyles.mainContent}>
@@ -242,6 +271,13 @@ export default function CollaborationMonitoring() {
                                             </div>
                                         </div>
                                     </div>
+                                    <button
+                                        className={`${adminStyles.btnPrimary}`}
+                                        style={{ width: '100%', marginTop: '15px' }}
+                                        onClick={() => handleViewDetails(campaign.id)}
+                                    >
+                                        View Details
+                                    </button>
                                 </div>
                             ))
                         ) : (
@@ -252,7 +288,13 @@ export default function CollaborationMonitoring() {
                         )}
                     </div>
                 </section>
+
+                <InfluencerDeliverablesModal
+                    isOpen={isModalOpen}
+                    onClose={closeDetailsModal}
+                    data={selectedCollaboration}
+                />
             </main>
-        </AdminNavbar>
+        </AdminNavbar >
     );
 }

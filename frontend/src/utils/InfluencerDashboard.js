@@ -253,8 +253,13 @@ export async function checkApprovedContent() {
 /**
  * Update content status to published
  */
-export async function updateContentStatus(contentId) {
+export async function updateContentStatus(contentId, externalPostUrl = null) {
   try {
+    const body = { status: 'published' };
+    if (externalPostUrl) {
+      body.externalPostUrl = externalPostUrl;
+    }
+
     const response = await fetch(`${API_BASE_URL}/influencer/content/${contentId}/publish`, {
       method: 'POST',
       credentials: 'include',
@@ -262,9 +267,7 @@ export async function updateContentStatus(contentId) {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        status: 'published'
-      })
+      body: JSON.stringify(body)
     });
 
     const data = await response.json();

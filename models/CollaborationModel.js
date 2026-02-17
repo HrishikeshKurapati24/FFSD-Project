@@ -75,7 +75,20 @@ class CollaborationModel {
                     revenue: collab.revenue || 0, // specific to influencer
                     commission_earned: collab.commission_earned || 0, // specific to influencer
                     roi: campaignMetrics.roi || 0,
-                    referralCode: collab.influencer_id?.referralCode || '' // Added for shop URL generation
+                    referralCode: collab.influencer_id?.referralCode || '', // Added for shop URL generation
+                    // Add deliverables (Stage 2-3 integration)
+                    deliverables: (collab.deliverables || []).map(d => ({
+                        _id: d._id,
+                        title: d.title,
+                        description: d.description,
+                        status: d.status,
+                        deliverable_type: d.deliverable_type,
+                        due_date: d.due_date,
+                        content_url: d.content_url,
+                        submitted_at: d.submitted_at,
+                        reviewed_at: d.reviewed_at,
+                        review_feedback: d.review_feedback
+                    }))
                 };
             });
 
@@ -452,18 +465,12 @@ class CollaborationModel {
         }
     }
 
-    static async updateCollaborationProgress(collabId, progress) {
+    /**
+     * Update purely the campaign overall metrics based on all influencers
+     * Does NOT update individual influencer/collab progress
+     */
+    static async updateCampaignMetrics(campaignId) {
         try {
-            // 1) Update influencer's own progress on CampaignInfluencers
-            const collab = await CampaignInfluencers.findById(collabId).populate('campaign_id').lean(false);
-            if (!collab) throw new Error('Collaboration not found');
-
-            collab.progress = progress;
-            await collab.save();
-
-            // 2) Recompute overall campaign progress (weighted by influencer followers)
-            const campaignId = collab.campaign_id;
-
             // Get active influencers on this campaign with their progress and follower counts
             const activeInfluencers = await CampaignInfluencers.find({
                 campaign_id: campaignId,
@@ -471,6 +478,8 @@ class CollaborationModel {
             })
                 .populate({ path: 'influencer_id', select: 'totalFollowers', model: 'InfluencerAnalytics', options: { lean: true } })
                 .lean();
+
+            if (activeInfluencers.length === 0) return;
 
             // Fallback if above populate path doesn't resolve, fetch followers via InfluencerAnalytics collection
             const influencerIds = activeInfluencers.map(ai => ai.influencer_id?._id || ai.influencer_id);
@@ -492,12 +501,35 @@ class CollaborationModel {
 
             const overallProgress = totalFollowers > 0 ? Math.round((weightedSum / totalFollowers)) : Math.round((activeInfluencers.reduce((s, ai) => s + (ai.progress || 0), 0) / Math.max(1, activeInfluencers.length)));
 
-            // 3) Upsert overall progress into CampaignMetrics
-            await CampaignMetrics.findOneAndUpdate(
-                { campaign_id: campaignId, brand_id: collab.campaign_id?.brand_id || collab.brand_id },
-                { $set: { overall_progress: overallProgress } },
-                { upsert: true, new: true }
-            );
+            // Upsert overall progress into CampaignMetrics
+            // Note: We need brand_id. Usually fetching one collab to get it is enough, or query CampaignInfo
+            const campaign = await CampaignInfo.findById(campaignId).select('brand_id');
+            if (campaign) {
+                await CampaignMetrics.findOneAndUpdate(
+                    { campaign_id: campaignId, brand_id: campaign.brand_id },
+                    { $set: { overall_progress: overallProgress } },
+                    { upsert: true, new: true }
+                );
+            }
+        } catch (error) {
+            console.error('Error in updateCampaignMetrics:', error);
+            // Don't throw, just log
+        }
+    }
+
+    // Deprecated / Legacy wrapper to maintain backward compatibility if needed, 
+    // but better to use specific methods.
+    static async updateCollaborationProgress(collabId, progress) {
+        try {
+            // 1) Update influencer's own progress on CampaignInfluencers
+            const collab = await CampaignInfluencers.findById(collabId);
+            if (!collab) throw new Error('Collaboration not found');
+
+            collab.progress = progress;
+            await collab.save();
+
+            // 2) Update campaign metrics
+            await this.updateCampaignMetrics(collab.campaign_id);
 
             return { id: collabId, progress };
         } catch (error) {
@@ -566,10 +598,25 @@ class CollaborationModel {
                 campaign_start_date: invite.campaign_id?.start_date || null,
                 campaign_end_date: invite.campaign_id?.end_date || null
             }));
+            return invite;
         } catch (error) {
             console.error('Error in getBrandInvites:', error);
             throw error;
         }
+    }
+
+    static computeProgressFromDeliverables(deliverables) {
+        if (!Array.isArray(deliverables) || deliverables.length === 0) return 0;
+
+        const total = deliverables.length;
+        // Count approved items as completed
+        // Also count items with 'completed' status/flag if you use that
+        const completed = deliverables.filter(d =>
+            d.status === 'approved' || d.status === 'completed' || d.completed === true
+        ).length;
+
+        if (total === 0) return 0;
+        return Math.round((completed / total) * 100);
     }
 
     static async getSentRequests(influencerId) {

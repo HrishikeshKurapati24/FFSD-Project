@@ -140,8 +140,6 @@ const validateProfileUpdate = [
     }
 ];
 
-// router.use(influencerAuthMiddleware);
-
 // Dashboard routes
 router.get('/home', influencerController.getInfluencerDashboard);
 
@@ -1156,14 +1154,10 @@ router.get('/brand_profile/:id', influencerController.getBrandProfilePage);
 
 // ========== CAMPAIGN CONTENT CREATION ROUTES ==========
 
-// Test route to verify routes are working
-router.get('/test', (req, res) => {
-    res.json({ message: 'Influencer routes are working!' });
-});
+// Removed redundant routes - using integrated deliverables workflow
+// - POST /campaigns/:campaignId/content (replaced by /content/create with deliverable_id)
+// - POST /content/:contentId/submit (createContentFromForm submits directly)
 
-// Other content routes (must come after specific routes)
-router.post('/campaigns/:campaignId/content', CampaignContentController.createContent);
-router.post('/content/:contentId/submit', CampaignContentController.submitContent);
 
 // Get products for a campaign (for content creation)
 router.get('/campaigns/:campaignId/products', async (req, res) => {

@@ -272,7 +272,7 @@ const campaignInfluencersSchema = new mongoose.Schema({
         },
         status: {
             type: String,
-            enum: ['request', 'active', 'completed', 'cancelled', 'pending'],
+            enum: ['pending', 'submitted', 'approved', 'rejected', 'published'],
             default: 'pending',
             required: [true, 'Deliverable status is required']
         },
@@ -282,6 +282,46 @@ const campaignInfluencersSchema = new mongoose.Schema({
         },
         completed_at: {
             type: Date
+        },
+        content_url: {
+            type: String,
+            trim: true
+        },
+        deliverable_type: {
+            type: String,
+            enum: ['Post', 'Reel', 'Video', 'Story', 'Other'],
+            default: 'Other'
+        },
+        task_description: {
+            type: String,
+            trim: true
+        },
+        platform: {
+            type: String,
+            enum: ['Instagram', 'YouTube', 'TikTok', 'Facebook', 'Twitter', 'LinkedIn'],
+        },
+        num_posts: {
+            type: Number,
+            default: 0
+        },
+        num_reels: {
+            type: Number,
+            default: 0
+        },
+        num_videos: {
+            type: Number,
+            default: 0
+        },
+        submitted_at: {
+            type: Date
+        },
+        reviewed_at: {
+            type: Date
+        },
+        review_feedback: {
+            type: String,
+            trim: true,
+            maxlength: [500, 'Review feedback cannot exceed 500 characters']
         }
     }]
 }, {

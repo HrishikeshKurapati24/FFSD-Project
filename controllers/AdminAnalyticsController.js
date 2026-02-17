@@ -109,7 +109,8 @@ const AdminAnalyticsController = {
                         _id: 0,
                         campaignId: '$_id',
                         title: '$campaign.title',
-                        totalRevenue: 1,
+                        revenue: '$totalRevenue',
+                        totalRevenue: 1, // Keep for backward compatibility if needed, or just remove
                         avgEngagementRate: 1,
                         totalClicks: 1,
                         totalImpressions: 1,

@@ -1222,6 +1222,41 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
             }
         );
 
+        // Handle deliverables if provided (Stage 2 addition)
+        let deliverables = req.body.deliverables;
+
+        // Parse deliverables if they're sent as a JSON string (from FormData)
+        if (typeof deliverables === 'string') {
+            try {
+                deliverables = JSON.parse(deliverables);
+            } catch (e) {
+                console.error('Failed to parse deliverables:', e);
+                deliverables = [];
+            }
+        }
+
+        if (deliverables && Array.isArray(deliverables) && deliverables.length > 0) {
+            console.log('Adding deliverables to collaboration:', deliverables.length);
+
+            if (Array.isArray(deliverables) && deliverables.length > 0) {
+                const formattedDeliverables = deliverables.map(d => ({
+                    title: d.title || 'Untitled Deliverable',
+                    description: d.description || '',
+                    due_date: d.due_date ? new Date(d.due_date) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default: 7 days from now
+                    deliverable_type: d.deliverable_type || 'Other',
+                    status: 'pending'
+                }));
+
+                await CampaignInfluencers.updateOne(
+                    { _id: campaignId, influencer_id: influencerId },
+                    { $set: { deliverables: formattedDeliverables } }
+                );
+
+                console.log('Deliverables added successfully');
+            }
+        }
+
+
         // Create notification for influencer to inform that their request was accepted / campaign completed
         try {
             // Fetch campaign title for a nicer message
@@ -1256,16 +1291,23 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         const successMessage = 'Campaign completed and payment processed successfully!';
         req.session.successMessage = successMessage;
 
-        // Return JSON for API requests (React frontend)
-        if (req.xhr || req.headers.accept?.includes('application/json')) {
-            return res.json({
-                success: true,
-                message: successMessage
-            });
-        }
+        // Save session before responding to ensure flash message persists
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+            }
 
-        // Redirect to received requests page
-        res.redirect(`/brand/home`);
+            // Return JSON for API requests (React frontend)
+            if (req.xhr || req.headers.accept?.includes('application/json')) {
+                return res.json({
+                    success: true,
+                    message: successMessage
+                });
+            }
+
+            // Redirect to received requests page
+            res.redirect(`/brand/home`);
+        });
     } catch (error) {
         console.error('Error processing payment:', error);
 
@@ -2396,6 +2438,7 @@ router.get('/influencer_details/:influencerId', isAuthenticated, isBrand, async 
     }
 });
 
+
 // ========== CAMPAIGN CONTENT MANAGEMENT ROUTES ==========
 
 // Product management routes
@@ -2405,5 +2448,12 @@ router.get('/campaigns/:campaignId/products', CampaignContentController.getCampa
 // Content review routes
 router.get('/campaigns/:campaignId/pending-content', CampaignContentController.getCampaignPendingContentForBrand);
 router.post('/content/:contentId/review', CampaignContentController.reviewContent);
+
+// ========== ORDER MANAGEMENT ROUTES ==========
+
+// Order tracking routes
+router.get('/orders', isAuthenticated, isBrand, brandController.getBrandOrders);
+router.post('/orders/:orderId/status', isAuthenticated, isBrand, brandController.updateOrderStatus);
+router.get('/orders/analytics', isAuthenticated, isBrand, brandController.getOrderAnalytics);
 
 module.exports = router;

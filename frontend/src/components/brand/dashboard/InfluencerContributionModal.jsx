@@ -6,6 +6,31 @@ const InfluencerContributionModal = ({ isOpen, onClose, data, loading, modalRef,
 
     const { influencer, campaign, contribution } = data || {};
 
+    // Get deliverables from contribution data
+    const deliverables = contribution?.deliverables || [];
+    const totalDeliverables = deliverables.length;
+    const completedDeliverables = deliverables.filter(d => d.status === 'approved').length;
+
+    const getStatusBadgeClass = (status) => {
+        switch (status) {
+            case 'pending': return 'bg-secondary';
+            case 'submitted': return 'bg-info';
+            case 'approved': return 'bg-success';
+            case 'rejected': return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'pending': return 'fa-clock';
+            case 'submitted': return 'fa-paper-plane';
+            case 'approved': return 'fa-check-circle';
+            case 'rejected': return 'fa-times-circle';
+            default: return 'fa-clock';
+        }
+    };
+
     return (
         <div
             className="modal fade show"
@@ -65,6 +90,9 @@ const InfluencerContributionModal = ({ isOpen, onClose, data, loading, modalRef,
                                                 style={{ width: `${contribution?.progress || 0}%` }}
                                             ></div>
                                         </div>
+                                        <div className="text-muted small mt-2">
+                                            {completedDeliverables} of {totalDeliverables} deliverables completed
+                                        </div>
                                     </div>
                                 </div>
 
@@ -90,27 +118,85 @@ const InfluencerContributionModal = ({ isOpen, onClose, data, loading, modalRef,
                                 </div>
 
                                 {/* Deliverables List */}
-                                <h6 className="section-title mt-4 mb-3">Deliverables</h6>
+                                <h6 className="section-title mt-4 mb-3">
+                                    <i className="fas fa-tasks me-2"></i>Deliverables
+                                </h6>
                                 <div className={styles.deliverablesList}>
-                                    {contribution?.deliverables && contribution.deliverables.length > 0 ? (
-                                        contribution.deliverables.map((item, index) => (
-                                            <div key={index} className={styles.deliverableItem}>
-                                                <div className="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <div className={styles.deliverableTitle}>{item.title}</div>
-                                                        <div className={styles.deliverableDesc}>{item.description}</div>
-                                                        <div className="text-muted x-small mt-1">Due: {new Date(item.due_date).toLocaleDateString()}</div>
+                                    {deliverables && deliverables.length > 0 ? (
+                                        deliverables.map((item, index) => (
+                                            <div key={index} className={`${styles.deliverableItem} border rounded p-3 mb-3`}>
+                                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                                    <div className="flex-grow-1">
+                                                        <div className="d-flex align-items-center mb-2">
+                                                            <h6 className="mb-0">{item.title || 'Untitled Deliverable'}</h6>
+                                                            <span className={`badge ${getStatusBadgeClass(item.status)} ms-2`}>
+                                                                <i className={`fas ${getStatusIcon(item.status)} me-1`}></i>
+                                                                {item.status}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="text-muted small mb-2 white-space-pre-line">
+                                                            {item.description || 'No description provided'}
+                                                        </div>
+
+                                                        <div className="d-flex gap-3 text-muted small mb-2 flex-wrap">
+                                                            {item.due_date && (
+                                                                <span>
+                                                                    <i className="fas fa-calendar-alt me-1"></i>
+                                                                    Due: {new Date(item.due_date).toLocaleDateString()}
+                                                                </span>
+                                                            )}
+                                                            {item.deliverable_type && (
+                                                                <span>
+                                                                    <i className="fas fa-tag me-1"></i>
+                                                                    {item.deliverable_type}
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {item.submitted_at && (
+                                                            <div className="text-muted small">
+                                                                <i className="fas fa-calendar me-1"></i>
+                                                                Submitted: {new Date(item.submitted_at).toLocaleDateString()}
+                                                            </div>
+                                                        )}
+
+                                                        {item.reviewed_at && (
+                                                            <div className="text-muted small">
+                                                                <i className="fas fa-check me-1"></i>
+                                                                Reviewed: {new Date(item.reviewed_at).toLocaleDateString()}
+                                                            </div>
+                                                        )}
+
+                                                        {item.content_url && item.status === 'approved' && (
+                                                            <div className="mt-2">
+                                                                <a
+                                                                    href={item.content_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="btn btn-sm btn-outline-primary"
+                                                                >
+                                                                    <i className="fas fa-external-link-alt me-1"></i>
+                                                                    View Published Content
+                                                                </a>
+                                                            </div>
+                                                        )}
+
+                                                        {item.review_feedback && (
+                                                            <div className="alert alert-warning py-2 px-3 mt-2 mb-0">
+                                                                <strong><i className="fas fa-comment me-1"></i>Feedback:</strong>
+                                                                <div className="small mt-1">{item.review_feedback}</div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <span className={`badge ${item.status === 'completed' ? 'bg-success' :
-                                                        item.status === 'active' ? 'bg-primary' : 'bg-secondary'
-                                                        }`}>
-                                                        {item.status}
-                                                    </span>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="text-muted">No deliverables assigned.</div>
+                                        <div className="alert alert-info">
+                                            <i className="fas fa-info-circle me-2"></i>
+                                            No deliverables assigned for this collaboration.
+                                        </div>
                                     )}
                                 </div>
                             </div>

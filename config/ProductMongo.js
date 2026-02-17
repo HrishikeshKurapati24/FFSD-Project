@@ -128,6 +128,16 @@ const campaignContentSchema = new mongoose.Schema({
         ref: 'InfluencerInfo',
         required: [true, 'Influencer ID is required']
     },
+    // Link to deliverable (Stage 2-3 integration)
+    deliverable_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false  // Optional - not all content linked to deliverables
+    },
+    deliverable_title: {
+        type: String,
+        trim: true,
+        maxlength: [200, 'Deliverable title cannot exceed 200 characters']
+    },
     caption: {
         type: String,
         required: [true, 'Content caption is required'],

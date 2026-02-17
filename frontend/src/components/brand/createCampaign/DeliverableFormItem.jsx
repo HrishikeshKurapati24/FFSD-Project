@@ -150,6 +150,27 @@ const DeliverableFormItem = ({
 
       <div className="form-row">
         <div className="form-group">
+          <label htmlFor={`deliverables[${index}][due_date]`}>
+            Due Date <span style={{ color: 'var(--danger-color)' }}>*</span>
+          </label>
+          <input
+            type="date"
+            className={`form-control ${errors.due_date ? 'is-invalid' : ''}`}
+            id={`deliverables[${index}][due_date]`}
+            name={`deliverables[${index}][due_date]`}
+            value={deliverable.due_date ? new Date(deliverable.due_date).toISOString().split('T')[0] : ''}
+            onChange={(e) => onDeliverableChange(deliverable.id, 'due_date', e.target.value)}
+            readOnly={isReadonly}
+            min={new Date().toISOString().split('T')[0]}
+          />
+          {errors.due_date && (
+            <small className="form-text text-danger">{errors.due_date}</small>
+          )}
+        </div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
           <label htmlFor={`deliverables[${index}][platform]`}>
             Attach Platform <span style={{ color: 'var(--danger-color)' }}>*</span>
           </label>

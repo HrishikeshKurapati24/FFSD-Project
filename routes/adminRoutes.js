@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController } = require('../controllers/AdminController');
+const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController, OrderAnalyticsController } = require('../controllers/AdminController');
 const AdminAnalyticsController = require('../controllers/AdminAnalyticsController');
 const { Admin } = require('../models/mongoDB');
 const bcrypt = require('bcrypt');
@@ -55,7 +55,8 @@ const isAPIRequest = (req) => {
         '/admin/notifications', '/notifications',
         '/admin/verified-brands', '/verified-brands',
         '/admin/verified-influencers', '/verified-influencers',
-        '/admin/all-customers', '/all-customers'
+        '/admin/all-customers', '/all-customers',
+        '/admin/orders/all', '/orders/all'
     ];
 
     const isAdminAPIRoute = adminAPIRoutes.some(route =>
@@ -314,6 +315,10 @@ router.get('/customer-details/:id', CustomerController.getCustomerDetails);
 router.put('/customer-status/:id', CustomerController.updateCustomerStatus);
 router.get('/customer-analytics', CustomerController.getCustomerAnalytics);
 router.get('/all-customers', CustomerController.getAllCustomers);
+
+// Order Analytics routes
+router.get('/orders/analytics', OrderAnalyticsController.getAdminOrderAnalytics);
+router.get('/orders/all', OrderAnalyticsController.getAdminAllOrders);
 
 // Settings route
 router.get('/settings', (req, res) => {

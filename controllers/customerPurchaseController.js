@@ -4,6 +4,7 @@ const { BrandInfo } = require('../config/BrandMongo');
 const { InfluencerInfo } = require('../config/InfluencerMongo');
 const { Order } = require('../config/OrderMongo');
 const { CampaignInfluencers } = require('../config/CampaignMongo');
+const { sendOrderStatusEmail } = require('../utils/emailService');
 const mongoose = require('mongoose');
 
 class CustomerPurchaseController {
@@ -101,21 +102,28 @@ class CustomerPurchaseController {
                 });
             }
 
-            // 2) Published content for the campaign with products populated
-            const content = await CampaignContent.find({
-                campaign_id: campaignId,
-                status: 'published'
+            // 2) Published deliverables from CampaignInfluencers (only source of content now)
+            const collabsWithInfluencers = await CampaignInfluencers.find({
+                campaign_id: campaignId
             })
-                .populate('influencer_id', 'fullName profilePicUrl')
-                .populate('attached_products.product_id')
-                .sort({ published_at: -1 })
+                .populate('influencer_id', 'fullName displayName profilePicUrl')
                 .lean();
 
-            console.log('[Customer] Published content count:', content.length);
-            if (content.length) {
-                const attachedProductCounts = content.map(c => (c.attached_products || []).length);
-                console.log('[Customer] Attached products per content:', attachedProductCounts);
-            }
+            const content = [];
+            collabsWithInfluencers.forEach(collab => {
+                if (collab.deliverables && Array.isArray(collab.deliverables)) {
+                    collab.deliverables.forEach(d => {
+                        if (d.status === 'published') {
+                            content.push({
+                                ...d,
+                                influencer_id: collab.influencer_id, // Link influencer info to the deliverable
+                                _id: d._id || d.id
+                            });
+                        }
+                    });
+                }
+            });
+
 
             // 3) All active products tied to the campaign with all relevant fields
             const products = await Product.find({
@@ -398,10 +406,29 @@ class CustomerPurchaseController {
                 shipping_cost: shipping,
                 status: 'paid', // Simulating instant payment success
                 payment_id: mockPaymentId,
+                shipping_address: {
+                    name: name,
+                    address_line1: customerInfo?.address || '',
+                    address_line2: '',
+                    city: '',
+                    state: '',
+                    zip_code: '',
+                    country: ''
+                },
                 referral_code: attributedInfluencer ? referralCode : undefined,
                 influencer_id: attributedInfluencer ? attributedInfluencer._id : undefined,
                 commission_amount: 0, // Will calculate below
-                attribution_status: attributedInfluencer ? 'pending' : 'pending'
+                attribution_status: attributedInfluencer ? 'pending' : 'pending',
+                // Initialize status history with first entry
+                status_history: [{
+                    status: 'paid',
+                    timestamp: new Date(),
+                    notes: 'Order placed and payment received'
+                }],
+                // Calculate estimated delivery date
+                estimated_delivery_date: maxDeliveryDays > 0
+                    ? new Date(Date.now() + maxDeliveryDays * 24 * 60 * 60 * 1000)
+                    : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) // Default 5 days
             });
 
             // Calculate Commission & Update Metrics per Campaign
@@ -496,6 +523,17 @@ class CustomerPurchaseController {
                         { upsert: true, new: true, setDefaultsOnInsert: true }
                     );
                 }
+            }
+
+            // Phase 9: Send Order Confirmation Email
+            try {
+                const customerData = newOrder.customer_id ?
+                    await Customer.findById(newOrder.customer_id).select('name email') :
+                    newOrder.guest_info;
+
+                await sendOrderStatusEmail(newOrder, customerData, 'paid');
+            } catch (emailError) {
+                console.error('[Phase 9] Failed to send confirmation email:', emailError);
             }
 
             // Clear cart
@@ -753,9 +791,15 @@ class CustomerPurchaseController {
                     .lean()
                 : [];
 
+            // Separate orders into current and previous
+            const currentOrders = orders.filter(order => ['paid', 'shipped'].includes(order.status));
+            const previousOrders = orders.filter(order => ['delivered', 'cancelled'].includes(order.status));
+
             const data = {
                 title: 'My Orders & History',
-                orders,
+                orders, // Keep all orders for backward compatibility
+                currentOrders,
+                previousOrders,
                 purchasedInfluencers,
                 purchasedBrands,
                 user: req.session.user || req.user

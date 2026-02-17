@@ -4,6 +4,7 @@ import AdminNavbar from '../../../components/admin/AdminNavbar';
 import { API_BASE_URL } from '../../../services/api';
 import styles from '../../../styles/admin/AdvancedAnalytics.module.css';
 import adminStyles from '../../../styles/admin/admin_dashboard.module.css';
+import OrderDetailsModal from '../../../components/shared/OrderDetailsModal';
 
 export default function AdvancedAnalytics() {
     const [user, setUser] = useState({ name: 'Admin' });
@@ -12,12 +13,21 @@ export default function AdvancedAnalytics() {
     const [matchmakingResults, setMatchmakingResults] = useState([]);
     const [selectedBrand, setSelectedBrand] = useState('');
     const [ecosystemData, setEcosystemData] = useState(null);
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [orderAnalytics, setOrderAnalytics] = useState(null);
+    const [allOrders, setAllOrders] = useState([]);
+    const [orderSearch, setOrderSearch] = useState('');
+    const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [showOrderModal, setShowOrderModal] = useState(false);
+    const [loadingOrders, setLoadingOrders] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [notifications, setNotifications] = useState([]);
 
     const networkRef = useRef(null);
     const networkContainerRef = useRef(null);
+    const graphRef = networkContainerRef; // Alias for consistency
 
     // Fetch user data for auth
     useEffect(() => {
@@ -30,7 +40,13 @@ export default function AdvancedAnalytics() {
         fetchCampaignRevenue();
         fetchBrands();
         fetchEcosystemData();
+        fetchAllOrders();
     }, []);
+
+    // Re-fetch order analytics when date range changes
+    useEffect(() => {
+        fetchOrderAnalytics();
+    }, [dateRange]);
 
     // Initialize network graph when ecosystem data is loaded
     useEffect(() => {
@@ -136,13 +152,71 @@ export default function AdvancedAnalytics() {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Matchmaking response:', data);
                 setMatchmakingResults(data.data || []);
             }
         } catch (error) {
             console.error('Error fetching matchmaking data:', error);
             setError('Failed to load matchmaking recommendations');
         }
+    };
+
+    const fetchOrderAnalytics = async () => {
+        try {
+            const queryParams = new URLSearchParams();
+            if (dateRange.start) queryParams.append('startDate', dateRange.start);
+            if (dateRange.end) queryParams.append('endDate', dateRange.end);
+
+            const response = await fetch(`${API_BASE_URL}/admin/orders/analytics?${queryParams.toString()}`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setOrderAnalytics(data.analytics);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching order analytics:', error);
+        }
+    };
+
+    const fetchAllOrders = async (searchTerm = '', status = 'all') => {
+        setLoadingOrders(true);
+        try {
+            const queryParams = new URLSearchParams();
+            if (searchTerm) queryParams.append('searchTerm', searchTerm);
+            if (status && status !== 'all') queryParams.append('status', status);
+
+            const response = await fetch(`${API_BASE_URL}/admin/orders/all?${queryParams.toString()}`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setAllOrders(data.orders);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching all orders:', error);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
+
+    const handleOrderSearch = (val) => {
+        setOrderSearch(val);
+        // Debounce fetch
+        const timeoutId = setTimeout(() => {
+            fetchAllOrders(val, orderStatusFilter);
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    };
+
+    const handleStatusFilter = (status) => {
+        setOrderStatusFilter(status);
+        fetchAllOrders(orderSearch, status);
     };
 
     const fetchEcosystemData = async () => {
@@ -154,8 +228,6 @@ export default function AdvancedAnalytics() {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Ecosystem response:', data);
-                // Backend sends { success: true, data: { nodes: [], links: [] } }
                 setEcosystemData(data.data);
             }
         } catch (error) {
@@ -175,7 +247,6 @@ export default function AdvancedAnalytics() {
     const initializeNetworkGraph = () => {
         if (!networkContainerRef.current || !ecosystemData) return;
 
-        // Destroy existing network
         if (networkRef.current) {
             networkRef.current.destroy();
         }
@@ -189,133 +260,334 @@ export default function AdvancedAnalytics() {
             nodes: {
                 shape: 'dot',
                 size: 20,
-                font: {
-                    size: 14,
-                    color: '#333'
-                },
+                font: { size: 14, color: '#333' },
                 borderWidth: 2,
                 shadow: true
             },
             groups: {
-                brand: {
-                    color: { background: '#4FC3F7', border: '#03A9F4' },
-                    shape: 'dot'
-                },
-                influencer: {
-                    color: { background: '#BA68C8', border: '#9C27B0' },
-                    shape: 'dot'
-                }
+                brand: { color: { background: '#4FC3F7', border: '#03A9F4' }, shape: 'dot' },
+                influencer: { color: { background: '#BA68C8', border: '#9C27B0' }, shape: 'dot' }
             },
             edges: {
                 width: 2,
                 color: { color: '#848484', highlight: '#2B7CE9', inherit: false },
-                smooth: {
-                    type: 'continuous'
-                }
+                smooth: { type: 'continuous' }
             },
             physics: {
                 enabled: true,
-                barnesHut: {
-                    gravitationalConstant: -2000,
-                    centralGravity: 0.3,
-                    springLength: 150,
-                    springConstant: 0.04
-                },
-                stabilization: {
-                    iterations: 150
-                }
+                barnesHut: { gravitationalConstant: -2000, centralGravity: 0.3, springLength: 150, springConstant: 0.04 },
+                stabilization: { iterations: 150 }
             },
-            interaction: {
-                hover: true,
-                tooltipDelay: 100,
-                zoomView: true,
-                dragView: true
-            }
+            interaction: { hover: true, tooltipDelay: 100, zoomView: true, dragView: true }
         };
 
         networkRef.current = new Network(networkContainerRef.current, data, options);
     };
 
-    const AttributionGraphNode = ({ label, icon, color }) => (
-        <div className={styles.attributionNode} style={{ borderColor: color }}>
-            <div className={styles.nodeIcon} style={{ backgroundColor: color }}>
-                <i className={`fas ${icon}`}></i>
-            </div>
-            <div className={styles.nodeLabel}>{label}</div>
-        </div>
-    );
-
     return (
         <AdminNavbar user={user} notifications={notifications}>
             <div className={adminStyles.mainContent}>
                 <div className={styles.header}>
-                    <h1>🚀 Advanced Analytics - God Mode</h1>
+                    <h1>🚀 Advanced Analytics</h1>
                     <p>Deep insights into campaign performance, matchmaking intelligence, and ecosystem visualization</p>
+                </div>
+
+                {/* Dashboard Stats Section */}
+                <div className={styles.section}>
+                    <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                        <div>
+                            <h2>📈 Platform Performance</h2>
+                            <p>Real-time overview of orders, revenue, and fulfillment efficiency</p>
+                        </div>
+                        <div className="d-flex gap-2 align-items-center mb-1">
+                            <div className="input-group input-group-sm">
+                                <span className="input-group-text bg-white small">From</span>
+                                <input
+                                    type="date"
+                                    className="form-control form-control-sm"
+                                    value={dateRange.start}
+                                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                />
+                            </div>
+                            <div className="input-group input-group-sm">
+                                <span className="input-group-text bg-white small">To</span>
+                                <input
+                                    type="date"
+                                    className="form-control form-control-sm"
+                                    value={dateRange.end}
+                                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                />
+                            </div>
+                            <button
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={() => setDateRange({ start: '', end: '' })}
+                                title="Reset Range"
+                            >
+                                <i className="fas fa-undo"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {orderAnalytics ? (
+                        <>
+                            <div className={styles.statsGrid}>
+                                <div className={styles.metricCard}>
+                                    <div className={styles.metricHeader}>
+                                        <span className={styles.metricTitle}>Gross Revenue</span>
+                                        <i className={`fas fa-dollar-sign ${styles.revenueIcon}`}></i>
+                                    </div>
+                                    <div className={styles.metricContent}>
+                                        <div className={styles.metricValue}>${orderAnalytics.revenue.total.toLocaleString()}</div>
+                                        <div className={styles.metricLabel}>
+                                            <span className="text-success fw-bold">Today:</span> ${orderAnalytics.revenue.today.toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={styles.metricCard}>
+                                    <div className={styles.metricHeader}>
+                                        <span className={styles.metricTitle}>Total Orders</span>
+                                        <i className={`fas fa-shopping-cart ${styles.orderIcon}`}></i>
+                                    </div>
+                                    <div className={styles.metricContent}>
+                                        <div className={styles.metricValue}>{orderAnalytics.orders.total.toLocaleString()}</div>
+                                        <div className={styles.metricLabel}>
+                                            <span className="text-primary fw-bold">This Month:</span> {orderAnalytics.orders.thisMonth.toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={styles.metricCard}>
+                                    <div className={styles.metricHeader}>
+                                        <span className={styles.metricTitle}>Fulfillment Rate</span>
+                                        <i className={`fas fa-truck-loading ${styles.fulfillmentIcon}`}></i>
+                                    </div>
+                                    <div className={styles.metricContent}>
+                                        <div className={styles.metricValue}>{orderAnalytics.fulfillmentRate.toFixed(1)}%</div>
+                                        <div className={styles.scoreBar} style={{ width: '100%', marginTop: '0.5rem' }}>
+                                            <div
+                                                className={styles.scoreProgress}
+                                                style={{ width: `${orderAnalytics.fulfillmentRate}%`, backgroundColor: '#e65100' }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={styles.analyticsRow}>
+                                <div className={styles.card}>
+                                    <div className={styles.cardHeader}>
+                                        <h3>🏆 Top Brands by Order Volume</h3>
+                                    </div>
+                                    <div className={styles.tableContainer}>
+                                        <table className={styles.roiTable}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Rank</th>
+                                                    <th>Brand Name</th>
+                                                    <th>Orders</th>
+                                                    <th>Revenue</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {orderAnalytics.ordersPerBrand.map((brand, index) => (
+                                                    <tr key={brand.brandId}>
+                                                        <td className={styles.rank}>
+                                                            <span className={styles.rankBadge}>#{index + 1}</span>
+                                                        </td>
+                                                        <td>{brand.brandName}</td>
+                                                        <td className="fw-bold">{brand.orderCount}</td>
+                                                        <td className={styles.revenue}>${brand.totalRevenue.toLocaleString()}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div className={styles.card}>
+                                    <div className={styles.cardHeader}>
+                                        <h3>🔔 Order Status Breakdown</h3>
+                                    </div>
+                                    <div className={styles.statusPillGrid}>
+                                        <div className={styles.statusPill}>
+                                            <span>Paid</span>
+                                            <span className={`${styles.statusBadge} ${styles.badgePaid}`}>{orderAnalytics.statusBreakdown.paid}</span>
+                                        </div>
+                                        <div className={styles.statusPill}>
+                                            <span>Shipped</span>
+                                            <span className={`${styles.statusBadge} ${styles.badgeShipped}`}>{orderAnalytics.statusBreakdown.shipped}</span>
+                                        </div>
+                                        <div className={styles.statusPill}>
+                                            <span>Delivered</span>
+                                            <span className={`${styles.statusBadge} ${styles.badgeDelivered}`}>{orderAnalytics.statusBreakdown.delivered}</span>
+                                        </div>
+                                        <div className={styles.statusPill}>
+                                            <span>Cancelled</span>
+                                            <span className={`${styles.statusBadge} ${styles.badgeCancelled}`}>{orderAnalytics.statusBreakdown.cancelled}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className={styles.loadingState}>
+                            <i className="fas fa-spinner fa-spin"></i>
+                            <p>Loading platform metrics...</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Campaign Revenue Leaderboard Section */}
                 <div className={styles.section}>
                     <div className={styles.sectionHeader}>
-                        <h2>📊 Campaign Revenue Leaderboard</h2>
-                        <p>Top Campaigns Ranked by Revenue Generation</p>
+                        <h2>🏆 Campaign Revenue Leaderboard</h2>
+                        <p>Top performing marketing campaigns ranked by gross revenue</p>
                     </div>
-
                     <div className={styles.card}>
-                        {campaignRevenueData.length > 0 ? (
-                            <div className={styles.tableContainer}>
-                                <table className={styles.roiTable}>
-                                    <thead>
-                                        <tr>
-                                            <th>Rank</th>
-                                            <th>Campaign Title</th>
-                                            <th>Total Revenue</th>
-                                            <th>Avg. Engagement</th>
-                                            <th>Total Clicks</th>
-                                            <th>ROI Index</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {campaignRevenueData.map((campaign, index) => (
-                                            <tr key={campaign.campaignId || index}>
+                        <div className={styles.tableContainer}>
+                            <table className={styles.roiTable}>
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Campaign Title</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {campaignRevenueData.length > 0 ? (
+                                        campaignRevenueData.map((campaign, index) => (
+                                            <tr key={index}>
                                                 <td className={styles.rank}>
                                                     <span className={styles.rankBadge}>#{index + 1}</span>
                                                 </td>
                                                 <td className={styles.influencerInfo}>
-                                                    <div className={styles.influencerName}>
-                                                        {campaign.title || 'Unknown Campaign'}
-                                                    </div>
+                                                    <div className={styles.influencerName}>{campaign.title}</div>
                                                 </td>
-                                                <td className={styles.revenue}>
-                                                    ${campaign.totalRevenue?.toLocaleString() || '0'}
-                                                </td>
-                                                <td>{campaign.avgEngagementRate?.toFixed(2) || '0.00'}%</td>
-                                                <td>{campaign.totalClicks?.toLocaleString() || '0'}</td>
+                                                <td className={styles.revenue}>${campaign.revenue.toLocaleString()}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="3" className="text-center py-4 text-muted">No campaign revenue data available</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Full Order History Section */}
+                <div className={styles.section}>
+                    <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <h2>📦 Platform Order History</h2>
+                            <p>Complete record of all customer purchases across all brands</p>
+                        </div>
+                        <div className="d-flex gap-3">
+                            <div className="input-group input-group-sm" style={{ width: '250px' }}>
+                                <span className="input-group-text bg-white border-end-0">
+                                    <i className="fas fa-search text-muted"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    className="form-control border-start-0"
+                                    placeholder="Search ID, Name, Tracking..."
+                                    value={orderSearch}
+                                    onChange={(e) => handleOrderSearch(e.target.value)}
+                                />
+                            </div>
+                            <select
+                                className="form-select form-select-sm"
+                                style={{ width: '150px' }}
+                                value={orderStatusFilter}
+                                onChange={(e) => handleStatusFilter(e.target.value)}
+                            >
+                                <option value="all">All Statuses</option>
+                                <option value="paid">Paid</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.card}>
+                        <div className="table-responsive">
+                            <table className="table table-hover align-middle mb-0">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Destination</th>
+                                        <th>Products</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loadingOrders ? (
+                                        <tr>
+                                            <td colSpan="7" className="text-center py-5">
+                                                <i className="fas fa-spinner fa-spin fa-2x mb-3 text-primary"></i>
+                                                <p className="text-muted">Fetching platform orders...</p>
+                                            </td>
+                                        </tr>
+                                    ) : allOrders.length > 0 ? (
+                                        allOrders.map(order => (
+                                            <tr
+                                                key={order._id}
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => {
+                                                    setSelectedOrder(order);
+                                                    setShowOrderModal(true);
+                                                }}
+                                            >
                                                 <td>
-                                                    <div className={styles.scoreBar}>
-                                                        <div
-                                                            className={styles.scoreProgress}
-                                                            style={{
-                                                                width: `${Math.min((campaign.roi || 0) * 10, 100)}%`,
-                                                                backgroundColor: (campaign.roi || 0) > 1 ? '#4CAF50' : '#2196F3'
-                                                            }}
-                                                        ></div>
-                                                        <span className={styles.scoreText}>
-                                                            {(campaign.roi || 0).toFixed(1)}x
-                                                        </span>
+                                                    <span className="text-monospace small">#{order._id.substring(order._id.length - 8)}</span>
+                                                    <div className="text-muted small">{order.tracking_number || 'No tracking'}</div>
+                                                </td>
+                                                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                                                <td>
+                                                    <div className="fw-bold">{order.customer_id?.name || order.guest_info?.name || 'Guest'}</div>
+                                                    <div className="text-muted small">{order.customer_id?.email || order.guest_info?.email}</div>
+                                                    <div className="text-muted small">
+                                                        <i className="fas fa-phone-alt me-1" style={{ fontSize: '0.75em' }}></i>
+                                                        {order.customer_id?.phone || order.guest_info?.phone || 'N/A'}
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <div className="fw-bold text-dark">
+                                                        {order.shipping_address?.city ? `${order.shipping_address.city}, ${order.shipping_address.country || ''}` : 'Digital/Service'}
+                                                    </div>
+                                                    <div className="text-muted small">{order.shipping_address?.address_line1 || ''}</div>
+                                                </td>
+                                                <td>
+                                                    {order.items.reduce((acc, item) => acc + (item.quantity || 0), 0)} items
+                                                    <div className="text-muted small" style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {order.items.map(i => i.product_id?.name).join(', ')}
+                                                    </div>
+                                                </td>
+                                                <td className="fw-bold text-dark">${order.total_amount.toLocaleString()}</td>
+                                                <td>
+                                                    <span className={`${styles.statusBadge} ${styles['badge' + order.status.charAt(0).toUpperCase() + order.status.slice(1)]}`}>
+                                                        {order.status}
+                                                    </span>
                                                 </td>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className={styles.emptyState}>
-                                <i className="fas fa-chart-bar"></i>
-                                <p>No campaign performance data available yet</p>
-                                <small>Performance metrics are updated as campaigns progress and generate sales</small>
-                            </div>
-                        )}
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="7" className="text-center py-5">
+                                                <div className="text-muted">No platform orders found.</div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -326,167 +598,87 @@ export default function AdvancedAnalytics() {
                         <p>Intelligent compatibility scoring for optimal collaborations</p>
                     </div>
 
-                    <div className={styles.card}>
-                        <div className={styles.matchmakingTool}>
-                            <label htmlFor="brand-select">Select Brand:</label>
-                            <select
-                                id="brand-select"
-                                value={selectedBrand}
-                                onChange={handleBrandChange}
-                                className={styles.brandSelect}
-                            >
-                                <option value="">-- Choose a Brand --</option>
-                                {brands.map(brand => (
-                                    <option key={brand._id} value={brand._id}>
-                                        {brand.brandName || brand.name || 'Unnamed Brand'}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    <div className={styles.matchmakingTool}>
+                        <label>Select Brand for Recommendations:</label>
+                        <select
+                            className={styles.brandSelect}
+                            value={selectedBrand}
+                            onChange={handleBrandChange}
+                        >
+                            <option value="">-- Choose a Verified Brand --</option>
+                            {brands.map(brand => (
+                                <option key={brand._id} value={brand._id}>{brand.businessName}</option>
+                            ))}
+                        </select>
+                    </div>
 
-                        {matchmakingResults.length > 0 && (
-                            <div className={styles.matchmakingResults}>
-                                {matchmakingResults.some(m => m.matchReasons?.some(r => r.includes('Category Match'))) && (
-                                    <div className={styles.perfectMatchesSection}>
-                                        <h3 className={styles.perfectMatchTitle}>✨ Perfect Category Matches</h3>
-                                        <div className={styles.recommendationGrid}>
-                                            {matchmakingResults
-                                                .filter(m => m.matchReasons?.some(r => r.includes('Category Match')))
-                                                .map((match, index) => (
-                                                    <div key={`perfect-${match.influencer?._id || index}`} className={`${styles.matchCard} ${styles.perfectMatchCard}`}>
-                                                        <div className={styles.matchHeader}>
-                                                            <div className={styles.influencerAvatar}>
-                                                                <img
-                                                                    src={match.influencer?.profilePicture || match.influencer?.profilePicUrl || '/images/default-avatar.jpg'}
-                                                                    alt={match.influencer?.fullName}
-                                                                />
-                                                            </div>
-                                                            <div className={styles.matchInfo}>
-                                                                <h4>{match.influencer?.fullName || match.influencer?.username || 'Unknown'}</h4>
-                                                                <div className={styles.matchScore}>
-                                                                    <span className={styles.scoreLabel}>Match Score:</span>
-                                                                    <div className={styles.matchProgress}>
-                                                                        <div
-                                                                            className={styles.matchProgressBar}
-                                                                            style={{
-                                                                                width: `${match.score || match.matchScore || 0}%`,
-                                                                                backgroundColor: '#4CAF50'
-                                                                            }}
-                                                                        ></div>
-                                                                    </div>
-                                                                    <span className={styles.scoreValue}>{match.score || match.matchScore || 0}%</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className={styles.matchCriteria}>
-                                                            {match.matchReasons && match.matchReasons.map((criteria, i) => (
-                                                                <span key={i} className={`${styles.criteriaBadge} ${criteria.includes('Category') ? styles.categoryBadge : ''}`}>
-                                                                    {criteria.includes('Category') ? '🌟 ' : '✓ '}{criteria}
-                                                                </span>
-                                                            ))}
-                                                        </div>
+                    {matchmakingResults.length > 0 && (
+                        <div className={styles.matchmakingResults}>
+                            <h3>Top Compatible Influencers</h3>
+                            <div className={styles.recommendationGrid}>
+                                {matchmakingResults.map((match, idx) => (
+                                    <div key={idx} className={styles.matchCard}>
+                                        <div className={styles.matchHeader}>
+                                            <div className={styles.influencerAvatar}>
+                                                <img src={match.profilePic || '/images/default-profile.jpg'} alt={match.name} />
+                                            </div>
+                                            <div className={styles.matchInfo}>
+                                                <h4>{match.name}</h4>
+                                                <div className={styles.matchScore}>
+                                                    <span className={styles.scoreLabel}>Match Score:</span>
+                                                    <div className={styles.matchProgress}>
+                                                        <div
+                                                            className={styles.matchProgressBar}
+                                                            style={{
+                                                                width: `${match.score}%`,
+                                                                backgroundColor: match.score > 85 ? '#4CAF50' : '#FF9800'
+                                                            }}
+                                                        ></div>
                                                     </div>
-                                                ))}
+                                                    <span className={styles.scoreValue}>{match.score}%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.matchCriteria}>
+                                            {match.reasons?.map((reason, rIdx) => (
+                                                <span key={rIdx} className={styles.criteriaBadge}>{reason}</span>
+                                            ))}
                                         </div>
                                     </div>
-                                )}
-
-                                <h3 className={styles.otherMatchTitle}>All Recommended Influencers:</h3>
-                                <div className={styles.recommendationGrid}>
-                                    {matchmakingResults.map((match, index) => (
-                                        <div key={match.influencer?._id || index} className={styles.matchCard}>
-                                            <div className={styles.matchHeader}>
-                                                <div className={styles.influencerAvatar}>
-                                                    <img
-                                                        src={match.influencer?.profilePicture || match.influencer?.profilePicUrl || '/images/default-avatar.jpg'}
-                                                        alt={match.influencer?.fullName}
-                                                    />
-                                                </div>
-                                                <div className={styles.matchInfo}>
-                                                    <h4>{match.influencer?.fullName || match.influencer?.username || 'Unknown'}</h4>
-                                                    <div className={styles.matchScore}>
-                                                        <span className={styles.scoreLabel}>Match Score:</span>
-                                                        <div className={styles.matchProgress}>
-                                                            <div
-                                                                className={styles.matchProgressBar}
-                                                                style={{
-                                                                    width: `${match.score || match.matchScore || 0}%`,
-                                                                    backgroundColor: (match.score || match.matchScore) >= 70 ? '#4CAF50' :
-                                                                        (match.score || match.matchScore) >= 40 ? '#FF9800' : '#f44336'
-                                                                }}
-                                                            ></div>
-                                                        </div>
-                                                        <span className={styles.scoreValue}>{match.score || match.matchScore || 0}%</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className={styles.matchCriteria}>
-                                                {match.matchReasons && match.matchReasons.map((criteria, i) => (
-                                                    <span key={i} className={styles.criteriaBadge}>
-                                                        ✓ {criteria}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedBrand && matchmakingResults.length === 0 && (
-                            <div className={styles.emptyState}>
-                                <i className="fas fa-user-friends"></i>
-                                <p>No matching influencers found</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-
-
-                {/* Ecosystem Network Graph Section */}
-                <div className={styles.section}>
-                    <div className={styles.sectionHeader}>
-                        <h2>🌐 The Ecosystem - Network Graph</h2>
-                        <p>Interactive visualization of brands, influencers, and their collaborations</p>
-                    </div>
-
-                    <div className={styles.card}>
-                        <div className={styles.graphLegend}>
-                            <div className={styles.legendItem}>
-                                <span className={styles.legendDot} style={{ backgroundColor: '#4FC3F7' }}></span>
-                                <span>Brands</span>
-                            </div>
-                            <div className={styles.legendItem}>
-                                <span className={styles.legendDot} style={{ backgroundColor: '#BA68C8' }}></span>
-                                <span>Influencers</span>
-                            </div>
-                            <div className={styles.legendItem}>
-                                <span className={styles.legendDot} style={{ backgroundColor: '#4CAF50' }}></span>
-                                <span>Collaborations</span>
+                                ))}
                             </div>
                         </div>
-
-                        {loading ? (
-                            <div className={styles.loadingState}>
-                                <i className="fas fa-spinner fa-spin"></i>
-                                <p>Loading ecosystem data...</p>
-                            </div>
-                        ) : (
-                            <div
-                                ref={networkContainerRef}
-                                className={styles.networkGraph}
-                                style={{ height: '600px', border: '1px solid #ddd', borderRadius: '8px' }}
-                            ></div>
-                        )}
-                    </div>
+                    )}
                 </div>
 
-                {error && (
-                    <div className={styles.errorMessage}>
-                        <i className="fas fa-exclamation-circle"></i>
-                        <span>{error}</span>
+                {/* Ecosystem Graph Section */}
+                <div className={styles.section}>
+                    <div className={styles.sectionHeader}>
+                        <h2>🕸️ Collab Ecosystem</h2>
+                        <p>Interactive visualization of brands, influencers, and product distribution networks</p>
                     </div>
+                    {ecosystemData ? (
+                        <div
+                            ref={networkContainerRef}
+                            className={styles.graphContainer}
+                            style={{ height: '600px', border: '1px solid #eee', borderRadius: '12px' }}
+                        />
+                    ) : (
+                        <div className={styles.loadingState}>
+                            <i className="fas fa-spinner fa-spin"></i>
+                            <p>Mapping ecosystem nodes...</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Order Details Modal Integration */}
+                {selectedOrder && (
+                    <OrderDetailsModal
+                        show={showOrderModal}
+                        onClose={() => setShowOrderModal(false)}
+                        order={selectedOrder}
+                        userRole="admin"
+                    />
                 )}
             </div>
         </AdminNavbar>

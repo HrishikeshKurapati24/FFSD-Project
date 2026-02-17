@@ -463,7 +463,7 @@ const AdminModel = {
                 if (!campaign) return null;
 
                 const influencers = await CampaignInfluencers.find({ campaign_id: id })
-                    .select('influencer_id engagement_rate progress')
+                    .select('influencer_id engagement_rate progress deliverables')
                     .populate('influencer_id', 'fullName displayName')
                     .lean();
 
@@ -474,7 +474,8 @@ const AdminModel = {
                     influencers: influencers.map(inf => ({
                         influencer: inf.influencer_id ? (inf.influencer_id.displayName || inf.influencer_id.fullName || '') : '',
                         engagementRate: inf.engagement_rate,
-                        reach: inf.progress
+                        reach: inf.progress,
+                        deliverables: inf.deliverables || []
                     }))
                 };
             } catch (error) {
