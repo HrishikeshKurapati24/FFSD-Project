@@ -136,6 +136,101 @@ const controller = {
       console.error('Error fetching Transaction:', error);
       res.status(500).json({ success: false, message: 'Server Error' });
     }
+  },
+
+  async submitTransaction(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const { requestId1, requestId2 } = req.params;
+      const result = await brandCampaignService.submitTransaction(brandId, requestId1, requestId2, req.body, req.file);
+
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.json(result);
+      }
+      req.session.successMessage = result.message;
+      req.session.save(() => res.redirect('/brand/home'));
+    } catch (error) {
+      console.error('Error submitting transaction:', error);
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(error.message.includes('required') || error.message.includes('Invalid') ? 400 : 500).json({ success: false, message: error.message });
+      }
+      res.status(500).send(error.message);
+    }
+  },
+
+  async createCampaign(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const result = await brandCampaignService.createCampaign(brandId, req.body, req.files);
+
+      if (!result.success && result.redirectToPayment) {
+        return res.json(result);
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(error.message.includes('required') || error.message.includes('Invalid') ? 400 : 500).json({ success: false, message: error.message });
+    }
+  },
+
+  async activateCampaign(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const { campaignId } = req.params;
+      const result = await brandCampaignService.activateCampaign(brandId, campaignId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error activating campaign:', error);
+      res.status(error.message.includes('no accepted influencers') ? 400 : 500).json({ success: false, message: error.message });
+    }
+  },
+
+  async getCampaignDetails(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const { campaignId } = req.params;
+      const details = await brandCampaignService.getCampaignDetails(brandId, campaignId);
+      res.json({ success: true, campaign: details });
+    } catch (error) {
+      console.error('Error getting campaign details:', error);
+      res.status(error.message === 'Campaign not found' ? 404 : 500).json({ success: false, message: error.message });
+    }
+  },
+
+  async endCampaign(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const { campaignId } = req.params;
+      const result = await brandCampaignService.endCampaign(brandId, campaignId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error ending campaign:', error);
+      res.status(error.message.includes('not found') ? 404 : 500).json({ success: false, message: error.message });
+    }
+  },
+
+  async getDraftCampaigns(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const drafts = await brandCampaignService.getDraftCampaigns(brandId);
+      res.json({ success: true, drafts });
+    } catch (error) {
+      console.error('Error getting draft campaigns:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  async declineRequest(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const { requestId1, requestId2 } = req.params;
+      const result = await brandCampaignService.declineRequest(brandId, requestId1, requestId2);
+      res.json(result);
+    } catch (error) {
+      console.error('Error declining request:', error);
+      res.status(error.message === 'Request not found' ? 404 : 500).json({ success: false, message: error.message });
+    }
   }
 
 };

@@ -1006,5 +1006,48 @@ class brandProfileService {
             return [];
         }
     }
+
+    static async updateProfileImages(brandId, files) {
+        const updateData = {};
+        const { uploadToCloudinary } = require('../../utils/cloudinary');
+
+        if (files && files['logo']) {
+            const logoUrl = await uploadToCloudinary(files['logo'][0], 'brand-logos');
+            if (logoUrl) updateData.logoUrl = logoUrl;
+        }
+
+        if (files && files['banner']) {
+            const bannerUrl = await uploadToCloudinary(files['banner'][0], 'brand-banners');
+            if (bannerUrl) updateData.bannerUrl = bannerUrl;
+        }
+
+        if (Object.keys(updateData).length === 0) throw new Error('No images were uploaded');
+
+        const updatedBrand = await BrandInfo.findByIdAndUpdate(
+            brandId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedBrand) throw new Error('Brand not found');
+
+        return updatedBrand;
+    }
+
+    static async deleteAccount(brandId) {
+        const campaignIds = await CampaignInfo.find({ brand_id: brandId }).distinct('_id');
+
+        await Promise.all([
+            BrandInfo.findByIdAndDelete(brandId),
+            CampaignInfo.deleteMany({ brand_id: brandId }),
+            CampaignInfluencers.deleteMany({ campaign_id: { $in: campaignIds } }),
+            BrandSocials.deleteOne({ brandId }),
+            BrandAnalytics.deleteOne({ brandId }),
+            mongoose.model('CampaignPayments').deleteMany({ brand_id: brandId })
+        ]);
+
+        return { success: true };
+    }
 }
+
 module.exports = brandProfileService;

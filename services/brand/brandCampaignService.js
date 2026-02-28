@@ -1000,14 +1000,14 @@ class brandCampaignService {
             throw error;
         }
     }
-    
+
     // Get transaction details data
     static async getTransactionData(campaignId, influencerId) {
         try {
             const { CampaignInfo, CampaignInfluencers } = require('../../models/CampaignMongo');
             const { InfluencerInfo } = require('../../models/InfluencerMongo');
             const mongoose = require('mongoose');
-            
+
             const cId = new mongoose.Types.ObjectId(campaignId);
             const iId = new mongoose.Types.ObjectId(influencerId);
 
@@ -1030,7 +1030,7 @@ class brandCampaignService {
             }
 
             if (!request) return null;
-            
+
             return {
                 requestId1: cId.toString(),
                 requestId2: iId.toString(),
@@ -1044,6 +1044,411 @@ class brandCampaignService {
         }
     }
 
+
+    static async submitTransaction(brandId, requestId1, requestId2, data, file) {
+        const {
+            objectives,
+            startDate,
+            endDate,
+            targetAudience,
+            amount,
+            paymentMethod,
+            prodName,
+            prodDescription,
+            originalPrice,
+            campaignPrice,
+            category,
+            targetQty,
+            deliverables: rawDeliverables
+        } = data;
+
+        if (!amount || !paymentMethod) {
+            throw new Error('Amount and payment method are required');
+        }
+
+        const campaignId = new mongoose.Types.ObjectId(requestId1);
+        const influencerId = new mongoose.Types.ObjectId(requestId2);
+
+        const request = await CampaignInfluencers.findOne({
+            _id: campaignId,
+            influencer_id: influencerId
+        });
+
+        if (!request) throw new Error('Request not found');
+
+        const campaignDoc = await CampaignInfo.findById(request.campaign_id).select('status brand_id');
+        if (!campaignDoc) throw new Error('Campaign not found');
+
+        const isCompleting = (campaignDoc.status === 'influencer-invite');
+
+        if (isCompleting) {
+            if (!objectives || !startDate || !endDate || !targetAudience) {
+                throw new Error('Campaign completion fields are required');
+            }
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (start < today) throw new Error('Start date cannot be in the past');
+            if (end <= start) throw new Error('End date must be after start date');
+
+            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            if (duration > 365) throw new Error('Campaign duration cannot exceed 365 days');
+
+            await CampaignInfo.updateOne(
+                { _id: request.campaign_id },
+                {
+                    $set: {
+                        objectives: objectives.trim(),
+                        start_date: start,
+                        end_date: end,
+                        duration: duration,
+                        target_audience: targetAudience.trim(),
+                        status: 'active'
+                    }
+                }
+            );
+
+            // Product creation
+            if (!prodName || !prodDescription || !category || !file) {
+                throw new Error('Product name, description, category, and image are required');
+            }
+
+            const op = Number(originalPrice);
+            const cp = Number(campaignPrice);
+            const tq = Number(targetQty);
+            if (!Number.isFinite(op) || op < 0 || !Number.isFinite(cp) || cp < 0 || cp > op || !Number.isFinite(tq) || tq < 0) {
+                throw new Error('Invalid product pricing or target quantity');
+            }
+
+            const { uploadToCloudinary } = require('../../utils/cloudinary');
+            const imageUrl = await uploadToCloudinary(file, 'products');
+
+            const { Product } = require('../../models/ProductMongo');
+            await Product.create({
+                brand_id: new mongoose.Types.ObjectId(brandId),
+                campaign_id: request.campaign_id,
+                name: prodName.trim(),
+                description: prodDescription.trim(),
+                images: [{ url: imageUrl, is_primary: true }],
+                original_price: op,
+                campaign_price: cp,
+                category: category.trim(),
+                target_quantity: tq,
+                created_by: new mongoose.Types.ObjectId(brandId),
+                status: 'active'
+            });
+        }
+
+        const { CampaignPayments } = require('../../models/CampaignMongo');
+        const payment = new CampaignPayments({
+            campaign_id: request.campaign_id,
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            influencer_id: influencerId,
+            amount: parseFloat(amount),
+            status: 'completed',
+            payment_date: new Date(),
+            payment_method: paymentMethod === 'creditCard' ? 'credit_card' : 'bank_transfer'
+        });
+        await payment.save();
+
+        await CampaignInfluencers.updateOne(
+            { _id: campaignId, influencer_id: influencerId },
+            { $set: { status: 'active' } }
+        );
+
+        let deliverables = rawDeliverables;
+        if (typeof deliverables === 'string') {
+            try { deliverables = JSON.parse(deliverables); } catch (e) { deliverables = []; }
+        }
+
+        if (deliverables && Array.isArray(deliverables) && deliverables.length > 0) {
+            const formattedDeliverables = deliverables.map(d => ({
+                title: d.title || 'Untitled Deliverable',
+                description: d.description || '',
+                due_date: d.due_date ? new Date(d.due_date) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                deliverable_type: d.deliverable_type || 'Other',
+                status: 'pending'
+            }));
+
+            await CampaignInfluencers.updateOne(
+                { _id: campaignId, influencer_id: influencerId },
+                { $set: { deliverables: formattedDeliverables } }
+            );
+        }
+
+        const notificationController = require('../../controllers/notificationController');
+        try {
+            const campaignInfoForNotif = await CampaignInfo.findById(request.campaign_id).select('title').lean();
+            await notificationController.createNotification({
+                recipientId: new mongoose.Types.ObjectId(influencerId),
+                recipientType: 'influencer',
+                senderId: new mongoose.Types.ObjectId(brandId),
+                senderType: 'brand',
+                type: 'request_accepted',
+                title: 'Request Accepted',
+                body: `Your request has been accepted for "${campaignInfoForNotif?.title || 'your campaign'}".`,
+                relatedId: request._id,
+                data: { campaignId: request.campaign_id }
+            });
+        } catch (notifErr) { console.error('Notification error:', notifErr); }
+
+        const SubscriptionService = require('../subscription/subscriptionService');
+        try {
+            await SubscriptionService.updateUsage(brandId, 'brand', { influencersConnected: 1 });
+        } catch (usageError) { console.error('Usage update error:', usageError); }
+
+        return { success: true, message: 'Campaign completed and payment processed successfully!' };
+    }
+
+    static async createCampaign(brandId, data, files) {
+        const {
+            title, description, start_date, end_date, budget,
+            target_audience, required_channels, required_influencers,
+            min_followers, objectives, products
+        } = data;
+
+        const SubscriptionService = require('../subscription/subscriptionService');
+        const limitCheck = await SubscriptionService.checkSubscriptionLimits(brandId, 'brand', 'campaigns');
+        if (!limitCheck.allowed) {
+            return {
+                allowed: false,
+                reason: limitCheck.reason,
+                redirectToPayment: limitCheck.redirectToPayment
+            };
+        }
+
+        const startDateObj = new Date(start_date);
+        const endDateObj = new Date(end_date);
+        const duration = Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24) + 1);
+
+        if (duration <= 0) throw new Error('End date must be after start date.');
+
+        const campaignInfo = new CampaignInfo({
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            title,
+            description,
+            status: 'request',
+            start_date: startDateObj,
+            end_date: endDateObj,
+            duration: duration,
+            budget: parseFloat(budget),
+            target_audience,
+            required_channels: Array.isArray(required_channels) ? required_channels : [required_channels],
+            required_influencers: parseInt(required_influencers),
+            min_followers: parseInt(min_followers),
+            objectives
+        });
+
+        const savedCampaign = await campaignInfo.save();
+
+        if (products && Array.isArray(products)) {
+            const { Product } = require('../../models/ProductMongo');
+            const { uploadBufferToCloudinary } = require('../../utils/cloudinary');
+
+            for (let i = 0; i < products.length; i++) {
+                const productData = products[i];
+                const discountPercentage = productData.original_price > 0
+                    ? Math.round(((productData.original_price - productData.campaign_price) / productData.original_price) * 100)
+                    : 0;
+
+                let imageUrl = '';
+                if (files && files.length > 0) {
+                    const productImageFile = files.find(file => file.fieldname === `products[${i}][image]`);
+                    if (productImageFile) {
+                        imageUrl = await uploadBufferToCloudinary(productImageFile, 'product-images');
+                    }
+                }
+
+                await new Product({
+                    name: productData.name,
+                    category: productData.category,
+                    description: productData.description,
+                    original_price: parseFloat(productData.original_price),
+                    campaign_price: parseFloat(productData.campaign_price),
+                    discount_percentage: discountPercentage,
+                    images: [{ url: imageUrl }],
+                    special_instructions: productData.special_instructions || '',
+                    brand_id: new mongoose.Types.ObjectId(brandId),
+                    campaign_id: savedCampaign._id,
+                    created_by: new mongoose.Types.ObjectId(brandId),
+                    status: 'active',
+                    target_quantity: parseInt(productData.target_quantity)
+                }).save();
+            }
+        }
+
+        const campaignMetrics = new CampaignMetrics({
+            campaign_id: new mongoose.Types.ObjectId(savedCampaign._id),
+            brand_id: new mongoose.Types.ObjectId(brandId),
+        });
+        await campaignMetrics.save();
+
+        try {
+            await SubscriptionService.updateUsage(brandId, 'brand', { campaignsUsed: 1 });
+        } catch (e) { console.error('Usage update error:', e); }
+
+        return { success: true, campaignId: savedCampaign._id };
+    }
+
+    static async activateCampaign(brandId, campaignId) {
+        const campaign = await CampaignInfo.findOne({
+            _id: new mongoose.Types.ObjectId(campaignId),
+            brand_id: new mongoose.Types.ObjectId(brandId)
+        });
+
+        if (!campaign) throw new Error('Campaign not found');
+
+        const acceptedCount = await CampaignInfluencers.countDocuments({
+            campaign_id: new mongoose.Types.ObjectId(campaignId),
+            status: 'active'
+        });
+
+        if (acceptedCount === 0) throw new Error('Cannot activate: no accepted influencers yet.');
+
+        campaign.status = 'active';
+        await campaign.save();
+
+        return { success: true };
+    }
+
+    static async getCampaignDetails(brandId, campaignId) {
+        const campaign = await CampaignInfo.findOne({
+            _id: new mongoose.Types.ObjectId(campaignId),
+            brand_id: new mongoose.Types.ObjectId(brandId)
+        }).lean();
+
+        if (!campaign) throw new Error('Campaign not found');
+
+        const acceptedInfluencers = await CampaignInfluencers.find({
+            campaign_id: new mongoose.Types.ObjectId(campaignId),
+            status: 'active'
+        }).populate('influencer_id', 'fullName profilePicUrl followers engagement_rate').lean();
+
+        const { Product } = require('../../models/ProductMongo');
+        const products = await Product.find({ campaign_id: new mongoose.Types.ObjectId(campaignId) }).lean();
+
+        return {
+            _id: campaign._id,
+            title: campaign.title,
+            description: campaign.description,
+            status: campaign.status,
+            startDate: campaign.start_date,
+            endDate: campaign.end_date,
+            duration: campaign.duration,
+            budget: campaign.budget,
+            target_audience: campaign.target_audience,
+            required_channels: campaign.required_channels || [],
+            min_followers: campaign.min_followers,
+            objectives: campaign.objectives,
+            accepted_influencers: acceptedInfluencers.length,
+            influencers: acceptedInfluencers.map(ci => ({
+                name: ci.influencer_id?.fullName || 'Unknown',
+                profilePicUrl: ci.influencer_id?.profilePicUrl || '/images/default-avatar.jpg',
+                followers: ci.influencer_id?.followers || 0,
+                engagement_rate: ci.influencer_id?.engagement_rate || 0
+            })),
+            products: products.map(p => ({
+                _id: p._id,
+                name: p.name,
+                category: p.category,
+                description: p.description,
+                original_price: p.original_price,
+                campaign_price: p.campaign_price,
+                discount_percentage: p.discount_percentage,
+                images: p.images,
+                special_instructions: p.special_instructions,
+                target_quantity: p.target_quantity,
+                sold_quantity: p.sold_quantity
+            }))
+        };
+    }
+
+    static async endCampaign(brandId, campaignId) {
+        const campaign = await CampaignInfo.findOne({
+            _id: new mongoose.Types.ObjectId(campaignId),
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            status: 'active'
+        });
+
+        if (!campaign) throw new Error('Campaign not found or already completed');
+
+        const { Product } = require('../../models/ProductMongo');
+        const productsSold = await Product.countDocuments({ campaign_id: new mongoose.Types.ObjectId(campaignId) }) || 0;
+        const revenue = (productsSold || 0) * (campaign.budget || 0);
+        const roi = revenue / (campaign.budget || 1);
+
+        await CampaignMetrics.findOneAndUpdate(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId) },
+            { $set: { revenue, roi } }
+        );
+
+        campaign.status = 'completed';
+        campaign.end_date = new Date();
+        await campaign.save();
+
+        const { BrandInfo } = require('../../models/BrandMongo');
+        const { InfluencerInfo } = require('../../models/InfluencerMongo');
+
+        await BrandInfo.findByIdAndUpdate(brandId, { $inc: { completedCampaigns: 1 } });
+
+        const influencers = await CampaignInfluencers.find({ campaign_id: new mongoose.Types.ObjectId(campaignId) });
+        for (const influencer of influencers) {
+            await InfluencerInfo.findByIdAndUpdate(influencer.influencer_id, { $inc: { completedCampaigns: 1 } });
+        }
+
+        await CampaignInfluencers.updateMany(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId), status: 'active' },
+            { $set: { status: 'completed' } }
+        );
+
+        await Product.updateMany(
+            { campaign_id: new mongoose.Types.ObjectId(campaignId) },
+            { $set: { status: 'inactive' } }
+        );
+
+        return { success: true };
+    }
+
+    static async getDraftCampaigns(brandId) {
+        return await CampaignInfo.find({
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            status: 'request'
+        })
+            .select('_id title budget description duration start_date end_date')
+            .sort({ createdAt: -1 })
+            .lean();
+    }
+
+    static async declineRequest(brandId, campaignId, influencerId) {
+        const request = await CampaignInfluencers.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(campaignId), influencer_id: new mongoose.Types.ObjectId(influencerId) },
+            { $set: { status: 'cancelled' } },
+            { new: true }
+        );
+
+        if (!request) throw new Error('Request not found');
+
+        const notificationController = require('../../controllers/notificationController');
+        try {
+            const campaign = await CampaignInfo.findById(request.campaign_id).select('title').lean();
+            await notificationController.createNotification({
+                recipientId: new mongoose.Types.ObjectId(influencerId),
+                recipientType: 'influencer',
+                senderId: new mongoose.Types.ObjectId(brandId),
+                senderType: 'brand',
+                type: 'request_declined',
+                title: 'Request Declined',
+                body: `Your request for "${campaign?.title || 'your campaign'}" was declined.`,
+                relatedId: request._id,
+                data: { campaignId: request.campaign_id }
+            });
+        } catch (e) { console.error('Notification error:', e); }
+
+        return { success: true };
+    }
 }
 
 module.exports = brandCampaignService;

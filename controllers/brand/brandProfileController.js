@@ -145,6 +145,29 @@ const controller = {
       console.error('Error in getCampaignHistory:', error);
       return res.status(500).json({ success: false, message: 'Error loading campaign history' });
     }
+  },
+
+  async updateProfileImages(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const updatedBrand = await brandProfileService.updateProfileImages(brandId, req.files);
+      res.json({ success: true, message: 'Images updated successfully', brand: updatedBrand });
+    } catch (error) {
+      console.error('Error updating profile images:', error);
+      res.status(error.message === 'No images were uploaded' ? 400 : 500).json({ success: false, message: error.message });
+    }
+  },
+
+  async deleteAccount(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      await brandProfileService.deleteAccount(brandId);
+      req.session.destroy();
+      res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      res.status(500).json({ success: false, message: 'Error deleting account' });
+    }
   }
 };
 

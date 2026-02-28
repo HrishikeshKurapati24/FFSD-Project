@@ -149,6 +149,51 @@ class brandDiscoveryService {
             throw error;
         }
     }
+
+    static async inviteInfluencer(brandId, influencerId, campaignId) {
+        const mongoose = require('mongoose');
+        const iId = new mongoose.Types.ObjectId(influencerId);
+        const cId = new mongoose.Types.ObjectId(campaignId);
+        const bId = new mongoose.Types.ObjectId(brandId);
+
+        // Check if campaign exists and belongs to brand
+        const campaign = await CampaignInfo.findOne({ _id: cId, brand_id: bId });
+        if (!campaign) throw new Error('Campaign not found');
+
+        // Check if invite already exists
+        const existingInvite = await CampaignInfluencers.findOne({
+            campaign_id: cId,
+            influencer_id: iId
+        });
+
+        if (existingInvite) throw new Error('Invite already exists for this influencer');
+
+        // Create invite
+        const invite = new CampaignInfluencers({
+            campaign_id: cId,
+            influencer_id: iId,
+            status: 'influencer-invite'
+        });
+        await invite.save();
+
+        // Create notification
+        const notificationController = require('../../controllers/notificationController');
+        try {
+            await notificationController.createNotification({
+                recipientId: iId,
+                recipientType: 'influencer',
+                senderId: bId,
+                senderType: 'brand',
+                type: 'request',
+                title: 'New Campaign Invitation',
+                body: `You have been invited to join the campaign: ${campaign.title}`,
+                relatedId: invite._id,
+                data: { campaignId: cId }
+            });
+        } catch (e) { console.error('Notification error:', e); }
+
+        return { success: true, message: 'Influencer invited successfully' };
+    }
 }
 
 module.exports = brandDiscoveryService;
