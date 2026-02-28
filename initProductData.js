@@ -79,7 +79,7 @@ const initializeProductData = async () => {
 module.exports = { initializeProductData };
 
 if (require.main === module) {
-    const { connectDB, closeConnection } = require('./models/mongoDB');
+    const { connectDB, closeConnection } = require('./mongoDB');
     (async () => {
         try {
             await connectDB();

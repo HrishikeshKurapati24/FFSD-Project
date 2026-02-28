@@ -149,7 +149,7 @@ const initializeMamaearthOnionCampaign = async () => {
 module.exports = { initializeMamaearthOnionCampaign };
 
 if (require.main === module) {
-    const { connectDB, closeConnection } = require('./models/mongoDB');
+    const { connectDB, closeConnection } = require('./mongoDB');
     (async () => {
         try {
             await connectDB();

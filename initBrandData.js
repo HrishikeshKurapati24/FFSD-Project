@@ -1,5 +1,5 @@
-const { BrandInfo, BrandSocials, BrandAnalytics } = require('./config/BrandMongo');
-const { connectDB, closeConnection } = require('./models/mongoDB');
+const { BrandInfo, BrandSocials, BrandAnalytics } = require('./models/BrandMongo');
+const { connectDB, closeConnection } = require('./mongoDB');
 const bcrypt = require('bcrypt');
 const { uploadSeedImage } = require('./utils/seedHelpers');
 

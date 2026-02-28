@@ -1,4 +1,4 @@
-const { connectDB, closeConnection } = require('./models/mongoDB');
+const { connectDB, closeConnection } = require('./mongoDB');
 const { initializeBrandData } = require('./initBrandData');
 const { initializeInfluencerData } = require('./initInfluencerData');
 const { initializeExtendedBrandData } = require('./initExtendedBrandData');

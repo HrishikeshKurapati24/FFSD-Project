@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated } = require('./authRoutes');
-const notificationController = require('../controllers/notificationController');
+const notificationController = require('../monolithic_files/notificationController');
 
 // All notification routes require authentication
 router.use(isAuthenticated);

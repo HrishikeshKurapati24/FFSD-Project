@@ -49,16 +49,6 @@ const errorHandler = (err, req, res, next) => {
         console.log('ℹ️ INFO ERROR:', JSON.stringify(errorLog, null, 2));
     }
 
-    // Determine if this is an API request
-    const isAPIRequest = req.xhr ||
-                        req.headers.accept?.includes('application/json') ||
-                        req.headers['content-type']?.includes('application/json') ||
-                        req.originalUrl.startsWith('/api/') ||
-                        (req.headers.origin && (
-                            req.headers.origin.includes('localhost:5173') ||
-                            req.headers.origin.includes('localhost:3000')
-                        ));
-
     // Set status code
     const statusCode = err.statusCode || err.status || 500;
 
@@ -78,26 +68,8 @@ const errorHandler = (err, req, res, next) => {
         errorResponse.error.originalError = err.name;
     }
 
-    // Handle different response types
-    if (isAPIRequest) {
-        // Return JSON for API requests
-        return res.status(statusCode).json(errorResponse);
-    } else {
-        // Render error page for traditional requests
-        // Check if error page exists, otherwise send JSON as fallback
-        try {
-            return res.status(statusCode).render('error', {
-                error: err.message || 'An unexpected error occurred',
-                statusCode,
-                timestamp: new Date().toISOString(),
-                user: userInfo
-            });
-        } catch (renderError) {
-            // Fallback to JSON if rendering fails
-            console.error('Error rendering error page:', renderError);
-            return res.status(statusCode).json(errorResponse);
-        }
-    }
+    // Always return JSON — app is a pure REST API, no EJS views
+    return res.status(statusCode).json(errorResponse);
 };
 
 module.exports = errorHandler;

@@ -1,18 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const brandController = require('../controllers/brandController');
-const CampaignContentController = require('../controllers/campaignContentController');
+const brandProfileController = require('../controllers/brand/brandProfileController');
+const brandDiscoveryController = require('../controllers/brand/brandDiscoveryController');
+const brandCampaignController = require('../controllers/brand/brandCampaignController');
+const brandEcommerceController = require('../controllers/brand/brandEcommerceController');
+const brandController = brandProfileController; // Keep for backward compatibility if any other parts use it
+const CampaignContentController = require('../controllers/campaign/campaignContentController');
 const { upload } = require('../utils/imageUpload');
 const multer = require('multer');
 const { uploadToCloudinary, uploadBufferToCloudinary } = require('../utils/cloudinary');
 const { isAuthenticated, isBrand } = require('./authRoutes');
-const { CampaignPayments, CampaignInfluencers, CampaignInfo, CampaignMetrics } = require('../config/CampaignMongo');
-const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('../config/InfluencerMongo');
+const { CampaignPayments, CampaignInfluencers, CampaignInfo, CampaignMetrics } = require('../models/CampaignMongo');
+const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('../models/InfluencerMongo');
 const mongoose = require('mongoose');
-const { BrandInfo, BrandAnalytics, BrandSocials } = require('../config/BrandMongo');
-const { Message } = require('../config/MessageMongo');
-const { Product } = require('../config/ProductMongo');
-const notificationController = require('../controllers/notificationController');
+const { BrandInfo, BrandAnalytics, BrandSocials } = require('../models/BrandMongo');
+const { Message } = require('../models/MessageMongo');
+const { Product } = require('../models/ProductMongo');
+const notificationController = require('../monolithic_files/notificationController');
 
 // Brand sign out route (must be before authentication middleware)
 router.get('/signout', (req, res) => {
@@ -132,6 +136,9 @@ router.use('/', verifyBrandId);
 router.get('/home', brandController.getBrandDashboard);
 
 // Route for the influencer explore page
+router.get('/explore', brandController.getExplorePage);
+
+/*
 router.get('/explore', async (req, res) => {
     try {
         // Get query parameters for filtering
@@ -294,8 +301,12 @@ router.get('/explore', async (req, res) => {
         });
     }
 });
+*/
 
 // Update the influencer profile route to handle both URL parameter and query parameter
+router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, brandDiscoveryController.getInfluencerProfile);
+
+/*
 router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async (req, res) => {
     try {
         // Get influencerId from either URL parameter or query parameter
@@ -467,8 +478,12 @@ router.get('/influencer_profile/:influencerId?', isAuthenticated, isBrand, async
         });
     }
 });
+*/
 
 // Route for the brand collab page
+router.get('/collab', brandCampaignController.getCollabs);
+
+/*
 router.get('/collab', async (req, res) => {
     try {
         const brandId = req.session.user.id;
@@ -541,10 +556,14 @@ router.get('/collab', async (req, res) => {
         });
     }
 });
+*/
 
 router.get('/profile', brandController.getBrandProfile);
 
 // Get received requests page
+router.get('/recievedRequests', isAuthenticated, isBrand, brandCampaignController.getReceivedRequests);
+
+/*
 router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
     try {
         // Get brand ID from session
@@ -733,7 +752,11 @@ router.get('/recievedRequests', isAuthenticated, isBrand, async (req, res) => {
         });
     }
 });
+*/
 
+router.get('/create_collab', brandCampaignController.createCollab);
+
+/*
 router.get('/create_collab', (req, res) => {
     // Return JSON for API requests (React frontend)
     if (req.xhr || req.headers.accept?.includes('application/json')) {
@@ -745,8 +768,12 @@ router.get('/create_collab', (req, res) => {
     // Render EJS for traditional requests (legacy support)
     res.render('brand/create_collab');
 });
+*/
 
 // Route for the B2_transaction with requestId
+router.get('/:requestId1/:requestId2/transaction', brandCampaignController.getTransaction);
+
+/*
 router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
     try {
         const brandId = req.session.user.id;
@@ -935,6 +962,7 @@ router.get('/:requestId1/:requestId2/transaction', async (req, res) => {
         });
     }
 });
+*/
 
 // POST route to handle payment submission
 router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'), async (req, res) => {
@@ -1279,7 +1307,7 @@ router.post('/:requestId1/:requestId2/transaction', upload.single('productImage'
         }
 
         // Update subscription usage for influencer connection
-        const { SubscriptionService } = require('../models/brandModel');
+        const SubscriptionService = require('../services/subscription/subscriptionService');
         try {
             await SubscriptionService.updateUsage(brandId, 'brand', { influencersConnected: 1 });
         } catch (usageError) {
@@ -1561,7 +1589,7 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
         }
 
         // Check subscription limits for campaign creation
-        const { SubscriptionService } = require('../models/brandModel');
+        const SubscriptionService = require('../services/subscription/subscriptionService');
         try {
             const limitCheck = await SubscriptionService.checkSubscriptionLimit(brandId, 'brand', 'create_campaign');
             if (!limitCheck.allowed) {
@@ -1723,7 +1751,7 @@ router.post('/campaigns/create', campaignUpload.any(), async (req, res) => {
 
         // Create products for the campaign
         if (products && Array.isArray(products)) {
-            const { Product } = require('../config/ProductMongo');
+            const { Product } = require('../models/ProductMongo');
 
             for (let i = 0; i < products.length; i++) {
                 const productData = products[i];
@@ -1949,12 +1977,12 @@ router.post('/campaigns/:campaignId/activate', async (req, res) => {
 });
 
 // New routes for Dashboard Influencer Drill-down
-router.get('/campaigns/:campaignId/influencers', isAuthenticated, isBrand, brandController.getCampaignInfluencers);
-router.get('/campaigns/:campaignId/influencers/:influencerId/contribution', isAuthenticated, isBrand, brandController.getInfluencerContribution);
+router.get('/campaigns/:campaignId/influencers', isAuthenticated, isBrand, brandCampaignController.getCampaignInfluencers);
+router.get('/campaigns/:campaignId/influencers/:influencerId/contribution', isAuthenticated, isBrand, brandCampaignController.getInfluencerContribution);
 
 // Deliverables routes
-router.get('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandController.getCampaignDeliverables);
-router.post('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandController.updateCampaignDeliverables);
+router.get('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandCampaignController.getCampaignDeliverables);
+router.post('/campaigns/:campaignId/deliverables', isAuthenticated, isBrand, brandCampaignController.updateCampaignDeliverables);
 
 // Add this route after the campaign activation route
 router.get('/campaigns/:campaignId/details', async (req, res) => {
@@ -2371,7 +2399,7 @@ router.post('/profile/delete', isAuthenticated, async (req, res) => {
 
 
 // Get campaign history page
-router.get('/campaigns/history', isAuthenticated, isBrand, brandController.getCampaignHistory);
+router.get('/campaigns/history', isAuthenticated, isBrand, brandProfileController.getCampaignHistory);
 router.get('/influencer_details/:influencerId', isAuthenticated, isBrand, async (req, res) => {
     try {
         const { influencerId } = req.params;
@@ -2452,8 +2480,8 @@ router.post('/content/:contentId/review', CampaignContentController.reviewConten
 // ========== ORDER MANAGEMENT ROUTES ==========
 
 // Order tracking routes
-router.get('/orders', isAuthenticated, isBrand, brandController.getBrandOrders);
-router.post('/orders/:orderId/status', isAuthenticated, isBrand, brandController.updateOrderStatus);
-router.get('/orders/analytics', isAuthenticated, isBrand, brandController.getOrderAnalytics);
+router.get('/orders', isAuthenticated, isBrand, brandEcommerceController.getBrandOrders);
+router.post('/orders/:orderId/status', isAuthenticated, isBrand, brandEcommerceController.updateOrderStatus);
+router.get('/orders/analytics', isAuthenticated, isBrand, brandEcommerceController.getOrderAnalytics);
 
 module.exports = router;

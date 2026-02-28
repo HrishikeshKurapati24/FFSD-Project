@@ -1,4 +1,4 @@
-const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./config/InfluencerMongo');
+const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./models/InfluencerMongo');
 const bcrypt = require('bcrypt');
 const { uploadSeedImage } = require('./utils/seedHelpers');
 

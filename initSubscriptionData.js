@@ -1,6 +1,6 @@
-const { BrandInfo } = require('./config/BrandMongo');
-const { InfluencerInfo } = require('./config/InfluencerMongo');
-const { SubscriptionService, UserSubscription, SubscriptionPlan } = require('./models/brandModel');
+const { BrandInfo } = require('./models/BrandMongo');
+const { InfluencerInfo } = require('./models/InfluencerMongo');
+const { SubscriptionService, UserSubscription, SubscriptionPlan } = require('./services/brandModel');
 
 const initializeSubscriptionData = async () => {
     try {
@@ -124,7 +124,7 @@ const initializeSubscriptionData = async () => {
 module.exports = { initializeSubscriptionData };
 
 if (require.main === module) {
-    const { connectDB, closeConnection } = require('./models/mongoDB');
+    const { connectDB, closeConnection } = require('./mongoDB');
 
     (async () => {
         try {

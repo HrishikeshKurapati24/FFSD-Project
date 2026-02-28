@@ -1,4 +1,4 @@
-const { SubscriptionService } = require('../models/brandModel');
+const SubscriptionService = require('../services/subscription/subscriptionService');
 
 /**
  * Middleware to check subscription limits before allowing certain actions
@@ -10,7 +10,7 @@ const checkSubscriptionLimit = (action) => {
         try {
             const userId = req.session.user.id;
             const userType = req.session.user.role;
-            
+
             if (!userId || !userType) {
                 return res.status(401).json({
                     success: false,
@@ -20,23 +20,13 @@ const checkSubscriptionLimit = (action) => {
 
             // Check subscription limits
             const limitCheck = await SubscriptionService.checkSubscriptionLimit(userId, userType, action);
-            
+
             if (!limitCheck.allowed) {
-                // For API requests, return JSON
-                if (req.xhr || req.headers.accept.includes('application/json')) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Subscription limit reached: ${limitCheck.reason}. Please upgrade your plan.`,
-                        showUpgradeLink: true,
-                        upgradeUrl: '/subscription/manage'
-                    });
-                }
-                
-                // For form submissions, render with error
-                return res.status(400).render(req.originalUrl.includes('brand') ? 'brand/Create_collab' : 'error', {
-                    error: `Subscription limit reached: ${limitCheck.reason}. Please upgrade your plan to continue.`,
-                    formData: req.body,
-                    showUpgradeLink: true
+                return res.status(400).json({
+                    success: false,
+                    message: `Subscription limit reached: ${limitCheck.reason}. Please upgrade your plan.`,
+                    showUpgradeLink: true,
+                    upgradeUrl: '/subscription/manage'
                 });
             }
 
@@ -61,18 +51,18 @@ const updateSubscriptionUsage = (usageType, amount = 1) => {
         try {
             const userId = req.session.user.id;
             const userType = req.session.user.role;
-            
+
             if (userId && userType) {
                 const usageUpdate = {};
                 usageUpdate[usageType] = amount;
-                
+
                 await SubscriptionService.updateUsage(userId, userType, usageUpdate);
             }
         } catch (error) {
             console.error('Error updating subscription usage:', error);
             // Don't fail the request if usage update fails
         }
-        
+
         next();
     };
 };

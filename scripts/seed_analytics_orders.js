@@ -1,4 +1,4 @@
-const { mongoose } = require('../models/mongoDB');
+const { mongoose } = require('../mongoDB');
 const { InfluencerInfo } = require('../config/InfluencerMongo');
 const { CampaignInfo } = require('../config/CampaignMongo');
 const { Order } = require('../config/OrderMongo');
@@ -159,7 +159,7 @@ const seedOrdersForAnalytics = async () => {
 };
 
 // Connect to MongoDB and run seed
-const { connectDB, closeConnection } = require('../models/mongoDB');
+const { connectDB, closeConnection } = require('../mongoDB');
 
 (async () => {
     await connectDB();

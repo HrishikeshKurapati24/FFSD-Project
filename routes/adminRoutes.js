@@ -1,81 +1,89 @@
 const express = require('express');
 const router = express.Router();
-const { DashboardController, AnalyticsController, FeedbackController, PaymentController, UserManagementController, CollaborationController, CustomerController, NotificationController, OrderAnalyticsController } = require('../controllers/AdminController');
-const AdminAnalyticsController = require('../controllers/AdminAnalyticsController');
-const { Admin } = require('../models/mongoDB');
+const DashboardController = require('../controllers/admin/adminDashboardController');
+const AnalyticsController = require('../controllers/admin/adminAnalyticsController');
+const FeedbackController = require('../controllers/admin/adminFeedbackController');
+const PaymentController = require('../controllers/admin/adminPaymentController');
+const UserManagementController = require('../controllers/admin/adminUserController');
+const CollaborationController = require('../controllers/admin/adminCollaborationController');
+const CustomerController = require('../controllers/admin/adminCustomerController');
+const NotificationController = require('../controllers/admin/adminNotificationController');
+const OrderAnalyticsController = require('../controllers/admin/adminOrderController');
+const { Admin } = require('../mongoDB');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const { AdminSettingsController, isAPIRequest } = require('../controllers/admin/adminSettingsController');
 
 dotenv.config();
 
 // Helper function to detect API requests
-const isAPIRequest = (req) => {
-    // Check explicit headers first
-    if (req.headers.accept && req.headers.accept.includes('application/json')) {
-        return true;
-    }
-    if (req.xhr) {
-        return true;
-    }
-
-    // Get the full path (originalUrl includes the full path with query string)
-    const fullPath = req.originalUrl || req.url || req.path || '';
-    const pathOnly = fullPath.split('?')[0]; // Remove query string
-
-    if (pathOnly.startsWith('/api/')) {
-        return true;
-    }
-    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
-        return true;
-    }
-
-    // Check origin/referer for React app
-    const origin = req.headers.origin || '';
-    const referer = req.headers.referer || '';
-    if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
-        referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
-        return true;
-    }
-
-    // For admin routes that are commonly called from React via fetch(), assume API request
-    // unless it's a direct browser navigation (has text/html in accept)
-    // Note: req.path is relative to the router mount point, so '/admin/dashboard' becomes '/dashboard'
-    const adminAPIRoutes = [
-        '/admin/verify', '/verify',
-        '/admin/dashboard', '/dashboard',
-        '/admin/user_management', '/user_management',
-        '/admin/customer-management', '/customer-management',
-        '/admin/collaboration_monitoring', '/collaboration_monitoring',
-        '/admin/payment_verification', '/payment_verification',
-        '/admin/feedback_and_moderation', '/feedback_and_moderation',
-        '/admin/brand-analytics', '/brand-analytics',
-        '/admin/influencer-analytics', '/influencer-analytics',
-        '/admin/campaign-analytics', '/campaign-analytics',
-        '/admin/notifications', '/notifications',
-        '/admin/verified-brands', '/verified-brands',
-        '/admin/verified-influencers', '/verified-influencers',
-        '/admin/all-customers', '/all-customers',
-        '/admin/orders/all', '/orders/all'
-    ];
-
-    const isAdminAPIRoute = adminAPIRoutes.some(route =>
-        pathOnly === route || pathOnly.startsWith(route + '/')
-    );
-
-    if (isAdminAPIRoute) {
-        // If explicitly requesting HTML (browser navigation), it's a page request
-        const acceptHeader = req.headers.accept || '';
-        if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
-            return false;
-        }
-        // For fetch() calls from React, there's usually no Accept header or it doesn't include text/html
-        // So if it's one of these routes and not explicitly requesting HTML, treat as API request
-        return true;
-    }
-
-    return false;
-};
+// const isAPIRequest = (req) => {
+//     // Check explicit headers first
+//     if (req.headers.accept && req.headers.accept.includes('application/json')) {
+//         return true;
+//     }
+//     if (req.xhr) {
+//         return true;
+//     }
+// 
+//     // Get the full path (originalUrl includes the full path with query string)
+//     const fullPath = req.originalUrl || req.url || req.path || '';
+//     const pathOnly = fullPath.split('?')[0]; // Remove query string
+// 
+//     if (pathOnly.startsWith('/api/')) {
+//         return true;
+//     }
+//     if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+//         return true;
+//     }
+// 
+//     // Check origin/referer for React app
+//     const origin = req.headers.origin || '';
+//     const referer = req.headers.referer || '';
+//     if (origin.includes('localhost:5173') || origin.includes('localhost:3000') ||
+//         referer.includes('localhost:5173') || referer.includes('localhost:3000')) {
+//         return true;
+//     }
+// 
+//     // For admin routes that are commonly called from React via fetch(), assume API request
+//     // unless it's a direct browser navigation (has text/html in accept)
+//     // Note: req.path is relative to the router mount point, so '/admin/dashboard' becomes '/dashboard'
+//     const adminAPIRoutes = [
+//         '/admin/verify', '/verify',
+//         '/admin/dashboard', '/dashboard',
+//         '/admin/user_management', '/user_management',
+//         '/admin/customer-management', '/customer-management',
+//         '/admin/collaboration_monitoring', '/collaboration_monitoring',
+//         '/admin/payment_verification', '/payment_verification',
+//         '/admin/feedback_and_moderation', '/feedback_and_moderation',
+//         '/admin/brand-analytics', '/brand-analytics',
+//         '/admin/influencer-analytics', '/influencer-analytics',
+//         '/admin/campaign-analytics', '/campaign-analytics',
+//         '/admin/notifications', '/notifications',
+//         '/admin/verified-brands', '/verified-brands',
+//         '/admin/verified-influencers', '/verified-influencers',
+//         '/admin/all-customers', '/all-customers',
+//         '/admin/orders/all', '/orders/all'
+//     ];
+// 
+//     const isAdminAPIRoute = adminAPIRoutes.some(route =>
+//         pathOnly === route || pathOnly.startsWith(route + '/')
+//     );
+// 
+//     if (isAdminAPIRoute) {
+//         // If explicitly requesting HTML (browser navigation), it's a page request
+//         const acceptHeader = req.headers.accept || '';
+//         if (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json')) {
+//             return false;
+//         }
+//         // For fetch() calls from React, there's usually no Accept header or it doesn't include text/html
+//         // So if it's one of these routes and not explicitly requesting HTML, treat as API request
+//         return true;
+//     }
+// 
+//     return false;
+// };
 
 // Helper function to verify JWT token from cookie for admin
 const verifyAdminJWTFromCookie = (req) => {
@@ -109,60 +117,47 @@ const verifyAdminJWTFromCookie = (req) => {
     }
 };
 
-// Admin Auth Middleware (supports both session and JWT)
+// Admin Auth Middleware — pure JSON API, no EJS redirects
 const adminAuth = async (req, res, next) => {
     try {
         let adminUser = null;
         let userId = null;
-        let userRole = null;
 
-        // First check for session (for EJS pages)
+        // Check session first, then fall back to JWT cookie
         if (req.session && req.session.userId) {
             userId = req.session.userId;
-            userRole = req.session.role;
         } else {
-            // If no session, check for JWT token in cookie (for React API)
             const jwtAdmin = verifyAdminJWTFromCookie(req);
             if (jwtAdmin) {
                 userId = jwtAdmin.userId;
-                userRole = jwtAdmin.role;
             }
         }
 
-        // If no authentication found
+        // No authentication found — always return 401 JSON (no redirect)
         if (!userId) {
-            // Check if this is an API request (JSON expected)
-            if (isAPIRequest(req)) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Unauthorized',
-                    error: 'Authentication required. Please sign in again.'
-                });
-            }
-            return res.redirect('/admin/login');
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized',
+                error: 'Authentication required. Please sign in again.'
+            });
         }
 
         // Verify admin user exists and has admin role
         adminUser = await Admin.findOne({ userId });
         if (!adminUser || adminUser.role !== 'admin') {
-            // Check if this is an API request (JSON expected)
-            if (isAPIRequest(req)) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Forbidden',
-                    error: 'Access denied: Admin only'
-                });
-            }
-            return res.redirect('/admin/login');
+            return res.status(403).json({
+                success: false,
+                message: 'Forbidden',
+                error: 'Access denied: Admin only'
+            });
         }
 
-        // Cache role in session if not already set
+        // Cache to session if not already set
         if (!req.session.role) {
             req.session.role = adminUser.role;
             req.session.userId = adminUser.userId;
         }
 
-        // Add user data to all admin routes
         req.user = {
             userId: adminUser.userId,
             username: adminUser.username,
@@ -179,69 +174,68 @@ const adminAuth = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Admin auth middleware error:', error);
-        // Check if this is an API request (JSON expected)
-        if (isAPIRequest(req)) {
-            return res.status(500).json({
-                success: false,
-                message: 'Internal server error'
-            });
-        }
-        res.redirect('/admin/login');
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
     }
 };
 
 // Public routes
-router.get('/login', (req, res) => {
-    // Check if user is already authenticated via session or JWT
-    if (req.session && req.session.userId) {
-        return res.redirect('/admin/dashboard');
-    }
+// router.get('/login', (req, res) => {
+//     // Check if user is already authenticated via session or JWT
+//     if (req.session && req.session.userId) {
+//         return res.redirect('/admin/dashboard');
+//     }
+// 
+//     // Check JWT token
+//     const jwtAdmin = verifyAdminJWTFromCookie(req);
+//     if (jwtAdmin) {
+//         return res.redirect('/admin/dashboard');
+//     }
+// 
+//     res.render('admin/login');
+// });
+// 
+// // Unauthenticated admin API access test endpoint
+// router.get('/verify', async (req, res) => {
+//     // Check if this is an API request (JSON expected)
+//     if (isAPIRequest(req)) {
+//         // Check for JWT token in cookie (for React API)
+//         const jwtAdmin = verifyAdminJWTFromCookie(req);
+//         if (!jwtAdmin) {
+//             return res.status(401).json({
+//                 authenticated: false,
+//                 message: 'Not authenticated'
+//             });
+//         }
+// 
+//         // If JWT exists, verify admin user
+//         const adminUser = await Admin.findOne({ userId: jwtAdmin.userId });
+//         if (!adminUser || adminUser.role !== 'admin') {
+//             return res.status(403).json({
+//                 authenticated: false,
+//                 message: 'Access denied: Admin only'
+//             });
+//         }
+// 
+//         return res.status(200).json({
+//             authenticated: true,
+//             user: {
+//                 userId: adminUser.userId,
+//                 username: adminUser.username,
+//                 role: adminUser.role,
+//                 userType: 'admin'
+//             }
+//         });
+//     } else {
+//         // For page requests, redirect to login
+//         return res.redirect('/admin/login');
+//     }
+// });
 
-    // Check JWT token
-    const jwtAdmin = verifyAdminJWTFromCookie(req);
-    if (jwtAdmin) {
-        return res.redirect('/admin/dashboard');
-    }
-
-    res.render('admin/login');
-});
-
-// Unauthenticated admin API access test endpoint
-router.get('/verify', async (req, res) => {
-    // Check if this is an API request (JSON expected)
-    if (isAPIRequest(req)) {
-        // Check for JWT token in cookie (for React API)
-        const jwtAdmin = verifyAdminJWTFromCookie(req);
-        if (!jwtAdmin) {
-            return res.status(401).json({
-                authenticated: false,
-                message: 'Not authenticated'
-            });
-        }
-
-        // If JWT exists, verify admin user
-        const adminUser = await Admin.findOne({ userId: jwtAdmin.userId });
-        if (!adminUser || adminUser.role !== 'admin') {
-            return res.status(403).json({
-                authenticated: false,
-                message: 'Access denied: Admin only'
-            });
-        }
-
-        return res.status(200).json({
-            authenticated: true,
-            user: {
-                userId: adminUser.userId,
-                username: adminUser.username,
-                role: adminUser.role,
-                userType: 'admin'
-            }
-        });
-    } else {
-        // For page requests, redirect to login
-        return res.redirect('/admin/login');
-    }
-});
+router.get('/login', AdminSettingsController.getLoginPage);
+router.get('/verify', AdminSettingsController.verifyToken);
 
 router.post('/login/verify', DashboardController.verifyUser);
 
@@ -274,14 +268,17 @@ router.get('/campaign-analytics', AnalyticsController.getCampaignAnalytics);
 
 // Advanced Analytics (God Mode)
 router.get('/analytics', async (req, res) => {
-    // Fetch brands for the dropdown
-    const brands = await require('../config/BrandMongo').BrandInfo.find({}).select('brandName _id').lean();
-    res.render('admin/analytics', { brands });
+    try {
+        const brands = await require('../models/BrandMongo').BrandInfo.find({}).select('brandName _id').lean();
+        return res.status(200).json({ success: true, brands });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Failed to load analytics data' });
+    }
 });
-router.get('/analytics/influencer-roi', AdminAnalyticsController.getInfluencerROI);
-router.get('/analytics/campaign-revenue', AdminAnalyticsController.getCampaignRevenueLeaderboard);
-router.get('/analytics/matchmaking/:brandId', AdminAnalyticsController.getMatchmakingRecommendations);
-router.get('/analytics/ecosystem', AdminAnalyticsController.getEcosystemGraphData);
+router.get('/analytics/influencer-roi', AnalyticsController.getInfluencerROI);
+router.get('/analytics/campaign-revenue', AnalyticsController.getCampaignRevenueLeaderboard);
+router.get('/analytics/matchmaking/:brandId', AnalyticsController.getMatchmakingRecommendations);
+router.get('/analytics/ecosystem', AnalyticsController.getEcosystemGraphData);
 
 // User Management routes
 router.get('/user_management', UserManagementController.getUserManagementPage);
@@ -321,86 +318,90 @@ router.get('/orders/analytics', OrderAnalyticsController.getAdminOrderAnalytics)
 router.get('/orders/all', OrderAnalyticsController.getAdminAllOrders);
 
 // Settings route
-router.get('/settings', (req, res) => {
-    res.render('admin/settings', { user: res.locals.user });
-});
+// router.get('/settings', (req, res) => {
+//     res.render('admin/settings', { user: res.locals.user });
+// });
+// 
+// // Reset Password Route
+// router.post('/reset-password', async (req, res) => {
+//     try {
+//         const { username, newPassword } = req.body;
+// 
+//         // Find user by username
+//         const user = await Admin.findOne({ username });
+// 
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'User not found'
+//             });
+//         }
+// 
+//         // Hash the new password
+//         const saltRounds = 10;
+//         const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+// 
+//         // Update user's password
+//         user.password = hashedPassword;
+//         await user.save();
+// 
+//         res.json({
+//             success: true,
+//             message: 'Password reset successful'
+//         });
+//     } catch (error) {
+//         console.error('Password reset error:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Error resetting password'
+//         });
+//     }
+// });
+// 
+// // Logout route
+// router.get('/logout', (req, res) => {
+//     // Clear session
+//     req.session.destroy((err) => {
+//         if (err) {
+//             console.error('Logout error:', err);
+//             const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
+//             if (isAPIRequest) {
+//                 return res.status(500).json({
+//                     success: false,
+//                     message: 'Error logging out'
+//                 });
+//             }
+//             return res.redirect('/admin/login');
+//         }
+// 
+//         // Clear JWT cookie
+//         res.clearCookie('adminToken', {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === 'production',
+//             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+//             path: '/'
+//         });
+// 
+//         // Clear session cookie
+//         res.clearCookie('session-id');
+// 
+//         // Check if this is an API request (JSON) or page request (HTML)
+//         const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
+// 
+//         if (isAPIRequest) {
+//             return res.status(200).json({
+//                 success: true,
+//                 message: 'Logged out successfully'
+//             });
+//         } else {
+//             return res.redirect('/admin/login');
+//         }
+//     });
+// });
 
-// Reset Password Route
-router.post('/reset-password', async (req, res) => {
-    try {
-        const { username, newPassword } = req.body;
-
-        // Find user by username
-        const user = await Admin.findOne({ username });
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        // Hash the new password
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-        // Update user's password
-        user.password = hashedPassword;
-        await user.save();
-
-        res.json({
-            success: true,
-            message: 'Password reset successful'
-        });
-    } catch (error) {
-        console.error('Password reset error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error resetting password'
-        });
-    }
-});
-
-// Logout route
-router.get('/logout', (req, res) => {
-    // Clear session
-    req.session.destroy((err) => {
-        if (err) {
-            console.error('Logout error:', err);
-            const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json');
-            if (isAPIRequest) {
-                return res.status(500).json({
-                    success: false,
-                    message: 'Error logging out'
-                });
-            }
-            return res.redirect('/admin/login');
-        }
-
-        // Clear JWT cookie
-        res.clearCookie('adminToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-            path: '/'
-        });
-
-        // Clear session cookie
-        res.clearCookie('session-id');
-
-        // Check if this is an API request (JSON) or page request (HTML)
-        const isAPIRequest = req.headers.accept && req.headers.accept.includes('application/json') || req.xhr;
-
-        if (isAPIRequest) {
-            return res.status(200).json({
-                success: true,
-                message: 'Logged out successfully'
-            });
-        } else {
-            return res.redirect('/admin/login');
-        }
-    });
-});
+router.get('/settings', AdminSettingsController.getSettings);
+router.post('/reset-password', AdminSettingsController.resetPassword);
+router.get('/logout', AdminSettingsController.logout);
 
 // Find and comment out or fix any route that uses an undefined controller function.
 // This will resolve the "[object Undefined]" error on startup.

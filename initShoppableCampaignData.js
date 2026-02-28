@@ -247,7 +247,7 @@ module.exports = initializeShoppableCampaignData;
 
 // Run if called directly
 if (require.main === module) {
-    const { connectDB } = require('./models/mongoDB');
+    const { connectDB } = require('./mongoDB');
 
     const runInit = async () => {
         try {

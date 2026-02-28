@@ -1,4 +1,4 @@
-const { connectDB, closeConnection } = require('../models/mongoDB');
+const { connectDB, closeConnection } = require('../mongoDB');
 const { Customer } = require('../config/CustomerMongo');
 const bcrypt = require('bcrypt');
 
