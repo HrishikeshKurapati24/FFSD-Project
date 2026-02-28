@@ -90,10 +90,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        // false = omit SameSite attribute entirely in dev → browser legacy mode sends cookie
-        // for all requests to localhost regardless of caller port (5173 vs 3000).
-        // SameSite=Lax blocks cookies on cross-origin fetch() calls.
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : false,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Must be 'none' for cross-site
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         httpOnly: true
     }
