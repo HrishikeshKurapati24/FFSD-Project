@@ -45,12 +45,7 @@ const InfluencerAnalytics = () => {
 
         if (response.ok) {
           const data = await response.json();
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            setMetrics(data);
-          } else {
-            setError('Unable to load analytics data. Please try again.');
-          }
+          setMetrics(data);
         } else {
           const errorData = await response.json().catch(() => ({ message: 'Failed to fetch influencer analytics' }));
           setError(errorData.message || 'Failed to load influencer analytics');

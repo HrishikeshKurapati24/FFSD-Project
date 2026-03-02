@@ -547,3 +547,79 @@
     color: #666;
     margin-top: 2px;
 }
+
+/* ── Influencer avatar in Previous Collaborations & Current Partnerships ── */
+:global(.brand-profile-page .influencers-section) {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+:global(.brand-profile-page .influencer-details) {
+    background: #fafafa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+:global(.brand-profile-page .influencer-info-compact) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* Fixed-size avatar — every image is exactly 36 × 36 px */
+:global(.brand-profile-page .influencer-avatar-small) {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;   /* prevent flex from shrinking it */
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    display: block;
+}
+
+:global(.brand-profile-page .influencer-name) {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+:global(.brand-profile-page .influencer-username) {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 400;
+}
+
+:global(.brand-profile-page .product-tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+:global(.brand-profile-page .product-tag-badge) {
+    font-size: 0.7rem;
+    background: #e3f2fd;
+    color: var(--primary-color);
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 1px solid #bbdefb;
+}
+
+:global(.brand-profile-page .campaign-price) {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+:global(.brand-profile-page .original-price) {
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 4px;
+}

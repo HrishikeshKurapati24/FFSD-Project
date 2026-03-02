@@ -17,7 +17,8 @@ class AdminSettingsService {
 
             // Verify admin user exists and has admin role
             const adminUser = await Admin.findOne({ userId: decoded.userId });
-            if (!adminUser || adminUser.role !== 'admin') {
+            const validRoles = ['superadmin', 'community', 'finance', 'analyst'];
+            if (!adminUser || !validRoles.includes(adminUser.role)) {
                 return null;
             }
 

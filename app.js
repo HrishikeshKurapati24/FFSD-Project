@@ -428,6 +428,10 @@ const initializeApp = async () => {
         const SubscriptionService = require('./services/subscription/subscriptionService');
         await SubscriptionService.initializeDefaultPlans();
 
+        // Seed default admin users (superadmin, moderator, staff)
+        const { initializeAdminUsers } = require('./services/admin/adminSeedService');
+        await initializeAdminUsers();
+
         console.log('✅ Application initialized successfully');
     } catch (error) {
         console.error('Error during application initialization:', error);

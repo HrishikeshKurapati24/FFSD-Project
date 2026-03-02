@@ -142,9 +142,10 @@ const adminAuth = async (req, res, next) => {
             });
         }
 
-        // Verify admin user exists and has admin role
+        // Verify admin user exists and has a valid admin role
         adminUser = await Admin.findOne({ userId });
-        if (!adminUser || adminUser.role !== 'admin') {
+        const validAdminRoles = ['superadmin', 'community', 'finance', 'analyst'];
+        if (!adminUser || !validAdminRoles.includes(adminUser.role)) {
             return res.status(403).json({
                 success: false,
                 message: 'Forbidden',

@@ -27,14 +27,14 @@ const BrandRankingsSection = ({ brandRankings = [] }) => {
         </h5>
       </div>
       <div className={styles['section-content']}>
-        <p className={styles['section-description']}>Brands you've worked with, ranked by payment received (FFSD).</p>
+        <p className={styles['section-description']}>Brands you've worked with, ranked by payment received .</p>
         <div className={styles['table-container']}>
           <table className={styles['rankings-table']}>
             <thead>
               <tr>
                 <th>Rank</th>
                 <th>Brand</th>
-                <th>Total Payment (FFSD)</th>
+                <th>Total Payment </th>
                 <th>Campaigns</th>
               </tr>
             </thead>

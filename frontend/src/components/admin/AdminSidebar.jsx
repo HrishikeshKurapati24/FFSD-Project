@@ -1,9 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import adminStyles from '../../styles/admin/admin_dashboard.module.css';
+import { useAdmin } from '../../contexts/AdminContext';
+import { PAGE_ACCESS } from '../../constants/adminAccess';
 
 const AdminSidebar = ({ isOpen, onClose }) => {
     const location = useLocation();
+    const { admin } = useAdmin();
 
     const menuItems = [
         {
@@ -43,6 +46,12 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         }
     ];
 
+    // Filter menu items based on role access
+    const filteredMenuItems = menuItems.filter(item => {
+        const allowedRoles = PAGE_ACCESS[item.path] || ['superadmin'];
+        return admin?.role === 'superadmin' || allowedRoles.includes(admin?.role);
+    });
+
     const isActive = (path) => {
         return location.pathname === path;
     };
@@ -51,7 +60,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         <div className={`${adminStyles.sidebar} ${isOpen ? adminStyles.active : ''}`} id="sidebar">
             <div className={adminStyles.menu}>
                 <ul className={adminStyles.list}>
-                    {menuItems.map((item) => (
+                    {filteredMenuItems.map((item) => (
                         <li key={item.path} className={isActive(item.path) ? adminStyles.active : ''}>
                             <Link to={item.path} onClick={onClose}>
                                 <i className={item.icon}></i>

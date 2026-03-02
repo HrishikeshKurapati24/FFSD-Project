@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/admin/login.module.css';
 import { API_BASE_URL } from '../../services/api';
+import { useAdmin } from '../../contexts/AdminContext';
 
 export default function Login() {
     const navigate = useNavigate();
+    const { setAdmin } = useAdmin();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -27,6 +29,7 @@ export default function Login() {
     });
     const [showPassword, setShowPassword] = useState(false);
 
+
     useEffect(() => {
         const storedUsername = localStorage.getItem('adminUsername');
         if (storedUsername) {
@@ -37,6 +40,7 @@ export default function Login() {
             }));
         }
     }, []);
+
 
     const validateUsername = (value) => {
         if (value.trim().length < 3) {
@@ -109,10 +113,14 @@ export default function Login() {
                 } else {
                     localStorage.removeItem('adminUsername');
                 }
+                // Update AdminContext with the logged-in admin user
+                if (result.user) {
+                    setAdmin(result.user);
+                }
                 if (result.redirect) {
-                    window.location.href = result.redirect;
+                    navigate(result.redirect, { replace: true });
                 } else {
-                    navigate('/admin/dashboard');
+                    navigate('/admin/dashboard', { replace: true });
                 }
             } else {
                 alert(result.message || 'Login failed');

@@ -45,15 +45,7 @@ const BrandAnalytics = () => {
 
         if (response.ok) {
           const data = await response.json();
-          // The backend returns HTML for EJS, but we need JSON
-          // Check if it's JSON or HTML
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            setMetrics(data);
-          } else {
-            // If HTML, try to parse or use default
-            setError('Unable to load analytics data. Please try again.');
-          }
+          setMetrics(data);
         } else {
           const errorData = await response.json().catch(() => ({ message: 'Failed to fetch brand analytics' }));
           setError(errorData.message || 'Failed to load brand analytics');
