@@ -1,38 +1,26 @@
-const mongoose = require('mongoose');
+const { mongoose } = require('../mongoDB');
 
-// Define Admin Schema with improved validation
-const adminSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
-    username: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 3
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6
-    },
-    role: {
-        type: String,
-        default: 'admin',
-        enum: ['admin', 'moderator', 'staff']
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-}, {
-    collection: 'adminUser',
-    timestamps: true
-});
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ["community_manager", 'financial_analyst', 'campaign_manager', "superadmin"], required: true },
+    isActive: { type: Boolean, default: true },
+    lastLogin: Date
+}, { timestamps: true });
 
-const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
+const adminActionLogSchema = new mongoose.Schema({
+    admin_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    action: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    targetId: mongoose.Schema.Types.ObjectId,
+    targetType: String,
+    reason: String,
+    metadata: mongoose.Schema.Types.Mixed,
+    status: String,
+    ip_address: String
+}, { timestamps: true });
 
-module.exports = Admin;
+const User = mongoose.model('User', userSchema);
+const AdminActionLog = mongoose.model('AdminActionLog', adminActionLogSchema);
+
+module.exports = { User, AdminActionLog };

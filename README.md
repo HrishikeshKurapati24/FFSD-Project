@@ -32,6 +32,12 @@ Manage the entire lifecycle of influencer marketing campaigns:
 *   **Submission & Approval:** Structured workflow for influencers to submit content for brand approval.
 *   **Feedback Loops:** Tools for brands to provide feedback or approve content before it goes live.
 
+### Order Tracking
+Customer places order, this order is displayed in the brand dashboard, brand can update the status of the order, and fulfill the customer's order.
+
+### Order Attribution
+The orders are attributed to the influencer based on the influencer's referral code, which the customer uses to enter our website. We parse and store it when the customer first enters our website using the url provided by the influencer.
+
 ## 🛠️ Technology Stack
 
 *   **Frontend:** React 19, Redux Toolkit, Vite, CSS3
