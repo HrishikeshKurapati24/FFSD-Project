@@ -19,6 +19,42 @@ const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./mo
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const { asyncErrorWrapper } = require('./middleware/asyncErrorWrapper');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
+// Swagger Configuration
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'CollabSync API',
+            version: '1.0.0',
+            description: 'API documentation for the CollabSync backend',
+        },
+        servers: [
+            {
+                url: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_URL || 'http://api.collabsync.com' : 'http://localhost:' + (process.env.PORT || 3000),
+                description: 'Current Environment'
+            }
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                }
+            }
+        },
+        security: [{
+            bearerAuth: []
+        }],
+    },
+    apis: ['./routes/*.js'], // Look for swagger annotations in route files
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+
 
 
 // CORS configuration
@@ -397,6 +433,9 @@ app.use((req, res, next) => {
 //         });
 //     }
 // });
+
+// Swagger UI Route
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: true }));
 
 // Use routers
 app.use('/', landingRoutes);
