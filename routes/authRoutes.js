@@ -1,3 +1,205 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication endpoints for all user types (Brand, Influencer, Customer)
+ *
+ * components:
+ *   schemas:
+ *     SigninRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: user@example.com
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: MySecurePass123
+ *         remember:
+ *           type: boolean
+ *           description: If true, JWT expires in 7 days; otherwise 1 hour
+ *           example: false
+ *
+ *     SigninResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: Sign-in successful
+ *         redirectUrl:
+ *           type: string
+ *           example: /brand/home
+ *         user:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *             email:
+ *               type: string
+ *             userType:
+ *               type: string
+ *               enum: [brand, influencer, customer, admin]
+ *             displayName:
+ *               type: string
+ *
+ *     CustomerSignupRequest:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: John Doe
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: johndoe@example.com
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: SecurePass123
+ *         phone:
+ *           type: string
+ *           example: "+919876543210"
+ *
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *         error:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * /auth/signin:
+ *   post:
+ *     summary: Sign in as Brand, Influencer, or Customer
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SigninRequest'
+ *     responses:
+ *       200:
+ *         description: Sign-in successful. JWT is set in an httpOnly cookie named `token`.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SigninResponse'
+ *       400:
+ *         description: Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Account suspended
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Log out the currently authenticated user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully. Clears the `token` cookie.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Logged out successfully
+ *       500:
+ *         description: Error logging out
+ */
+
+/**
+ * @swagger
+ * /auth/verify:
+ *   get:
+ *     summary: Verify current authentication status
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User is authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 authenticated:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   $ref: '#/components/schemas/SigninResponse/properties/user'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /auth/customer/signup:
+ *   post:
+ *     summary: Register a new customer account
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CustomerSignupRequest'
+ *     responses:
+ *       201:
+ *         description: Customer registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Signup successful! You can now sign in with your credentials.
+ *                 customer:
+ *                   type: object
+ *       400:
+ *         description: Validation error or email already registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ */
+
 const express = require('express');
 const { BrandInfo } = require('../models/BrandMongo');
 const { InfluencerInfo } = require('../models/InfluencerMongo');

@@ -1,4 +1,568 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Influencer
+ *   description: Influencer-side endpoints. All routes require authentication as an Influencer user via JWT (token cookie).
+ */
+
+/**
+ * @swagger
+ * /influencer/home:
+ *   get:
+ *     summary: Get influencer dashboard data
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Influencer dashboard statistics and recent activity
+ *       401:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
+ * /influencer/explore:
+ *   get:
+ *     summary: Get the brand explore page for influencers
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of brands available for discovery
+ */
+
+/**
+ * @swagger
+ * /influencer/I_brand_profile/{id}:
+ *   get:
+ *     summary: View a brand's profile (from influencer perspective)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the brand
+ *     responses:
+ *       200:
+ *         description: Brand profile data
+ *       404:
+ *         description: Brand not found
+ */
+
+/**
+ * @swagger
+ * /influencer/brand_profile/{id}:
+ *   get:
+ *     summary: View a brand profile (legacy route alias)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Brand profile data
+ */
+
+/**
+ * @swagger
+ * /influencer/profile:
+ *   get:
+ *     summary: Get the influencer's own profile
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Influencer profile data
+ */
+
+/**
+ * @swagger
+ * /influencer/profile/update-images:
+ *   post:
+ *     summary: Update influencer profile picture and/or banner image
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePic:
+ *                 type: string
+ *                 format: binary
+ *                 description: Profile picture (max 50 MB)
+ *               bannerImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Banner image (max 50 MB)
+ *     responses:
+ *       200:
+ *         description: Images updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 influencer:
+ *                   type: object
+ *       400:
+ *         description: No images were uploaded
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Influencer not found
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /influencer/profile/update/data:
+ *   post:
+ *     summary: Update influencer profile text/data fields (validated)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - displayName
+ *               - username
+ *               - bio
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 50
+ *               username:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 30
+ *                 description: Only letters, numbers, and underscores allowed
+ *               bio:
+ *                 type: string
+ *                 maxLength: 500
+ *               location:
+ *                 type: string
+ *                 maxLength: 100
+ *               audienceGender:
+ *                 type: string
+ *                 enum: [Male, Female, All, Other]
+ *               audienceAgeRange:
+ *                 type: string
+ *                 example: "18-35"
+ *               categories:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               languages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               socials:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     platform:
+ *                       type: string
+ *                       enum: [instagram, youtube, tiktok, facebook, twitter, linkedin]
+ *                     followers:
+ *                       type: integer
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Validation failed
+ *       401:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
+ * /influencer/profile/update:
+ *   post:
+ *     summary: Update influencer profile (legacy — supports both data and image upload)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePic:
+ *                 type: string
+ *                 format: binary
+ *               bannerImage:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ */
+
+/**
+ * @swagger
+ * /influencer/profile/delete:
+ *   post:
+ *     summary: Permanently delete the influencer account
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Account deleted
+ */
+
+/**
+ * @swagger
+ * /influencer/collab:
+ *   get:
+ *     summary: Get all available campaigns/collabs for an influencer to browse
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of open collaboration opportunities
+ */
+
+/**
+ * @swagger
+ * /influencer/collab/{id}:
+ *   get:
+ *     summary: Get detail view of a specific collaboration/campaign
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Campaign or collaboration ID
+ *     responses:
+ *       200:
+ *         description: Collaboration detail data
+ *       404:
+ *         description: Collaboration not found
+ */
+
+/**
+ * @swagger
+ * /influencer/collab/{collabId}/details:
+ *   get:
+ *     summary: Get detailed view of an active collaboration (with deliverables, progress, etc.)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collabId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Full collaboration details
+ */
+
+/**
+ * @swagger
+ * /influencer/collab/{collabId}/update-progress:
+ *   post:
+ *     summary: Update progress on an active collaboration
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: collabId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               progress:
+ *                 type: integer
+ *                 minimum: 0
+ *                 maximum: 100
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Progress updated
+ */
+
+/**
+ * @swagger
+ * /influencer/campaign-history:
+ *   get:
+ *     summary: Get completed campaign history for the influencer
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of past campaigns
+ */
+
+/**
+ * @swagger
+ * /influencer/apply/{campaignId}:
+ *   post:
+ *     summary: Apply to join a campaign as an influencer
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: campaignId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 description: Optional cover message to the brand
+ *     responses:
+ *       200:
+ *         description: Application submitted
+ *       400:
+ *         description: Already applied or campaign not open
+ *       404:
+ *         description: Campaign not found
+ */
+
+/**
+ * @swagger
+ * /influencer/brand-invites/{inviteId}/accept:
+ *   post:
+ *     summary: Accept a brand's collaboration invite
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: inviteId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Invite accepted
+ *       404:
+ *         description: Invite not found
+ */
+
+/**
+ * @swagger
+ * /influencer/brand-invites/{inviteId}/decline:
+ *   post:
+ *     summary: Decline a brand's collaboration invite
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: inviteId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Invite declined
+ *       404:
+ *         description: Invite not found
+ */
+
+/**
+ * @swagger
+ * /influencer/sent-requests/{requestId}/cancel:
+ *   post:
+ *     summary: Cancel a previously sent collaboration request to a brand
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Request cancelled
+ *       404:
+ *         description: Request not found
+ */
+
+/**
+ * @swagger
+ * /influencer/invite-brand:
+ *   post:
+ *     summary: Invite a brand to collaborate
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               brandId:
+ *                 type: string
+ *               campaignId:
+ *                 type: string
+ *               message:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Brand invite sent
+ */
+
+/**
+ * @swagger
+ * /influencer/content/create:
+ *   post:
+ *     summary: Submit content for a campaign deliverable (up to 10 media files)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               media_files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Up to 10 media files (max 50 MB each)
+ *               deliverable_id:
+ *                 type: string
+ *               caption:
+ *                 type: string
+ *               platform:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Content submitted for review
+ *       400:
+ *         description: Validation or upload error
+ */
+
+/**
+ * @swagger
+ * /influencer/content/approved:
+ *   get:
+ *     summary: Get all content approved by the brand for the influencer
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of approved content submissions
+ */
+
+/**
+ * @swagger
+ * /influencer/content/{contentId}/publish:
+ *   post:
+ *     summary: Mark approved content as published (live on social media)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Content status updated to published
+ *       404:
+ *         description: Content not found
+ */
+
+/**
+ * @swagger
+ * /influencer/campaigns/{campaignId}/products:
+ *   get:
+ *     summary: Get products associated with a campaign (for content creation)
+ *     tags: [Influencer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: campaignId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of campaign products
+ *       404:
+ *         description: Campaign not found
+ */
+
+/**
+ * @swagger
+ * /influencer/signout:
+ *   use:
+ *     summary: Sign out the influencer (clears token cookie)
+ *     tags: [Influencer]
+ *     responses:
+ *       302:
+ *         description: Redirects to home page after clearing the token cookie
+ */
+
 const express = require('express');
+
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const brandController = require('../controllers/brand/brandProfileController');

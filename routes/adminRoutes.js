@@ -1,3 +1,765 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Admin panel endpoints. Most routes require an admin JWT (adminToken cookie) or active admin session. Roles - superadmin, analyst, community, finance.
+ *
+ * components:
+ *   schemas:
+ *     AdminLoginRequest:
+ *       type: object
+ *       required:
+ *         - username
+ *         - password
+ *       properties:
+ *         username:
+ *           type: string
+ *           example: superadmin
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: Admin@123
+ */
+
+/**
+ * @swagger
+ * /admin/login:
+ *   get:
+ *     summary: Get admin login page status / check if already authenticated
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Returns login page data or redirect info
+ */
+
+/**
+ * @swagger
+ * /admin/login/verify:
+ *   post:
+ *     summary: Admin login — verifies credentials and issues adminToken JWT cookie
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AdminLoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful. Sets httpOnly adminToken cookie.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: Login successful
+ *       401:
+ *         description: Invalid credentials
+ *       403:
+ *         description: Access denied — invalid admin role
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /admin/verify:
+ *   get:
+ *     summary: Verify admin authentication status
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin is authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 authenticated:
+ *                   type: boolean
+ *                 user:
+ *                   type: object
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /admin/feedback/submit:
+ *   post:
+ *     summary: Submit platform feedback (public — no auth required)
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userType:
+ *                 type: string
+ *                 enum: [brand, influencer, customer]
+ *               userId:
+ *                 type: string
+ *               message:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Feedback submitted successfully
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /admin/dashboard:
+ *   get:
+ *     summary: Get admin dashboard data
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard stats and summaries
+ *       401:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
+ * /admin/notifications:
+ *   get:
+ *     summary: Get all admin notifications
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of notifications
+ *       401:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
+ * /admin/notifications/mark-all-read:
+ *   post:
+ *     summary: Mark all admin notifications as read
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All notifications marked as read
+ */
+
+/**
+ * @swagger
+ * /admin/brand-analytics:
+ *   get:
+ *     summary: Get brand analytics data
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Brand analytics summary
+ */
+
+/**
+ * @swagger
+ * /admin/influencer-analytics:
+ *   get:
+ *     summary: Get influencer analytics data
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Influencer analytics summary
+ */
+
+/**
+ * @swagger
+ * /admin/campaign-analytics:
+ *   get:
+ *     summary: Get campaign analytics data
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Campaign analytics summary
+ */
+
+/**
+ * @swagger
+ * /admin/analytics:
+ *   get:
+ *     summary: Get advanced God Mode analytics — returns list of all brands
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of brands for analytics
+ *       500:
+ *         description: Failed to load analytics data
+ */
+
+/**
+ * @swagger
+ * /admin/analytics/influencer-roi:
+ *   get:
+ *     summary: Get influencer ROI analytics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Influencer ROI data
+ */
+
+/**
+ * @swagger
+ * /admin/analytics/campaign-revenue:
+ *   get:
+ *     summary: Get campaign revenue leaderboard
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Revenue leaderboard
+ */
+
+/**
+ * @swagger
+ * /admin/analytics/matchmaking/{brandId}:
+ *   get:
+ *     summary: Get matchmaking recommendations for a brand
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: brandId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the brand
+ *     responses:
+ *       200:
+ *         description: Influencer matchmaking recommendations
+ *       404:
+ *         description: Brand not found
+ */
+
+/**
+ * @swagger
+ * /admin/analytics/ecosystem:
+ *   get:
+ *     summary: Get ecosystem graph data for network visualisation
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Graph data (nodes and edges)
+ */
+
+/**
+ * @swagger
+ * /admin/user_management:
+ *   get:
+ *     summary: Get all users pending verification or approval
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User management data
+ */
+
+/**
+ * @swagger
+ * /admin/user_management/approve/{id}:
+ *   post:
+ *     summary: Approve a brand or influencer account
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the user to approve
+ *     responses:
+ *       200:
+ *         description: User approved
+ *       404:
+ *         description: User not found
+ */
+
+/**
+ * @swagger
+ * /admin/user_management/brand/{id}:
+ *   get:
+ *     summary: Get detailed profile of a brand (admin view)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Brand details
+ *       404:
+ *         description: Brand not found
+ */
+
+/**
+ * @swagger
+ * /admin/user_management/influencer/{id}:
+ *   get:
+ *     summary: Get detailed profile of an influencer (admin view)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Influencer details
+ *       404:
+ *         description: Influencer not found
+ */
+
+/**
+ * @swagger
+ * /admin/verified-brands:
+ *   get:
+ *     summary: Get all verified brands
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of verified brands
+ */
+
+/**
+ * @swagger
+ * /admin/verified-influencers:
+ *   get:
+ *     summary: Get all verified influencers
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of verified influencers
+ */
+
+/**
+ * @swagger
+ * /admin/collaboration_monitoring:
+ *   get:
+ *     summary: Get all active collaborations for monitoring
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of collaborations
+ */
+
+/**
+ * @swagger
+ * /admin/collaboration_monitoring/{id}:
+ *   get:
+ *     summary: Get details of a specific collaboration
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Collaboration details
+ *       404:
+ *         description: Collaboration not found
+ */
+
+/**
+ * @swagger
+ * /admin/payment_verification:
+ *   get:
+ *     summary: Get all payment records for verification
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of payments
+ */
+
+/**
+ * @swagger
+ * /admin/payment_verification/categories:
+ *   get:
+ *     summary: Get influencer categories for payment filter
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of categories
+ */
+
+/**
+ * @swagger
+ * /admin/payment_verification/{id}:
+ *   get:
+ *     summary: Get details of a specific payment
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment details
+ */
+
+/**
+ * @swagger
+ * /admin/payment_verification/update/{id}:
+ *   post:
+ *     summary: Update the status of a payment
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, verified, rejected]
+ *     responses:
+ *       200:
+ *         description: Payment status updated
+ */
+
+/**
+ * @swagger
+ * /admin/feedback_and_moderation:
+ *   get:
+ *     summary: Get all feedback submissions
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of feedback entries
+ */
+
+/**
+ * @swagger
+ * /admin/feedback_and_moderation/{id}:
+ *   get:
+ *     summary: Get details of a specific feedback entry
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Feedback details
+ *   delete:
+ *     summary: Delete a feedback entry
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Feedback deleted
+ */
+
+/**
+ * @swagger
+ * /admin/feedback_and_moderation/update/{id}:
+ *   post:
+ *     summary: Update status of a feedback entry
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, reviewed, resolved]
+ *     responses:
+ *       200:
+ *         description: Feedback updated
+ */
+
+/**
+ * @swagger
+ * /admin/customer-management:
+ *   get:
+ *     summary: Get customer management overview
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Customer management data
+ */
+
+/**
+ * @swagger
+ * /admin/all-customers:
+ *   get:
+ *     summary: Get all customers
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all customer accounts
+ */
+
+/**
+ * @swagger
+ * /admin/customer-details/{id}:
+ *   get:
+ *     summary: Get details of a specific customer
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Customer details
+ *       404:
+ *         description: Customer not found
+ */
+
+/**
+ * @swagger
+ * /admin/customer-status/{id}:
+ *   put:
+ *     summary: Update a customer's account status (suspend/activate)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, suspended]
+ *               admin_notes:
+ *                 type: string
+ *                 description: Reason for suspension
+ *     responses:
+ *       200:
+ *         description: Customer status updated
+ */
+
+/**
+ * @swagger
+ * /admin/completed-orders:
+ *   get:
+ *     summary: Get all completed orders
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of completed orders
+ */
+
+/**
+ * @swagger
+ * /admin/product-analytics:
+ *   get:
+ *     summary: Get product-level purchase analytics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Product analytics data
+ */
+
+/**
+ * @swagger
+ * /admin/customer-analytics:
+ *   get:
+ *     summary: Get customer behaviour analytics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Customer analytics data
+ */
+
+/**
+ * @swagger
+ * /admin/orders/analytics:
+ *   get:
+ *     summary: Get order analytics for admin
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Order analytics data
+ */
+
+/**
+ * @swagger
+ * /admin/orders/all:
+ *   get:
+ *     summary: Get all orders across the platform
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All platform orders
+ */
+
+/**
+ * @swagger
+ * /admin/settings:
+ *   get:
+ *     summary: Get admin settings
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin settings data
+ */
+
+/**
+ * @swagger
+ * /admin/reset-password:
+ *   post:
+ *     summary: Reset an admin user's password
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - newPassword
+ *             properties:
+ *               username:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       404:
+ *         description: User not found
+ */
+
+/**
+ * @swagger
+ * /admin/logout:
+ *   get:
+ *     summary: Log out admin user and clear adminToken cookie
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
+
 const express = require('express');
 const router = express.Router();
 const DashboardController = require('../controllers/admin/adminDashboardController');
