@@ -1,4 +1,5 @@
 const InfluencerDiscoveryService = require('../../services/influencer/influencerDiscoveryService');
+const AdminAnalyticsService = require('../../services/admin/adminAnalyticsService');
 
 const controller = {
   // Get influencer explore page (Brands viewing influencers)
@@ -51,6 +52,17 @@ const controller = {
         success: false,
         message: error.message || 'Error loading brand profile'
       });
+    }
+  },
+
+  async getMatchmakingRecommendations(req, res) {
+    try {
+      const influencerId = req.session.user.id;
+      const recommendations = await AdminAnalyticsService.getBrandMatchmakingRecommendations(influencerId);
+      res.json({ success: true, recommendations });
+    } catch (error) {
+      console.error('Error fetching matchmaking recommendations for influencer:', error);
+      res.status(500).json({ success: false, message: 'Failed to load recommendations' });
     }
   }
 };

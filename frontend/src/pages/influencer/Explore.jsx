@@ -32,6 +32,8 @@ const Explore = () => {
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [suggestedBrands, setSuggestedBrands] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   // Invite modal states
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -108,8 +110,26 @@ const Explore = () => {
   // Initial fetch on mount
   useEffect(() => {
     fetchBrands();
+    fetchSuggestions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchSuggestions = async () => {
+    try {
+      setSuggestionsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/influencer/matchmaking`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSuggestedBrands(data.recommendations || []);
+      }
+    } catch (err) {
+      console.error('Error fetching suggestions:', err);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
 
   // Handle sign out
   const handleSignOut = async (e) => {
@@ -282,6 +302,67 @@ const Explore = () => {
       {/* Main Content */}
       <div className="container">
         <ExploreIntro />
+
+        {/* Suggested Brands Section */}
+        {suggestedBrands.length > 0 && (
+          <div className={styles['suggested-section']}>
+            <div className={styles['section-header']}>
+              <h2>🤝 Suggested Brands</h2>
+              <p>AI-powered matches based on your influencer profile and niche</p>
+            </div>
+            <div className={styles['suggested-grid']}>
+              {suggestedBrands.slice(0, 3).map((match) => (
+                <div key={match.brand._id} className={`${styles['suggested-card']} ${match.score >= 80 ? styles['perfect-match'] : ''}`}>
+                  <div className={styles['match-card-header']}>
+                    <div className={styles['match-avatar']}>
+                      <img
+                        src={getBrandLogo(match.brand.logoUrl)}
+                        alt={match.brand.brandName}
+                        onError={handleLogoError}
+                      />
+                      {match.score >= 90 && <span className={styles['match-badge']}>Top Match</span>}
+                    </div>
+                    <div className={styles['match-user-info']}>
+                      <h3>{match.brand.brandName}</h3>
+                      <div className={styles['match-score-container']}>
+                        <span className={styles['score-text']}>Match Score: <strong>{match.score}%</strong></span>
+                        <div className={styles['match-progress-bar']}>
+                          <div
+                            className={styles['match-progress-fill']}
+                            style={{
+                              width: `${match.score}%`,
+                              backgroundColor: match.score > 85 ? '#34a853' : '#4285f4'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles['match-reasons']}>
+                    {match.matchReasons && match.matchReasons.map((reason, idx) => (
+                      <span key={idx} className={styles['reason-tag']}>{reason}</span>
+                    ))}
+                  </div>
+                  <div className={styles['match-actions']}>
+                    <button
+                      className={styles['match-invite-btn']}
+                      onClick={() => handleOpenInviteModal(match.brand._id, match.brand.brandName)}
+                    >
+                      Invite
+                    </button>
+                    <button 
+                      className={styles['match-profile-btn']}
+                      onClick={() => navigate(`/influencer/brand_profile/${match.brand._id}`)}
+                    >
+                      View Profile
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <ExploreFilters
           searchQuery={searchQuery}
           selectedCategory={selectedCategory}

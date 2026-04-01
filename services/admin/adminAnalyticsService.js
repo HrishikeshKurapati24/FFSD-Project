@@ -446,6 +446,7 @@ class adminAnalyticsService {
                 influencer: {
                     _id: inf._id,
                     fullName: inf.fullName,
+                    displayName: inf.displayName || inf.fullName,
                     influencerName: inf.fullName || inf.username,
                     username: inf.username,
                     profilePicUrl: inf.profilePicUrl,
@@ -453,6 +454,90 @@ class adminAnalyticsService {
                     niche: inf.niche,
                     categories: inf.categories,
                     totalFollowers: inf.totalFollowers
+                },
+                matchScore: Math.min(score, 100),
+                score: Math.min(score, 100),
+                matchReasons: matches
+            };
+        });
+
+        recommendations.sort((a, b) => b.matchScore - a.matchScore);
+        return recommendations.slice(0, 20);
+    }
+
+    static async getBrandMatchmakingRecommendations(influencerId) {
+        const influencer = await InfluencerInfo.findById(influencerId);
+        if (!influencer) throw new Error('Influencer not found');
+
+        const brands = await BrandInfo.find({ status: 'active' }).lean();
+
+        const recommendations = brands.map(brand => {
+            let score = 0;
+            let matches = [];
+
+            const brandCats = Array.isArray(brand.categories) ? brand.categories : [];
+            const infCats = Array.isArray(influencer.categories) ? influencer.categories : [];
+
+            // 1. Category Matching
+            const matchedCats = infCats.filter(cat =>
+                brandCats.some(brandCat => (brandCat || '').toLowerCase() === (cat || '').toLowerCase())
+            );
+
+            if (matchedCats.length > 0) {
+                score += 50;
+                matches.push(`Category Match: ${matchedCats[0]}${matchedCats.length > 1 ? ' +' + (matchedCats.length - 1) : ''}`);
+            }
+
+            // 2. Industry/Niche Matching
+            const brandIndustry = (brand.industry || '').toLowerCase();
+            const infNiche = (influencer.niche || '').toLowerCase();
+            if (brandIndustry && infNiche && (brandIndustry.includes(infNiche) || infNiche.includes(brandIndustry))) {
+                score += 30;
+                matches.push('Industry/Niche Match');
+            }
+
+            // 3. Target Interest Matching
+            const targetInterests = Array.isArray(brand.targetInterests) ? brand.targetInterests : [];
+            const interestMatches = targetInterests.filter(interest =>
+                infCats.some(infCat => (infCat || '').toLowerCase() === (interest || '').toLowerCase()) ||
+                infNiche.includes((interest || '').toLowerCase())
+            );
+            if (interestMatches.length > 0) {
+                score += 20;
+                matches.push('Target Interest Match');
+            }
+
+            // 4. Location Matching
+            const brandLocation = (brand.location || '').toLowerCase();
+            const infLocation = (influencer.location || '').toLowerCase();
+            const brandRegions = (brand.influenceRegions || '').toLowerCase();
+
+            if (brandLocation && infLocation && (brandLocation.includes(infLocation) || infLocation.includes(brandLocation))) {
+                score += 15;
+                matches.push('Location Match');
+            } else if (brandRegions && infLocation && brandRegions.includes(infLocation)) {
+                score += 10;
+                matches.push('Region Match');
+            }
+
+            // 5. Audience Gender Matching
+            if (brand.targetGender && influencer.audienceGender &&
+                (brand.targetGender === 'All' || brand.targetGender === influencer.audienceGender)) {
+                score += 15;
+                matches.push('Audience Gender Match');
+            }
+
+            // Base random score if no match found
+            if (score === 0) score = Math.floor(Math.random() * 15);
+
+            return {
+                brand: {
+                    _id: brand._id,
+                    brandName: brand.brandName,
+                    logoUrl: brand.logoUrl,
+                    industry: brand.industry,
+                    categories: brand.categories,
+                    verified: brand.verified
                 },
                 matchScore: Math.min(score, 100),
                 score: Math.min(score, 100),
