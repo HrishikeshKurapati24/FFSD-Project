@@ -1,4 +1,5 @@
 const brandDiscoveryService = require('../../services/brand/brandDiscoveryService');
+const AdminAnalyticsService = require('../../services/admin/adminAnalyticsService');
 
 const controller = {
     // Get influencer profile
@@ -41,6 +42,17 @@ const controller = {
         } catch (error) {
             console.error('Error inviting influencer:', error);
             res.status(error.message === 'Campaign not found' ? 404 : (error.message.includes('already exists') ? 400 : 500)).json({ success: false, message: error.message });
+        }
+    },
+
+    async getMatchmakingRecommendations(req, res) {
+        try {
+            const brandId = req.session.user.id;
+            const recommendations = await AdminAnalyticsService.getMatchmakingRecommendations(brandId);
+            res.json({ success: true, recommendations });
+        } catch (error) {
+            console.error('Error fetching matchmaking recommendations for brand:', error);
+            res.status(500).json({ success: false, message: 'Failed to load recommendations' });
         }
     }
 };

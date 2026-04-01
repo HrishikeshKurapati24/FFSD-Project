@@ -32,6 +32,8 @@ export default function Explore() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
+  const [suggestedInfluencers, setSuggestedInfluencers] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   // Load saved view mode from localStorage
   useEffect(() => {
@@ -83,8 +85,26 @@ export default function Explore() {
   // Initial fetch on mount
   useEffect(() => {
     fetchInfluencers();
+    fetchSuggestions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  const fetchSuggestions = async () => {
+    try {
+      setSuggestionsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/brand/matchmaking`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSuggestedInfluencers(data.recommendations || []);
+      }
+    } catch (err) {
+      console.error('Error fetching suggestions:', err);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
 
   const handleSignOut = async (e) => {
     e?.preventDefault();
@@ -309,6 +329,62 @@ export default function Explore() {
           <h1>Explore Influencers</h1>
           <p>Connect with top influencers to elevate your brand's presence.</p>
         </div>
+
+        {/* Suggested Influencers Section */}
+        {suggestedInfluencers.length > 0 && (
+          <div className={styles['suggested-section']}>
+            <div className={styles['section-header']}>
+              <h2>🤝 Suggested Influencers</h2>
+              <p>AI-powered matches based on your brand profile and categories</p>
+            </div>
+            <div className={styles['suggested-grid']}>
+              {suggestedInfluencers.slice(0, 3).map((match) => (
+                <div key={match.influencer._id} className={`${styles['suggested-card']} ${match.score >= 80 ? styles['perfect-match'] : ''}`}>
+                  <div className={styles['match-card-header']}>
+                    <div className={styles['match-avatar']}>
+                      <img
+                        src={match.influencer.profilePicUrl || '/images/default-profile.jpg'}
+                        alt={match.influencer.displayName}
+                      />
+                      {match.score >= 90 && <span className={styles['match-badge']}>Top Match</span>}
+                    </div>
+                    <div className={styles['match-user-info']}>
+                      <h3>{match.influencer.displayName}</h3>
+                      <div className={styles['match-score-container']}>
+                        <span className={styles['score-text']}>Match Score: <strong>{match.score}%</strong></span>
+                        <div className={styles['match-progress-bar']}>
+                          <div
+                            className={styles['match-progress-fill']}
+                            style={{
+                              width: `${match.score}%`,
+                              backgroundColor: match.score > 85 ? '#34a853' : '#4285f4'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles['match-reasons']}>
+                    {match.matchReasons && match.matchReasons.map((reason, idx) => (
+                      <span key={idx} className={styles['reason-tag']}>{reason}</span>
+                    ))}
+                  </div>
+                  <div className={styles['match-actions']}>
+                    <button
+                      className={styles['match-invite-btn']}
+                      onClick={() => handleOpenInviteModal(match.influencer._id, match.influencer.displayName)}
+                    >
+                      Invite
+                    </button>
+                    <Link to={`/brand/influencer_profile/${match.influencer._id}`} className={styles['match-profile-btn']}>
+                      View Profile
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filter Section */}
         <div className="filter-section">

@@ -894,6 +894,9 @@ router.get('/campaigns/draft-list', brandCampaignController.getDraftCampaigns);
 // Route to invite influencer to a campaign
 router.post('/invite-influencer', brandDiscoveryController.inviteInfluencer);
 
+// Route for matchmaking recommendations
+router.get('/matchmaking', brandDiscoveryController.getMatchmakingRecommendations);
+
 // Route to decline a campaign request
 router.post('/requests/:requestId1/:requestId2/decline', brandCampaignController.declineRequest);
 

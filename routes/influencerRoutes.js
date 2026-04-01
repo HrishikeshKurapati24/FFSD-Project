@@ -713,6 +713,9 @@ router.get('/home', influencerProfileController.getInfluencerDashboard);
 // New route for brand explore page for influencer
 router.get('/explore', influencerDiscoveryController.getBrandExplorePage);
 
+// Route for matchmaking recommendations
+router.get('/matchmaking', influencerDiscoveryController.getMatchmakingRecommendations);
+
 // New route for brand profile page for influencer
 router.get('/I_brand_profile/:id', influencerDiscoveryController.getBrandProfilePage);
 

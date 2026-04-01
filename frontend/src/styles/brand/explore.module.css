@@ -407,8 +407,8 @@
 }
 
 .explorePageWrapper :global(.influencer-image) {
-  width: 88px;
-  height: 88px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #f8f9fa;
@@ -417,8 +417,8 @@
 }
 
 .explorePageWrapper :global(.influencer-list.grid .influencer-image) {
-  width: 120px !important;
-  height: 120px !important;
+  width: 100px !important;
+  height: 100px !important;
 }
 
 .explorePageWrapper :global(.influencer-item:hover .influencer-image) {
@@ -978,4 +978,198 @@
   .explorePageWrapper * {
     transition: none !important;
   }
+}
+
+/* Suggested Influencers Section */
+.suggested-section {
+  margin-bottom: 48px;
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-header {
+  margin-bottom: 24px;
+}
+
+.section-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #212529 !important;
+  margin-bottom: 8px;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-header p {
+  color: #666;
+  font-size: 1rem;
+}
+
+.suggested-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.suggested-card {
+  background: #f8f9fa;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.suggested-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: #4285f4;
+}
+
+.suggested-card.perfect-match {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+  border: 2px solid #4285f4;
+}
+
+.match-card-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.match-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.match-avatar img {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.match-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ffc107;
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  z-index: 10;
+}
+
+.match-user-info h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #212529 !important;
+  margin-top: 0;
+}
+
+.match-score-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-text {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.score-text strong {
+  color: #212529;
+}
+
+.match-progress-bar {
+  width: 120px;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.match-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+
+.match-reasons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.reason-tag {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  background: rgba(66, 133, 244, 0.1);
+  color: #4285f4;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.perfect-match .reason-tag {
+  background: rgba(52, 168, 83, 0.1);
+  color: #34a853;
+}
+
+.match-actions {
+  display: flex !important;
+  gap: 12px !important;
+  margin-top: auto;
+}
+
+.match-invite-btn {
+  flex: 1;
+  padding: 10px;
+  background: #4285f4 !important;
+  color: white !important;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.match-invite-btn:hover {
+  background: #3367d6 !important;
+}
+
+.match-profile-btn {
+  flex: 1;
+  padding: 10px;
+  background: white !important;
+  color: #4285f4 !important;
+  border: 1px solid #4285f4;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: block;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.match-profile-btn:hover {
+  background: #f8f9fa !important;
 }
