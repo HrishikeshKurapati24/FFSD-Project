@@ -1,20 +1,16 @@
 import React from 'react';
-import CreditCardFields from './CreditCardFields';
-import BankTransferFields from './BankTransferFields';
 
 const PaymentFormFields = ({
   formData,
   formErrors,
   transactionData,
   handleInputChange,
-  handleCardNumberChange,
-  handleExpiryDateChange,
   styles
 }) => {
   return (
     <>
       <div className={styles.formGroup}>
-        <label htmlFor="amount">Amount (USD)</label>
+        <label htmlFor="amount">Amount (INR)</label>
         <input
           type="number"
           id="amount"
@@ -39,36 +35,16 @@ const PaymentFormFields = ({
           onChange={handleInputChange}
           className={formErrors.paymentMethod ? styles.errorInput : ''}
         >
-          <option value="" disabled>
-            Select payment method
-          </option>
-          <option value="creditCard">Credit Card</option>
-          <option value="bankTransfer">Bank Transfer</option>
+          <option value="razorpay">Razorpay Checkout (Test Mode)</option>
         </select>
         {formErrors.paymentMethod && (
           <small className={styles.errorInline}>{formErrors.paymentMethod}</small>
         )}
       </div>
-
-      {formData.paymentMethod === 'creditCard' && (
-        <CreditCardFields
-          formData={formData}
-          formErrors={formErrors}
-          transactionData={transactionData}
-          handleInputChange={handleInputChange}
-          handleCardNumberChange={handleCardNumberChange}
-          handleExpiryDateChange={handleExpiryDateChange}
-          styles={styles}
-        />
-      )}
-
-      {formData.paymentMethod === 'bankTransfer' && (
-        <BankTransferFields
-          formData={formData}
-          formErrors={formErrors}
-          handleInputChange={handleInputChange}
-          styles={styles}
-        />
+      {!transactionData?.canPay && (
+        <div className="alert alert-warning mt-2">
+          Razorpay is not configured on the server. Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
+        </div>
       )}
     </>
   );

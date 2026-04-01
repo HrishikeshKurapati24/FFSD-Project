@@ -31,6 +31,52 @@ const controller = {
     }
   },
 
+  async getPaymentProfile(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const paymentData = await brandProfileService.getBrandPaymentProfile(brandId);
+      return res.json({ success: true, ...paymentData });
+    } catch (error) {
+      console.error('Error fetching brand payment profile:', error);
+      return res.status(error.message === 'Brand not found' ? 404 : 500).json({
+        success: false,
+        message: error.message || 'Error fetching payment profile'
+      });
+    }
+  },
+
+  async createPaymentSetupOrder(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const setupOrder = await brandProfileService.createBrandPaymentSetupOrder(brandId);
+      return res.json({ success: true, ...setupOrder });
+    } catch (error) {
+      console.error('Error creating brand setup order:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Unable to start payment setup'
+      });
+    }
+  },
+
+  async savePaymentMethod(req, res) {
+    try {
+      const brandId = req.session.user.id;
+      const paymentData = await brandProfileService.saveBrandPaymentMethod(brandId, req.body);
+      return res.json({
+        success: true,
+        message: 'Payment profile saved successfully',
+        ...paymentData
+      });
+    } catch (error) {
+      console.error('Error saving brand payment method:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Unable to save payment method'
+      });
+    }
+  },
+
   // Update brand profile
   async updateBrandProfile(req, res) {
     try {

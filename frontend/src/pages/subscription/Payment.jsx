@@ -1,83 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import styles from '../../styles/subscription/payment.module.css';
 import { API_BASE_URL } from '../../services/api';
 
+const loadRazorpayScript = () =>
+    new Promise((resolve, reject) => {
+        if (window.Razorpay) {
+            resolve(true);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => reject(new Error('Unable to load Razorpay checkout script'));
+        document.body.appendChild(script);
+    });
+
 const Payment = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    
+
     const userId = searchParams.get('userId');
     const userType = searchParams.get('userType');
     const planId = searchParams.get('planId');
     const billingCycle = searchParams.get('billingCycle');
-    
+
     const [selectedPlan, setSelectedPlan] = useState(null);
-    const [lastPaymentDetails, setLastPaymentDetails] = useState(null);
+    const [checkoutPrefill, setCheckoutPrefill] = useState({ name: '', email: '', contact: '' });
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showForm, setShowForm] = useState(true);
-    
-    // Form state
-    const [formData, setFormData] = useState({
-        cardNumber: '',
-        cardName: '',
-        expiryDate: '',
-        cvv: '',
-        billingAddress: ''
-    });
 
     useEffect(() => {
-        // Validate parameters - but allow backend to get userType from session if missing
         if (!userId || !planId || !billingCycle) {
             setError('Missing required parameters: userId, planId, or billingCycle');
             setLoading(false);
             return;
         }
 
-        // If userType is missing or undefined, still make the request - backend will get it from session
-        const userTypeParam = userType && userType !== 'undefined' && userType !== 'null' ? `&userType=${userType}` : '';
-
         const fetchPaymentData = async () => {
             try {
+                const typeParam = userType && userType !== 'undefined' && userType !== 'null'
+                    ? `&userType=${userType}`
+                    : '';
+
                 const response = await fetch(
-                    `${API_BASE_URL}/subscription/payment?userId=${userId}${userTypeParam}&planId=${planId}&billingCycle=${billingCycle}`,
+                    `${API_BASE_URL}/subscription/payment?userId=${userId}${typeParam}&planId=${planId}&billingCycle=${billingCycle}`,
                     {
                         method: 'GET',
                         credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
+                        headers: { Accept: 'application/json' }
                     }
                 );
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch payment data');
-                }
-
                 const data = await response.json();
-                if (data.success) {
-                    setSelectedPlan(data.selectedPlan);
-                    setLastPaymentDetails(data.lastPaymentDetails);
-
-                    // Pre-fill form if last payment details exist
-                    if (data.lastPaymentDetails) {
-                        setFormData({
-                            cardNumber: data.lastPaymentDetails.cardNumber || '',
-                            cardName: data.lastPaymentDetails.cardName || '',
-                            expiryDate: data.lastPaymentDetails.expiryDate || '',
-                            cvv: '',
-                            billingAddress: data.lastPaymentDetails.billingAddress || ''
-                        });
-                    }
-                } else {
-                    setError(data.message || 'Failed to load payment page');
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to load payment page');
                 }
+
+                setSelectedPlan(data.selectedPlan || null);
+                setCheckoutPrefill(data.checkoutPrefill || { name: '', email: '', contact: '' });
             } catch (err) {
                 console.error('Error fetching payment data:', err);
-                setError('Failed to load payment page');
+                setError(err.message || 'Failed to load payment page');
             } finally {
                 setLoading(false);
             }
@@ -86,140 +73,117 @@ const Payment = () => {
         fetchPaymentData();
     }, [userId, userType, planId, billingCycle]);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    const amount = useMemo(() => {
+        if (!selectedPlan) return 0;
+        return billingCycle === 'monthly'
+            ? Number(selectedPlan?.price?.monthly || 0)
+            : Number(selectedPlan?.price?.yearly || 0);
+    }, [selectedPlan, billingCycle]);
 
-    const handleCardNumberChange = (e) => {
-    let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-        setFormData(prev => ({ ...prev, cardNumber: formattedValue }));
-    };
+    const featureList = useMemo(() => {
+        if (!selectedPlan?.features) return [];
+        const features = selectedPlan.features;
+        const list = [];
 
-    const handleExpiryDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-        value = value.substring(0, 2) + '/' + value.substring(2, 4);
-    }
-        setFormData(prev => ({ ...prev, expiryDate: value }));
-    };
+        if (features.maxCampaigns === -1) list.push('Unlimited campaigns');
+        else list.push(`${features.maxCampaigns} campaigns`);
 
-    const handleCvvChange = (e) => {
-        const value = e.target.value.replace(/[^0-9]/g, '');
-        setFormData(prev => ({ ...prev, cvv: value }));
-    };
+        if (features.maxInfluencers === -1) list.push('Unlimited influencer connections');
+        else list.push(`${features.maxInfluencers} influencer connections`);
 
-    const validateForm = () => {
-        const cardNumber = formData.cardNumber.replace(/\s/g, '');
-        const expiryDate = formData.expiryDate;
-        const cvv = formData.cvv;
-
-        if (cardNumber.length < 13 || cardNumber.length > 19) {
-            setError('Please enter a valid card number');
-            return false;
+        if (features.maxBrands !== undefined) {
+            if (features.maxBrands === -1) list.push('Unlimited brand connections');
+            else list.push(`${features.maxBrands} brand connections`);
         }
 
-        if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
-            setError('Please enter a valid expiry date (MM/YY)');
-            return false;
-        }
+        if (features.advancedAnalytics) list.push('Advanced analytics');
+        if (features.prioritySupport) list.push('Priority support');
+        if (features.customBranding) list.push('Custom branding');
 
-        // Validate expiry date is in the future
-        const [month, year] = expiryDate.split('/').map(num => parseInt(num, 10));
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1;
-        const currentYear = currentDate.getFullYear() % 100;
+        return list;
+    }, [selectedPlan]);
 
-        if (month < 1 || month > 12) {
-            setError('Please enter a valid month (01-12)');
-            return false;
-        }
+    const handlePay = async () => {
+        try {
+            setError('');
+            setProcessing(true);
 
-        if (year < currentYear || (year === currentYear && month < currentMonth)) {
-            setError('Card expiry date must be in the future');
-            return false;
-        }
+            await loadRazorpayScript();
 
-        if (cvv.length < 3 || cvv.length > 4) {
-            setError('Please enter a valid CVV');
-            return false;
-        }
+            const initiateResponse = await fetch(`${API_BASE_URL}/subscription/payment/initiate`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({ userId, userType, planId, billingCycle })
+            });
 
-        return true;
-    };
-
-    const handleSubmit = async (e) => {
-    e.preventDefault();
-        setError('');
-
-    if (!validateForm()) {
-        return;
-    }
-
-        setIsSubmitting(true);
-        setShowForm(false);
-
-    try {
-            const amount = billingCycle === 'monthly' 
-                ? selectedPlan.price.monthly 
-                : selectedPlan.price.yearly;
-
-        const cardData = {
-                cardNumber: formData.cardNumber.replace(/\s/g, ''),
-                cardName: formData.cardName,
-                expiryDate: formData.expiryDate,
-                cvv: formData.cvv,
-                billingAddress: formData.billingAddress
-        };
-
-            // Only include userType in body if it's valid, backend will get from session if missing
-            const requestBody = {
-                    userId,
-                    planId,
-                    billingCycle,
-                    amount,
-                    cardData
-            };
-            
-            // Only add userType if it's not undefined/null
-            if (userType && userType !== 'undefined' && userType !== 'null') {
-                requestBody.userType = userType;
+            const initiateContentType = initiateResponse.headers.get('content-type') || '';
+            if (!initiateContentType.includes('application/json')) {
+                throw new Error('Unexpected initiate response from server');
             }
 
-            const response = await fetch(`${API_BASE_URL}/subscription/process-payment`, {
-            method: 'POST',
+            const initiateData = await initiateResponse.json();
+            if (!initiateResponse.ok || !initiateData?.success) {
+                throw new Error(initiateData?.message || 'Failed to initiate payment');
+            }
+            if (!initiateData?.razorpayKeyId) {
+                throw new Error('Razorpay key missing from server response');
+            }
+            if (!initiateData?.razorpayOrderId) {
+                throw new Error('Razorpay order missing from server response');
+            }
+
+            const checkoutPayload = await new Promise((resolve, reject) => {
+                const rzp = new window.Razorpay({
+                    key: initiateData.razorpayKeyId,
+                    amount: initiateData.amountPaise,
+                    currency: initiateData.currency || 'INR',
+                    name: 'CollabSync',
+                    description: `${selectedPlan?.name || 'Plan'} Subscription`,
+                    order_id: initiateData.razorpayOrderId,
+                    prefill: initiateData.prefill || checkoutPrefill,
+                    handler: (responsePayload) => resolve(responsePayload),
+                    modal: {
+                        ondismiss: () => reject(new Error('Payment was cancelled'))
+                    },
+                    theme: {
+                        color: '#667eea'
+                    }
+                });
+                rzp.open();
+            });
+
+            const confirmResponse = await fetch(`${API_BASE_URL}/subscription/payment/confirm`, {
+                method: 'POST',
                 credentials: 'include',
-            headers: {
+                headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    paymentIntentId: initiateData.paymentIntentId,
+                    razorpay_order_id: checkoutPayload.razorpay_order_id,
+                    razorpay_payment_id: checkoutPayload.razorpay_payment_id,
+                    razorpay_signature: checkoutPayload.razorpay_signature
+                })
+            });
 
-        const result = await response.json();
+            const confirmData = await confirmResponse.json();
+            if (!confirmResponse.ok || !confirmData?.success) {
+                throw new Error(confirmData?.message || 'Failed to confirm payment');
+            }
 
-        if (result.success) {
-            setTimeout(() => {
-                if (result.redirectTo) {
-                        const redirectPath = result.redirectTo.startsWith('http')
-                            ? new URL(result.redirectTo).pathname + new URL(result.redirectTo).search
-                            : result.redirectTo;
-                        navigate(redirectPath);
-                } else {
-                    alert('Payment successful! Your subscription has been activated.');
-                        navigate('/signin?message=subscription-success');
-                }
-            }, 2000);
-        } else {
-            throw new Error(result.message || 'Payment failed');
+            const redirectPath = confirmData.redirectTo || '/subscription/manage';
+            navigate(redirectPath);
+        } catch (err) {
+            console.error('Payment error:', err);
+            setError(err.message || 'Payment failed. Please try again.');
+        } finally {
+            setProcessing(false);
         }
-    } catch (error) {
-        console.error('Payment error:', error);
-            setError(error.message || 'Payment failed. Please try again.');
-            setShowForm(true);
-            setIsSubmitting(false);
-    }
     };
 
     if (loading) {
@@ -240,8 +204,8 @@ const Payment = () => {
                 <div className={styles['payment-container']}>
                     <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>
                         <p>{error}</p>
-                        <button 
-                            onClick={() => navigate(`/subscription/select-plan?userId=${userId}&userType=${userType}`)}
+                        <button
+                            onClick={() => navigate(`/subscription/select-plan?userId=${userId}${userType ? `&userType=${userType}` : ''}`)}
                             style={{ marginTop: '20px', padding: '10px 20px' }}
                         >
                             Back to Plans
@@ -254,204 +218,76 @@ const Payment = () => {
 
     if (!selectedPlan) {
         return null;
-}
+    }
 
-    const amount = billingCycle === 'monthly' ? selectedPlan.price.monthly : selectedPlan.price.yearly;
-
-return (
+    return (
         <div className={styles['payment-page']}>
             <div className={styles['payment-container']}>
-                {/* Order Summary */}
                 <div className={styles['order-summary']}>
-                    <h2><i className="fas fa-receipt"></i> Order Summary</h2>
-
+                    <h2>Order Summary</h2>
                     <div className={styles['plan-details']}>
-                        <div className={styles['plan-name']}>
-                            {selectedPlan.name} Plan
-                </div>
+                        <div className={styles['plan-name']}>{selectedPlan.name}</div>
                         <div className={styles['plan-price']}>
-                            ${amount}
-                            <span>/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
-                </div>
-
+                            ₹{amount}
+                            <span> / {billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                        </div>
                         <ul className={styles['plan-features']}>
-                            {userType === 'brand' ? (
-                                <>
-                                    <li>
-                                        <i className="fas fa-check"></i>
-                                        {selectedPlan.features.maxCampaigns === -1 ? 'Unlimited' : selectedPlan.features.maxCampaigns} Campaigns
-                        </li>
-                                    <li>
-                                        <i className="fas fa-check"></i>
-                                        {selectedPlan.features.maxInfluencers === -1 ? 'Unlimited' : selectedPlan.features.maxInfluencers} Influencer Connections
-                        </li>
-                                </>
-                            ) : (
-                                <li>
-                                    <i className="fas fa-check"></i>
-                                    {selectedPlan.features.maxBrands === -1 ? 'Unlimited' : selectedPlan.features.maxBrands} Brand Connections
-                            </li>
-                            )}
-                            {selectedPlan.features.analytics && (
-                                <li><i className="fas fa-check"></i> Basic Analytics</li>
-                            )}
-                            {selectedPlan.features.advancedAnalytics && (
-                                <li><i className="fas fa-check"></i> Advanced Analytics</li>
-                            )}
-                            {selectedPlan.features.prioritySupport && (
-                                <li><i className="fas fa-check"></i> Priority Support</li>
-                            )}
-                </ul>
-            </div>
-
+                            {featureList.map((feature, index) => (
+                                <li key={index}>
+                                    <i className="fas fa-check-circle" aria-hidden="true" />
+                                    {feature}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                     <div className={styles['total-section']}>
                         <div className={styles['total-row']}>
-                    <span>Subtotal:</span>
-                            <span>${amount}</span>
-                </div>
-                        <div className={styles['total-row']}>
-                    <span>Tax:</span>
-                    <span>$0.00</span>
-                </div>
-                        <div className={`${styles['total-row']} ${styles.final}`}>
-                    <span>Total:</span>
-                            <span>${amount}</span>
-                </div>
-            </div>
-        </div>
-
-                {/* Payment Form */}
-                <div className={styles['payment-form']}>
-                    <a 
-                        href={`/subscription/select-plan?userId=${userId}&userType=${userType}`}
-                        className={styles['back-btn']}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            navigate(`/subscription/select-plan?userId=${userId}&userType=${userType}`);
-                        }}
-                    >
-                        <i className="fas fa-arrow-left"></i> Back to Plans
-            </a>
-
-                    <h2><i className="fas fa-credit-card"></i> Payment Details</h2>
-
-                    {lastPaymentDetails && lastPaymentDetails.cardName && (
-                        <div className={styles['saved-payment-info']}>
-                            <i className="fas fa-info-circle"></i>
-                    <span>We found your previous payment details. Fields have been pre-filled to save you time!</span>
-                </div>
-                    )}
-
-                    {error && (
-                        <div className={styles['error-message']}>
-                            {error}
+                            <span>Plan Amount</span>
+                            <span>₹{amount}</span>
                         </div>
-                    )}
-
-                    {showForm ? (
-                        <form onSubmit={handleSubmit}>
-                            <div className={styles['form-group']}>
-                                <label htmlFor="cardNumber">Card Number</label>
-                                <input
-                                    type="text"
-                                    id="cardNumber"
-                                    name="cardNumber"
-                                    className={styles['form-control']}
-                                    placeholder="1234 5678 9012 3456"
-                                    maxLength="19"
-                                    value={formData.cardNumber}
-                                    onChange={handleCardNumberChange}
-                                    required
-                                />
-                                {lastPaymentDetails && lastPaymentDetails.cardNumber && (
-                                    <small className={styles['form-hint']}>
-                                        <i className="fas fa-check-circle"></i> Auto-filled from your last payment
-                        </small>
-                                )}
-                </div>
-
-                            <div className={styles['form-group']}>
-                                <label htmlFor="cardName">Cardholder Name</label>
-                                <input
-                                    type="text"
-                                    id="cardName"
-                                    name="cardName"
-                                    className={styles['form-control']}
-                                    placeholder="John Doe"
-                                    value={formData.cardName}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                </div>
-
-                            <div className={styles['form-row']}>
-                                <div className={styles['form-group']}>
-                                    <label htmlFor="expiryDate">Expiry Date</label>
-                                    <input
-                                        type="text"
-                                        id="expiryDate"
-                                        name="expiryDate"
-                                        className={styles['form-control']}
-                                        placeholder="MM/YY"
-                                        maxLength="5"
-                                        value={formData.expiryDate}
-                                        onChange={handleExpiryDateChange}
-                                        required
-                                    />
-                    </div>
-                                <div className={styles['form-group']}>
-                                    <label htmlFor="cvv">CVV</label>
-                                    <input
-                                        type="text"
-                                        id="cvv"
-                                        name="cvv"
-                                        className={styles['form-control']}
-                                        placeholder="123"
-                                        maxLength="4"
-                                        value={formData.cvv}
-                                        onChange={handleCvvChange}
-                                        required
-                                    />
+                        <div className={`${styles['total-row']} ${styles.final}`}>
+                            <span>Total Payable</span>
+                            <span>₹{amount}</span>
+                        </div>
                     </div>
                 </div>
 
-                            <div className={styles['form-group']}>
-                                <label htmlFor="billingAddress">Billing Address</label>
-                                <input
-                                    type="text"
-                                    id="billingAddress"
-                                    name="billingAddress"
-                                    className={styles['form-control']}
-                        placeholder="123 Main St, City, State, ZIP"
-                                    value={formData.billingAddress}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                </div>
+                <div className={styles['payment-form']}>
+                    <h2>Pay With Razorpay</h2>
+                    {error ? <div className={styles['error-message']}>{error}</div> : null}
 
-                            <div className={styles['security-info']}>
-                                <i className="fas fa-shield-alt"></i>
-                    <span>Your payment information is encrypted and secure. We never store your card details.</span>
-                </div>
+                    <div className={styles['security-info']}>
+                        <i className="fas fa-shield-alt" aria-hidden="true" />
+                        <span>
+                            Secure Razorpay Checkout. Your card and OTP are never stored in this application.
+                        </span>
+                    </div>
 
-                            <button 
-                                type="submit" 
-                                className={styles['payment-btn']}
-                                disabled={isSubmitting}
-                            >
-                                <i className="fas fa-lock"></i> Complete Payment - ${amount}
-                </button>
-            </form>
-                    ) : (
-                        <div className={styles.loading}>
-                            <div className={styles.spinner}></div>
-                <p>Processing your payment...</p>
+                    <div className={styles['form-group']}>
+                        <label>Name</label>
+                        <input className={styles['form-control']} value={checkoutPrefill.name || ''} readOnly />
+                    </div>
+                    <div className={styles['form-group']}>
+                        <label>Email</label>
+                        <input className={styles['form-control']} value={checkoutPrefill.email || ''} readOnly />
+                    </div>
+                    <div className={styles['form-group']}>
+                        <label>Phone</label>
+                        <input className={styles['form-control']} value={checkoutPrefill.contact || ''} readOnly />
+                    </div>
+
+                    <button
+                        type="button"
+                        className={styles['payment-btn']}
+                        onClick={handlePay}
+                        disabled={processing}
+                    >
+                        {processing ? 'Processing...' : `Pay ₹${amount}`}
+                    </button>
+                </div>
             </div>
-                    )}
-                </div>
         </div>
-    </div>
-);
+    );
 };
 
 export default Payment;

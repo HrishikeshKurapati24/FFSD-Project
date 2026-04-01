@@ -8,6 +8,7 @@ const PaymentSuccess = () => {
     const navigate = useNavigate();
 
     const transactionId = searchParams.get('transactionId');
+    const paymentIntentId = searchParams.get('paymentIntentId');
 
     const [paymentData, setPaymentData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ const PaymentSuccess = () => {
     const [countdown, setCountdown] = useState(10);
 
     useEffect(() => {
-        if (!transactionId) {
+        if (!transactionId && !paymentIntentId) {
             setError('Missing transaction ID');
             setLoading(false);
             return;
@@ -24,7 +25,7 @@ const PaymentSuccess = () => {
         const fetchPaymentData = async () => {
             try {
                 const response = await fetch(
-                    `${API_BASE_URL}/subscription/payment-success?transactionId=${transactionId}`,
+                    `${API_BASE_URL}/subscription/payment-success?${paymentIntentId ? `paymentIntentId=${paymentIntentId}` : `transactionId=${transactionId}`}`,
                     {
                         method: 'GET',
                         credentials: 'include',
@@ -61,7 +62,7 @@ const PaymentSuccess = () => {
         };
 
         fetchPaymentData();
-    }, [transactionId]);
+    }, [transactionId, paymentIntentId]);
 
     // Countdown and auto-redirect
     useEffect(() => {
@@ -142,7 +143,7 @@ const PaymentSuccess = () => {
                     </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Amount Paid:</span>
-                        <span className={styles['detail-value']}>${paymentData.amount}</span>
+                        <span className={styles['detail-value']}>₹{paymentData.amount}</span>
                     </div>
                     <div className={styles['detail-row']}>
                         <span className={styles['detail-label']}>Transaction ID:</span>

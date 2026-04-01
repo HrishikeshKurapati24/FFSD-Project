@@ -11,7 +11,10 @@ const EXTERNAL_ASSETS = {
         'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css',
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
     ],
-    scripts: ['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js']
+    scripts: [
+        'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js',
+        'https://checkout.razorpay.com/v1/checkout.js'
+    ]
 };
 
 const DEFAULT_PRODUCT_IMAGE = '/images/default-product.png';
@@ -21,28 +24,20 @@ const Cart = () => {
     const navigate = useNavigate();
     const { cartItems, subtotal, shipping, total, loading, error: cartError, removeFromCart, clearCart } = useCart();
     const [alert, setAlert] = useState({ type: '', message: '' });
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [customerName, setCustomerName] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
-        address: '',
-        cardNumber: '',
-        expMonth: '',
-        expYear: '',
-        cvv: ''
+        address: ''
     });
     const [errors, setErrors] = useState({
         name: '',
         email: '',
         phone: '',
-        address: '',
-        cardNumber: '',
-        expMonth: '',
-        expYear: '',
-        cvv: ''
+        address: ''
     });
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     // Check authentication on mount (optional - don't redirect if not authenticated)
     useEffect(() => {
@@ -59,7 +54,6 @@ const Cart = () => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.authenticated && data.user?.userType === 'customer') {
-                        setIsAuthenticated(true);
                         setCustomerName(data.user?.displayName || '');
                         // Pre-fill form with customer info if authenticated
                         if (data.user?.email) {
@@ -71,7 +65,7 @@ const Cart = () => {
                         }
                     }
                 }
-            } catch (error) {
+            } catch (_error) {
                 // Silently fail - user can still checkout as guest
                 console.log('Auth check optional - user can checkout as guest');
             }
@@ -121,10 +115,10 @@ const Cart = () => {
         setFormData(nextState);
 
         // Live-validate individual field using the next state
-        validateField(name, value, nextState);
+        validateField(name, value);
     };
 
-    const validateField = (fieldName, value, currentState = formData) => {
+    const validateField = (fieldName, value) => {
         let message = '';
         const trimmed = value.trim();
 
@@ -165,62 +159,6 @@ const Cart = () => {
                     message = 'Address is required for delivery.';
                 }
                 break;
-            case 'cardNumber': {
-                const digits = trimmed.replace(/\s+/g, '');
-                if (!digits) {
-                    message = 'Card number is required.';
-                } else if (!/^\d{16}$/.test(digits)) {
-                    message = 'Card number must be exactly 16 digits.';
-                }
-                break;
-            }
-            case 'expMonth': {
-                const mm = parseInt(trimmed, 10);
-                const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth() + 1;
-                const yy = parseInt(currentState.expYear, 10);
-
-                if (!trimmed) {
-                    message = 'Expiry month is required.';
-                } else if (Number.isNaN(mm) || mm < 1 || mm > 12) {
-                    message = 'Enter a valid month (01–12).';
-                } else if (!Number.isNaN(yy) && yy === currentYear && mm < currentMonth) {
-                    message = 'Card has already expired.';
-                } else {
-                    // Clear expiry error on year if month is now valid
-                    setErrors(prev => ({ ...prev, expYear: prev.expYear === 'Card has already expired.' ? '' : prev.expYear }));
-                }
-                break;
-            }
-            case 'expYear': {
-                const yy = parseInt(trimmed, 10);
-                const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth() + 1;
-                const mm = parseInt(currentState.expMonth, 10);
-
-                if (!trimmed) {
-                    message = 'Expiry year is required.';
-                } else if (Number.isNaN(yy) || trimmed.length !== 4) {
-                    message = 'Enter a 4-digit year.';
-                } else if (yy < currentYear) {
-                    message = 'Card has already expired.';
-                } else if (yy === currentYear && !Number.isNaN(mm) && mm < currentMonth) {
-                    message = 'Card has already expired.';
-                } else {
-                    // Clear expiry error on month if year is now valid
-                    setErrors(prev => ({ ...prev, expMonth: prev.expMonth === 'Card has already expired.' ? '' : prev.expMonth }));
-                }
-                break;
-            }
-            case 'cvv': {
-                const digits = trimmed;
-                if (!digits) {
-                    message = 'CVV is required.';
-                } else if (!/^\d{3}$/.test(digits)) {
-                    message = 'CVV must be exactly 3 digits.';
-                }
-                break;
-            }
             default:
                 break;
         }
@@ -245,7 +183,7 @@ const Cart = () => {
     };
 
     const handleCheckout = async () => {
-        const { name, email, phone, address, cardNumber, expMonth, expYear, cvv } = formData;
+        const { name, email, phone, address } = formData;
 
         // Run full validation before checkout
         const isValid = validateForm();
@@ -267,12 +205,6 @@ const Cart = () => {
                 phone: phone.trim(),
                 address: address.trim()
             },
-            paymentInfo: {
-                cardNumber: cardNumber.trim(),
-                expMonth: expMonth.trim(),
-                expYear: expYear.trim(),
-                cvv: cvv.trim()
-            },
             cart: cartDataForBackend, // Send cart data from context since backend reads from session
             referralCode: (() => {
                 try {
@@ -284,7 +216,8 @@ const Cart = () => {
         };
 
         try {
-            const response = await fetch(`${API_BASE_URL}/customer/checkout`, {
+            setIsCheckingOut(true);
+            const initiateResponse = await fetch(`${API_BASE_URL}/customer/checkout/initiate`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -294,25 +227,74 @@ const Cart = () => {
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
-            if (response.ok && data?.success) {
-                showAlert('success', data?.message || 'Payment completed successfully!');
-                // Clear cart in context after successful checkout
-                clearCart();
-                navigate('/customer');
-            } else {
-                throw new Error(data?.message || 'Checkout failed');
+            const initiateData = await initiateResponse.json();
+            if (!initiateResponse.ok || !initiateData?.success) {
+                throw new Error(initiateData?.message || 'Checkout initiation failed');
             }
+
+            if (!window.Razorpay) {
+                throw new Error('Razorpay checkout failed to load');
+            }
+
+            const checkoutPayload = await new Promise((resolve, reject) => {
+                const rzp = new window.Razorpay({
+                    key: initiateData.razorpayKeyId,
+                    amount: initiateData.amountPaise,
+                    currency: initiateData.currency || 'INR',
+                    order_id: initiateData.razorpayOrderId,
+                    name: 'CollabSync',
+                    description: 'Customer cart checkout',
+                    prefill: initiateData.prefill || {
+                        name: name.trim(),
+                        email: email.trim(),
+                        contact: phone.trim()
+                    },
+                    handler: (responsePayload) => resolve(responsePayload),
+                    modal: {
+                        ondismiss: () => reject(new Error('Payment was cancelled'))
+                    },
+                    theme: {
+                        color: '#111827'
+                    }
+                });
+                rzp.open();
+            });
+
+            const confirmResponse = await fetch(`${API_BASE_URL}/customer/checkout/confirm`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    paymentIntentId: initiateData.paymentIntentId,
+                    razorpay_order_id: checkoutPayload.razorpay_order_id,
+                    razorpay_payment_id: checkoutPayload.razorpay_payment_id,
+                    razorpay_signature: checkoutPayload.razorpay_signature
+                })
+            });
+
+            const confirmData = await confirmResponse.json();
+            if (!confirmResponse.ok || !confirmData?.success) {
+                throw new Error(confirmData?.message || 'Checkout confirmation failed');
+            }
+
+            showAlert('success', confirmData?.message || 'Payment completed successfully!');
+            clearCart();
+            navigate('/customer');
         } catch (error) {
             console.error('Checkout error:', error);
             showAlert('danger', error.message || 'Checkout failed');
+        } finally {
+            setIsCheckingOut(false);
         }
     };
 
     const items = useMemo(() => cartItems || [], [cartItems]);
     const isEmpty = !items.length;
     const formatCurrency = (value) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value || 0);
+        new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value || 0);
 
     // No need to block unauthenticated users - they can checkout as guests
 
@@ -490,88 +472,25 @@ const Cart = () => {
                                     </div>
 
                                     <div className={styles['payment-section']}>
-                                        <h6 className={styles['payment-title']}>Payment Details</h6>
-                                        <div className="mb-2">
-                                            <label htmlFor="cardNumber" className="form-label">
-                                                Card Number
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="cardNumber"
-                                                name="cardNumber"
-                                                className={`form-control ${errors.cardNumber ? 'is-invalid' : ''}`}
-                                                placeholder="4111 1111 1111 1111"
-                                                inputMode="numeric"
-                                                value={formData.cardNumber}
-                                                onChange={handleInputChange}
-                                            />
-                                            {errors.cardNumber && (
-                                                <div className="invalid-feedback">{errors.cardNumber}</div>
-                                            )}
-                                        </div>
-                                        <div className="row g-2">
-                                            <div className="col">
-                                                <label htmlFor="expMonth" className="form-label">
-                                                    Exp. Month
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    id="expMonth"
-                                                    name="expMonth"
-                                                    className={`form-control ${errors.expMonth ? 'is-invalid' : ''}`}
-                                                    placeholder="MM"
-                                                    inputMode="numeric"
-                                                    value={formData.expMonth}
-                                                    onChange={handleInputChange}
-                                                />
-                                                {errors.expMonth && (
-                                                    <div className="invalid-feedback">{errors.expMonth}</div>
-                                                )}
-                                            </div>
-                                            <div className="col">
-                                                <label htmlFor="expYear" className="form-label">
-                                                    Exp. Year
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    id="expYear"
-                                                    name="expYear"
-                                                    className={`form-control ${errors.expYear ? 'is-invalid' : ''}`}
-                                                    placeholder="YYYY"
-                                                    inputMode="numeric"
-                                                    value={formData.expYear}
-                                                    onChange={handleInputChange}
-                                                />
-                                                {errors.expYear && (
-                                                    <div className="invalid-feedback">{errors.expYear}</div>
-                                                )}
-                                            </div>
-                                            <div className="col">
-                                                <label htmlFor="cvv" className="form-label">
-                                                    CVV
-                                                </label>
-                                                <input
-                                                    type="password"
-                                                    id="cvv"
-                                                    name="cvv"
-                                                    className={`form-control ${errors.cvv ? 'is-invalid' : ''}`}
-                                                    placeholder="123"
-                                                    inputMode="numeric"
-                                                    value={formData.cvv}
-                                                    onChange={handleInputChange}
-                                                />
-                                                {errors.cvv && (
-                                                    <div className="invalid-feedback">{errors.cvv}</div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <h6 className={styles['payment-title']}>Razorpay Checkout</h6>
+                                        <p className="mb-2">
+                                            Checkout opens Razorpay in test mode and confirms order only after signature verification.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-secondary w-100 mb-2"
+                                            onClick={() => navigate('/customer/profile')}
+                                        >
+                                            Update Optional Billing Profile
+                                        </button>
                                         <button
                                             type="button"
                                             className={`btn btn-primary checkout-btn w-100 mt-3 ${styles['checkout-btn']}`}
                                             onClick={handleCheckout}
+                                            disabled={isCheckingOut}
                                         >
                                             <i className="fas fa-credit-card me-2" aria-hidden="true" />
-                                            Checkout
+                                            {isCheckingOut ? 'Processing...' : 'Checkout'}
                                         </button>
                                     </div>
                                 </div>

@@ -1,4 +1,15 @@
-const { CampaignInfo, CampaignMetrics, CampaignInfluencers } = require('../../models/CampaignMongo');
+const { CampaignInfo, CampaignMetrics, CampaignInfluencers, CampaignPayments } = require('../../models/CampaignMongo');
+const { BrandInfo } = require('../../models/BrandMongo');
+const { InfluencerInfo, InfluencerSocials } = require('../../models/InfluencerMongo');
+const { Product } = require('../../models/ProductMongo');
+const {
+    createPaymentIntent,
+    createRazorpayOrderForIntent,
+    verifyClientPaymentAndCaptureIntent,
+    markIntentBusinessApplied
+} = require('../payment/paymentIntentService');
+const { getRazorpayConfig } = require('../payment/razorpayGatewayService');
+const brandProfileService = require('./brandProfileService');
 const mongoose = require('mongoose');
 
 class brandCampaignService {
@@ -1002,42 +1013,79 @@ class brandCampaignService {
     }
 
     // Get transaction details data
-    static async getTransactionData(campaignId, influencerId) {
+    static async getTransactionData(campaignId, influencerId, brandId = null) {
         try {
-            const { CampaignInfo, CampaignInfluencers } = require('../../models/CampaignMongo');
-            const { InfluencerInfo } = require('../../models/InfluencerMongo');
-            const mongoose = require('mongoose');
-
             const cId = new mongoose.Types.ObjectId(campaignId);
             const iId = new mongoose.Types.ObjectId(influencerId);
 
-            let request = await CampaignInfluencers.findOne({ _id: cId, influencer_id: iId })
-                .populate({ path: 'campaign_id', select: 'title description budget duration target_audience required_channels min_followers objectives start_date end_date status' })
-                .populate('influencer_id', 'fullName displayName username profilePicUrl')
+            const request = await CampaignInfluencers.findOne({ _id: cId, influencer_id: iId })
+                .populate({
+                    path: 'campaign_id',
+                    select: 'title description budget duration target_audience required_channels min_followers objectives start_date end_date status brand_id'
+                })
+                .populate('influencer_id', 'fullName displayName username profilePicUrl verified')
                 .lean();
 
-            if (!request) {
-                const allRequests = await CampaignInfluencers.find({ $or: [{ _id: cId }, { influencer_id: iId }] }).lean();
-                if (allRequests.length > 0) {
-                    const matchedRequest = allRequests.find(r => r._id.toString() === cId.toString() && r.influencer_id.toString() === iId.toString());
-                    if (matchedRequest) {
-                        request = await CampaignInfluencers.findById(matchedRequest._id)
-                            .populate({ path: 'campaign_id', select: 'title description budget duration target_audience required_channels min_followers objectives start_date end_date status' })
-                            .populate('influencer_id', 'fullName displayName username profilePicUrl')
-                            .lean();
-                    }
-                }
+            if (!request) return null;
+
+            const campaign = request.campaign_id || {};
+            const influencer = request.influencer_id || {};
+
+            if (brandId && campaign?.brand_id?.toString() !== brandId.toString()) {
+                throw new Error('You do not have access to this transaction');
             }
 
-            if (!request) return null;
+            const [campaignProducts, influencerSocials, paidAgg] = await Promise.all([
+                Product.find({ campaign_id: campaign._id, status: 'active' })
+                    .select('name images campaign_price')
+                    .lean(),
+                InfluencerSocials.findOne({ influencerId: influencer._id }).lean(),
+                CampaignPayments.aggregate([
+                    { $match: { campaign_id: campaign._id, status: 'completed' } },
+                    { $group: { _id: null, totalPaid: { $sum: '$amount' } } }
+                ])
+            ]);
+
+            const totalPaid = Number(paidAgg?.[0]?.totalPaid || 0);
+            const budget = Number(campaign?.budget || 0);
+            const paymentMax = Math.max(0, Number((budget - totalPaid).toFixed(2)));
+            const primarySocial = influencerSocials?.platforms?.[0];
+            const razorpayConfig = getRazorpayConfig();
+            const canPay = Boolean(razorpayConfig.enabled);
 
             return {
                 requestId1: cId.toString(),
                 requestId2: iId.toString(),
-                campaign: request.campaign_id,
-                influencer: request.influencer_id,
                 status: request.status,
-                progress: request.progress
+                progress: request.progress || 0,
+                allowComplete: campaign.status === 'influencer-invite',
+                paymentMax,
+                campaignTitle: campaign.title || 'Campaign',
+                campaignDescription: campaign.description || '',
+                campaignDuration: campaign.duration || 0,
+                campaignBudget: budget,
+                campaignTargetAudience: campaign.target_audience || 'Not specified',
+                campaignRequiredChannels: Array.isArray(campaign.required_channels) ? campaign.required_channels : [],
+                campaignMinFollowers: campaign.min_followers || 0,
+                campaignObjectives: campaign.objectives || '',
+                campaignStartDate: campaign.start_date ? new Date(campaign.start_date).toLocaleDateString('en-US') : 'Not set',
+                campaignEndDate: campaign.end_date ? new Date(campaign.end_date).toLocaleDateString('en-US') : 'Not set',
+                campaignProducts: campaignProducts.map(product => ({
+                    id: product._id,
+                    name: product.name,
+                    campaign_price: product.campaign_price,
+                    image_url: product.images && product.images[0] ? product.images[0].url : null
+                })),
+                influencerName: influencer.displayName || influencer.fullName || 'Influencer',
+                influencerUsername: influencer.username || '',
+                influencerImage: influencer.profilePicUrl || '/images/default-avatar.jpg',
+                socialPlatform: primarySocial?.platform || 'social',
+                socialHandle: primarySocial?.handle || influencer.username || 'influencer',
+                isVerified: Boolean(influencer.verified),
+                canPay,
+                paymentProfileRequired: false,
+                paymentProfilePath: '/brand/profile',
+                paymentGatewayConfigured: canPay
             };
         } catch (error) {
             throw error;
@@ -1045,7 +1093,7 @@ class brandCampaignService {
     }
 
 
-    static async submitTransaction(brandId, requestId1, requestId2, data, file) {
+    static async buildTransactionPaymentContext(brandId, requestId1, requestId2, data, file) {
         const {
             objectives,
             startDate,
@@ -1062,24 +1110,43 @@ class brandCampaignService {
             deliverables: rawDeliverables
         } = data;
 
-        if (!amount || !paymentMethod) {
-            throw new Error('Amount and payment method are required');
+        const amountValue = Number(amount);
+        if (!Number.isFinite(amountValue) || amountValue <= 0) {
+            throw new Error('A valid payment amount is required');
+        }
+        if (!paymentMethod || paymentMethod !== 'razorpay') {
+            throw new Error('Payment method must be razorpay');
         }
 
-        const campaignId = new mongoose.Types.ObjectId(requestId1);
+        const collabId = new mongoose.Types.ObjectId(requestId1);
         const influencerId = new mongoose.Types.ObjectId(requestId2);
 
         const request = await CampaignInfluencers.findOne({
-            _id: campaignId,
+            _id: collabId,
             influencer_id: influencerId
-        });
+        }).select('campaign_id influencer_id status');
 
         if (!request) throw new Error('Request not found');
 
-        const campaignDoc = await CampaignInfo.findById(request.campaign_id).select('status brand_id');
+        const campaignDoc = await CampaignInfo.findById(request.campaign_id).select('status brand_id budget title');
         if (!campaignDoc) throw new Error('Campaign not found');
+        if (campaignDoc.brand_id.toString() !== brandId.toString()) {
+            throw new Error('You do not have permission to pay for this campaign');
+        }
+
+        const paidAgg = await CampaignPayments.aggregate([
+            { $match: { campaign_id: request.campaign_id, status: 'completed' } },
+            { $group: { _id: null, totalPaid: { $sum: '$amount' } } }
+        ]);
+        const totalPaidSoFar = Number(paidAgg?.[0]?.totalPaid || 0);
+        const remainingBudget = Number(campaignDoc.budget || 0) - totalPaidSoFar;
+        if (amountValue > remainingBudget) {
+            throw new Error(`Amount exceeds remaining campaign budget (${remainingBudget.toFixed(2)})`);
+        }
 
         const isCompleting = (campaignDoc.status === 'influencer-invite');
+        let campaignActivationData = null;
+        let productData = null;
 
         if (isCompleting) {
             if (!objectives || !startDate || !endDate || !targetAudience) {
@@ -1097,21 +1164,15 @@ class brandCampaignService {
             const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
             if (duration > 365) throw new Error('Campaign duration cannot exceed 365 days');
 
-            await CampaignInfo.updateOne(
-                { _id: request.campaign_id },
-                {
-                    $set: {
-                        objectives: objectives.trim(),
-                        start_date: start,
-                        end_date: end,
-                        duration: duration,
-                        target_audience: targetAudience.trim(),
-                        status: 'active'
-                    }
-                }
-            );
+            campaignActivationData = {
+                objectives: objectives.trim(),
+                start_date: start,
+                end_date: end,
+                duration,
+                target_audience: targetAudience.trim(),
+                status: 'active'
+            };
 
-            // Product creation
             if (!prodName || !prodDescription || !category || !file) {
                 throw new Error('Product name, description, category, and image are required');
             }
@@ -1126,8 +1187,7 @@ class brandCampaignService {
             const { uploadToCloudinary } = require('../../utils/cloudinary');
             const imageUrl = await uploadToCloudinary(file, 'products');
 
-            const { Product } = require('../../models/ProductMongo');
-            await Product.create({
+            productData = {
                 brand_id: new mongoose.Types.ObjectId(brandId),
                 campaign_id: request.campaign_id,
                 name: prodName.trim(),
@@ -1139,49 +1199,90 @@ class brandCampaignService {
                 target_quantity: tq,
                 created_by: new mongoose.Types.ObjectId(brandId),
                 status: 'active'
-            });
+            };
         }
-
-        const { CampaignPayments } = require('../../models/CampaignMongo');
-        const payment = new CampaignPayments({
-            campaign_id: request.campaign_id,
-            brand_id: new mongoose.Types.ObjectId(brandId),
-            influencer_id: influencerId,
-            amount: parseFloat(amount),
-            status: 'completed',
-            payment_date: new Date(),
-            payment_method: paymentMethod === 'creditCard' ? 'credit_card' : 'bank_transfer'
-        });
-        await payment.save();
-
-        await CampaignInfluencers.updateOne(
-            { _id: campaignId, influencer_id: influencerId },
-            { $set: { status: 'active' } }
-        );
 
         let deliverables = rawDeliverables;
         if (typeof deliverables === 'string') {
             try { deliverables = JSON.parse(deliverables); } catch (e) { deliverables = []; }
         }
 
-        if (deliverables && Array.isArray(deliverables) && deliverables.length > 0) {
-            const formattedDeliverables = deliverables.map(d => ({
+        const formattedDeliverables = Array.isArray(deliverables)
+            ? deliverables.map(d => ({
                 title: d.title || 'Untitled Deliverable',
                 description: d.description || '',
                 due_date: d.due_date ? new Date(d.due_date) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 deliverable_type: d.deliverable_type || 'Other',
                 status: 'pending'
-            }));
+            }))
+            : [];
 
+        return {
+            brandId: brandId.toString(),
+            collabId: collabId.toString(),
+            influencerId: influencerId.toString(),
+            campaignId: request.campaign_id.toString(),
+            amount: amountValue,
+            currency: 'INR',
+            isCompleting,
+            campaignTitle: campaignDoc.title || 'Campaign',
+            campaignActivationData,
+            productData,
+            formattedDeliverables
+        };
+    }
+
+    static async applyCampaignTransactionFromIntent(intent) {
+        const context = intent?.context || {};
+        const brandId = context?.brandId;
+        const collabId = context?.collabId;
+        const influencerId = context?.influencerId;
+        const campaignId = context?.campaignId;
+        const amountValue = Number(context?.amount || 0);
+
+        if (!brandId || !collabId || !influencerId || !campaignId || amountValue <= 0) {
+            throw new Error('Invalid campaign payment intent context');
+        }
+
+        if (context?.isCompleting && context?.campaignActivationData) {
+            await CampaignInfo.updateOne(
+                { _id: campaignId },
+                { $set: context.campaignActivationData }
+            );
+        }
+
+        if (context?.isCompleting && context?.productData) {
+            await Product.create(context.productData);
+        }
+
+        const paymentRecord = new CampaignPayments({
+            campaign_id: campaignId,
+            brand_id: new mongoose.Types.ObjectId(brandId),
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            amount: amountValue,
+            status: 'completed',
+            payment_date: new Date(),
+            payment_method: 'razorpay',
+            razorpay_payment_id: intent?.razorpay?.paymentId,
+            razorpay_order_id: intent?.razorpay?.orderId
+        });
+        await paymentRecord.save();
+
+        await CampaignInfluencers.updateOne(
+            { _id: collabId, influencer_id: influencerId },
+            { $set: { status: 'active' } }
+        );
+
+        if (Array.isArray(context?.formattedDeliverables) && context.formattedDeliverables.length > 0) {
             await CampaignInfluencers.updateOne(
-                { _id: campaignId, influencer_id: influencerId },
-                { $set: { deliverables: formattedDeliverables } }
+                { _id: collabId, influencer_id: influencerId },
+                { $set: { deliverables: context.formattedDeliverables } }
             );
         }
 
         const notificationController = require('../../controllers/notificationController');
         try {
-            const campaignInfoForNotif = await CampaignInfo.findById(request.campaign_id).select('title').lean();
+            const campaignInfoForNotif = await CampaignInfo.findById(campaignId).select('title').lean();
             await notificationController.createNotification({
                 recipientId: new mongoose.Types.ObjectId(influencerId),
                 recipientType: 'influencer',
@@ -1190,8 +1291,8 @@ class brandCampaignService {
                 type: 'request_accepted',
                 title: 'Request Accepted',
                 body: `Your request has been accepted for "${campaignInfoForNotif?.title || 'your campaign'}".`,
-                relatedId: request._id,
-                data: { campaignId: request.campaign_id }
+                relatedId: collabId,
+                data: { campaignId }
             });
         } catch (notifErr) { console.error('Notification error:', notifErr); }
 
@@ -1200,7 +1301,80 @@ class brandCampaignService {
             await SubscriptionService.updateUsage(brandId, 'brand', { influencersConnected: 1 });
         } catch (usageError) { console.error('Usage update error:', usageError); }
 
-        return { success: true, message: 'Campaign completed and payment processed successfully!' };
+        return {
+            success: true,
+            message: 'Campaign completed and payment processed successfully',
+            paymentId: intent?.razorpay?.paymentId
+        };
+    }
+
+    static async submitTransaction(brandId, requestId1, requestId2, data, file) {
+        const paymentStage = (data?.paymentStage || 'initiate').trim();
+
+        if (paymentStage === 'confirm') {
+            const {
+                paymentIntentId,
+                razorpay_order_id: razorpayOrderId,
+                razorpay_payment_id: razorpayPaymentId,
+                razorpay_signature: razorpaySignature
+            } = data;
+
+            if (!paymentIntentId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+                throw new Error('Missing Razorpay payment verification fields');
+            }
+
+            const { intent } = await verifyClientPaymentAndCaptureIntent({
+                paymentIntentId,
+                razorpayOrderId,
+                razorpayPaymentId,
+                razorpaySignature
+            });
+
+            if (intent.type !== 'campaign') {
+                throw new Error('Invalid payment intent type');
+            }
+
+            if (intent.businessApplied) {
+                return {
+                    success: true,
+                    message: 'Campaign payment already processed',
+                    paymentId: intent?.razorpay?.paymentId
+                };
+            }
+
+            const result = await this.applyCampaignTransactionFromIntent(intent);
+            await markIntentBusinessApplied(intent._id);
+            return result;
+        }
+
+        const context = await this.buildTransactionPaymentContext(brandId, requestId1, requestId2, data, file);
+        const intent = await createPaymentIntent({
+            type: 'campaign',
+            payerId: brandId,
+            payerType: 'BrandInfo',
+            amount: context.amount,
+            currency: context.currency,
+            context,
+            metadata: {
+                source: 'brand_transaction',
+                campaignId: context.campaignId,
+                influencerId: context.influencerId
+            }
+        });
+
+        const { order } = await createRazorpayOrderForIntent(intent._id);
+        const razorpayConfig = getRazorpayConfig();
+
+        return {
+            success: true,
+            stage: 'initiated',
+            paymentIntentId: intent._id,
+            razorpayOrderId: order.id,
+            amountPaise: order.amount,
+            currency: order.currency,
+            razorpayKeyId: razorpayConfig.keyId,
+            message: 'Campaign payment initiated'
+        };
     }
 
     static async createCampaign(brandId, data, files) {

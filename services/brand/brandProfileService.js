@@ -1,6 +1,7 @@
 const { BrandInfo, BrandSocials, BrandAnalytics } = require('../../models/BrandMongo');
 const { InfluencerInfo } = require('../../models/InfluencerMongo');
 const { CampaignInfo, CampaignInfluencers } = require('../../models/CampaignMongo');
+const { getRazorpayConfig } = require('../payment/razorpayGatewayService');
 const mongoose = require('mongoose');
 const CampaignMetrics = mongoose.model('CampaignMetrics');
 
@@ -33,6 +34,147 @@ class brandProfileService {
             console.error('Error fetching brand profile data:', err);
             throw err;
         }
+    }
+
+    static isBrandPaymentProfileComplete(brandDoc) {
+        if (!brandDoc) return false;
+        return Boolean(brandDoc?.paymentProfile?.isComplete);
+    }
+
+    static formatBrandPaymentProfile(brand) {
+        const paymentProfile = brand?.paymentProfile || {};
+        const accountDetails = brand?.brandAccountDetails || {};
+        const razorpay = brand?.razorpay || {};
+        const razorpayConfig = getRazorpayConfig();
+        const profileComplete = this.isBrandPaymentProfileComplete(brand);
+        const gatewayReady = Boolean(razorpayConfig.enabled);
+
+        return {
+            hasSavedPaymentMethod: Boolean(razorpay.defaultPaymentMethodId || paymentProfile.cardLast4),
+            canMakePayments: gatewayReady,
+            razorpayCustomerId: razorpay.customerId || null,
+            razorpayKeyId: razorpayConfig.keyId,
+            paymentMethodConfigured: Boolean(razorpay.paymentMethodConfigured),
+            profileComplete,
+            requiresPaymentProfileForCheckout: false,
+            paymentMethodSummary: {
+                cardBrand: paymentProfile.cardBrand || null,
+                cardLast4: paymentProfile.cardLast4 || null
+            },
+            paymentProfile: {
+                billingName: paymentProfile.billingName || '',
+                billingEmail: paymentProfile.billingEmail || '',
+                billingPhone: paymentProfile.billingPhone || '',
+                billingAddress: {
+                    line1: paymentProfile.billingAddress?.line1 || '',
+                    line2: paymentProfile.billingAddress?.line2 || '',
+                    city: paymentProfile.billingAddress?.city || '',
+                    state: paymentProfile.billingAddress?.state || '',
+                    postalCode: paymentProfile.billingAddress?.postalCode || '',
+                    country: paymentProfile.billingAddress?.country || 'US'
+                }
+            },
+            brandAccountDetails: {
+                legalBusinessName: accountDetails.legalBusinessName || '',
+                accountType: accountDetails.accountType || 'company',
+                taxIdLast4: accountDetails.taxIdLast4 || '',
+                payoutPreference: accountDetails.payoutPreference || 'standard'
+            }
+        };
+    }
+
+    static async getBrandPaymentProfile(brandId) {
+        const brand = await BrandInfo.findById(brandId)
+            .select('email displayName brandName phone razorpay paymentProfile brandAccountDetails')
+            .lean();
+
+        if (!brand) {
+            throw new Error('Brand not found');
+        }
+
+        return this.formatBrandPaymentProfile(brand);
+    }
+
+    static async createBrandPaymentSetupOrder(brandId) {
+        const brand = await BrandInfo.findById(brandId);
+        if (!brand) {
+            throw new Error('Brand not found');
+        }
+
+        const razorpayConfig = getRazorpayConfig();
+        if (!razorpayConfig.enabled) {
+            throw new Error('Razorpay is not configured on server');
+        }
+
+        const setupOrderId = `setup_profile_${Date.now()}`;
+        brand.razorpay = {
+            ...(brand.razorpay || {}),
+            lastSetupOrderId: setupOrderId
+        };
+        await brand.save();
+
+        return {
+            setupOrderId,
+            razorpayKeyId: razorpayConfig.keyId
+        };
+    }
+
+    static async saveBrandPaymentMethod(brandId, payload = {}) {
+        const {
+            paymentMethodId,
+            setupOrderId,
+            cardDetails = {},
+            billingDetails = {},
+            brandAccountDetails = {}
+        } = payload;
+
+        const brand = await BrandInfo.findById(brandId);
+        if (!brand) {
+            throw new Error('Brand not found');
+        }
+        const address = billingDetails?.address || {};
+        const cardNumber = String(cardDetails?.cardNumber || '').replace(/\D/g, '');
+        const cardLast4 = cardNumber ? cardNumber.slice(-4) : (brand.paymentProfile?.cardLast4 || '');
+        const cardBrand = cardDetails?.network || brand.paymentProfile?.cardBrand || '';
+        const billingName = billingDetails?.name || brand.paymentProfile?.billingName || brand.displayName || brand.brandName || '';
+        const billingEmail = billingDetails?.email || brand.paymentProfile?.billingEmail || brand.email;
+        const isComplete = Boolean(billingName && billingEmail);
+
+        brand.razorpay = {
+            ...(brand.razorpay || {}),
+            defaultPaymentMethodId: paymentMethodId || brand?.razorpay?.defaultPaymentMethodId || null,
+            paymentMethodConfigured: isComplete,
+            lastSetupOrderId: setupOrderId || brand?.razorpay?.lastSetupOrderId || null
+        };
+
+        brand.paymentProfile = {
+            billingName,
+            billingEmail,
+            billingPhone: billingDetails?.phone || brand.paymentProfile?.billingPhone || brand.phone || '',
+            billingAddress: {
+                line1: address.line1 || brand.paymentProfile?.billingAddress?.line1 || '',
+                line2: address.line2 || brand.paymentProfile?.billingAddress?.line2 || '',
+                city: address.city || brand.paymentProfile?.billingAddress?.city || '',
+                state: address.state || brand.paymentProfile?.billingAddress?.state || '',
+                postalCode: address.postal_code || address.postalCode || brand.paymentProfile?.billingAddress?.postalCode || '',
+                country: address.country || brand.paymentProfile?.billingAddress?.country || 'US'
+            },
+            cardBrand,
+            cardLast4,
+            isComplete,
+            completedAt: isComplete ? new Date() : brand.paymentProfile?.completedAt
+        };
+
+        brand.brandAccountDetails = {
+            legalBusinessName: brandAccountDetails.legalBusinessName || brand.brandAccountDetails?.legalBusinessName || '',
+            accountType: brandAccountDetails.accountType || brand.brandAccountDetails?.accountType || 'company',
+            taxIdLast4: brandAccountDetails.taxIdLast4 || brand.brandAccountDetails?.taxIdLast4 || '',
+            payoutPreference: brandAccountDetails.payoutPreference || brand.brandAccountDetails?.payoutPreference || 'standard'
+        };
+
+        await brand.save();
+
+        return this.formatBrandPaymentProfile(brand);
     }
 
     // Update brand profile with all validation and transformations

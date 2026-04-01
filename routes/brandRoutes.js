@@ -825,6 +825,9 @@ router.get('/collab', brandCampaignController.getCollabs);
 
 
 router.get('/profile', brandController.getBrandProfile);
+router.get('/profile/payment', brandProfileController.getPaymentProfile);
+router.post('/profile/payment/setup-order', brandProfileController.createPaymentSetupOrder);
+router.post('/profile/payment/save-method', brandProfileController.savePaymentMethod);
 
 // Get received requests page
 router.get('/recievedRequests', isAuthenticated, isBrand, brandCampaignController.getReceivedRequests);

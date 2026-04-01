@@ -78,6 +78,15 @@ const CustomerNavbar = ({
             </li>
             <li className="nav-item">
               <Link
+                className={`nav-link ${activePath === '/customer/profile' ? 'active' : ''}`}
+                to="/customer/profile"
+                aria-current={activePath === '/customer/profile' ? 'page' : undefined}
+              >
+                Profile
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
                 className={`nav-link ${activePath === '/feedback' ? 'active' : ''}`}
                 to="/feedback"
                 aria-current={activePath === '/feedback' ? 'page' : undefined}

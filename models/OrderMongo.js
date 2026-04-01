@@ -45,6 +45,29 @@ const orderSchema = new mongoose.Schema({
         index: true
     },
     payment_id: String,
+    payment_provider: {
+        type: String,
+        enum: ['mock', 'razorpay_mock', 'razorpay', 'other'],
+        default: 'mock'
+    },
+    payment_status: {
+        type: String,
+        trim: true,
+        default: 'succeeded'
+    },
+    payment_method: {
+        type: String,
+        trim: true,
+        default: 'card'
+    },
+    razorpay_payment_id: {
+        type: String,
+        trim: true
+    },
+    razorpay_order_id: {
+        type: String,
+        trim: true
+    },
 
     shipping_address: {
         name: String,

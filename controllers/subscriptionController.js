@@ -1,4 +1,14 @@
 const SubscriptionService = require('../services/subscription/subscriptionService');
+const { BrandInfo } = require('../models/BrandMongo');
+const { InfluencerInfo } = require('../models/InfluencerMongo');
+const { PaymentHistory } = require('../models/SubscriptionMongo');
+const {
+    createPaymentIntent,
+    createRazorpayOrderForIntent,
+    verifyClientPaymentAndCaptureIntent,
+    markIntentBusinessApplied,
+    getRazorpayConfig
+} = require('../services/payment/paymentIntentService');
 
 const selectPlan = async (req, res) => {
     const { userId, userType } = req.query;
@@ -97,326 +107,260 @@ const subscribeAfterSignup = async (req, res) => {
     }
 };
 
+const resolveSubscriptionUserContext = async ({ userId, userType, sessionUser }) => {
+    let resolvedUserId = userId;
+    let resolvedUserType = userType;
+
+    if (!resolvedUserId && sessionUser?.id) {
+        resolvedUserId = sessionUser.id;
+    }
+    if (!resolvedUserType || resolvedUserType === 'undefined' || resolvedUserType === 'null') {
+        resolvedUserType = sessionUser?.userType || sessionUser?.role;
+    }
+
+    if (!resolvedUserId) {
+        throw new Error('Missing userId');
+    }
+    if (!/^[0-9a-fA-F]{24}$/.test(String(resolvedUserId))) {
+        throw new Error('Invalid userId format');
+    }
+
+    if (!resolvedUserType || resolvedUserType === 'undefined' || resolvedUserType === 'null') {
+        const [brand, influencer] = await Promise.all([
+            BrandInfo.findById(resolvedUserId).select('_id'),
+            InfluencerInfo.findById(resolvedUserId).select('_id')
+        ]);
+        if (brand) resolvedUserType = 'brand';
+        if (influencer) resolvedUserType = 'influencer';
+    }
+
+    resolvedUserType = String(resolvedUserType || '').toLowerCase();
+    if (!['brand', 'influencer'].includes(resolvedUserType)) {
+        throw new Error('Invalid userType. Must be "brand" or "influencer"');
+    }
+
+    const model = resolvedUserType === 'brand' ? BrandInfo : InfluencerInfo;
+    const userDoc = await model.findById(resolvedUserId).select('email phone brandName displayName fullName');
+    if (!userDoc) {
+        throw new Error('User not found');
+    }
+
+    return {
+        userId: resolvedUserId,
+        userType: resolvedUserType,
+        userModel: resolvedUserType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
+        userDoc
+    };
+};
+
+const getSelectedPlanOrThrow = async ({ userType, planId }) => {
+    if (!planId) {
+        throw new Error('Missing planId');
+    }
+
+    const plans = await SubscriptionService.getPlansForUserType(userType);
+    if (!plans?.length) {
+        throw new Error(`No subscription plans found for userType: ${userType}`);
+    }
+
+    const selectedPlan = plans.find(p => String(p._id) === String(planId));
+    if (!selectedPlan) {
+        throw new Error('Invalid plan selected');
+    }
+
+    return selectedPlan;
+};
+
 const getPaymentPage = async (req, res) => {
-    let { userId, userType, planId, billingCycle } = req.query;
+    const { userId, userType, planId, billingCycle } = req.query;
+    const context = await resolveSubscriptionUserContext({
+        userId,
+        userType,
+        sessionUser: req.session?.user
+    });
 
-    if (!userId && req.session?.user?.id) {
-        userId = req.session.user.id;
-    }
-    if (!userType || userType === 'undefined' || userType === 'null') {
-        userType = req.session?.user?.userType || req.session?.user?.role;
-    }
-
-    if (!userType || userType === 'undefined' || userType === 'null') {
-        const { BrandInfo } = require('../models/BrandMongo');
-        const { InfluencerInfo } = require('../models/InfluencerMongo');
-
-        if (userId) {
-            const brand = await BrandInfo.findById(userId);
-            const influencer = await InfluencerInfo.findById(userId);
-
-            if (brand) {
-                userType = 'brand';
-            } else if (influencer) {
-                userType = 'influencer';
-            }
-        }
-    }
-
-    if (!userId || !userType || !planId || !billingCycle) {
-        const error = new Error('Missing required parameters for payment page');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
-        const error = new Error('Invalid userId format');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (!['brand', 'influencer'].includes(userType)) {
-        const error = new Error('Invalid userType. Must be "brand" or "influencer"');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (!['monthly', 'yearly'].includes(billingCycle)) {
+    if (!['monthly', 'yearly'].includes(String(billingCycle || ''))) {
         const error = new Error('Invalid billingCycle. Must be "monthly" or "yearly"');
         error.statusCode = 400;
         throw error;
     }
 
-    const plans = await SubscriptionService.getPlansForUserType(userType);
-    if (!plans || plans.length === 0) {
-        const error = new Error(`No subscription plans found for userType: ${userType}`);
-        error.statusCode = 500;
-        throw error;
-    }
+    const selectedPlan = await getSelectedPlanOrThrow({
+        userType: context.userType,
+        planId
+    });
 
-    const selectedPlan = plans.find(p => p._id.toString() === planId);
-
-    if (!selectedPlan) {
-        const error = new Error(`Invalid plan selected: ${planId}`);
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const mappedUserType = userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
-    let lastPaymentDetails = null;
-
-    try {
-        const { PaymentHistory } = require('../models/SubscriptionMongo');
-        const { Transaction } = require('../models/SubscriptionMongo');
-
-        let lastPayment = await PaymentHistory.findOne({
-            userId: userId,
-            userType: mappedUserType,
-            status: 'success'
-        })
-            .sort({ createdAt: -1 })
-            .lean();
-
-        if (!lastPayment) {
-            lastPayment = await Transaction.findOne({
-                userId: userId,
-                userType: mappedUserType,
-                status: 'completed'
-            })
-                .sort({ createdAt: -1 })
-                .lean();
-        }
-
-        if (lastPayment) {
-            const { decrypt } = require('../utils/encryption');
-
-            let decryptedCardNumber = null;
-            if (lastPayment.cardDetails?.encryptedCardNumber) {
-                decryptedCardNumber = decrypt(lastPayment.cardDetails.encryptedCardNumber);
-            }
-
-            let expiryDate = null;
-            if (lastPayment.cardDetails?.expiryMonth && lastPayment.cardDetails?.expiryYear) {
-                const month = String(lastPayment.cardDetails.expiryMonth).padStart(2, '0');
-                const year = String(lastPayment.cardDetails.expiryYear).padStart(2, '0');
-                expiryDate = `${month}/${year}`;
-            }
-
-            lastPaymentDetails = {
-                cardName: lastPayment.cardDetails?.cardName || null,
-                cardNumber: decryptedCardNumber,
-                expiryDate: expiryDate,
-                last4: lastPayment.cardDetails?.last4 || null,
-                billingAddress: lastPayment.billingAddress || null
-            };
-        }
-    } catch (fetchError) {
-        console.error('Error fetching last payment details:', fetchError);
-    }
+    const razorpayConfig = getRazorpayConfig();
 
     return res.json({
         success: true,
-        userId,
-        userType,
+        userId: context.userId,
+        userType: context.userType,
         selectedPlan,
         billingCycle,
-        lastPaymentDetails
+        checkoutPrefill: {
+            name: context.userDoc.displayName || context.userDoc.brandName || context.userDoc.fullName || '',
+            email: context.userDoc.email || '',
+            contact: context.userDoc.phone || ''
+        },
+        razorpay: {
+            keyId: razorpayConfig.keyId,
+            enabled: razorpayConfig.enabled,
+            mode: razorpayConfig.mode
+        }
     });
 };
 
-const processPayment = async (req, res) => {
+const initiatePayment = async (req, res) => {
     try {
-        let { userId, userType, planId, billingCycle, amount, cardData } = req.body;
-
-        if (!userId && req.session?.user?.id) {
-            userId = req.session.user.id;
-        }
-        if (!userType || userType === 'undefined' || userType === 'null') {
-            userType = req.session?.user?.userType || req.session?.user?.role;
-        }
-
-        if (!userType || userType === 'undefined' || userType === 'null') {
-            const { BrandInfo } = require('../models/BrandMongo');
-            const { InfluencerInfo } = require('../models/InfluencerMongo');
-
-            if (userId) {
-                const brand = await BrandInfo.findById(userId);
-                const influencer = await InfluencerInfo.findById(userId);
-
-                if (brand) {
-                    userType = 'brand';
-                } else if (influencer) {
-                    userType = 'influencer';
-                }
-            }
-        }
-
-        if (!userId || !userType || !planId || !billingCycle || !amount || !cardData) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required payment information',
-                details: {
-                    userId: !!userId,
-                    userType: !!userType,
-                    planId: !!planId,
-                    billingCycle: !!billingCycle,
-                    amount: !!amount,
-                    cardData: !!cardData
-                }
-            });
-        }
-
-        if (!cardData.cardNumber || !cardData.cardName || !cardData.expiryDate || !cardData.cvv) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid card information'
-            });
-        }
-
-        const plans = await SubscriptionService.getPlansForUserType(userType);
-        if (!plans || plans.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: `No plans found for userType: ${userType}`
-            });
-        }
-
-        const selectedPlan = plans.find(p => {
-            const planIdStr = p._id ? p._id.toString() : p.id ? p.id.toString() : String(p._id || p.id);
-            const requestPlanIdStr = String(planId);
-            return planIdStr === requestPlanIdStr;
+        const { userId, userType, planId, billingCycle } = req.body;
+        const context = await resolveSubscriptionUserContext({
+            userId,
+            userType,
+            sessionUser: req.session?.user
         });
 
-        if (!selectedPlan) {
+        if (!['monthly', 'yearly'].includes(String(billingCycle || ''))) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid plan selected',
-                details: {
-                    planId,
-                    userType,
-                    availablePlans: plans.length
-                }
+                message: 'Invalid billingCycle. Must be "monthly" or "yearly"'
             });
         }
 
-        const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const selectedPlan = await getSelectedPlanOrThrow({
+            userType: context.userType,
+            planId
+        });
 
-        const paymentResult = await simulatePaymentProcessing(cardData, amount);
+        const amount = billingCycle === 'yearly'
+            ? Number(selectedPlan.price.yearly || 0)
+            : Number(selectedPlan.price.monthly || 0);
 
-        if (!paymentResult.success) {
+        if (!Number.isFinite(amount) || amount <= 0) {
             return res.status(400).json({
                 success: false,
-                message: paymentResult.message || 'Payment failed'
+                message: 'Selected plan does not require payment'
             });
         }
 
-        const subscriptionData = {
-            userId,
-            userType: userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
-            planId,
-            billingCycle,
-            status: 'active',
-            startDate: new Date(),
-            endDate: new Date(Date.now() + (billingCycle === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000),
+        const intent = await createPaymentIntent({
+            type: 'subscription',
+            payerId: context.userId,
+            payerType: context.userModel,
             amount,
-            usage: {
-                campaignsUsed: 0,
-                influencersConnected: 0,
-                brandsConnected: 0,
-                storageUsedGB: 0,
-                uploadsThisMonth: 0
-            }
-        };
-
-        const subscription = await SubscriptionService.createSubscription(subscriptionData);
-
-        const { encrypt } = require('../utils/encryption');
-        const last4 = cardData.cardNumber.slice(-4);
-        const [expiryMonth, expiryYear] = cardData.expiryDate.split('/').map(v => parseInt(v, 10));
-
-        const encryptedCardNumber = encrypt(cardData.cardNumber);
-
-        const { PaymentHistory } = require('../models/SubscriptionMongo');
-        const paymentRecord = new PaymentHistory({
-            subscriptionId: subscription._id,
-            userId,
-            userType: userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo',
-            amount,
-            currency: 'USD',
-            status: 'success',
-            paymentMethod: 'credit_card',
-            transactionId,
-            paymentGateway: 'simulated',
-            description: `${selectedPlan.name} Plan - ${billingCycle} subscription`,
-            paidAt: new Date(),
-            cardDetails: {
-                cardName: cardData.cardName,
-                last4: last4,
-                brand: detectCardBrand(cardData.cardNumber),
-                expiryMonth: expiryMonth,
-                expiryYear: expiryYear,
-                encryptedCardNumber: encryptedCardNumber
+            currency: 'INR',
+            context: {
+                userId: context.userId,
+                userType: context.userType,
+                planId: selectedPlan._id.toString(),
+                billingCycle,
+                amount
             },
-            billingAddress: cardData.billingAddress
+            metadata: {
+                source: 'subscription_payment',
+                planName: selectedPlan.name
+            }
         });
 
-        await paymentRecord.save();
+        const { order } = await createRazorpayOrderForIntent(intent._id);
+        const razorpayConfig = getRazorpayConfig();
 
-        res.json({
+        return res.json({
             success: true,
-            message: 'Payment processed successfully',
-            transactionId,
-            subscription,
-            redirectTo: `/subscription/payment-success?transactionId=${transactionId}`
+            stage: 'initiated',
+            paymentIntentId: intent._id,
+            razorpayOrderId: order.id,
+            amountPaise: order.amount,
+            currency: order.currency,
+            razorpayKeyId: razorpayConfig.keyId,
+            prefill: {
+                name: context.userDoc.displayName || context.userDoc.brandName || context.userDoc.fullName || '',
+                email: context.userDoc.email || '',
+                contact: context.userDoc.phone || ''
+            }
         });
-
     } catch (error) {
-        console.error('Error processing payment:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Payment processing failed'
-        });
+        console.error('Error initiating subscription payment:', error);
+        const message = error.message || 'Payment initiation failed';
+        const statusCode = message.includes('Invalid') || message.includes('Missing') || message.includes('required')
+            ? 400
+            : 500;
+        return res.status(statusCode).json({ success: false, message });
     }
 };
 
-function detectCardBrand(cardNumber) {
-    const number = cardNumber.replace(/\s/g, '');
+const confirmPayment = async (req, res) => {
+    try {
+        const {
+            paymentIntentId,
+            razorpay_order_id: razorpayOrderId,
+            razorpay_payment_id: razorpayPaymentId,
+            razorpay_signature: razorpaySignature
+        } = req.body;
 
-    if (/^4/.test(number)) return 'Visa';
-    if (/^5[1-5]/.test(number)) return 'Mastercard';
-    if (/^3[47]/.test(number)) return 'American Express';
-    if (/^6(?:011|5)/.test(number)) return 'Discover';
-    if (/^35/.test(number)) return 'JCB';
+        if (!paymentIntentId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing Razorpay payment verification fields'
+            });
+        }
 
-    return 'Unknown';
-}
+        const { intent } = await verifyClientPaymentAndCaptureIntent({
+            paymentIntentId,
+            razorpayOrderId,
+            razorpayPaymentId,
+            razorpaySignature
+        });
 
-async function simulatePaymentProcessing(cardData, amount) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+        if (intent.type !== 'subscription') {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid payment intent type'
+            });
+        }
 
-    const cardNumber = cardData.cardNumber.replace(/\s/g, '');
+        if (!intent.businessApplied) {
+            await SubscriptionService.applySubscriptionFromPaymentIntent(intent);
+            await markIntentBusinessApplied(intent._id);
+        }
 
-    if (cardNumber === '4000000000000002') return { success: false, message: 'Card declined' };
-    if (cardNumber === '4000000000000069') return { success: false, message: 'Expired card' };
-    if (cardNumber === '4000000000000127') return { success: false, message: 'Incorrect CVC' };
+        return res.json({
+            success: true,
+            message: 'Subscription payment confirmed',
+            paymentId: razorpayPaymentId,
+            redirectTo: `/subscription/payment-success?paymentIntentId=${intent._id.toString()}`
+        });
+    } catch (error) {
+        console.error('Error confirming subscription payment:', error);
+        const message = error.message || 'Payment confirmation failed';
+        const statusCode = message.includes('Invalid') || message.includes('Missing') || message.includes('verification')
+            ? 400
+            : 500;
+        return res.status(statusCode).json({ success: false, message });
+    }
+};
 
-    return {
-        success: true,
-        message: 'Payment successful',
-        paymentId: `pay_${Date.now()}`
-    };
-}
+const processPayment = async (req, res) => {
+    const paymentStage = String(req.body?.paymentStage || 'initiate').trim().toLowerCase();
+    if (paymentStage === 'confirm') {
+        return confirmPayment(req, res);
+    }
+    return initiatePayment(req, res);
+};
 
 const getPaymentSuccessPage = async (req, res) => {
     try {
-        const { transactionId } = req.query;
+        const { transactionId, paymentIntentId } = req.query;
 
-        if (!transactionId) {
-            return res.status(400).json({ success: false, message: 'Missing transactionId' });
+        if (!transactionId && !paymentIntentId) {
+            return res.status(400).json({ success: false, message: 'Missing transactionId or paymentIntentId' });
         }
 
-        const { PaymentHistory } = require('../models/SubscriptionMongo');
-        const payment = await PaymentHistory.findOne({ transactionId })
+        const paymentQuery = paymentIntentId
+            ? { paymentIntentId }
+            : { transactionId };
+
+        const payment = await PaymentHistory.findOne(paymentQuery)
             .populate({
                 path: 'subscriptionId',
                 populate: { path: 'planId' }
@@ -465,7 +409,7 @@ const getPaymentSuccessPage = async (req, res) => {
             planName: plan.name,
             billingCycle: billingCycle,
             amount: payment.amount,
-            transactionId: payment.transactionId,
+            transactionId: payment.razorpayPaymentId || payment.transactionId,
             userType: payment.userType === 'BrandInfo' ? 'brand' : 'influencer',
             features
         };
@@ -875,6 +819,8 @@ module.exports = {
     selectPlan,
     subscribeAfterSignup,
     getPaymentPage,
+    initiatePayment,
+    confirmPayment,
     processPayment,
     getPaymentSuccessPage,
     getPlans,

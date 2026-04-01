@@ -23,6 +23,7 @@ import TopCampaignsSection from '../../components/brand/profile/TopCampaignsSect
 import SocialMediaSection from '../../components/brand/profile/SocialMediaSection';
 import WebsiteSection from '../../components/brand/profile/WebsiteSection';
 import TargetAudienceSection from '../../components/brand/profile/TargetAudienceSection';
+import PaymentSetupSection from '../../components/brand/profile/PaymentSetupSection';
 import SidebarActions from '../../components/brand/profile/SidebarActions';
 import EditProfileModal from '../../components/brand/profile/EditProfileModal';
 import EditImagesModal from '../../components/brand/profile/EditImagesModal';
@@ -41,7 +42,7 @@ const EXTERNAL_ASSETS = {
 const Profile = () => {
     useExternalAssets(EXTERNAL_ASSETS);
     const navigate = useNavigate();
-    const { brand, loading, error, refreshBrand, updateBrand, signOut } = useBrand();
+    const { brand, loading, error, refreshBrand, signOut } = useBrand();
 
     // Modal states
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -102,6 +103,27 @@ const Profile = () => {
     // Form validation errors
     const [formErrors, setFormErrors] = useState({});
     const [imageErrors, setImageErrors] = useState({});
+    const [paymentData, setPaymentData] = useState(null);
+    const [paymentSaving, setPaymentSaving] = useState(false);
+    const [paymentError, setPaymentError] = useState('');
+    const [paymentSuccess, setPaymentSuccess] = useState('');
+    const [paymentForm, setPaymentForm] = useState({
+        legalBusinessName: '',
+        accountType: 'company',
+        taxIdLast4: '',
+        billingName: '',
+        billingEmail: '',
+        billingPhone: '',
+        line1: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: 'US',
+        cardNumber: '',
+        expiryMonth: '',
+        expiryYear: '',
+        cvv: ''
+    });
 
     // Initialize form data from context brand data
     useEffect(() => {
@@ -126,6 +148,52 @@ const Profile = () => {
             });
             setLogoPreview(brand.logoUrl || '');
             setBannerPreview(brand.bannerUrl || '');
+        }
+    }, [brand]);
+
+    const loadPaymentProfile = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/brand/profile/payment`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Unable to load payment profile');
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                setPaymentData(data);
+                setPaymentForm({
+                    legalBusinessName: data.brandAccountDetails?.legalBusinessName || '',
+                    accountType: data.brandAccountDetails?.accountType || 'company',
+                    taxIdLast4: data.brandAccountDetails?.taxIdLast4 || '',
+                    billingName: data.paymentProfile?.billingName || '',
+                    billingEmail: data.paymentProfile?.billingEmail || '',
+                    billingPhone: data.paymentProfile?.billingPhone || '',
+                    line1: data.paymentProfile?.billingAddress?.line1 || '',
+                    city: data.paymentProfile?.billingAddress?.city || '',
+                    state: data.paymentProfile?.billingAddress?.state || '',
+                    postalCode: data.paymentProfile?.billingAddress?.postalCode || '',
+                    country: data.paymentProfile?.billingAddress?.country || 'US',
+                    cardNumber: '',
+                    expiryMonth: '',
+                    expiryYear: '',
+                    cvv: ''
+                });
+            }
+        } catch (error) {
+            setPaymentError(error.message || 'Unable to load payment profile');
+        }
+    };
+
+    useEffect(() => {
+        if (brand) {
+            loadPaymentProfile();
         }
     }, [brand]);
 
@@ -286,6 +354,76 @@ const Profile = () => {
         );
     };
 
+    const handleSavePaymentProfile = async () => {
+        setPaymentSaving(true);
+        setPaymentError('');
+        setPaymentSuccess('');
+
+        try {
+            const setupOrderResponse = await fetch(`${API_BASE_URL}/brand/profile/payment/setup-order`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+            const setupOrderData = await setupOrderResponse.json();
+            if (!setupOrderResponse.ok || !setupOrderData?.setupOrderId) {
+                throw new Error(setupOrderData?.message || 'Failed to initialize payment setup');
+            }
+
+            const saveResponse = await fetch(`${API_BASE_URL}/brand/profile/payment/save-method`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    setupOrderId: setupOrderData.setupOrderId,
+                    billingDetails: {
+                        name: paymentForm.billingName,
+                        email: paymentForm.billingEmail,
+                        phone: paymentForm.billingPhone,
+                        address: {
+                            line1: paymentForm.line1,
+                            city: paymentForm.city,
+                            state: paymentForm.state,
+                            postalCode: paymentForm.postalCode,
+                            country: paymentForm.country || 'US'
+                        }
+                    },
+                    cardDetails: {
+                        cardNumber: paymentForm.cardNumber,
+                        expMonth: paymentForm.expiryMonth,
+                        expYear: paymentForm.expiryYear,
+                        cvv: paymentForm.cvv
+                    },
+                    brandAccountDetails: {
+                        legalBusinessName: paymentForm.legalBusinessName,
+                        accountType: paymentForm.accountType,
+                        taxIdLast4: paymentForm.taxIdLast4
+                    }
+                })
+            });
+
+            const saveData = await saveResponse.json();
+            if (!saveResponse.ok || !saveData.success) {
+                throw new Error(saveData?.message || 'Failed to save payment profile');
+            }
+
+            setPaymentData(saveData);
+            setPaymentSuccess('Payment profile saved successfully');
+            await loadPaymentProfile();
+        } catch (error) {
+            setPaymentError(error.message || 'Failed to save payment profile');
+        } finally {
+            setPaymentSaving(false);
+        }
+    };
+
     // Handle image file changes using utility function
     const handleImageChange = async (e) => {
         const { name, files } = e.target;
@@ -375,6 +513,15 @@ const Profile = () => {
                         <AboutSection brand={brand} onOpenEditModal={handleOpenEditModal} />
                         <MetricsSection brand={brand} />
                         <TopCampaignsSection brand={brand} />
+                        <PaymentSetupSection
+                            paymentForm={paymentForm}
+                            setPaymentForm={setPaymentForm}
+                            paymentData={paymentData}
+                            onSubmit={handleSavePaymentProfile}
+                            isSaving={paymentSaving}
+                            errorMessage={paymentError}
+                            successMessage={paymentSuccess}
+                        />
                     </div>
 
                     <div className="profile-sidebar">

@@ -117,9 +117,15 @@ const paymentHistorySchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['credit_card', 'paypal', 'bank_transfer', 'stripe']
+    enum: ['credit_card', 'paypal', 'bank_transfer', 'razorpay']
   },
   transactionId: String,
+  paymentIntentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PaymentIntent'
+  },
+  razorpayOrderId: String,
+  razorpayPaymentId: String,
   paymentGateway: String,
   description: String,
   invoiceUrl: String,

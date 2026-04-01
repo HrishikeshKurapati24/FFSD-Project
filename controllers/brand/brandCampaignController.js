@@ -109,50 +109,51 @@ const controller = {
     try {
       const brandId = req.session.user.id;
       const { requestId1, requestId2 } = req.params;
-      const data = await brandCampaignService.getTransactionData(requestId1, requestId2);
+      const data = await brandCampaignService.getTransactionData(requestId1, requestId2, brandId);
 
       if (!data) {
         return res.status(404).json({
           success: false,
           error: 'Transaction not found',
-          requestItems: null,
-          campaign_info: null,
-          influencer_info: null
+          data: null
         });
       }
 
-      res.json({
-        success: true,
-        requestItems: {
-          id1: requestId1,
-          id2: requestId2,
-          status: data.status,
-          progress: data.progress
-        },
-        campaign_info: data.campaign,
-        influencer_info: data.influencer
-      });
+      res.json({ success: true, ...data });
     } catch (error) {
       console.error('Error fetching Transaction:', error);
-      res.status(500).json({ success: false, message: 'Server Error' });
+      const statusCode = error.message.includes('access') ? 403 : 500;
+      res.status(statusCode).json({ success: false, message: error.message || 'Server Error' });
     }
   },
 
   async submitTransaction(req, res) {
+    const expectsJson = Boolean(
+      req.xhr ||
+      req.headers.accept?.includes('application/json') ||
+      req.body?.paymentStage
+    );
+
     try {
       const brandId = req.session.user.id;
       const { requestId1, requestId2 } = req.params;
       const result = await brandCampaignService.submitTransaction(brandId, requestId1, requestId2, req.body, req.file);
 
-      if (req.xhr || req.headers.accept?.includes('application/json')) {
+      if (expectsJson) {
         return res.json(result);
       }
       req.session.successMessage = result.message;
       req.session.save(() => res.redirect('/brand/home'));
     } catch (error) {
       console.error('Error submitting transaction:', error);
-      if (req.xhr || req.headers.accept?.includes('application/json')) {
-        return res.status(error.message.includes('required') || error.message.includes('Invalid') ? 400 : 500).json({ success: false, message: error.message });
+      if (expectsJson) {
+        const statusCode = (
+          error.message.includes('required') ||
+          error.message.includes('Invalid') ||
+          error.message.includes('permission') ||
+          error.message.includes('budget')
+        ) ? 400 : 500;
+        return res.status(statusCode).json({ success: false, message: error.message });
       }
       res.status(500).send(error.message);
     }

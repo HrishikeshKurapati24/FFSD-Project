@@ -309,6 +309,7 @@ const express = require('express');
 const router = express.Router();
 const CustomerPurchaseController = require('../controllers/customer/customerShoppingController');
 const CustomerHistoryController = require('../controllers/customer/customerHistoryController');
+const CustomerProfileController = require('../controllers/customer/customerProfileController');
 const { CampaignInfo, CampaignInfluencers } = require('../models/CampaignMongo');
 const { InfluencerInfo } = require('../models/InfluencerMongo');
 const { isAuthenticated, isCustomer } = require('./authRoutes');
@@ -327,6 +328,13 @@ router.use((req, res, next) => {
 // All campaigns listing page
 router.get('/', CustomerPurchaseController.getAllCampaigns);
 
+// Customer profile routes (authenticated)
+router.get('/profile', isAuthenticated, isCustomer, CustomerProfileController.getProfile);
+router.put('/profile', isAuthenticated, isCustomer, CustomerProfileController.updateProfile);
+router.get('/profile/payment', isAuthenticated, isCustomer, CustomerProfileController.getPaymentProfile);
+router.post('/profile/payment/setup-order', isAuthenticated, isCustomer, CustomerProfileController.createPaymentSetupOrder);
+router.post('/profile/payment/save-method', isAuthenticated, isCustomer, CustomerProfileController.savePaymentMethod);
+
 // Campaign shopping routes (customer-visible pages)
 router.get('/campaign/:campaignId/shop', CustomerPurchaseController.getCampaignShoppingPage);
 router.get('/product/:productId', CustomerPurchaseController.getProductDetails);
@@ -335,6 +343,8 @@ router.get('/product/:productId', CustomerPurchaseController.getProductDetails);
 router.get('/cart', CustomerPurchaseController.getCartPage);
 router.post('/cart/add', CustomerPurchaseController.addToCart);
 router.post('/cart/remove', CustomerPurchaseController.removeFromCart);
+router.post('/checkout/initiate', CustomerPurchaseController.checkoutInitiate);
+router.post('/checkout/confirm', CustomerPurchaseController.checkoutConfirm);
 router.post('/checkout', CustomerPurchaseController.checkoutCart);
 
 // Rankings page

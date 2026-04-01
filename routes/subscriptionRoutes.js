@@ -474,7 +474,11 @@ router.post('/subscribe-after-signup', asyncErrorWrapper(subscriptionController.
 // Payment page
 router.get('/payment', asyncErrorWrapper(subscriptionController.getPaymentPage));
 
-// Process payment
+// Razorpay payment lifecycle
+router.post('/payment/initiate', asyncErrorWrapper(subscriptionController.initiatePayment));
+router.post('/payment/confirm', asyncErrorWrapper(subscriptionController.confirmPayment));
+
+// Backward-compatible endpoint
 router.post('/process-payment', asyncErrorWrapper(subscriptionController.processPayment));
 
 // Payment success page

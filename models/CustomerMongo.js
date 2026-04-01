@@ -71,6 +71,75 @@ const CustomerSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    razorpay: {
+        customerId: {
+            type: String,
+            trim: true
+        },
+        defaultPaymentMethodId: {
+            type: String,
+            trim: true
+        },
+        paymentMethodConfigured: {
+            type: Boolean,
+            default: false
+        },
+        lastSetupOrderId: {
+            type: String,
+            trim: true
+        }
+    },
+    paymentProfile: {
+        billingName: {
+            type: String,
+            trim: true
+        },
+        billingEmail: {
+            type: String,
+            trim: true,
+            lowercase: true
+        },
+        billingPhone: {
+            type: String,
+            trim: true
+        },
+        billingAddress: {
+            line1: { type: String, trim: true },
+            line2: { type: String, trim: true },
+            city: { type: String, trim: true },
+            state: { type: String, trim: true },
+            postalCode: { type: String, trim: true },
+            country: { type: String, trim: true, default: 'US' }
+        },
+        cardBrand: {
+            type: String,
+            trim: true
+        },
+        cardLast4: {
+            type: String,
+            trim: true
+        },
+        isComplete: {
+            type: Boolean,
+            default: false
+        },
+        completedAt: Date
+    },
+    customerAccountDetails: {
+        accountHolderName: {
+            type: String,
+            trim: true
+        },
+        defaultShippingAddress: {
+            type: String,
+            trim: true
+        },
+        preferredCurrency: {
+            type: String,
+            trim: true,
+            default: 'USD'
+        }
+    },
     last_purchase_date: {
         type: Date,
         default: null

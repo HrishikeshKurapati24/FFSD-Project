@@ -114,6 +114,52 @@ const influencerInfoSchema = new mongoose.Schema({
         default: 0,
         min: [0, 'Completed collabs cannot be negative']
     },
+    razorpay: {
+        linkedAccountId: {
+            type: String,
+            trim: true
+        },
+        onboardingCompleted: {
+            type: Boolean,
+            default: false
+        },
+        payoutsEnabled: {
+            type: Boolean,
+            default: false
+        }
+    },
+    influencerAccountDetails: {
+        legalName: {
+            type: String,
+            trim: true
+        },
+        payoutEmail: {
+            type: String,
+            trim: true,
+            lowercase: true
+        },
+        payoutPhone: {
+            type: String,
+            trim: true
+        },
+        bankName: {
+            type: String,
+            trim: true
+        },
+        accountNumberLast4: {
+            type: String,
+            trim: true
+        },
+        routingNumberLast4: {
+            type: String,
+            trim: true
+        },
+        payoutCurrency: {
+            type: String,
+            trim: true,
+            default: 'USD'
+        }
+    },
     bestPosts: [{
         platform: {
             type: String,

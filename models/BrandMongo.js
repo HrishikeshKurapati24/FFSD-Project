@@ -150,7 +150,81 @@ const brandInfoSchema = new mongoose.Schema({
     targetInterests: [{
         type: String,
         trim: true
-    }]
+    }],
+    razorpay: {
+        customerId: {
+            type: String,
+            trim: true
+        },
+        defaultPaymentMethodId: {
+            type: String,
+            trim: true
+        },
+        paymentMethodConfigured: {
+            type: Boolean,
+            default: false
+        },
+        lastSetupOrderId: {
+            type: String,
+            trim: true
+        }
+    },
+    paymentProfile: {
+        billingName: {
+            type: String,
+            trim: true
+        },
+        billingEmail: {
+            type: String,
+            trim: true,
+            lowercase: true
+        },
+        billingPhone: {
+            type: String,
+            trim: true
+        },
+        billingAddress: {
+            line1: { type: String, trim: true },
+            line2: { type: String, trim: true },
+            city: { type: String, trim: true },
+            state: { type: String, trim: true },
+            postalCode: { type: String, trim: true },
+            country: { type: String, trim: true, default: 'US' }
+        },
+        cardBrand: {
+            type: String,
+            trim: true
+        },
+        cardLast4: {
+            type: String,
+            trim: true
+        },
+        isComplete: {
+            type: Boolean,
+            default: false
+        },
+        completedAt: Date
+    },
+    brandAccountDetails: {
+        legalBusinessName: {
+            type: String,
+            trim: true
+        },
+        accountType: {
+            type: String,
+            enum: ['individual', 'company', 'other'],
+            default: 'company'
+        },
+        taxIdLast4: {
+            type: String,
+            trim: true
+        },
+        payoutPreference: {
+            type: String,
+            enum: ['standard', 'instant', 'manual'],
+            default: 'standard'
+        }
+    }
 }, {
     timestamps: true
 });

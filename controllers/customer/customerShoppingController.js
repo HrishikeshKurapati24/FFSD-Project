@@ -90,23 +90,52 @@ class CustomerShoppingController {
     }
 
     static async checkoutCart(req, res) {
+        return this.checkoutInitiate(req, res);
+    }
+
+    static async checkoutInitiate(req, res) {
         try {
-            const { customerInfo, paymentInfo, cart: cartFromBody, referralCode } = req.body;
+            const { customerInfo, cart: cartFromBody, referralCode } = req.body;
             const cart = Array.isArray(cartFromBody) && cartFromBody.length > 0 ? cartFromBody : (Array.isArray(req.session?.cart) ? req.session.cart : []);
             const authenticatedCustomerId = (req.session?.user?.userType === 'customer' && req.session?.user?.id)
                 ? req.session.user.id
                 : (req.user?.userType === 'customer' && req.user?.id ? req.user.id : null);
 
-            const result = await customerShoppingService.checkoutCartLogic(cart, customerInfo, referralCode, authenticatedCustomerId);
-            req.session.cart = []; // clear cart after successful checkout
+            const result = await customerShoppingService.initiateCheckoutCartPayment(cart, customerInfo, referralCode, authenticatedCustomerId);
 
             return res.json({ success: true, ...result });
         } catch (error) {
-            console.error('Error during checkout:', error);
-            if (error.message.includes('empty') || error.message.includes('required') || error.message.includes('unavailable') || error.message.includes('Insufficient stock')) {
+            console.error('Error during checkout initiate:', error);
+            if (
+                error.message.includes('empty') ||
+                error.message.includes('required') ||
+                error.message.includes('unavailable') ||
+                error.message.includes('Insufficient stock')
+            ) {
                 return res.status(400).json({ success: false, message: error.message });
             }
-            return res.status(500).json({ success: false, message: 'Checkout failed' });
+            return res.status(500).json({ success: false, message: 'Checkout initiation failed' });
+        }
+    }
+
+    static async checkoutConfirm(req, res) {
+        try {
+            const result = await customerShoppingService.confirmCheckoutCartPayment(req.body);
+            req.session.cart = []; // clear cart only after payment confirmation
+            return res.json({ success: true, ...result });
+        } catch (error) {
+            console.error('Error during checkout confirmation:', error);
+            if (
+                error.message.includes('Missing') ||
+                error.message.includes('verification') ||
+                error.message.includes('Invalid') ||
+                error.message.includes('empty') ||
+                error.message.includes('unavailable') ||
+                error.message.includes('Insufficient stock')
+            ) {
+                return res.status(400).json({ success: false, message: error.message });
+            }
+            return res.status(500).json({ success: false, message: 'Checkout confirmation failed' });
         }
     }
 

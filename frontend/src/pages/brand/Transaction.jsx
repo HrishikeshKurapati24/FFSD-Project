@@ -17,6 +17,9 @@ import deliverablesStyles from '../../styles/brand/transaction_deliverables.modu
 const EXTERNAL_ASSETS = {
     styles: [
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+    ],
+    scripts: [
+        'https://checkout.razorpay.com/v1/checkout.js'
     ]
 };
 
@@ -34,7 +37,7 @@ const Transaction = () => {
     // Form state
     const [formData, setFormData] = useState({
         amount: '',
-        paymentMethod: '',
+        paymentMethod: 'razorpay',
         // Campaign completion fields (only when allowComplete is true)
         objectives: '',
         startDate: '',
@@ -47,15 +50,7 @@ const Transaction = () => {
         campaignPrice: '',
         category: '',
         targetQty: '',
-        productImage: null,
-        // Payment method specific fields
-        cardNumber: '',
-        expiryDate: '',
-        cvv: '',
-        cardHolder: '',
-        accountNumber: '',
-        routingNumber: '',
-        bankName: ''
+        productImage: null
     });
 
     const [formErrors, setFormErrors] = useState({});
@@ -232,29 +227,6 @@ const Transaction = () => {
         }
     };
 
-    // Format card number
-    const handleCardNumberChange = (e) => {
-        let value = e.target.value.replace(/\s/g, '');
-        if (value.length > 16) value = value.slice(0, 16);
-        value = value.replace(/(.{4})/g, '$1 ').trim();
-        setFormData(prev => ({ ...prev, cardNumber: value }));
-        if (formErrors.cardNumber) {
-            setFormErrors(prev => ({ ...prev, cardNumber: '' }));
-        }
-    };
-
-    // Format expiry date
-    const handleExpiryDateChange = (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) {
-            value = value.slice(0, 2) + '/' + value.slice(2, 4);
-        }
-        setFormData(prev => ({ ...prev, expiryDate: value }));
-        if (formErrors.expiryDate) {
-            setFormErrors(prev => ({ ...prev, expiryDate: '' }));
-        }
-    };
-
     // Validate form
     const validateForm = () => {
         const errors = {};
@@ -370,34 +342,8 @@ const Transaction = () => {
             errors.amount = `Amount exceeds remaining budget (max ${transactionData.paymentMax}).`;
         }
 
-        if (!formData.paymentMethod) {
-            errors.paymentMethod = 'Please select a payment method.';
-        }
-
-        if (formData.paymentMethod === 'creditCard') {
-            const cardNumber = formData.cardNumber.replace(/\s/g, '');
-            if (!cardNumber || cardNumber.length < 16) {
-                errors.cardNumber = 'Please enter a valid card number (min 16 digits).';
-            }
-            if (!formData.expiryDate || !/^\d{2}\/\d{2}$/.test(formData.expiryDate)) {
-                errors.expiryDate = 'Please enter a valid expiry date (MM/YY).';
-            }
-            if (!formData.cvv || formData.cvv.length < 3) {
-                errors.cvv = 'Please enter a valid CVV (3-4 digits).';
-            }
-            if (!formData.cardHolder) {
-                errors.cardHolder = 'Please enter the cardholder name.';
-            }
-        } else if (formData.paymentMethod === 'bankTransfer') {
-            if (!formData.accountNumber) {
-                errors.accountNumber = 'Please enter an account number.';
-            }
-            if (!formData.routingNumber) {
-                errors.routingNumber = 'Please enter a routing number.';
-            }
-            if (!formData.bankName) {
-                errors.bankName = 'Please enter a bank name.';
-            }
+        if (!transactionData?.canPay) {
+            errors.paymentMethod = 'Razorpay payment gateway is not configured on server.';
         }
 
         setFormErrors(errors);
@@ -424,10 +370,10 @@ const Transaction = () => {
             setLoading(true);
             setError(null);
 
-            // Create FormData for multipart/form-data
             const submitData = new FormData();
+            submitData.append('paymentStage', 'initiate');
             submitData.append('amount', formData.amount);
-            submitData.append('paymentMethod', formData.paymentMethod);
+            submitData.append('paymentMethod', 'razorpay');
 
             if (transactionData?.allowComplete) {
                 submitData.append('objectives', formData.objectives);
@@ -443,17 +389,6 @@ const Transaction = () => {
                 if (formData.productImage) {
                     submitData.append('productImage', formData.productImage);
                 }
-            }
-
-            if (formData.paymentMethod === 'creditCard') {
-                submitData.append('cardNumber', formData.cardNumber.replace(/\s/g, ''));
-                submitData.append('expiryDate', formData.expiryDate);
-                submitData.append('cvv', formData.cvv);
-                submitData.append('cardHolder', formData.cardHolder);
-            } else if (formData.paymentMethod === 'bankTransfer') {
-                submitData.append('accountNumber', formData.accountNumber);
-                submitData.append('routingNumber', formData.routingNumber);
-                submitData.append('bankName', formData.bankName);
             }
 
             // Include deliverables data with schema mapping
@@ -502,43 +437,81 @@ const Transaction = () => {
 
             submitData.append('deliverables', JSON.stringify(formattedDeliverables));
 
-            const response = await fetch(`${API_BASE_URL}/brand/${requestId1}/${requestId2}/transaction`, {
+            const initiateResponse = await fetch(`${API_BASE_URL}/brand/${requestId1}/${requestId2}/transaction`, {
                 method: 'POST',
                 body: submitData,
+                headers: {
+                    Accept: 'application/json'
+                },
                 credentials: 'include'
             });
 
-            if (response.status === 401) {
+            if (initiateResponse.status === 401) {
                 navigate('/signin');
                 return;
             }
 
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const result = await response.json();
-                if (result.success) {
-                    setSuccessMessage(result.message || 'Campaign completed and payment processed successfully!');
-                    setTimeout(() => {
-                        navigate('/brand/home');
-                    }, 2000);
-                } else {
-                    setError(result.message || 'Failed to process payment. Please try again.');
-                }
-            } else {
-                // Handle redirect or text response
-                if (response.ok) {
-                    setSuccessMessage('Campaign completed and payment processed successfully!');
-                    setTimeout(() => {
-                        navigate('/brand/home');
-                    }, 2000);
-                } else {
-                    const text = await response.text();
-                    setError(text || 'Failed to process payment. Please try again.');
-                }
+            const initiateResult = await initiateResponse.json();
+            if (!initiateResponse.ok || !initiateResult?.success) {
+                throw new Error(initiateResult?.message || 'Failed to initiate campaign payment');
             }
+
+            if (!window.Razorpay) {
+                throw new Error('Razorpay checkout failed to load');
+            }
+
+            const checkoutResult = await new Promise((resolve, reject) => {
+                const razorpay = new window.Razorpay({
+                    key: initiateResult.razorpayKeyId,
+                    amount: initiateResult.amountPaise,
+                    currency: initiateResult.currency || 'INR',
+                    name: 'CollabSync',
+                    description: `${transactionData?.campaignTitle || 'Campaign'} payout`,
+                    order_id: initiateResult.razorpayOrderId,
+                    handler: (responsePayload) => resolve(responsePayload),
+                    modal: {
+                        ondismiss: () => reject(new Error('Payment was cancelled'))
+                    },
+                    theme: {
+                        color: '#111827'
+                    }
+                });
+                razorpay.open();
+            });
+
+            const confirmData = new FormData();
+            confirmData.append('paymentStage', 'confirm');
+            confirmData.append('paymentIntentId', initiateResult.paymentIntentId);
+            confirmData.append('razorpay_order_id', checkoutResult.razorpay_order_id);
+            confirmData.append('razorpay_payment_id', checkoutResult.razorpay_payment_id);
+            confirmData.append('razorpay_signature', checkoutResult.razorpay_signature);
+
+            const confirmResponse = await fetch(`${API_BASE_URL}/brand/${requestId1}/${requestId2}/transaction`, {
+                method: 'POST',
+                body: confirmData,
+                headers: {
+                    Accept: 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            if (confirmResponse.status === 401) {
+                navigate('/signin');
+                return;
+            }
+
+            const confirmResult = await confirmResponse.json();
+            if (!confirmResponse.ok || !confirmResult?.success) {
+                throw new Error(confirmResult?.message || 'Failed to confirm campaign payment');
+            }
+
+            setSuccessMessage(confirmResult.message || 'Campaign completed and payment processed successfully!');
+            setTimeout(() => {
+                navigate('/brand/home');
+            }, 1500);
         } catch (error) {
             console.error('Error submitting payment:', error);
-            setError('Failed to process payment. Please try again.');
+            setError(error.message || 'Failed to process payment. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -586,6 +559,11 @@ const Transaction = () => {
                 {/* Payment Form */}
                 <section className={styles.paymentSection}>
                     <h3>Make Payment</h3>
+                    {!transactionData?.canPay && (
+                        <div className="alert alert-warning">
+                            Razorpay test mode is not configured on backend. Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
+                        </div>
+                    )}
                     <form id="paymentForm" onSubmit={handleSubmit} noValidate>
                         {transactionData.allowComplete && (
                             <>
@@ -612,8 +590,6 @@ const Transaction = () => {
                             formErrors={formErrors}
                             transactionData={transactionData}
                             handleInputChange={handleInputChange}
-                            handleCardNumberChange={handleCardNumberChange}
-                            handleExpiryDateChange={handleExpiryDateChange}
                             styles={styles}
                         />
 
@@ -709,8 +685,8 @@ const Transaction = () => {
                             </div>
                         )}
 
-                        <button type="submit" disabled={loading} style={{ marginTop: '20px' }}>
-                            {loading ? 'Processing...' : 'Submit Payment'}
+                        <button type="submit" disabled={loading || !transactionData?.canPay} style={{ marginTop: '20px' }}>
+                            {loading ? 'Processing...' : (transactionData?.canPay ? 'Pay With Razorpay' : 'Razorpay Not Configured')}
                         </button>
                     </form>
                 </section>

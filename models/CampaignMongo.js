@@ -196,8 +196,16 @@ const campaignPaymentsSchema = new mongoose.Schema({
     },
     payment_method: {
         type: String,
-        enum: ['bank_transfer', 'credit_card', 'paypal', 'other'],
+        enum: ['bank_transfer', 'credit_card', 'paypal', 'razorpay_mock', 'razorpay', 'other'],
         required: [true, 'Payment method is required']
+    },
+    razorpay_payment_id: {
+        type: String,
+        trim: true
+    },
+    razorpay_order_id: {
+        type: String,
+        trim: true
     }
 }, {
     timestamps: true

@@ -38,6 +38,7 @@ import CampaignShopping from './pages/customer/CampaignShopping';
 import Cart from './pages/customer/Cart.jsx';
 import Rankings from './pages/customer/Rankings';
 import OrderHistory from './pages/customer/OrderHistory';
+import CustomerProfile from './pages/customer/Profile';
 import BrandDashboard from './pages/brand/Dashboard';
 import BrandExplore from './pages/brand/Explore';
 import BrandProfile from './pages/brand/Profile';
@@ -130,6 +131,7 @@ function App() {
                   <Route path="/customer/cart" element={<ProtectedRoute requiredRole="customer"><Cart /></ProtectedRoute>} />
                   <Route path="/customer/rankings" element={<ProtectedRoute requiredRole="customer"><Rankings /></ProtectedRoute>} />
                   <Route path="/customer/orders" element={<ProtectedRoute requiredRole="customer"><OrderHistory /></ProtectedRoute>} />
+                  <Route path="/customer/profile" element={<ProtectedRoute requiredRole="customer"><CustomerProfile /></ProtectedRoute>} />
                   <Route path="/feedback" element={<UserFeedback />} />
 
                   {/* 404 Fallback */}

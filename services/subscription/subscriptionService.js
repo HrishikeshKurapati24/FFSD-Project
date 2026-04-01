@@ -138,6 +138,103 @@ class SubscriptionService {
         return await subscription.save();
     }
 
+    static normalizeUserType(userType) {
+        if (!userType) return null;
+        const normalized = String(userType).toLowerCase();
+        if (normalized === 'brand' || normalized === 'brandinfo') return 'brand';
+        if (normalized === 'influencer' || normalized === 'influencerinfo') return 'influencer';
+        return null;
+    }
+
+    static mapUserModel(userType) {
+        return userType === 'brand' ? 'BrandInfo' : 'InfluencerInfo';
+    }
+
+    static async applySubscriptionFromPaymentIntent(intentDoc) {
+        if (!intentDoc) {
+            throw new Error('Payment intent is required');
+        }
+
+        const context = intentDoc.context || {};
+        const normalizedUserType = this.normalizeUserType(context.userType);
+        if (!context.userId || !normalizedUserType || !context.planId || !context.billingCycle) {
+            throw new Error('Payment intent missing subscription context');
+        }
+
+        const existingPayment = await PaymentHistory.findOne({
+            paymentIntentId: intentDoc._id,
+            status: 'success'
+        }).populate('subscriptionId');
+
+        if (existingPayment) {
+            return {
+                alreadyApplied: true,
+                subscription: existingPayment.subscriptionId || null,
+                paymentHistory: existingPayment
+            };
+        }
+
+        const plans = await this.getPlansForUserType(normalizedUserType);
+        const selectedPlan = plans.find(p => String(p._id) === String(context.planId));
+        if (!selectedPlan) {
+            throw new Error('Invalid subscription plan in payment intent context');
+        }
+
+        const amountFromPlan = context.billingCycle === 'yearly'
+            ? Number(selectedPlan.price.yearly || 0)
+            : Number(selectedPlan.price.monthly || 0);
+        const resolvedAmount = Number(context.amount ?? intentDoc.amount ?? amountFromPlan);
+        const mappedUserType = this.mapUserModel(normalizedUserType);
+        const startDate = new Date();
+        const endDate = new Date(Date.now() + (context.billingCycle === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000);
+
+        await UserSubscription.updateMany(
+            { userId: context.userId, userType: mappedUserType, status: 'active' },
+            { $set: { status: 'expired' } }
+        );
+
+        const subscription = await UserSubscription.create({
+            userId: context.userId,
+            userType: mappedUserType,
+            planId: context.planId,
+            billingCycle: context.billingCycle,
+            status: 'active',
+            startDate,
+            endDate,
+            amount: resolvedAmount,
+            usage: {
+                campaignsUsed: 0,
+                influencersConnected: 0,
+                brandsConnected: 0,
+                storageUsedGB: 0,
+                uploadsThisMonth: 0
+            }
+        });
+
+        const paymentHistory = await PaymentHistory.create({
+            subscriptionId: subscription._id,
+            userId: context.userId,
+            userType: mappedUserType,
+            amount: resolvedAmount,
+            currency: intentDoc.currency || 'INR',
+            status: 'success',
+            paymentMethod: 'razorpay',
+            transactionId: intentDoc?.razorpay?.paymentId || `pi_${intentDoc._id.toString()}`,
+            paymentIntentId: intentDoc._id,
+            razorpayOrderId: intentDoc?.razorpay?.orderId,
+            razorpayPaymentId: intentDoc?.razorpay?.paymentId,
+            paymentGateway: 'razorpay_test',
+            description: `${selectedPlan.name} Plan - ${context.billingCycle} subscription`,
+            paidAt: new Date()
+        });
+
+        return {
+            alreadyApplied: false,
+            subscription,
+            paymentHistory
+        };
+    }
+
     // Check if user can perform action based on subscription limits
     static async checkSubscriptionLimit(userId, userType, action) {
         const subscription = await this.getUserSubscription(userId, userType);

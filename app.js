@@ -21,6 +21,7 @@ const bcrypt = require('bcrypt');
 const { asyncErrorWrapper } = require('./middleware/asyncErrorWrapper');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const paymentWebhookController = require('./controllers/paymentWebhookController');
 
 // Swagger Configuration
 const swaggerOptions = {
@@ -91,14 +92,15 @@ app.use(helmet({
                 "'self'",
                 "'unsafe-inline'", // Allow inline scripts for analytics page
                 "https://cdn.jsdelivr.net", // For Chart.js
-                "https://unpkg.com" // For vis-network library
+                "https://unpkg.com", // For vis-network library
+                "https://checkout.razorpay.com" // Razorpay checkout
             ],
             scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, onchange)
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
             fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "https:", "http:"],
-            connectSrc: ["'self'"],
-            frameSrc: ["'self'"]
+            connectSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
+            frameSrc: ["'self'", "https://checkout.razorpay.com"]
         }
     }
 }));
@@ -110,6 +112,13 @@ app.use(helmet({
 
 // Serve static files (CSS, images, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Razorpay webhook must use raw body for signature verification.
+app.post(
+    '/payments/razorpay/webhook',
+    express.raw({ type: 'application/json' }),
+    paymentWebhookController.handleRazorpayWebhook
+);
 
 // Middleware for parsing JSON and URL-encoded data
 app.use(express.json());
