@@ -16,6 +16,10 @@ export default function CollaborationMonitoring() {
     const [selectedCollaboration, setSelectedCollaboration] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState({ totalDocs: 0, totalPages: 1 });
+
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
@@ -25,13 +29,12 @@ export default function CollaborationMonitoring() {
 
     useEffect(() => {
         fetchUserData();
-        fetchCollaborations();
         fetchNotifications();
     }, []);
 
     useEffect(() => {
-        filterAndSortCollaborations();
-    }, [filters, collaborations, sortOrder]);
+        fetchCollaborations();
+    }, [filters, page]);
 
     const fetchUserData = async () => {
         try {
@@ -70,7 +73,14 @@ export default function CollaborationMonitoring() {
 
     const fetchCollaborations = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/collaboration_monitoring`, {
+            const params = new URLSearchParams({
+                search: filters.search,
+                status: filters.status,
+                page: page,
+                limit: 12
+            });
+
+            const response = await fetch(`${API_BASE_URL}/admin/collaboration_monitoring?${params}`, {
                 headers: { 'Accept': 'application/json' },
                 credentials: 'include'
             });
@@ -79,6 +89,8 @@ export default function CollaborationMonitoring() {
                 const data = await response.json();
                 if (data.success && data.collaborations) {
                     setCollaborations(data.collaborations);
+                    setFilteredCollaborations(data.collaborations);
+                    if (data.meta) setMeta(data.meta);
                 }
             }
         } catch (error) {
@@ -136,6 +148,7 @@ export default function CollaborationMonitoring() {
 
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({ ...prev, [name]: value }));
+        setPage(1); // Reset to first page
     };
 
     const toggleSortOrder = () => {
@@ -287,6 +300,29 @@ export default function CollaborationMonitoring() {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {meta.totalPages > 1 && (
+                        <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '30px', gap: '20px' }}>
+                            <button
+                                className={styles.sortBtn}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                            >
+                                <i className="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <span style={{ fontWeight: '600' }}>Page {page} of {meta.totalPages}</span>
+                            <button
+                                className={styles.sortBtn}
+                                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+                                disabled={page === meta.totalPages}
+                                style={{ opacity: page === meta.totalPages ? 0.5 : 1, cursor: page === meta.totalPages ? 'not-allowed' : 'pointer' }}
+                            >
+                                Next <i className="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 <InfluencerDeliverablesModal

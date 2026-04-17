@@ -54,6 +54,12 @@ const Campaigns = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIMIT = 20;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     status: '',
@@ -63,43 +69,46 @@ const Campaigns = () => {
     category: ''
   });
 
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchCampaigns = async (pageNum = 1, append = false) => {
+    try {
+      if (append) setLoadingMore(true);
+      else { setLoading(true); setError(null); }
 
-        const response = await fetch(`${API_BASE_URL}/influencer/collab`, {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
+      const response = await fetch(
+        `${API_BASE_URL}/influencer/collab?page=${pageNum}&limit=${LIMIT}`,
+        {
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
           credentials: 'include'
-        });
-
-        if (response.status === 401 || response.status === 403) {
-          throw new Error('The user is not authenticated');
         }
+      );
 
-        if (!response.ok) {
-          throw new Error('Failed to load campaigns');
-        }
-
-        const data = await response.json();
-        if (data.success && Array.isArray(data.collabs)) {
-          setCampaigns(data.collabs);
-        } else {
-          throw new Error(data.message || 'Unable to fetch campaigns');
-        }
-      } catch (err) {
-        console.error('Error fetching campaigns:', err);
-        setError(err.message || 'Failed to load campaigns');
-      } finally {
-        setLoading(false);
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('The user is not authenticated');
       }
-    };
+      if (!response.ok) throw new Error('Failed to load campaigns');
 
-    fetchCampaigns();
+      const data = await response.json();
+      if (data.success && Array.isArray(data.collabs)) {
+        setCampaigns(prev => append ? [...prev, ...data.collabs] : data.collabs);
+        if (data.pagination) {
+          setPage(data.pagination.page);
+          setTotalPages(data.pagination.totalPages);
+        }
+      } else {
+        throw new Error(data.message || 'Unable to fetch campaigns');
+      }
+    } catch (err) {
+      console.error('Error fetching campaigns:', err);
+      setError(err.message || 'Failed to load campaigns');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaigns(1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const handleSignOut = async (event) => {
@@ -260,6 +269,31 @@ const Campaigns = () => {
 
         {!loading && !error && filteredCampaigns.length > 0 && (
           <CampaignList campaigns={filteredCampaigns} styles={styles} />
+        )}
+
+        {/* Load More — only shown when there are more pages and no active filters */}
+        {!loading && !error && page < totalPages && (
+          <div style={{ textAlign: 'center', margin: '2rem 0' }}>
+            <button
+              onClick={() => fetchCampaigns(page + 1, true)}
+              disabled={loadingMore}
+              className={styles.loadMoreBtn || ''}
+              style={{
+                padding: '0.75rem 2.5rem',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                cursor: loadingMore ? 'not-allowed' : 'pointer',
+                opacity: loadingMore ? 0.7 : 1,
+                transition: 'opacity 0.2s'
+              }}
+            >
+              {loadingMore ? 'Loading…' : `Load More (Page ${page + 1} of ${totalPages})`}
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -116,19 +116,71 @@ class adminCustomerService {
         };
     }
 
-    static async getAllCustomers() {
-        return await Customer.find({}).sort({ createdAt: -1 }).lean();
+    static async getAllCustomers(queryParams = {}) {
+        const { search = '', page = 1, limit = 20 } = queryParams;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const query = {};
+
+        if (search) {
+            const searchRegex = { $regex: search, $options: 'i' };
+            query.$or = [
+                { name: searchRegex },
+                { email: searchRegex },
+                { phone: searchRegex }
+            ];
+        }
+
+        const data = await Customer.find(query)
+            .collation({ locale: 'en', strength: 2 })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .lean();
+
+        const totalDocs = await Customer.countDocuments(query);
+
+        return {
+            customers: data,
+            meta: {
+                totalDocs,
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(totalDocs / limit)
+            }
+        };
     }
 
-    static async getCompletedOrders() {
-        const orders = await Order.find({
+    static async getCompletedOrders(queryParams = {}) {
+        const { search = '', page = 1, limit = 50 } = queryParams;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const query = {
             status: { $in: ['paid', 'shipped', 'delivered'] }
-        })
+        };
+
+        if (search) {
+            // Support searching by Order ID (if it looks like an ObjectId) or Customer Name
+            if (search.match(/^[0-9a-fA-F]{24}$/)) {
+                query._id = search;
+            } else {
+                // For name search, we might need a lookup or just accept that Order model doesn't store name directly.
+                // However, many orders have guest_info.
+                const searchRegex = { $regex: search, $options: 'i' };
+                query.$or = [
+                    { 'guest_info.name': searchRegex },
+                    { 'guest_info.email': searchRegex }
+                ];
+            }
+        }
+
+        const orders = await Order.find(query)
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
             .populate('customer_id')
             .populate('items.product_id')
             .populate('influencer_id', 'fullName')
             .lean();
+
+        const totalDocs = await Order.countDocuments(query);
 
         const transformedOrders = orders.map(order => ({
             _id: order._id,
@@ -148,9 +200,14 @@ class adminCustomerService {
 
         return {
             orders: transformedOrders,
+            meta: {
+                totalDocs,
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(totalDocs / limit)
+            },
             stats: {
-                totalOrders: transformedOrders.length,
-                totalRevenue: transformedOrders.reduce((sum, order) => sum + order.totalAmount, 0)
+                totalOrders: totalDocs,
+                totalRevenue: 0 // We should probably do an aggregation if we want real total revenue for filtered set
             }
         };
     }

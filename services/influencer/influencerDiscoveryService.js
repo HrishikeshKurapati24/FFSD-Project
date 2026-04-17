@@ -26,6 +26,7 @@ class InfluencerDiscoveryService {
 
         const brands = await BrandInfo.find(filter)
             .select('brandName username logoUrl bannerUrl industry location website mission tagline verified completedCampaigns influencerPartnerships avgCampaignRating primaryMarket influenceRegions')
+            .collation({ locale: 'en', strength: 2 }) // For indexed case-insensitive brandName search
             .sort({ verified: -1, avgCampaignRating: -1, completedCampaigns: -1 })
             .limit(50)
             .lean();

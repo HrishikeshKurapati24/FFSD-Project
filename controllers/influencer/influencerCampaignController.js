@@ -62,38 +62,47 @@ const getExploreCollabs = async (req, res) => {
     const { Product } = require('../../models/ProductMongo');
     const mongoose = require('mongoose');
 
-    const allRequests = await CampaignInfo.find({ status: 'request' })
-      .populate('brand_id', 'brandName logoUrl')
-      .sort({ createdAt: -1 })
-      .lean();
+    // ── Pagination params ─────────────────────────────────────────────────────
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 100);
+    const skip  = (page - 1) * limit;
 
+    // PROJECTION: only fields used on the explore card — uses {status, createdAt} index
+    const [allRequests, totalCampaigns] = await Promise.all([
+      CampaignInfo.find({ status: 'request' })
+        .select('title description budget duration required_channels min_followers target_audience brand_id createdAt')
+        .populate('brand_id', 'brandName logoUrl')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      CampaignInfo.countDocuments({ status: 'request' })
+    ]);
+
+    // Exclude campaigns this influencer already has an open invite/request for
     const existingInvites = await CampaignInfluencers.find({
       influencer_id: new mongoose.Types.ObjectId(influencerId),
       status: { $in: ['brand-invite', 'influencer-invite'] }
     }).select('campaign_id').lean();
 
-    const excludedCampaignIds = existingInvites.map(invite => invite.campaign_id.toString());
-    const requests = allRequests.filter(request =>
-      !excludedCampaignIds.includes(request._id.toString())
-    );
+    const excludedSet = new Set(existingInvites.map(i => i.campaign_id.toString()));
+    const requests = allRequests.filter(r => !excludedSet.has(r._id.toString()));
 
-    const campaignIds = requests.map(request => request._id);
-    const products = await Product.find({
-      campaign_id: { $in: campaignIds }
-    }).select('campaign_id name category').lean();
+    // Bulk-fetch products for this page of campaigns only (uses {campaign_id, status} index)
+    const campaignIds = requests.map(r => r._id);
+    const products = await Product.find({ campaign_id: { $in: campaignIds } })
+      .select('campaign_id name category')
+      .lean();
 
     const productsByCampaign = {};
-    products.forEach(product => {
-      if (!productsByCampaign[product.campaign_id.toString()]) {
-        productsByCampaign[product.campaign_id.toString()] = [];
-      }
-      productsByCampaign[product.campaign_id.toString()].push(product);
+    products.forEach(p => {
+      const key = p.campaign_id.toString();
+      (productsByCampaign[key] = productsByCampaign[key] || []).push(p);
     });
 
     const collabs = requests.map(request => {
-      const campaignProducts = productsByCampaign[request._id.toString()] || [];
+      const campaignProducts  = productsByCampaign[request._id.toString()] || [];
       const productCategories = [...new Set(campaignProducts.map(p => p.category).filter(Boolean))];
-
       return {
         id: request._id,
         title: request.title,
@@ -115,13 +124,18 @@ const getExploreCollabs = async (req, res) => {
       };
     });
 
-    const responseData = { collabs, influencer: influencerId };
-    return res.json({ success: true, ...responseData });
+    return res.json({
+      success: true,
+      collabs,
+      influencer: influencerId,
+      pagination: { page, limit, totalCount: totalCampaigns, totalPages: Math.ceil(totalCampaigns / limit) }
+    });
   } catch (error) {
     console.error('Error fetching campaign requests:', error);
     return res.status(500).json({ success: false, message: 'Error loading campaign requests' });
   }
 };
+
 
 const getExploreCollabDetails = async (req, res) => {
   try {
@@ -216,8 +230,10 @@ const applyToCampaign = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Unable to verify subscription. Please try again later.' });
     }
 
-    const campaign = await CampaignInfo.findById(campaignId);
+    // Single lean query — validates campaign and captures brand_id for reuse below
+    const campaign = await CampaignInfo.findById(campaignId).select('brand_id status').lean();
     if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+    const brandId4Notif = campaign.brand_id; // reused for message + notification — no extra DB hits
 
     const existingApplication = await CampaignInfluencers.findOne({
       campaign_id: new mongoose.Types.ObjectId(campaignId),
@@ -233,16 +249,13 @@ const applyToCampaign = async (req, res) => {
           await SubscriptionService.updateUsage(influencerId, 'influencer', { campaignsUsed: 1 });
         } catch (usageError) { }
 
-        if (specialMessage) {
-          const campaignDoc = await CampaignInfo.findById(campaignId).select('brand_id').lean();
-          if (campaignDoc?.brand_id) {
-            await new Message({
-              brand_id: campaignDoc.brand_id,
-              influencer_id: new mongoose.Types.ObjectId(influencerId),
-              campaign_id: new mongoose.Types.ObjectId(campaignId),
-              message: specialMessage
-            }).save();
-          }
+        if (specialMessage && brandId4Notif) {
+          await new Message({
+            brand_id: brandId4Notif,
+            influencer_id: new mongoose.Types.ObjectId(influencerId),
+            campaign_id: new mongoose.Types.ObjectId(campaignId),
+            message: specialMessage
+          }).save();
         }
         return res.json({ success: true, message: 'Invitation accepted successfully', applicationId: existingApplication._id });
       } else if (existingApplication.status === 'active') {
@@ -270,19 +283,16 @@ const applyToCampaign = async (req, res) => {
       await SubscriptionService.updateUsage(influencerId, 'influencer', { brandsConnected: 1 });
     } catch (usageError) { }
 
-    if (specialMessage) {
-      const campaignDoc = await CampaignInfo.findById(campaignId).select('brand_id').lean();
-      if (campaignDoc?.brand_id) {
-        await new Message({ brand_id: campaignDoc.brand_id, influencer_id: new mongoose.Types.ObjectId(influencerId), campaign_id: new mongoose.Types.ObjectId(campaignId), message: specialMessage }).save();
-      }
+    // Reuse brandId4Notif — no extra CampaignInfo.findById calls
+    if (specialMessage && brandId4Notif) {
+      await new Message({ brand_id: brandId4Notif, influencer_id: new mongoose.Types.ObjectId(influencerId), campaign_id: new mongoose.Types.ObjectId(campaignId), message: specialMessage }).save();
     }
 
     try {
-      const campaignDoc = await CampaignInfo.findById(campaignId).select('brand_id').lean();
-      if (campaignDoc?.brand_id) {
+      if (brandId4Notif) {
         const influencerInfo = await InfluencerInfo.findById(influencerId).select('fullName displayName').lean();
         await notificationController.createNotification({
-          recipientId: campaignDoc.brand_id,
+          recipientId: brandId4Notif,
           recipientType: 'brand',
           senderId: new mongoose.Types.ObjectId(influencerId),
           senderType: 'influencer',

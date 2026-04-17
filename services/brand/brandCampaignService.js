@@ -30,54 +30,34 @@ class brandCampaignService {
 
             const campaignIds = campaigns.map(c => c._id);
 
-            // Fetch metrics, influencer counts, and products in parallel
-            const [metrics, influencerCounts, allProducts] = await Promise.all([
-                CampaignMetrics.find({ campaign_id: { $in: campaignIds } }).lean(),
-                CampaignInfluencers.aggregate([
-                    { $match: { campaign_id: { $in: campaignIds } } },
-                    { $group: { _id: '$campaign_id', count: { $sum: 1 } } }
-                ]),
-                // Fetch products associated with these campaigns
-                mongoose.model('Product').find({ campaign_id: { $in: campaignIds } })
-                    .select('campaign_id name images campaign_price')
-                    .lean()
+            // Fetch only influencer counts (not yet fully embedded)
+            const influencerCounts = await CampaignInfluencers.aggregate([
+                { $match: { campaign_id: { $in: campaignIds } } },
+                { $group: { _id: '$campaign_id', count: { $sum: 1 } } }
             ]);
-
-            const metricsMap = new Map();
-            metrics.forEach(m => metricsMap.set(m.campaign_id.toString(), m));
 
             const influencerCountMap = new Map();
             influencerCounts.forEach(c => influencerCountMap.set(c._id.toString(), c.count));
 
-            // Group products by campaign
-            const productsMap = new Map();
-            allProducts.forEach(p => {
-                const cId = p.campaign_id.toString();
-                if (!productsMap.has(cId)) productsMap.set(cId, []);
-                productsMap.get(cId).push(p);
-            });
-
-            return campaigns.map(campaign => {
-                const m = metricsMap.get(campaign._id.toString()) || {};
-                return {
-                    _id: campaign._id,
-                    name: campaign.title,
-                    description: campaign.description,
-                    end_date: campaign.end_date,
-                    budget: campaign.budget || 0,
-                    status: campaign.status,
-                    duration: campaign.duration || 0,
-                    target_audience: campaign.target_audience || '',
-                    required_channels: campaign.required_channels || [],
-                    min_followers: campaign.min_followers || 0,
-                    engagement_rate: m.engagement_rate || 0,
-                    reach: m.reach || 0,
-                    conversion_rate: m.conversion_rate || 0,
-                    performance_score: m.performance_score || 0,
-                    influencersCount: influencerCountMap.get(campaign._id.toString()) || 0,
-                    products: productsMap.get(campaign._id.toString()) || []
-                };
-            });
+            return campaigns.map(campaign => ({
+                _id: campaign._id,
+                name: campaign.title,
+                description: campaign.description,
+                end_date: campaign.end_date,
+                budget: campaign.budget || 0,
+                status: campaign.status,
+                duration: campaign.duration || 0,
+                target_audience: campaign.target_audience || '',
+                required_channels: campaign.required_channels || [],
+                min_followers: campaign.min_followers || 0,
+                // High-Performance Embedding: using metrics/products snapshot from Campaign document
+                engagement_rate: campaign.metrics?.engagement_rate || 0,
+                reach: campaign.metrics?.reach || 0,
+                conversion_rate: campaign.metrics?.conversions || 0,
+                performance_score: campaign.metrics?.performance_score || 0,
+                influencersCount: influencerCountMap.get(campaign._id.toString()) || 0,
+                products: campaign.featured_products || []
+            }));
         } catch (err) {
             console.error('Error fetching recent completed campaigns:', err);
             return [];
@@ -247,40 +227,28 @@ class brandCampaignService {
         }
     }
 
-    // Get top campaigns for a brand
+    // Get top campaigns for a brand (Optimized: Zero-Join)
     static async getTopCampaigns(brandId) {
         try {
-            // First, get campaign IDs that are 'active' or 'completed'
-            const validCampaigns = await CampaignInfo.find({
+            // High-Performance Embedding: Use metrics snapshot from CampaignInfo document
+            const topCampaigns = await CampaignInfo.find({
                 brand_id: brandId,
                 status: { $in: ['active', 'completed'] }
-            }).select('_id').lean();
-
-            const validCampaignIds = validCampaigns.map(c => c._id);
-
-            if (validCampaignIds.length === 0) {
-                return [];
-            }
-
-            // Get metrics for those campaigns and populate campaign info
-            const topCampaigns = await CampaignMetrics.find({
-                brand_id: brandId,
-                campaign_id: { $in: validCampaignIds }
             })
-                .sort({ performance_score: -1 })
+                .sort({ 'metrics.performance_score': -1 })
                 .limit(5)
-                .populate('campaign_id', 'title status')
+                .select('_id title status metrics')
                 .lean();
 
-            // Map results to include title and status at top level
-            return topCampaigns.map(metric => ({
-                _id: metric._id,
-                id: metric.campaign_id?._id || metric.campaign_id,
-                title: metric.campaign_id?.title || 'Untitled Campaign',
-                status: metric.campaign_id?.status || 'active',
-                performance_score: metric.performance_score || 0,
-                reach: metric.reach || 0,
-                engagement_rate: metric.engagement_rate || 0
+            // Map results for compatibility
+            return topCampaigns.map(campaign => ({
+                _id: campaign._id,
+                id: campaign._id,
+                title: campaign.title || 'Untitled Campaign',
+                status: campaign.status || 'active',
+                performance_score: campaign.metrics?.performance_score || 0,
+                reach: campaign.metrics?.reach || 0,
+                engagement_rate: campaign.metrics?.engagement_rate || 0
             }));
         } catch (err) {
             console.error('Error fetching top campaigns:', err);
@@ -288,7 +256,7 @@ class brandCampaignService {
         }
     }
 
-    // Get active campaigns for a brand
+    // Get active campaigns for a brand (Optimized: Read Snapshots)
     static async getActiveCampaigns(brandId) {
         try {
             const activeCampaigns = await CampaignInfo.find({
@@ -299,33 +267,22 @@ class brandCampaignService {
                 .sort({ start_date: -1 })
                 .lean();
 
-            // Get metrics for all campaigns
+            // Get influencer counts (only aggregation needed)
             const campaignIds = activeCampaigns.map(campaign => campaign._id);
-            const [metrics, influencerCounts] = await Promise.all([
-                CampaignMetrics.find({
-                    campaign_id: { $in: campaignIds }
-                }).lean(),
-                CampaignInfluencers.aggregate([
-                    {
-                        $match: {
-                            campaign_id: { $in: campaignIds },
-                            status: 'active'
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: '$campaign_id',
-                            count: { $sum: 1 }
-                        }
+            const influencerCounts = await CampaignInfluencers.aggregate([
+                {
+                    $match: {
+                        campaign_id: { $in: campaignIds },
+                        status: 'active'
                     }
-                ])
+                },
+                {
+                    $group: {
+                        _id: '$campaign_id',
+                        count: { $sum: 1 }
+                    }
+                }
             ]);
-
-            // Create maps for quick lookup
-            const metricsMap = new Map();
-            metrics.forEach(metric => {
-                metricsMap.set(metric.campaign_id.toString(), metric);
-            });
 
             const influencerCountMap = new Map();
             influencerCounts.forEach(count => {
@@ -333,15 +290,15 @@ class brandCampaignService {
             });
 
             return activeCampaigns.map(campaign => {
-                const campaignMetrics = metricsMap.get(campaign._id.toString()) || {};
-                // Prefer influencer-driven overall_progress from CampaignMetrics; fallback to time-based progress
+                const campaignMetrics = campaign.metrics || {};
+                // Prefer embedded metrics; fallback to time-based progress
                 const overallProgress = campaignMetrics.overall_progress;
                 return {
                     ...campaign,
                     progress: (overallProgress !== undefined && overallProgress !== null) ? overallProgress : this.calculateCampaignProgress(campaign),
                     engagement_rate: campaignMetrics.engagement_rate || 0,
                     reach: campaignMetrics.reach || 0,
-                    conversion_rate: campaignMetrics.conversion_rate || 0,
+                    conversion_rate: campaignMetrics.conversions || 0,
                     revenue: campaignMetrics.revenue || 0,
                     roi: campaignMetrics.roi || 0,
                     influencers_count: influencerCountMap.get(campaign._id.toString()) || 0
@@ -1173,6 +1130,12 @@ class brandCampaignService {
                 status: 'active'
             };
 
+            // Ensure brandName is included if it was previously missing
+            const brand = await BrandInfo.findById(brandId).select('brandName').lean();
+            if (brand) {
+                campaignActivationData.brandName = brand.brandName;
+            }
+
             if (!prodName || !prodDescription || !category || !file) {
                 throw new Error('Product name, description, category, and image are required');
             }
@@ -1400,8 +1363,11 @@ class brandCampaignService {
 
         if (duration <= 0) throw new Error('End date must be after start date.');
 
+        const brand = await BrandInfo.findById(brandId).select('brandName').lean();
+
         const campaignInfo = new CampaignInfo({
             brand_id: new mongoose.Types.ObjectId(brandId),
+            brandName: brand?.brandName || 'Unknown Brand',
             title,
             description,
             status: 'request',
@@ -1436,7 +1402,8 @@ class brandCampaignService {
                     }
                 }
 
-                await new Product({
+                // Create Product and snapshot to CampaignInfo
+                const savedProduct = await new Product({
                     name: productData.name,
                     category: productData.category,
                     description: productData.description,
@@ -1451,7 +1418,17 @@ class brandCampaignService {
                     status: 'active',
                     target_quantity: parseInt(productData.target_quantity)
                 }).save();
+
+                // Build product snapshot for high-performance campaign viewing
+                savedCampaign.featured_products.push({
+                    product_id: savedProduct._id,
+                    name: savedProduct.name,
+                    price: savedProduct.campaign_price,
+                    thumbnail: imageUrl
+                });
             }
+            // Save the campaign with all embedded product snapshots
+            await savedCampaign.save();
         }
 
         const campaignMetrics = new CampaignMetrics({

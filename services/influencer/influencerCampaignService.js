@@ -97,6 +97,23 @@ class InfluencerCampaignService {
                 if (roi !== undefined) metrics.roi = parseFloat(roi) || 0;
             }
             await metrics.save();
+
+            // High-Performance Embedding: Sync metrics snapshot directly to CampaignInfo
+            await CampaignInfo.updateOne(
+                { _id: collab.campaign_id?._id || collab.campaign_id },
+                { 
+                    $set: { 
+                        'metrics.performance_score': metrics.performance_score,
+                        'metrics.engagement_rate': metrics.engagement_rate,
+                        'metrics.reach': metrics.reach,
+                        'metrics.conversions': metrics.conversions,
+                        'metrics.clicks': metrics.clicks,
+                        'metrics.impressions': metrics.impressions,
+                        'metrics.revenue': metrics.revenue,
+                        'metrics.roi': metrics.roi
+                    } 
+                }
+            );
         }
 
         // Notify Brand

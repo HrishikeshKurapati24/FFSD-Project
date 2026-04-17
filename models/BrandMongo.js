@@ -224,6 +224,27 @@ const brandInfoSchema = new mongoose.Schema({
             enum: ['standard', 'instant', 'manual'],
             default: 'standard'
         }
+    },
+    // ── High-Performance Embedding (Phase 5) ──────────────────────────────────
+    socialProfiles: [{
+        platform: { type: String, enum: ['instagram', 'youtube', 'tiktok', 'facebook', 'twitter', 'linkedin'] },
+        handle: { type: String, trim: true },
+        url: { type: String, trim: true },
+        followers: { type: Number, default: 0 },
+        engagementRate: { type: Number, default: 0 },
+        avgLikes: { type: Number, default: 0 },
+        avgComments: { type: Number, default: 0 },
+        avgViews: { type: Number, default: 0 },
+        lastUpdated: { type: Date, default: Date.now }
+    }],
+    performance_metrics: {
+        totalCampaigns: { type: Number, default: 0 },
+        activeCampaigns: { type: Number, default: 0 },
+        totalSpend: { type: Number, default: 0 },
+        totalRevenue: { type: Number, default: 0 },
+        avgROI: { type: Number, default: 0 },
+        totalImpressions: { type: Number, default: 0 },
+        totalReach: { type: Number, default: 0 }
     }
 }, {
     timestamps: true
@@ -400,6 +421,10 @@ const brandAnalyticsSchema = new mongoose.Schema({
 });
 
 // Create indexes for better query performance
+brandInfoSchema.index({ brandName: 'text', industry: 'text', description: 'text' }, { default_language: 'english', weights: { brandName: 10, description: 2 } });
+brandInfoSchema.index({ brandName: 1 }, { collation: { locale: 'en', strength: 2 } }); // For case-insensitive prefix matching
+brandInfoSchema.index({ industry: 1 });                    // explore page brand filter
+brandInfoSchema.index({ verified: 1, industry: 1 });       // matchmaking (analogous to InfluencerInfo)
 brandSocialsSchema.index({ brandId: 1 });
 brandAnalyticsSchema.index({ brandId: 1 });
 

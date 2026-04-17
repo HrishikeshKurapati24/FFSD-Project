@@ -99,6 +99,19 @@ class CampaignContentService {
             await product.save();
             createdProducts.push(product);
         }
+
+        // High-Performance Embedding: Sync products to CampaignInfo
+        const productSnapshots = createdProducts.map(p => ({
+            product_id: p._id,
+            name: p.name,
+            price: p.campaign_price || 0,
+            thumbnail: p.images && p.images.length > 0 ? p.images[0].url : ''
+        }));
+
+        await CampaignInfo.findByIdAndUpdate(campaignId, {
+            $set: { featured_products: productSnapshots }
+        });
+
         return createdProducts;
     }
 
@@ -188,13 +201,13 @@ class CampaignContentService {
         const approvedContent = await CampaignContent.find({
             influencer_id: influencerId,
             status: { $in: ['approved', 'submitted'] }
-        }).populate({ path: 'campaign_id', select: 'title brand_id', populate: { path: 'brand_id', select: 'brandName' } })
+        }).populate({ path: 'campaign_id', select: 'title brandName status' })
             .sort({ createdAt: -1 });
 
         return approvedContent.map(item => ({
             ...item.toObject(),
-            brandName: item.campaign_id?.brand_id?.brandName || null,
-            campaignTitle: item.campaign_id?.title || null,
+            brandName: item.campaign_id?.brandName || 'N/A',
+            campaignTitle: item.campaign_id?.title || 'Untitled',
             caption: item.caption
         }));
     }
@@ -265,8 +278,12 @@ class CampaignContentService {
     static async getPublishedContentData(campaignId, page = 1, limit = 20) {
         const skip = (page - 1) * limit;
         const content = await CampaignContent.find({ campaign_id: campaignId, status: 'published' })
-            .populate('influencer_id', 'fullName profilePicUrl').populate('attached_products.product_id')
-            .populate('campaign_id', 'title brand_id').sort({ published_at: -1 }).skip(skip).limit(parseInt(limit));
+            .populate('influencer_id', 'fullName profilePicUrl')
+            .populate('attached_products.product_id')
+            .populate('campaign_id', 'title brandName')
+            .sort({ published_at: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
 
         const total = await CampaignContent.countDocuments({ campaign_id: campaignId, status: 'published' });
         return { content, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } };
@@ -274,8 +291,11 @@ class CampaignContentService {
 
     static async getFeaturedContentData(limit = 10) {
         return await CampaignContent.find({ status: 'published', is_featured: true })
-            .populate('influencer_id', 'fullName profilePicUrl').populate('attached_products.product_id')
-            .populate('campaign_id', 'title brand_id').sort({ published_at: -1 }).limit(parseInt(limit));
+            .populate('influencer_id', 'fullName profilePicUrl')
+            .populate('attached_products.product_id')
+            .populate('campaign_id', 'title brandName')
+            .sort({ published_at: -1 })
+            .limit(parseInt(limit));
     }
 
     static async trackInteractionData(contentId, actionType, productId, metadata, sessionInfo) {

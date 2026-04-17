@@ -32,11 +32,24 @@ export default function UserManagement() {
         riskLevel: 'all'
     });
 
+    // Pagination & Global Search states
+    const [searchQuery, setSearchQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState({
+        totalInfluencers: 0,
+        totalBrands: 0,
+        currentPage: 1,
+        totalPages: 1
+    });
+
     useEffect(() => {
         fetchUserData();
-        fetchUserManagementData();
         fetchNotifications();
     }, []);
+
+    useEffect(() => {
+        fetchUserManagementData();
+    }, [searchQuery, page]);
 
     const fetchNotifications = async () => {
         try {
@@ -135,7 +148,13 @@ export default function UserManagement() {
 
     const fetchUserManagementData = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/user_management`, {
+            const params = new URLSearchParams({
+                search: searchQuery,
+                page: page,
+                limit: 20
+            });
+
+            const response = await fetch(`${API_BASE_URL}/admin/user_management?${params}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -155,10 +174,22 @@ export default function UserManagement() {
                     if (data.brands) setBrands(data.brands);
                     if (data.flaggedContent) setFlaggedContent(data.flaggedContent);
                     if (data.suspiciousUsers) setSuspiciousUsers(data.suspiciousUsers);
+                    if (data.meta) setMeta(data.meta);
                 }
             }
         } catch (error) {
             console.error('Error fetching user management data:', error);
+        }
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+        setPage(1); // Reset to first page on new search
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= meta.totalPages) {
+            setPage(newPage);
         }
     };
 
@@ -479,7 +510,18 @@ export default function UserManagement() {
                     {/* Verify Registrations Tab */}
                     {activeTab === 'verifyRegistrations' && (
                         <div className={styles.tabContent}>
-                            <h2>Verify Registrations</h2>
+                            <div className={styles.tableHeaderActions} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h2>Verify Registrations</h2>
+                                <div className={styles.searchWrapper} style={{ position: 'relative', width: '300px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name or email..."
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        style={{ width: '100%', padding: '10px 15px', borderRadius: '8px', border: '1px solid #ddd' }}
+                                    />
+                                </div>
+                            </div>
 
                             {/* Influencer Registrations */}
                             <h3>Influencer Registrations</h3>
@@ -575,6 +617,30 @@ export default function UserManagement() {
                                 </div>
                             ) : (
                                 <p>No pending brand registrations</p>
+                            )}
+                            {/* Pagination Controls */}
+                            {meta.totalPages > 1 && (
+                                <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', gap: '15px' }}>
+                                    <button
+                                        className={styles.btnSecondary}
+                                        onClick={() => handlePageChange(page - 1)}
+                                        disabled={page === 1}
+                                        style={{ padding: '8px 16px', opacity: page === 1 ? 0.5 : 1 }}
+                                    >
+                                        Previous
+                                    </button>
+                                    <span style={{ fontWeight: '500' }}>
+                                        Page {page} of {meta.totalPages}
+                                    </span>
+                                    <button
+                                        className={styles.btnSecondary}
+                                        onClick={() => handlePageChange(page + 1)}
+                                        disabled={page === meta.totalPages}
+                                        style={{ padding: '8px 16px', opacity: page === meta.totalPages ? 0.5 : 1 }}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             )}
                         </div>
                     )}

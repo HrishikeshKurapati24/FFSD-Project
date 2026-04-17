@@ -51,11 +51,13 @@ const CampaignInfo = mongoose.models.CampaignInfo || mongoose.model('CampaignInf
 
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/collabsync';
 
-const updateRevenue = async () => {
+const runMigration = async () => {
     try {
-        console.log(`Connecting to MongoDB at ${mongoUri.split('@').pop()}...`);
-        await mongoose.connect(mongoUri);
-        console.log('Connected to MongoDB');
+        if (mongoose.connection.readyState === 0) {
+            console.log(`Connecting to MongoDB at ${mongoUri.split('@').pop()}...`);
+            await mongoose.connect(mongoUri);
+            console.log('Connected to MongoDB');
+        }
 
         // 1. Reset all revenue/commission counters to 0 first to ensure accuracy
         console.log('Resetting counters...');
@@ -77,8 +79,8 @@ const updateRevenue = async () => {
             {
                 $group: {
                     _id: { campaign_id: '$campaign_id', influencer_id: '$influencer_id' },
-                    totalRevenue: { $sum: '$total_amount' },
-                    totalCommission: { $sum: '$commission_amount' },
+                    totalRevenue: { $sum: { $ifNull: ["$total_amount", 0] } },
+                    totalCommission: { $sum: { $ifNull: ["$commission_amount", 0] } },
                     orderCount: { $sum: 1 }
                 }
             }
@@ -99,8 +101,8 @@ const updateRevenue = async () => {
                 },
                 {
                     $set: {
-                        revenue: stat.totalRevenue,
-                        commission_earned: stat.totalCommission,
+                        revenue: Math.round(stat.totalRevenue * 100) / 100,
+                        commission_earned: Math.round(stat.totalCommission * 100) / 100,
                         conversions: stat.orderCount
                     }
                 }
@@ -113,7 +115,7 @@ const updateRevenue = async () => {
             {
                 $group: {
                     _id: '$campaign_id',
-                    totalRevenue: { $sum: '$total_amount' },
+                    totalRevenue: { $sum: { $ifNull: ["$total_amount", 0] } },
                     totalSales: { $sum: 1 }
                 }
             }
@@ -124,32 +126,45 @@ const updateRevenue = async () => {
         for (const stat of campaignStats) {
             if (!stat._id) continue;
 
-            // Get campaign budget for ROI calculation
             const campaign = await CampaignInfo.findById(stat._id);
-            const budget = campaign ? campaign.budget : 0;
-            const roi = budget > 0 ? ((stat.totalRevenue - budget) / budget) * 100 : 0;
+            const budget = (campaign && campaign.budget) ? campaign.budget : 0;
+            const revenue = stat.totalRevenue || 0;
+            const roi = budget > 0 ? ((revenue - budget) / budget) * 100 : 0;
+            const roundedRev = Math.round(revenue * 100) / 100;
+            const roundedRoi = Math.round(roi * 100) / 100;
 
-            console.log(`Updating metrics for campaign ${stat._id}: Revenue $${stat.totalRevenue}, ROI ${roi.toFixed(2)}%`);
+            console.log(`Updating metrics for campaign ${stat._id}: Revenue $${revenue.toFixed(2)}, ROI ${roi.toFixed(2)}%`);
 
-            await CampaignMetrics.updateOne(
-                { campaign_id: stat._id },
-                {
-                    $set: {
-                        revenue: stat.totalRevenue,
-                        sales_count: stat.totalSales,
-                        roi: roi
+            await Promise.all([
+                CampaignMetrics.updateOne(
+                    { campaign_id: stat._id },
+                    { $set: { revenue: roundedRev, sales_count: stat.totalSales, roi: roundedRoi } },
+                    { upsert: true }
+                ),
+                CampaignInfo.updateOne(
+                    { _id: stat._id },
+                    { 
+                        $set: { 
+                            'metrics.revenue': roundedRev, 
+                            'metrics.sales_count': stat.totalSales, 
+                            'metrics.roi': roundedRoi 
+                        } 
                     }
-                },
-                { upsert: true } // Create metrics if not exists (though it should)
-            );
+                )
+            ]);
         }
 
         console.log('Update complete!');
-        process.exit(0);
+        if (require.main === module) process.exit(0);
     } catch (error) {
         console.error('Error updating revenue:', error);
-        process.exit(1);
+        if (require.main === module) process.exit(1);
+        throw error;
     }
 }
 
-updateRevenue();
+if (require.main === module) {
+    runMigration();
+}
+
+module.exports = { runMigration };

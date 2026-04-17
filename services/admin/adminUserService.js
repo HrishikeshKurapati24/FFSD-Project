@@ -5,10 +5,26 @@ const AdminDashboardService = require('./adminDashboardService');
 class adminUserService {
     static BrandInfo = require("../../models/BrandMongo").BrandInfo;
     static InfluencerInfo = require("../../models/InfluencerMongo").InfluencerInfo;
-    static async getInfluencers() {
+    static async getInfluencers(search = '', page = 1, limit = 50) {
         try {
-            // Aggregate influencers with their social handles and analytics - include all influencers (verified and unverified)
+            const skip = (page - 1) * limit;
+            const query = {};
+
+            if (search) {
+                const searchRegex = { $regex: search, $options: 'i' };
+                query.$or = [
+                    { fullName: searchRegex },
+                    { displayName: searchRegex },
+                    { email: searchRegex },
+                    { username: searchRegex }
+                ];
+            }
+
             const influencers = await InfluencerInfo.aggregate([
+                { $match: query },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit },
                 {
                     $lookup: {
                         from: 'influencersocials',
@@ -54,22 +70,45 @@ class adminUserService {
                         audienceSize: 1
                     }
                 }
-            ]);
-            return influencers;
+            ]).collation({ locale: 'en', strength: 2 });
+
+            const totalDocs = await InfluencerInfo.countDocuments(query);
+
+            return { influencers, totalDocs };
         } catch (error) {
             console.error('Error fetching influencers:', error);
-            return [];
+            return { influencers: [], totalDocs: 0 };
         }
     }
 
-    static async getBrands() {
+    static async getBrands(search = '', page = 1, limit = 50) {
         try {
-            return await BrandInfo.find()
+            const skip = (page - 1) * limit;
+            const query = {};
+
+            if (search) {
+                const searchRegex = { $regex: search, $options: 'i' };
+                query.$or = [
+                    { brandName: searchRegex },
+                    { displayName: searchRegex },
+                    { email: searchRegex }
+                ];
+            }
+
+            const brands = await BrandInfo.find(query)
                 .select('brandName displayName email website categories industry verified totalAudience')
+                .collation({ locale: 'en', strength: 2 })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
                 .lean();
+
+            const totalDocs = await BrandInfo.countDocuments(query);
+
+            return { brands, totalDocs };
         } catch (error) {
             console.error('Error fetching brands:', error);
-            return [];
+            return { brands: [], totalDocs: 0 };
         }
     }
 
@@ -169,10 +208,12 @@ class adminUserService {
             }
         ]);
     }
-    static async getUserManagementData() {
+    static async getUserManagementData(queryParams = {}) {
         try {
-            const influencersRaw = await this.getInfluencers();
-            const brandsRaw = await this.getBrands();
+            const { search = '', page = 1, limit = 50 } = queryParams;
+
+            const { influencers: influencersRaw, totalDocs: totalInfluencers } = await this.getInfluencers(search, parseInt(page), parseInt(limit));
+            const { brands: brandsRaw, totalDocs: totalBrands } = await this.getBrands(search, parseInt(page), parseInt(limit));
 
             const influencers = influencersRaw.map(influencer => ({
                 name: influencer.displayName || influencer.fullName || 'N/A',
@@ -198,6 +239,7 @@ class adminUserService {
 
             // --- Suspicious Activity Logic ---
             let suspiciousUsers = [];
+            // ... suspicious users logic stays same for now as it's targeted ...
             try {
                 const activity = await AdminDashboardService.checkSuspiciousActivity();
 
@@ -226,7 +268,6 @@ class adminUserService {
                 console.error("Error fetching suspicious activity in service:", err);
             }
 
-            // --- Flagged Content Mock Logic (Demo) ---
             const flaggedContent = [
                 {
                     _id: 'mock_flag_1',
@@ -247,7 +288,13 @@ class adminUserService {
                 flaggedContent,
                 suspiciousUsers,
                 userTypeRequests,
-                profileSuggestions
+                profileSuggestions,
+                meta: {
+                    totalInfluencers,
+                    totalBrands,
+                    currentPage: parseInt(page),
+                    totalPages: Math.ceil(Math.max(totalInfluencers, totalBrands) / limit)
+                }
             };
         } catch (error) {
             console.error('Error in getUserManagementData service:', error);

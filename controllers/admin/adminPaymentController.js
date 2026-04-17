@@ -4,19 +4,12 @@ const { isAPIRequest } = require("../../utils/requestUtils");
 const PaymentController = {
     async getAllPayments(req, res) {
         try {
-            let payments = await AdminPaymentService.getAllPayments();
-
-            // Map payments to ensure brand and influencer names are correctly set
-            payments = payments.map(payment => ({
-                ...payment,
-                brand: payment.brand || '',
-                influencer: payment.influencer || ''
-            }));
+            const data = await AdminPaymentService.getAllPayments(req.query);
 
             res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({
                 success: true,
-                payments
+                ...data
             });
         } catch (error) {
             console.error("Error fetching payments:", error);

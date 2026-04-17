@@ -11,8 +11,7 @@ class brandProfileService {
         try {
             const brand = await BrandInfo.findById(id).lean();
             if (brand) {
-                const socialLinks = await BrandSocials.findOne({ brandId: id }).lean();
-                brand.socialLinks = socialLinks ? socialLinks.platforms : [];
+                brand.socialLinks = brand.socialProfiles || [];
             }
             return brand;
         } catch (err) {
@@ -306,14 +305,13 @@ class brandProfileService {
         }
     }
 
-    // Get social stats for a brand
     static async getSocialStats(brandId) {
         try {
-            const socials = await BrandSocials.findOne({ brandId });
-            if (!socials) {
+            const brand = await BrandInfo.findById(brandId).select('socialProfiles').lean();
+            if (!brand || !brand.socialProfiles) {
                 return [];
             }
-            return socials.platforms || [];
+            return brand.socialProfiles;
         } catch (err) {
             console.error('Error fetching social stats:', err);
             return [];
@@ -365,17 +363,15 @@ class brandProfileService {
                     handle: data.handle || (data.url ? data.url.split('/').filter(Boolean).pop() : 'brand')
                 }));
 
-            // Update the main BrandSocials document
-            const updated = await BrandSocials.findOneAndUpdate(
-                { brandId: new mongoose.Types.ObjectId(brandId) },
-                {
-                    $set: {
-                        platforms: socialLinksArray,
-                        lastUpdated: new Date()
-                    }
-                },
-                { new: true, upsert: true, runValidators: false }
-            );
+            // High-Performance Embedding: Sync both primary Info and legacy Socials
+            await Promise.all([
+                BrandInfo.findByIdAndUpdate(brandId, { $set: { socialProfiles: socialLinksArray } }),
+                BrandSocials.findOneAndUpdate(
+                    { brandId: new mongoose.Types.ObjectId(brandId) },
+                    { $set: { platforms: socialLinksArray, lastUpdated: new Date() } },
+                    { upsert: true }
+                )
+            ]);
 
             return true;
         } catch (err) {
@@ -384,36 +380,25 @@ class brandProfileService {
         }
     }
 
-    // Get brand statistics
+    // Get brand statistics (Optimized: Zero-Join)
     static async getBrandStats(brandId) {
         try {
-            const analytics = await BrandAnalytics.findOne({ brandId });
-            const activeCampaigns = await CampaignInfo.countDocuments({
-                brand_id: brandId,
-                status: 'active',
-                end_date: { $gt: new Date() }
-            });
-
-            const lastMonthAnalytics = await BrandAnalytics.findOne(
-                { brandId },
-                { monthlyStats: { $slice: [-2, 2] } }
-            );
-
-            const currentMonth = lastMonthAnalytics?.monthlyStats[1] || {};
-            const previousMonth = lastMonthAnalytics?.monthlyStats[0] || {};
-
+            // High-Performance Embedding: Use performance_metrics snapshot
+            const brand = await BrandInfo.findById(brandId).select('performance_metrics').lean();
+            const analytics = brand?.performance_metrics || {};
+            
             return {
-                total_campaigns: activeCampaigns || 0,
-                campaign_growth: activeCampaigns - analytics?.campaignMetrics?.totalCampaigns || 0, // Example growth calculation
-                avg_engagement: analytics?.avgEngagementRate || 0,
-                engagement_trend: currentMonth.engagementRate - previousMonth.engagementRate || 0,
-                total_reach: analytics?.performanceMetrics?.reach || 0,
-                reach_growth: ((currentMonth.reach - previousMonth.reach) / (previousMonth.reach || 1)) * 100 || 0,
-                roi: analytics?.campaignMetrics?.avgROI || 0,
-                roi_trend: 5, // Example trend
-                total_clicks: analytics?.performanceMetrics?.clicks || 0,
-                total_revenue: analytics?.campaignMetrics?.totalRevenue || 0,
-                total_spend: analytics?.campaignMetrics?.totalSpend || 0
+                total_campaigns: analytics.totalCampaigns || 0,
+                campaign_growth: analytics.campaignGrowth || 0,
+                avg_engagement: analytics.avgEngagementRate || 0,
+                engagement_trend: 0, 
+                total_reach: analytics.reach || 0,
+                reach_growth: 0,
+                roi: analytics.avgROI || 0,
+                roi_trend: 0,
+                total_clicks: analytics.clicks || 0,
+                total_revenue: analytics.totalRevenue || 0,
+                total_spend: analytics.totalSpend || 0
             };
         } catch (err) {
             console.error('Error fetching brand stats:', err);
@@ -433,78 +418,27 @@ class brandProfileService {
         }
     }
 
-    // Get brand statistics
-    static async getBrandStats(brandId) {
-        try {
-            const analytics = await BrandAnalytics.findOne({ brandId });
-            const activeCampaigns = await CampaignInfo.countDocuments({
-                brand_id: brandId,
-                status: 'active',
-                end_date: { $gt: new Date() }
-            });
-
-            const lastMonthAnalytics = await BrandAnalytics.findOne(
-                { brandId },
-                { monthlyStats: { $slice: [-2, 2] } }
-            );
-
-            const currentMonth = lastMonthAnalytics?.monthlyStats[1] || {};
-            const previousMonth = lastMonthAnalytics?.monthlyStats[0] || {};
-
-            return {
-                total_campaigns: activeCampaigns || 0,
-                campaign_growth: activeCampaigns - analytics?.campaignMetrics?.totalCampaigns || 0, // Example growth calculation
-                avg_engagement: analytics?.avgEngagementRate || 0,
-                engagement_trend: currentMonth.engagementRate - previousMonth.engagementRate || 0,
-                total_reach: analytics?.performanceMetrics?.reach || 0,
-                reach_growth: ((currentMonth.reach - previousMonth.reach) / (previousMonth.reach || 1)) * 100 || 0,
-                roi: analytics?.campaignMetrics?.avgROI || 0,
-                roi_trend: 5, // Example trend
-                total_clicks: analytics?.performanceMetrics?.clicks || 0,
-                total_revenue: analytics?.campaignMetrics?.totalRevenue || 0,
-                total_spend: analytics?.campaignMetrics?.totalSpend || 0
-            };
-        } catch (err) {
-            console.error('Error fetching brand stats:', err);
-            return {
-                total_campaigns: 0,
-                campaign_growth: 0,
-                avg_engagement: 0,
-                engagement_trend: 0,
-                total_reach: 0,
-                reach_growth: 0,
-                roi: 0,
-                roi_trend: 0,
-                total_clicks: 0,
-                total_revenue: 0,
-                total_spend: 0
-            };
-        }
-    }
-
-    // Get brand analytics
+    // Get brand analytics (Optimized: Zero-Join)
     static async getBrandAnalytics(brandId) {
         try {
-            const analytics = await BrandAnalytics.findOne({ brandId });
+            // High-Performance Embedding: metrics are already in the snapshot!
+            const brand = await BrandInfo.findById(brandId).select('performance_metrics').lean();
+            const analytics = brand?.performance_metrics || {};
 
-            if (!analytics) {
-                // Return default analytics if none exist
+            // Transform the analytics data for the dashboard
+            const monthlyStats = analytics.monthlyStats || [];
+            const last6Months = monthlyStats.slice(-6);
+
+            if (last6Months.length === 0) {
                 return {
                     months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                     engagementRates: [5, 6, 7, 8, 9, 10],
                     clickThroughRates: [2, 3, 4, 5, 6, 7],
                     productsSold: [100, 150, 200, 250, 300, 350],
                     conversionRates: [1, 2, 3, 4, 5, 6],
-                    demographics: {
-                        labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
-                        data: [25, 35, 20, 15, 5]
-                    }
+                    demographics: { labels: ['18-24', '25-34', '35-44', '45-54', '55+'], data: [25, 35, 20, 15, 5] }
                 };
             }
-
-            // Transform the analytics data for the dashboard
-            const monthlyStats = analytics.monthlyStats || [];
-            const last6Months = monthlyStats.slice(-6);
 
             return {
                 months: last6Months.map(stat => {
@@ -519,24 +453,17 @@ class brandProfileService {
                 }),
                 productsSold: last6Months.map(stat => stat.conversions || 0),
                 conversionRates: last6Months.map(stat => stat.conversionRate || 0),
-                demographics: {
-                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
-                    data: [25, 35, 20, 15, 5] // Example demographic data
-                }
+                demographics: { labels: ['18-24', '25-34', '35-44', '45-54', '55+'], data: [25, 35, 20, 15, 5] }
             };
         } catch (err) {
             console.error('Error fetching brand analytics:', err);
-            // Return default analytics in case of error
             return {
                 months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 engagementRates: [5, 6, 7, 8, 9, 10],
                 clickThroughRates: [2, 3, 4, 5, 6, 7],
                 productsSold: [100, 150, 200, 250, 300, 350],
                 conversionRates: [1, 2, 3, 4, 5, 6],
-                demographics: {
-                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
-                    data: [25, 35, 20, 15, 5]
-                }
+                demographics: { labels: ['18-24', '25-34', '35-44', '45-54', '55+'], data: [25, 35, 20, 15, 5] }
             };
         }
     }
@@ -545,40 +472,41 @@ class brandProfileService {
         const searchQuery = search || '';
         const selectedCategory = category || 'all';
 
-        // Get all influencers
-        let allInfluencers = [];
-        try {
-            allInfluencers = await InfluencerInfo.find({}).lean();
-        } catch (e) { console.error(e); }
+        let query = {};
 
-        const categoriesSet = new Set();
-        allInfluencers.forEach(influencer => {
-            if (influencer.categories && Array.isArray(influencer.categories)) {
-                influencer.categories.forEach(cat => categoriesSet.add(cat.trim()));
-            }
-        });
-        const categories = Array.from(categoriesSet).sort();
-
-        let filteredInfluencers = allInfluencers;
-        if (selectedCategory && selectedCategory !== 'all') {
-            filteredInfluencers = filteredInfluencers.filter(influencer =>
-                influencer.categories && influencer.categories.some(cat =>
-                    cat.toLowerCase().includes(selectedCategory.toLowerCase())
-                )
-            );
+        if (selectedCategory !== 'all') {
+            query.categories = { $regex: selectedCategory, $options: 'i' };
         }
 
         if (searchQuery) {
-            const searchLower = searchQuery.toLowerCase();
-            filteredInfluencers = filteredInfluencers.filter(influencer =>
-                (influencer.fullName && influencer.fullName.toLowerCase().includes(searchLower)) ||
-                (influencer.username && influencer.username.toLowerCase().includes(searchLower)) ||
-                (influencer.bio && influencer.bio.toLowerCase().includes(searchLower)) ||
-                (influencer.categories && influencer.categories.some(cat =>
-                    cat.toLowerCase().includes(searchLower)
-                ))
-            );
+            const searchRegex = { $regex: searchQuery, $options: 'i' };
+            query.$or = [
+                { fullName: searchRegex },
+                { username: searchRegex },
+                { bio: searchRegex },
+                { categories: searchRegex }
+            ];
         }
+
+        let filteredInfluencers = [];
+        try {
+            filteredInfluencers = await InfluencerInfo.find(query)
+                .select('fullName displayName username profilePicUrl bio verified categories totalFollowers avgEngagementRate audienceDemographics stats socialProfiles')
+                .collation({ locale: 'en', strength: 2 }) // Enable Case-Insensitive Index usage for fullName/username
+                .limit(50)
+                .lean();
+        } catch (e) { console.error('Error in explore DB fetch:', e); }
+
+        // Fetch unique categories directly using MongoDB Distinct (No full collection loading!)
+        let categories = [];
+        try {
+            const rawCategories = await InfluencerInfo.distinct('categories');
+            const flatCategories = rawCategories.flatMap(c => {
+               if (typeof c === 'string') return c.split(',').map(s=>s.trim());
+               return c;
+            }).filter(Boolean);
+            categories = [...new Set(flatCategories)].sort();
+        } catch(e) { console.error(e); }
 
         let influencersWithCollaboration = filteredInfluencers;
 

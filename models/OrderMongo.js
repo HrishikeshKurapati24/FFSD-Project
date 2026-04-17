@@ -124,6 +124,9 @@ const orderSchema = new mongoose.Schema({
 
 // Add index on customer_id for faster queries
 orderSchema.index({ customer_id: 1, status: 1 });
+// Influencer commission/attribution queries (scan every order otherwise)
+orderSchema.index({ influencer_id: 1, createdAt: -1 });
+orderSchema.index({ attribution_status: 1 });
 
 // Pre-save hook to generate tracking number if not present
 orderSchema.pre('save', function (next) {

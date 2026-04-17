@@ -19,7 +19,7 @@ const getInfluencerById = async (influencerId) => {
         console.log('Found influencer:', influencer);
 
         // Get social media data separately
-        const socials = await InfluencerSocials.find({ influencerId }).lean();
+        const socials = influencer.socialProfiles || [];
         console.log('Found socials:', socials);
 
         // Calculate total followers from all platforms
@@ -32,26 +32,25 @@ const getInfluencerById = async (influencerId) => {
             const platformEngagement = (social.avgLikes || 0) + (social.avgComments || 0);
             return acc + platformEngagement;
         }, 0);
-        const avgEngagementRate = socials.length > 0 ? (totalEngagement / socials.length) : 0;
+        const avgEngagementRate = socials.length > 0 ? (totalEngagement / socials.length) : (influencer.stats?.avgEngagementRate || 0);
 
         // Get analytics data for monthly earnings
-        const analytics = await InfluencerAnalytics.findOne({ influencerId }).lean();
-        const monthlyEarnings = analytics?.monthlyEarnings || 0;
+        const monthlyEarnings = influencer.stats?.monthlyEarnings || 0;
 
-        // Get performance metrics
-        const metrics = await getInfluencerMetrics(influencerId);
+        // High-Performance Embedding: metrics are already in the snapshot!
+        const analytics = influencer.analytics_snapshot || {};
 
         return {
             ...influencer,
-            socials,
-            total_followers: totalFollowers,
-            avgEngagementRate: avgEngagementRate.toFixed(2),
-            monthlyEarnings: monthlyEarnings,
+            socials: socials,
+            total_followers: analytics.totalFollowers || 0,
+            avgEngagementRate: (analytics.avgEngagementRate || 0).toFixed(2),
+            monthlyEarnings: analytics.monthlyEarnings || 0,
             metrics: {
-                totalFollowers: metrics.totalFollowers,
-                avgEngagementRate: metrics.avgEngagementRate,
-                avgRating: metrics.avgRating,
-                completedCollabs: metrics.completedCollabs
+                totalFollowers: analytics.totalFollowers || 0,
+                avgEngagementRate: analytics.avgEngagementRate || 0,
+                avgRating: analytics.avgRating || 0,
+                completedCollabs: influencer.completedCollabs || 0
             }
         };
     } catch (error) {
@@ -68,34 +67,29 @@ const getInfluencerProfileDetails = async (influencerId) => {
             return null;
         }
 
-        const socials = await InfluencerSocials.find({ influencerId }).lean();
+        const socials = influencer.socialProfiles || [];
 
         // Format socials data similar to previous structure
-        const formattedSocials = socials.flatMap(social =>
-            social.platforms.map(platform => ({
-                platform: platform.platform,
-                name: platform.platform.charAt(0).toUpperCase() + platform.platform.slice(1),
-                icon: platform.platform.toLowerCase(),
-                followers: platform.followers,
-                url: platform.url, // Added url
-                avgLikes: platform.avgLikes,
-                avgComments: platform.avgComments,
-                avgViews: platform.avgViews,
-                category: platform.category
-            }))
-        );
-
-        // Calculate total followers from all social platforms
-        const totalFollowers = formattedSocials.reduce((sum, social) => sum + (social.followers || 0), 0);
+        const formattedSocials = socials.map(social => ({
+            platform: social.platform,
+            name: social.platform.charAt(0).toUpperCase() + social.platform.slice(1),
+            icon: social.platform.toLowerCase(),
+            followers: social.followers,
+            url: social.url,
+            avgLikes: social.avgLikes,
+            avgComments: social.avgComments,
+            avgViews: social.avgViews,
+            category: social.category
+        }));
 
         // Best posts are part of influencerInfo bestPosts field
         const bestPosts = influencer.bestPosts || [];
 
         // Get performance metrics
         const metrics = await getInfluencerMetrics(influencerId);
-
-        // Get analytics for earnings
-        const analytics = await InfluencerAnalytics.findOne({ influencerId: new mongoose.Types.ObjectId(influencerId) }).lean();
+        // High-Performance Embedding: Use analytics_snapshot
+        const analytics = influencer.analytics_snapshot || {};
+        const totalFollowers = analytics.totalFollowers || 0;
 
         return {
             ...influencer,
@@ -107,11 +101,11 @@ const getInfluencerProfileDetails = async (influencerId) => {
             categories: influencer.categories || [],
             languages: influencer.languages || [],
             socials: formattedSocials,
-            totalFollowers: metrics?.totalFollowers || totalFollowers, // Use metrics if available, fallback to calculated
-            avgEngagementRate: metrics?.avgEngagementRate || 0,
-            avgRating: metrics?.avgRating || 0,
-            completedCollabs: metrics?.completedCollabs || 0,
-            monthlyEarnings: analytics?.monthlyEarnings || 0,
+            totalFollowers: totalFollowers,
+            avgEngagementRate: analytics.avgEngagementRate || 0,
+            avgRating: analytics.avgRating || 0,
+            completedCollabs: influencer.completedCollabs || 0,
+            monthlyEarnings: influencer.stats?.monthlyEarnings || 0,
             bestPosts: bestPosts.map(post => ({
                 platform: post.platform,
                 url: post.url || '',
@@ -146,57 +140,46 @@ const updateInfluencerProfile = async (influencerId, updateData) => {
             infoUpdate.languages = JSON.parse(infoUpdate.languages);
         }
 
-        // 1. Update InfluencerInfo
-        const updatedInfo = await InfluencerInfo.findByIdAndUpdate(influencerId, infoUpdate, { new: true }).lean();
-
-        // 2. Update InfluencerSocials if provided
+        // 1. Update InfluencerInfo (Sync embedded socialProfiles)
         if (socialsUpdate && Array.isArray(socialsUpdate)) {
-            console.log('Updating socials with:', socialsUpdate);
-
             // Fetch basic info for fallback values if needed
             const influencer = await InfluencerInfo.findById(influencerId);
             const username = influencer ? influencer.username : 'unknown';
 
-            // Map frontend data to schema requirements
             const platforms = socialsUpdate.map(s => {
-                // Try to extract handle from URL if not provided
                 let handle = s.handle;
                 if (!handle && s.url) {
                     try {
                         const urlObj = new URL(s.url.startsWith('http') ? s.url : `https://${s.url}`);
                         const pathParts = urlObj.pathname.split('/').filter(p => p);
                         handle = pathParts.length > 0 ? pathParts[pathParts.length - 1] : username;
-                    } catch (e) {
-                        handle = username;
-                    }
+                    } catch (e) { handle = username; }
                 }
 
                 return {
                     platform: s.platform || 'instagram',
                     url: s.url || '',
                     followers: s.followers || 0,
-                    handle: handle || username, // Required field
-                    // Preserve or default metrics
+                    handle: handle || username,
                     avgLikes: s.avgLikes || 0,
                     avgComments: s.avgComments || 0,
-                    avgViews: s.avgViews || 0
+                    avgViews: s.avgViews || 0,
+                    lastUpdated: new Date()
                 };
             });
 
-            console.log('Constructed platforms array:', platforms);
-
-            const result = await InfluencerSocials.findOneAndUpdate(
+            // Update Info document with embedded profiles
+            infoUpdate.socialProfiles = platforms;
+            
+            // Sync with legacy collection too for safety
+            await InfluencerSocials.findOneAndUpdate(
                 { influencerId: new mongoose.Types.ObjectId(influencerId) },
-                {
-                    $set: {
-                        platforms: platforms,
-                        socialHandle: username // Required field, syncing with username
-                    }
-                },
-                { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false }
+                { $set: { platforms: platforms, socialHandle: username } },
+                { upsert: true }
             );
         }
 
+        const updatedInfo = await InfluencerInfo.findByIdAndUpdate(influencerId, infoUpdate, { new: true }).lean();
         return updatedInfo;
     } catch (error) {
         console.error('Error updating influencer profile:', error);

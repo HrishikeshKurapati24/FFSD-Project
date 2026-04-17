@@ -13,6 +13,8 @@ export default function PaymentVerification() {
     const [showModal, setShowModal] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState({ totalDocs: 0, totalPages: 1 });
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -27,10 +29,13 @@ export default function PaymentVerification() {
 
     useEffect(() => {
         fetchUserData();
-        fetchPayments();
         fetchNotifications();
         fetchCategories();
     }, []);
+
+    useEffect(() => {
+        fetchPayments();
+    }, [filters, page]);
 
     const fetchNotifications = async () => {
         try {
@@ -98,9 +103,10 @@ export default function PaymentVerification() {
         }
     };
 
-    useEffect(() => {
-        filterPayments();
-    }, [filters, payments]);
+    // Removed local filter effect as we now use server-side filtering
+    // useEffect(() => {
+    //     filterPayments();
+    // }, [filters, payments]);
 
     const fetchUserData = async () => {
         try {
@@ -130,7 +136,19 @@ export default function PaymentVerification() {
 
     const fetchPayments = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/payment_verification`, {
+            const params = new URLSearchParams({
+                search: filters.search,
+                status: filters.status,
+                paymentMethod: filters.paymentMethod,
+                collabType: filters.collabType,
+                influencerCategory: filters.influencerCategory,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                page: page,
+                limit: 50
+            });
+
+            const response = await fetch(`${API_BASE_URL}/admin/payment_verification?${params}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -147,8 +165,8 @@ export default function PaymentVerification() {
                 const data = await response.json();
                 if (data.success && data.payments) {
                     setPayments(data.payments);
-                } else if (Array.isArray(data)) {
-                    setPayments(data);
+                    setFilteredPayments(data.payments); // Still used for compatibility with existing render
+                    if (data.meta) setMeta(data.meta);
                 }
             }
         } catch (error) {
@@ -178,60 +196,8 @@ export default function PaymentVerification() {
     };
 
     const filterPayments = () => {
-        let filtered = [...payments];
-
-        if (filters.search) {
-            const searchLower = filters.search.toLowerCase();
-            filtered = filtered.filter(payment => {
-                const text = Object.values(payment).join(' ').toLowerCase();
-                return text.includes(searchLower);
-            });
-        }
-
-        if (filters.status !== 'all') {
-            filtered = filtered.filter(payment =>
-                (payment.status || '').toLowerCase() === filters.status.toLowerCase()
-            );
-        }
-
-        if (filters.paymentMethod !== 'all') {
-            filtered = filtered.filter(payment =>
-                (payment.paymentMethod || payment.payment_method || '').toLowerCase() === filters.paymentMethod.toLowerCase()
-            );
-        }
-
-        if (filters.collabType !== 'all') {
-            filtered = filtered.filter(payment =>
-                (payment.collabType || payment.collab_type || '').toLowerCase() === filters.collabType.toLowerCase()
-            );
-        }
-
-        if (filters.influencerCategory !== 'all') {
-            filtered = filtered.filter(payment => {
-                const paymentCategory = (payment.influencerCategory || payment.influencer_category || '');
-                // Handle both single string and array (though in table it's likely a string mapped from backend)
-                if (Array.isArray(paymentCategory)) {
-                    return paymentCategory.some(cat => cat.toLowerCase() === filters.influencerCategory.toLowerCase());
-                }
-                return paymentCategory.toLowerCase() === filters.influencerCategory.toLowerCase();
-            });
-        }
-
-        if (filters.startDate) {
-            filtered = filtered.filter(payment => {
-                const paymentDate = payment.date || payment.payment_date || '';
-                return paymentDate >= filters.startDate;
-            });
-        }
-
-        if (filters.endDate) {
-            filtered = filtered.filter(payment => {
-                const paymentDate = payment.date || payment.payment_date || '';
-                return paymentDate <= filters.endDate;
-            });
-        }
-
-        setFilteredPayments(filtered);
+        // Redundant as of Phase 1 - Server-side search implemented
+        setFilteredPayments(payments);
     };
 
     const handleFilterChange = (name, value) => {
@@ -239,6 +205,7 @@ export default function PaymentVerification() {
             ...prev,
             [name]: value
         }));
+        setPage(1); // Reset to first page when filtering
     };
 
     const resetFilters = () => {
@@ -474,6 +441,31 @@ export default function PaymentVerification() {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {meta.totalPages > 1 && (
+                        <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', gap: '15px' }}>
+                            <button
+                                className={styles.btnSecondary}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ddd', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                            >
+                                <i className="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span style={{ fontWeight: '500' }}>
+                                Page {page} of {meta.totalPages}
+                            </span>
+                            <button
+                                className={styles.btnSecondary}
+                                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+                                disabled={page === meta.totalPages}
+                                style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ddd', cursor: page === meta.totalPages ? 'not-allowed' : 'pointer' }}
+                            >
+                                Next <i className="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 {/* Payment Details Modal */}

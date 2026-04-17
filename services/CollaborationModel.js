@@ -7,93 +7,98 @@ const CampaignMetrics = mongoose.model('CampaignMetrics');
 class CollaborationModel {
     static async getActiveCollaborations(influencerId) {
         try {
-            console.log('Getting active collaborations for influencer:', influencerId);
-
             if (!influencerId) {
                 console.error('No influencer ID provided');
                 return [];
             }
 
-            const collaborations = await CampaignInfluencers.find({
-                influencer_id: new mongoose.Types.ObjectId(influencerId),
-                status: 'active'
-            })
-                .populate('campaign_id', 'title budget duration required_channels min_followers target_audience status')
-                .populate('influencer_id', 'fullName profilePicUrl referralCode')
-                .populate({
-                    path: 'campaign_id',
-                    populate: {
-                        path: 'brand_id',
-                        model: 'BrandInfo',
-                        select: 'brandName logoUrl'
+            // ── OPTIMISATION: single aggregation pipeline replaces 3 round-trips ────
+            // Before: CampaignInfluencers.find → CampaignMetrics.find → InfluencerAnalytics.find
+            // After:  one pipeline with $lookup stages (hits {influencer_id,status} index)
+            const results = await CampaignInfluencers.aggregate([
+                // Stage 1 – filter by influencer + status using the new compound index
+                { $match: { influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'active' } },
+
+                // Stage 2 – join campaign (only fields we actually use on the card)
+                { $lookup: {
+                    from: 'campaigninfos',
+                    localField: 'campaign_id',
+                    foreignField: '_id',
+                    pipeline: [
+                        { $match: { status: { $ne: 'request' } } },
+                        { $project: { title: 1, budget: 1, duration: 1, required_channels: 1, status: 1, brand_id: 1, metrics: 1 } }
+                    ],
+                    as: 'campaign'
+                }},
+                { $unwind: { path: '$campaign', preserveNullAndEmptyArrays: false } },
+
+                // Stage 3 – join brand (name + logo only)
+                { $lookup: {
+                    from: 'brandinfos',
+                    localField: 'campaign.brand_id',
+                    foreignField: '_id',
+                    pipeline: [{ $project: { brandName: 1, logoUrl: 1 } }],
+                    as: 'brand'
+                }},
+                { $unwind: { path: '$brand', preserveNullAndEmptyArrays: true } },
+
+                // Stage 4 – (DEPRECATED) Campaign metrics lookup removed. 
+                // We now use campaign.metrics embedded field.
+
+                // Stage 5 – join influencer just for referralCode
+                { $lookup: {
+                    from: 'influencerinfos',
+                    localField: 'influencer_id',
+                    foreignField: '_id',
+                    pipeline: [{ $project: { referralCode: 1 } }],
+                    as: 'influencerDoc'
+                }},
+
+                // Stage 6 – shape output (only fields consumed by the frontend)
+                { $project: {
+                    _id: 1,
+                    campaign_id:       '$campaign._id',
+                    campaign_name:     '$campaign.title',
+                    brand_name:        '$brand.brandName',
+                    brand_logo:        '$brand.logoUrl',
+                    progress:          { $ifNull: ['$progress', 0] },
+                    duration:          { $ifNull: ['$campaign.duration', 0] },
+                    budget:            { $ifNull: ['$campaign.budget', 0] },
+                    timeliness_score:  { $ifNull: ['$timeliness_score', 0] },
+                    revenue:           { $ifNull: ['$revenue', 0] },
+                    commission_earned: { $ifNull: ['$commission_earned', 0] },
+                    referralCode:      { $ifNull: [{ $arrayElemAt: ['$influencerDoc.referralCode', 0] }, ''] },
+                    engagement_rate:   { $ifNull: ['$campaign.metrics.engagement_rate', 0] },
+                    reach:             { $ifNull: ['$campaign.metrics.reach', 0] },
+                    clicks:            { $ifNull: ['$campaign.metrics.clicks', 0] },
+                    conversions:       { $ifNull: ['$campaign.metrics.conversions', 0] },
+                    performance_score: { $ifNull: ['$campaign.metrics.performance_score', 0] },
+                    impressions:       { $ifNull: ['$campaign.metrics.impressions', 0] },
+                    roi:               { $ifNull: ['$campaign.metrics.roi', 0] },
+                    // Deliverables: only fields rendered in the UI (avoid pulling full content_url blobs when listing)
+                    deliverables: {
+                        $map: {
+                            input: { $ifNull: ['$deliverables', []] },
+                            as: 'd',
+                            in: {
+                                _id:             '$$d._id',
+                                title:           '$$d.title',
+                                description:     '$$d.description',
+                                status:          '$$d.status',
+                                deliverable_type:'$$d.deliverable_type',
+                                due_date:        '$$d.due_date',
+                                content_url:     '$$d.content_url',
+                                submitted_at:    '$$d.submitted_at',
+                                reviewed_at:     '$$d.reviewed_at',
+                                review_feedback: '$d.review_feedback'
+                            }
+                        }
                     }
-                })
-                .lean();
+                }
+        }]);
 
-            // Filter out collaborations where the campaign still has status 'request'
-            const filteredCollaborations = collaborations.filter(collab =>
-                collab.campaign_id && collab.campaign_id.status !== 'request'
-            );
-
-            console.log('Found collaborations:', collaborations.length);
-            console.log('Filtered collaborations (excluding request status):', filteredCollaborations.length);
-
-            // Get campaign IDs for metrics lookup
-            const campaignIds = filteredCollaborations.map(collab => collab.campaign_id._id);
-
-            // Get metrics for all campaigns
-            const metrics = await CampaignMetrics.find({
-                campaign_id: { $in: campaignIds }
-            }).lean();
-
-            console.log('Found metrics for campaigns:', metrics.length);
-
-            // Create a map for quick lookup
-            const metricsMap = new Map();
-            metrics.forEach(metric => {
-                metricsMap.set(metric.campaign_id.toString(), metric);
-            });
-
-            const formattedCollaborations = filteredCollaborations.map(collab => {
-                const campaignMetrics = metricsMap.get(collab.campaign_id._id.toString()) || {};
-                return {
-                    id: collab._id,
-                    campaign_id: collab.campaign_id._id,
-                    campaign_name: collab.campaign_id?.title || '',
-                    brand_name: collab.campaign_id?.brand_id?.brandName || '',
-                    brand_logo: collab.campaign_id?.brand_id?.logoUrl || '',
-                    progress: collab.progress || 0,
-                    duration: collab.campaign_id?.duration || 0,
-                    budget: collab.campaign_id?.budget || 0,
-                    engagement_rate: campaignMetrics.engagement_rate || 0,
-                    reach: campaignMetrics.reach || 0,
-                    clicks: campaignMetrics.clicks || 0,
-                    conversions: campaignMetrics.conversion_rate || 0,
-                    timeliness_score: collab.timeliness_score || 0,
-                    performance_score: campaignMetrics.performance_score || 0,
-                    impressions: campaignMetrics.impressions || 0,
-                    revenue: collab.revenue || 0, // specific to influencer
-                    commission_earned: collab.commission_earned || 0, // specific to influencer
-                    roi: campaignMetrics.roi || 0,
-                    referralCode: collab.influencer_id?.referralCode || '', // Added for shop URL generation
-                    // Add deliverables (Stage 2-3 integration)
-                    deliverables: (collab.deliverables || []).map(d => ({
-                        _id: d._id,
-                        title: d.title,
-                        description: d.description,
-                        status: d.status,
-                        deliverable_type: d.deliverable_type,
-                        due_date: d.due_date,
-                        content_url: d.content_url,
-                        submitted_at: d.submitted_at,
-                        reviewed_at: d.reviewed_at,
-                        review_feedback: d.review_feedback
-                    }))
-                };
-            });
-
-            console.log('Formatted collaborations:', formattedCollaborations.length);
-            return formattedCollaborations;
+            // Rename _id → id to match existing contract
+            return results.map(r => ({ id: r._id, ...r }));
         } catch (error) {
             console.error('Error in getActiveCollaborations:', error);
             return [];
@@ -157,17 +162,17 @@ class CollaborationModel {
         try {
             const CampaignPayments = mongoose.model('CampaignPayments');
             const now = new Date();
-            const yearMonth = now.toISOString().slice(0, 7); // YYYY-MM
+            // FIXED: use proper Date constructor instead of string concatenation
+            // Old code used yearMonth + '-31' which is wrong for months with <31 days
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
             const result = await CampaignPayments.aggregate([
                 {
                     $match: {
                         influencer_id: new mongoose.Types.ObjectId(influencerId),
                         status: 'completed',
-                        payment_date: {
-                            $gte: new Date(yearMonth + '-01'),
-                            $lt: new Date(yearMonth + '-31')
-                        }
+                        payment_date: { $gte: monthStart, $lte: monthEnd }  // uses {influencer_id, payment_date} index
                     }
                 },
                 {
@@ -188,36 +193,25 @@ class CollaborationModel {
         try {
             const CampaignPayments = mongoose.model('CampaignPayments');
             const now = new Date();
-            const currentYearMonth = now.toISOString().slice(0, 7);
-            const previousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const previousYearMonth = previousMonthDate.toISOString().slice(0, 7);
+            // FIXED: use proper Date constructors for precise month boundaries
+            const currentMonthStart  = new Date(now.getFullYear(), now.getMonth(), 1);
+            const currentMonthEnd    = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const previousMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-            const result = await CampaignPayments.aggregate([
-                {
-                    $match: {
-                        influencer_id: new mongoose.Types.ObjectId(influencerId),
-                        status: 'completed',
-                        payment_date: {
-                            $gte: new Date(previousYearMonth + '-01'),
-                            $lt: new Date(currentYearMonth + '-01')
-                        }
-                    }
-                },
-                {
-                    $group: {
-                        _id: '$payment_date',
-                        amount: { $sum: '$amount' }
-                    }
-                }
+            const [currentResult, previousResult] = await Promise.all([
+                CampaignPayments.aggregate([
+                    { $match: { influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'completed', payment_date: { $gte: currentMonthStart, $lte: currentMonthEnd } } },
+                    { $group: { _id: null, total: { $sum: '$amount' } } }
+                ]),
+                CampaignPayments.aggregate([
+                    { $match: { influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'completed', payment_date: { $gte: previousMonthStart, $lte: previousMonthEnd } } },
+                    { $group: { _id: null, total: { $sum: '$amount' } } }
+                ])
             ]);
 
-            let currentMonthTotal = 0;
-            let previousMonthTotal = 0;
-            result.forEach(doc => {
-                const month = doc._id.toISOString().slice(0, 7);
-                if (month === currentYearMonth) currentMonthTotal += doc.amount;
-                else if (month === previousYearMonth) previousMonthTotal += doc.amount;
-            });
+            const currentMonthTotal  = currentResult[0]?.total || 0;
+            const previousMonthTotal = previousResult[0]?.total || 0;
 
             if (previousMonthTotal === 0) return 100;
             return ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
@@ -362,25 +356,26 @@ class CollaborationModel {
         }
     }
 
-    static async getCollaborationRequests(influencerId) {
+    static async getCollaborationRequests(influencerId, { page = 1, limit = 20 } = {}) {
         try {
-            const requests = await CampaignInfluencers.find({
-                influencer_id: new mongoose.Types.ObjectId(influencerId),
-                status: 'request'
-            })
-                .populate('campaign_id', 'title budget duration required_channels min_followers target_audience')
-                .populate({
-                    path: 'campaign_id',
-                    populate: {
-                        path: 'brand_id',
-                        model: 'BrandInfo',
-                        select: 'brandName logoUrl'
-                    }
-                })
-                .sort({ createdAt: -1 })
-                .lean();
+            const skip = (page - 1) * Math.min(limit, 100);
+            const safeLimit = Math.min(limit, 100);
 
-            return requests.map(req => ({
+            const [requests, totalCount] = await Promise.all([
+                CampaignInfluencers
+                    .find({ influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'request' })
+                    // PROJECTION: only fields rendered on the requests card — avoids over-fetching deliverables[]
+                    .select('campaign_id status createdAt')
+                    .populate('campaign_id', 'title budget duration required_channels min_followers target_audience brand_id')
+                    .populate({ path: 'campaign_id', populate: { path: 'brand_id', model: 'BrandInfo', select: 'brandName logoUrl' } })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(safeLimit)
+                    .lean(),
+                CampaignInfluencers.countDocuments({ influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'request' })
+            ]);
+
+            const docs = requests.map(req => ({
                 id: req._id,
                 collab_title: req.campaign_id?.title || '',
                 status: req.status,
@@ -393,6 +388,8 @@ class CollaborationModel {
                 min_followers: req.campaign_id?.min_followers || 0,
                 target_audience: req.campaign_id?.target_audience || ''
             }));
+
+            return { docs, totalCount, page, totalPages: Math.ceil(totalCount / safeLimit) };
         } catch (error) {
             console.error('Error in getCollaborationRequests:', error);
             throw error;
@@ -471,49 +468,45 @@ class CollaborationModel {
      */
     static async updateCampaignMetrics(campaignId) {
         try {
-            // Get active influencers on this campaign with their progress and follower counts
+            // High-Performance Embedding: Fetch influencers and their embedded totalFollowers snapshot
             const activeInfluencers = await CampaignInfluencers.find({
                 campaign_id: campaignId,
                 status: 'active'
             })
-                .populate({ path: 'influencer_id', select: 'totalFollowers', model: 'InfluencerAnalytics', options: { lean: true } })
-                .lean();
+            .populate({ path: 'influencer_id', select: 'analytics_snapshot.totalFollowers', model: 'InfluencerInfo' })
+            .lean();
 
             if (activeInfluencers.length === 0) return;
 
-            // Fallback if above populate path doesn't resolve, fetch followers via InfluencerAnalytics collection
-            const influencerIds = activeInfluencers.map(ai => ai.influencer_id?._id || ai.influencer_id);
-            const InfluencerAnalytics = mongoose.model('InfluencerAnalytics');
-            const analytics = await InfluencerAnalytics.find({ influencerId: { $in: influencerIds } })
-                .select('influencerId totalFollowers')
-                .lean();
-            const followersMap = new Map(analytics.map(a => [a.influencerId.toString(), a.totalFollowers || 0]));
-
             let weightedSum = 0;
             let totalFollowers = 0;
+            
             activeInfluencers.forEach(ai => {
-                const infId = (ai.influencer_id?._id || ai.influencer_id || '').toString();
-                const followers = followersMap.get(infId) || 0;
+                const followers = ai.influencer_id?.analytics_snapshot?.totalFollowers || 0;
                 const prog = Math.max(0, Math.min(100, ai.progress || 0));
                 weightedSum += prog * followers;
                 totalFollowers += followers;
             });
 
-            const overallProgress = totalFollowers > 0 ? Math.round((weightedSum / totalFollowers)) : Math.round((activeInfluencers.reduce((s, ai) => s + (ai.progress || 0), 0) / Math.max(1, activeInfluencers.length)));
+            const overallProgress = totalFollowers > 0 
+                ? Math.round((weightedSum / totalFollowers)) 
+                : Math.round((activeInfluencers.reduce((s, ai) => s + (ai.progress || 0), 0) / Math.max(1, activeInfluencers.length)));
 
-            // Upsert overall progress into CampaignMetrics
-            // Note: We need brand_id. Usually fetching one collab to get it is enough, or query CampaignInfo
-            const campaign = await CampaignInfo.findById(campaignId).select('brand_id');
-            if (campaign) {
-                await CampaignMetrics.findOneAndUpdate(
-                    { campaign_id: campaignId, brand_id: campaign.brand_id },
+            // High-Performance Embedding: Sync progress directly into CampaignInfo
+            await Promise.all([
+                CampaignInfo.updateOne(
+                    { _id: campaignId },
+                    { $set: { 'metrics.overall_progress': overallProgress } }
+                ),
+                // Maintain legacy collection for backward compatibility
+                CampaignMetrics.findOneAndUpdate(
+                    { campaign_id: campaignId },
                     { $set: { overall_progress: overallProgress } },
-                    { upsert: true, new: true }
-                );
-            }
+                    { upsert: true }
+                )
+            ]);
         } catch (error) {
             console.error('Error in updateCampaignMetrics:', error);
-            // Don't throw, just log
         }
     }
 
@@ -567,38 +560,42 @@ class CollaborationModel {
         }
     }
 
-    static async getBrandInvites(influencerId) {
+    static async getBrandInvites(influencerId, { page = 1, limit = 20 } = {}) {
         try {
-            const invites = await CampaignInfluencers.find({
-                influencer_id: new mongoose.Types.ObjectId(influencerId),
-                status: 'brand-invite'
-            })
-                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date brand_id')
-                .populate({
-                    path: 'campaign_id',
-                    populate: {
-                        path: 'brand_id',
-                        model: 'BrandInfo',
-                        select: 'brandName logoUrl industry location'
-                    }
-                })
-                .sort({ createdAt: -1 })
-                .lean();
+            const skip = (page - 1) * Math.min(limit, 100);
+            const safeLimit = Math.min(limit, 100);
 
-            return invites.map(invite => ({
-                ...invite,
-                brand_name: invite.campaign_id?.brand_id?.brandName || '',
-                brand_logo: invite.campaign_id?.brand_id?.logoUrl || '',
-                brand_industry: invite.campaign_id?.brand_id?.industry || '',
-                brand_location: invite.campaign_id?.brand_id?.location || '',
-                campaign_title: invite.campaign_id?.title || '',
-                campaign_description: invite.campaign_id?.description || '',
-                campaign_budget: invite.campaign_id?.budget || 0,
-                campaign_duration: invite.campaign_id?.duration || 0,
+            const [invites, totalCount] = await Promise.all([
+                CampaignInfluencers
+                    .find({ influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'brand-invite' })
+                    // PROJECTION: only invite-card fields — avoids pulling deliverables[] array
+                    .select('campaign_id status createdAt')
+                    .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date brand_id')
+                    .populate({ path: 'campaign_id', populate: { path: 'brand_id', model: 'BrandInfo', select: 'brandName logoUrl industry location' } })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(safeLimit)
+                    .lean(),
+                CampaignInfluencers.countDocuments({ influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'brand-invite' })
+            ]);
+
+            const docs = invites.map(invite => ({
+                _id: invite._id,
+                status: invite.status,
+                createdAt: invite.createdAt,
+                brand_name:          invite.campaign_id?.brand_id?.brandName || '',
+                brand_logo:          invite.campaign_id?.brand_id?.logoUrl || '',
+                brand_industry:      invite.campaign_id?.brand_id?.industry || '',
+                brand_location:      invite.campaign_id?.brand_id?.location || '',
+                campaign_title:      invite.campaign_id?.title || '',
+                campaign_description:invite.campaign_id?.description || '',
+                campaign_budget:     invite.campaign_id?.budget || 0,
+                campaign_duration:   invite.campaign_id?.duration || 0,
                 campaign_start_date: invite.campaign_id?.start_date || null,
-                campaign_end_date: invite.campaign_id?.end_date || null
+                campaign_end_date:   invite.campaign_id?.end_date || null
             }));
-            return invite;
+
+            return { docs, totalCount, page, totalPages: Math.ceil(totalCount / safeLimit) };
         } catch (error) {
             console.error('Error in getBrandInvites:', error);
             throw error;
@@ -619,47 +616,48 @@ class CollaborationModel {
         return Math.round((completed / total) * 100);
     }
 
-    static async getSentRequests(influencerId) {
+    static async getSentRequests(influencerId, { page = 1, limit = 20 } = {}) {
         try {
-            // First, get all campaigns with status 'influencer-invite'
-            const requestCampaigns = await CampaignInfo.find({ status: 'influencer-invite' }).select('_id').lean();
-            const requestCampaignIds = requestCampaigns.map(c => c._id);
+            const skip = (page - 1) * Math.min(limit, 100);
+            const safeLimit = Math.min(limit, 100);
 
-            // Then, find influencer requests for these campaigns
-            const sentRequests = await CampaignInfluencers.find({
-                influencer_id: new mongoose.Types.ObjectId(influencerId),
-                status: 'influencer-invite',
-                campaign_id: { $in: requestCampaignIds }
-            })
-                .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date status brand_id')
-                .populate({
-                    path: 'campaign_id',
-                    populate: {
-                        path: 'brand_id',
-                        model: 'BrandInfo',
-                        select: 'brandName logoUrl industry location'
-                    }
-                })
-                .sort({ createdAt: -1 })
-                .lean();
+            // OPTIMISATION: removed 2-step pre-query (was: find all influencer-invite campaign IDs, then filter)
+            // CampaignInfluencers.status already stores 'influencer-invite' so the pre-fetch is redundant.
+            // The new {influencer_id, status} index makes this a single IXSCAN.
+            const [sentRequests, totalCount] = await Promise.all([
+                CampaignInfluencers
+                    .find({ influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'influencer-invite' })
+                    // PROJECTION: omit deliverables[] and the heavy fields not shown on a request card
+                    .select('campaign_id status createdAt')
+                    .populate('campaign_id', 'title description budget duration required_channels min_followers target_audience start_date end_date status brand_id')
+                    .populate({ path: 'campaign_id', populate: { path: 'brand_id', model: 'BrandInfo', select: 'brandName logoUrl industry location' } })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(safeLimit)
+                    .lean(),
+                CampaignInfluencers.countDocuments({ influencer_id: new mongoose.Types.ObjectId(influencerId), status: 'influencer-invite' })
+            ]);
 
-            // Filter out any requests where campaign is null
-            return sentRequests
+            const docs = sentRequests
                 .filter(req => req.campaign_id)
-                .map(request => ({
-                    ...request,
-                    brand_name: request.campaign_id?.brand_id?.brandName || '',
-                    brand_logo: request.campaign_id?.brand_id?.logoUrl || '',
-                    brand_industry: request.campaign_id?.brand_id?.industry || '',
-                    brand_location: request.campaign_id?.brand_id?.location || '',
-                    campaign_title: request.campaign_id?.title || '',
-                    campaign_description: request.campaign_id?.description || '',
-                    campaign_budget: request.campaign_id?.budget || 0,
-                    campaign_duration: request.campaign_id?.duration || 0,
-                    campaign_start_date: request.campaign_id?.start_date || null,
-                    campaign_end_date: request.campaign_id?.end_date || null,
-                    required_channels: request.campaign_id?.required_channels || []
+                .map(req => ({
+                    _id: req._id,
+                    status: req.status,
+                    createdAt: req.createdAt,
+                    brand_name:          req.campaign_id?.brand_id?.brandName || '',
+                    brand_logo:          req.campaign_id?.brand_id?.logoUrl || '',
+                    brand_industry:      req.campaign_id?.brand_id?.industry || '',
+                    brand_location:      req.campaign_id?.brand_id?.location || '',
+                    campaign_title:      req.campaign_id?.title || '',
+                    campaign_description:req.campaign_id?.description || '',
+                    campaign_budget:     req.campaign_id?.budget || 0,
+                    campaign_duration:   req.campaign_id?.duration || 0,
+                    campaign_start_date: req.campaign_id?.start_date || null,
+                    campaign_end_date:   req.campaign_id?.end_date || null,
+                    required_channels:   req.campaign_id?.required_channels || []
                 }));
+
+            return { docs, totalCount, page, totalPages: Math.ceil(totalCount / safeLimit) };
         } catch (error) {
             console.error('Error in getSentRequests:', error);
             throw error;

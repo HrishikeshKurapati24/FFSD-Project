@@ -32,8 +32,10 @@ const getFollowerGrowth = async (influencerId) => {
 // Get influencer metrics
 const getInfluencerMetrics = async (influencerId) => {
     try {
-        const analytics = await InfluencerAnalytics.findOne({ influencerId }).lean();
-        if (!analytics) {
+        // High-Performance Embedding: metrics are already in the snapshot!
+        const influencer = await InfluencerInfo.findById(influencerId).select('analytics_snapshot completedCollabs').lean();
+        
+        if (!influencer || !influencer.analytics_snapshot) {
             return {
                 totalFollowers: 0,
                 avgEngagementRate: 0,
@@ -41,13 +43,13 @@ const getInfluencerMetrics = async (influencerId) => {
                 completedCollabs: 0
             };
         }
-        // For avgRating and completedCollabs, we might need additional collections or calculations
-        // Here, we return what is available in analytics
+
+        const analytics = influencer.analytics_snapshot;
         return {
             totalFollowers: analytics.totalFollowers || 0,
             avgEngagementRate: analytics.avgEngagementRate || 0,
-            avgRating: analytics.rating || 0,
-            completedCollabs: analytics.completedCollabs || 0
+            avgRating: analytics.avgRating || 0,
+            completedCollabs: influencer.completedCollabs || 0
         };
     } catch (error) {
         console.error('Error getting influencer metrics:', error);

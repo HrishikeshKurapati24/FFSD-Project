@@ -29,9 +29,16 @@ const closeConnection = async () => {
 };
 
 
-const seedOrdersForAnalytics = async () => {
+const runMigration = async () => {
     try {
         console.log('🌱 Starting Advanced Analytics Order Seed Script...\n');
+
+        // Check if orders already exist
+        const orderCount = await Order.countDocuments();
+        if (orderCount > 0) {
+            console.log(`📦 Orders collection already has ${orderCount} docs. Skipping seed.`);
+            return;
+        }
 
         // Get active campaigns with allocated budgets
         const campaigns = await CampaignInfo.find({
@@ -57,8 +64,11 @@ const seedOrdersForAnalytics = async () => {
 
         console.log(`👥 Found ${influencers.length} influencers with referral codes\n`);
 
-        // Get all products (for order items)
-        const products = await Product.find({ stock: { $gt: 0 } }).limit(20);
+        // Get all products (for order items) - Ensure they have valid prices
+        const products = await Product.find({ 
+            stock: { $gt: 0 },
+            original_price: { $gt: 0 }
+        }).limit(20);
 
         if (products.length === 0) {
             console.log('⚠️  No products found. Please add products first.');
@@ -87,7 +97,7 @@ const seedOrdersForAnalytics = async () => {
                 for (let j = 0; j < numItems; j++) {
                     const product = products[Math.floor(Math.random() * products.length)];
                     const quantity = Math.floor(Math.random() * 3) + 1; // 1-3 units
-                    const price = product.price;
+                    const price = product.campaign_price || product.original_price || 0;
                     const subtotal = price * quantity;
 
                     items.push({
@@ -120,7 +130,11 @@ const seedOrdersForAnalytics = async () => {
                     buyer_id: new mongoose.Types.ObjectId(), // Fake buyer ID
                     commission_amount: commissionAmount,
                     attribution_status: status === 'delivered' ? 'paid' : 'pending',
-                    createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
+                    createdAt: (() => {
+                        const start = campaign.start_date ? new Date(campaign.start_date).getTime() : Date.now() - 30 * 24 * 60 * 60 * 1000;
+                        const end = campaign.end_date ? Math.min(new Date(campaign.end_date).getTime(), Date.now()) : Date.now();
+                        return new Date(start + Math.random() * (end - start));
+                    })(),
                     guest_info: {
                         name: `Customer ${Math.floor(Math.random() * 1000)}`,
                         email: `customer${Math.floor(Math.random() * 1000)}@example.com`,
@@ -143,16 +157,20 @@ const seedOrdersForAnalytics = async () => {
         }
 
         console.log(`\n✅ Successfully created ${totalOrders} orders!`);
-
-        process.exit(0);
+        if (require.main === module) process.exit(0);
 
     } catch (error) {
         console.error('❌ Error seeding orders:', error);
-        process.exit(1);
+        if (require.main === module) process.exit(1);
+        throw error;
     }
 };
 
-(async () => {
-    await connectDB();
-    await seedOrdersForAnalytics();
-})();
+if (require.main === module) {
+    (async () => {
+        await connectDB();
+        await runMigration();
+    })();
+}
+
+module.exports = { runMigration };

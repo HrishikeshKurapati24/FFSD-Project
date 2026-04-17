@@ -4,13 +4,13 @@ const { isAPIRequest } = require("../../utils/requestUtils");
 const FeedbackController = {
     async getAllFeedback(req, res) {
         try {
-            const feedbacks = await AdminFeedbackService.getAllFeedback();
-            const data = { feedbacks: feedbacks || [] };
-
+            const { feedbacks, meta } = await AdminFeedbackService.getAllFeedback(req.query);
+            
             res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({
                 success: true,
-                ...data
+                feedbacks: feedbacks || [],
+                meta
             });
         } catch (error) {
             console.error("Error fetching feedback:", error);

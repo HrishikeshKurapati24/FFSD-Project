@@ -93,12 +93,12 @@ const CustomerController = {
 
     async getAllCustomers(req, res) {
         try {
-            const customers = await AdminCustomerService.getAllCustomers();
+            const data = await AdminCustomerService.getAllCustomers(req.query);
 
             res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({
                 success: true,
-                customers
+                ...data
             });
         } catch (error) {
             console.error('Error in getAllCustomers:', error);
@@ -112,7 +112,7 @@ const CustomerController = {
 
     async getCompletedOrders(req, res) {
         try {
-            const data = await AdminCustomerService.getCompletedOrders();
+            const data = await AdminCustomerService.getCompletedOrders(req.query);
 
             return res.status(200).json({
                 success: true,

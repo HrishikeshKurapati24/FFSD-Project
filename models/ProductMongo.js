@@ -311,8 +311,10 @@ const customerSchema = new mongoose.Schema({
 
 // Create indexes for better query performance
 productSchema.index({ brand_id: 1, campaign_id: 1, status: 1 });
+productSchema.index({ campaign_id: 1, status: 1 });  // FIXED B8: campaign_id as leading key (was COLLSCAN 8.33:1)
 productSchema.index({ category: 1, status: 1 });
 productSchema.index({ campaign_price: 1 });
+productSchema.index({ attributed_influencer_id: 1 }); // referral commission lookups by influencer
 
 campaignContentSchema.index({ campaign_id: 1, influencer_id: 1, status: 1 });
 campaignContentSchema.index({ status: 1, published_at: -1 });

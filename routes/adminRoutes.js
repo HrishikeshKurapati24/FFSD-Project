@@ -274,6 +274,7 @@
  *         description: Graph data (nodes and edges)
  */
 
+
 /**
  * @swagger
  * /admin/user_management:
@@ -771,6 +772,7 @@ const CollaborationController = require('../controllers/admin/adminCollaboration
 const CustomerController = require('../controllers/admin/adminCustomerController');
 const NotificationController = require('../controllers/admin/adminNotificationController');
 const OrderAnalyticsController = require('../controllers/admin/adminOrderController');
+const AdminSearchController = require('../controllers/admin/adminSearchController');
 const { Admin } = require('../mongoDB');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -1079,6 +1081,8 @@ router.get('/all-customers', CustomerController.getAllCustomers);
 // Order Analytics routes
 router.get('/orders/analytics', OrderAnalyticsController.getAdminOrderAnalytics);
 router.get('/orders/all', OrderAnalyticsController.getAdminAllOrders);
+
+router.get('/search', AdminSearchController.globalSearch);
 
 // Settings route
 // router.get('/settings', (req, res) => {

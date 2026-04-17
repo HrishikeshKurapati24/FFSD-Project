@@ -10,12 +10,17 @@ export default function CustomerList() {
     const [user, setUser] = useState({ name: 'Admin' });
     const [notifications, setNotifications] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState({ totalDocs: 0, totalPages: 1 });
 
     useEffect(() => {
         fetchUserData();
-        fetchAllCustomers();
         fetchNotifications();
     }, []);
+
+    useEffect(() => {
+        fetchAllCustomers();
+    }, [searchTerm, page]);
 
     const fetchUserData = async () => {
         try {
@@ -34,14 +39,23 @@ export default function CustomerList() {
 
     const fetchAllCustomers = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/all-customers`, {
+            setLoading(true);
+            const params = new URLSearchParams({
+                search: searchTerm,
+                page: page,
+                limit: 20
+            });
+
+            const response = await fetch(`${API_BASE_URL}/admin/all-customers?${params}`, {
                 headers: { 'Accept': 'application/json' },
                 credentials: 'include'
             });
+
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
                     setCustomers(data.customers);
+                    if (data.meta) setMeta(data.meta);
                 }
             }
         } catch (error) {
@@ -66,10 +80,8 @@ export default function CustomerList() {
         }
     };
 
-    const filteredCustomers = customers.filter(cust =>
-        (cust.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cust.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Removed local filter as we use server-side search
+    const filteredCustomers = customers;
 
     return (
         <AdminNavbar user={user} notifications={notifications}>
@@ -133,6 +145,29 @@ export default function CustomerList() {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {meta.totalPages > 1 && (
+                        <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', gap: '15px' }}>
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ddd', cursor: page === 1 ? 'not-allowed' : 'pointer', background: 'white' }}
+                            >
+                                Previous
+                            </button>
+                            <span style={{ fontWeight: '500' }}>
+                                Page {page} of {meta.totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+                                disabled={page === meta.totalPages}
+                                style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ddd', cursor: page === meta.totalPages ? 'not-allowed' : 'pointer', background: 'white' }}
+                            >
+                                Next
+                            </button>
                         </div>
                     )}
                 </div>

@@ -34,6 +34,12 @@ export default function CustomerManagement() {
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [ordersError, setOrdersError] = useState(null);
 
+    // Pagination State
+    const [customerPage, setCustomerPage] = useState(1);
+    const [customerMeta, setCustomerMeta] = useState({ totalDocs: 0, totalPages: 1 });
+    const [orderPage, setOrderPage] = useState(1);
+    const [orderMeta, setOrderMeta] = useState({ totalDocs: 0, totalPages: 1 });
+
     const customerGrowthChartRef = useRef(null);
     const purchaseTrendsChartRef = useRef(null);
     const customerGrowthChartInstance = useRef(null);
@@ -41,9 +47,16 @@ export default function CustomerManagement() {
 
     useEffect(() => {
         fetchUserData();
-        fetchCustomerData();
         fetchNotifications();
     }, []);
+
+    useEffect(() => {
+        fetchCustomerData();
+    }, [searchQuery, statusFilter, customerPage]);
+
+    useEffect(() => {
+        if (showOrders) fetchCompletedOrders();
+    }, [orderPage, showOrders]);
 
     const fetchNotifications = async () => {
         try {
@@ -214,7 +227,14 @@ export default function CustomerManagement() {
 
     const fetchCustomerData = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/customer-management`, {
+            const params = new URLSearchParams({
+                search: searchQuery,
+                status: statusFilter,
+                page: customerPage,
+                limit: 10
+            });
+
+            const response = await fetch(`${API_BASE_URL}/admin/customer-management?${params}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -232,21 +252,9 @@ export default function CustomerManagement() {
                 if (data.success) {
                     setAnalytics(data.analytics || analytics);
                     setTopCustomers(data.topCustomers || []);
-                    setRecentCustomers(data.recentCustomers || []);
+                    setRecentCustomers(data.customers || data.recentCustomers || []);
                     setWhales(data.whales || []);
-                }
-            } else {
-                // Fallback: try to get analytics separately
-                const analyticsResponse = await fetch(`${API_BASE_URL}/admin/customer-analytics`, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                });
-                if (analyticsResponse.ok) {
-                    const analyticsData = await analyticsResponse.json();
-                    setAnalytics(analyticsData.analytics || analytics);
+                    if (data.meta) setCustomerMeta(data.meta);
                 }
             }
         } catch (error) {
@@ -257,7 +265,12 @@ export default function CustomerManagement() {
     const fetchCompletedOrders = async () => {
         try {
             setOrdersLoading(true);
-            const response = await fetch(`${API_BASE_URL}/admin/completed-orders`, {
+            const params = new URLSearchParams({
+                page: orderPage,
+                limit: 20
+            });
+
+            const response = await fetch(`${API_BASE_URL}/admin/completed-orders?${params}`, {
                 headers: { 'Accept': 'application/json' },
                 credentials: 'include'
             });
@@ -273,6 +286,7 @@ export default function CustomerManagement() {
             if (data.success) {
                 setOrders(data.orders);
                 setOrderStats(data.stats);
+                if (data.meta) setOrderMeta(data.meta);
             }
         } catch (err) {
             console.error('Error:', err);
@@ -610,7 +624,7 @@ export default function CustomerManagement() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredCustomers.map(customer => (
+                                        {recentCustomers.map(customer => (
                                             <tr key={customer._id} data-customer-id={customer._id}>
                                                 <td>
                                                     <div className={styles['customer-info']}>
@@ -645,6 +659,26 @@ export default function CustomerManagement() {
                                     </tbody>
                                 </table>
                             </div>
+                            {/* Customer Pagination */}
+                            {customerMeta.totalPages > 1 && (
+                                <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px', gap: '10px' }}>
+                                    <button
+                                        onClick={() => setCustomerPage(p => Math.max(1, p - 1))}
+                                        disabled={customerPage === 1}
+                                        style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', cursor: customerPage === 1 ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Prev
+                                    </button>
+                                    <span style={{ fontSize: '0.9em' }}>Page {customerPage} of {customerMeta.totalPages}</span>
+                                    <button
+                                        onClick={() => setCustomerPage(p => Math.min(customerMeta.totalPages, p + 1))}
+                                        disabled={customerPage === customerMeta.totalPages}
+                                        style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', cursor: customerPage === customerMeta.totalPages ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Completed Orders Section (New Feature) */}
@@ -736,6 +770,26 @@ export default function CustomerManagement() {
                                                 )}
                                             </tbody>
                                         </table>
+                                    )}
+                                    {/* Order Pagination */}
+                                    {orderMeta.totalPages > 1 && (
+                                        <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px', gap: '10px' }}>
+                                            <button
+                                                onClick={() => setOrderPage(p => Math.max(1, p - 1))}
+                                                disabled={orderPage === 1}
+                                                style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', cursor: orderPage === 1 ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Prev
+                                            </button>
+                                            <span style={{ fontSize: '0.9em' }}>Page {orderPage} of {orderMeta.totalPages}</span>
+                                            <button
+                                                onClick={() => setOrderPage(p => Math.min(orderMeta.totalPages, p + 1))}
+                                                disabled={orderPage === orderMeta.totalPages}
+                                                style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', cursor: orderPage === orderMeta.totalPages ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             )}

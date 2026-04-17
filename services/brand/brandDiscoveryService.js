@@ -47,23 +47,20 @@ class brandDiscoveryService {
     // Get influencer profile data for brand view
     static async getInfluencerProfileData(influencerId) {
         try {
+            // High-Performance Embedding: Fetch the profile with everything embedded!
             const influencer = await InfluencerInfo.findById(influencerId).lean();
             if (!influencer) return null;
 
-            const [socials, analytics, campaigns] = await Promise.all([
-                InfluencerSocials.findOne({ influencerId }).lean(),
-                InfluencerAnalytics.findOne({ influencerId }).lean(),
-                CampaignInfluencers.find({
-                    influencer_id: influencerId,
-                    status: { $in: ['active', 'completed'] }
-                }).populate({
-                    path: 'campaign_id',
-                    select: 'title start_date end_date required_channels brand_id status',
-                    populate: { path: 'brand_id', select: 'brandName' }
-                }).lean()
-            ]);
+            const campaigns = await CampaignInfluencers.find({
+                influencer_id: influencerId,
+                status: { $in: ['active', 'completed'] }
+            }).populate({
+                path: 'campaign_id',
+                select: 'title start_date end_date required_channels brand_id status',
+                populate: { path: 'brand_id', select: 'brandName' }
+            }).lean();
 
-            const formattedSocials = socials?.platforms?.map(platform => ({
+            const formattedSocials = influencer.socialProfiles?.map(platform => ({
                 platform: platform.platform,
                 name: platform.platform.charAt(0).toUpperCase() + platform.platform.slice(1),
                 icon: platform.platform.toLowerCase(),
@@ -74,7 +71,7 @@ class brandDiscoveryService {
                 category: platform.category || 'general'
             })) || [];
 
-            const totalFollowers = formattedSocials.reduce((sum, social) => sum + (social.followers || 0), 0);
+            const totalFollowers = influencer.analytics_snapshot?.totalFollowers || 0;
 
             const bestPosts = influencer.bestPosts?.map(post => ({
                 platform: post.platform,
@@ -110,6 +107,8 @@ class brandDiscoveryService {
                     conversions: c.conversions || 0
                 }));
 
+            const analytics = influencer.analytics_snapshot || {};
+
             return {
                 _id: influencer._id,
                 displayName: influencer.displayName || influencer.fullName,
@@ -126,18 +125,18 @@ class brandDiscoveryService {
                 niche: influencer.niche || 'Not specified',
                 socials: formattedSocials,
                 totalFollowers,
-                avgEngagementRate: analytics?.avgEngagementRate || 0,
+                avgEngagementRate: analytics.avgEngagementRate || 0,
                 completedCollabs: influencer.completedCollabs || 0,
                 bestPosts,
                 currentPartnerships,
                 pastCollaborations,
-                rating: analytics?.rating || 0,
-                audienceDemographics: analytics?.audienceDemographics || {
+                rating: analytics.avgRating || 0,
+                audienceDemographics: analytics.audienceDemographics || {
                     gender: 'Mixed',
                     ageRange: 'N/A',
                     topLocations: []
                 },
-                performanceMetrics: analytics?.performanceMetrics || {
+                performanceMetrics: analytics.performanceMetrics || {
                     reach: 0,
                     impressions: 0,
                     engagement: 0,
@@ -168,10 +167,15 @@ class brandDiscoveryService {
 
         if (existingInvite) throw new Error('Invite already exists for this influencer');
 
+        // Fetch influencer info for denormalization
+        const influencer = await InfluencerInfo.findById(iId).select('fullName profilePicUrl').lean();
+
         // Create invite
         const invite = new CampaignInfluencers({
             campaign_id: cId,
             influencer_id: iId,
+            influencerName: influencer?.fullName || 'Unknown Influencer',
+            influencerAvatar: influencer?.profilePicUrl || '/images/default-avatar.jpg',
             status: 'influencer-invite'
         });
         await invite.save();

@@ -170,7 +170,35 @@ const influencerInfoSchema = new mongoose.Schema({
         likes: Number,
         comments: Number,
         views: Number
-    }]
+    }],
+    // ── High-Performance Embedding (Phase 5) ──────────────────────────────────
+    socialProfiles: [{
+        platform: { type: String, enum: ['instagram', 'youtube', 'tiktok', 'facebook', 'twitter', 'linkedin'] },
+        handle: String,
+        url: String,
+        followers: { type: Number, default: 0 },
+        engagementRate: { type: Number, default: 0 },
+        avgLikes: { type: Number, default: 0 },
+        avgComments: { type: Number, default: 0 },
+        avgViews: { type: Number, default: 0 },
+        lastUpdated: { type: Date, default: Date.now }
+    }],
+    analytics_snapshot: {
+        totalFollowers: { type: Number, default: 0 },
+        avgEngagementRate: { type: Number, default: 0 },
+        monthlyEarnings: { type: Number, default: 0 },
+        avgRating: { type: Number, default: 0 },
+        performance: {
+            reach: { type: Number, default: 0 },
+            impressions: { type: Number, default: 0 },
+            conversionRate: { type: Number, default: 0 }
+        },
+        audienceDemographics: {
+            gender: { type: String, enum: ['Male', 'Female', 'Mixed', 'Other'] },
+            ageRange: String,
+            topLocations: [String]
+        }
+    }
 }, {
     timestamps: true
 });
@@ -348,12 +376,34 @@ const influencerAnalyticsSchema = new mongoose.Schema({
         earnings: Number,
         reach: Number,
         impressions: Number
-    }]
+    }],
+    // Added in Phase 3 Denormalization Migration
+    socialProfiles: [{
+        platform: String,
+        url: String,
+        handle: String,
+        followers: Number,
+        engagementRate: Number,
+        avgViews: Number,
+        avgLikes: Number,
+        avgComments: Number
+    }],
+    stats: {
+        totalFollowers: { type: Number, default: 0 },
+        avgEngagementRate: { type: Number, default: 0 },
+        monthlyEarnings: { type: Number, default: 0 },
+        rating: { type: Number, default: 0 }
+    }
 }, {
     timestamps: true
 });
 
 // Create indexes for better query performance
+influencerInfoSchema.index({ fullName: 'text', username: 'text', bio: 'text', categories: 'text' }, { default_language: 'english', weights: { fullName: 10, username: 5, bio: 2 } });
+influencerInfoSchema.index({ fullName: 1 }, { collation: { locale: 'en', strength: 2 } }); // For case-insensitive prefix matching
+influencerInfoSchema.index({ verified: 1, niche: 1 });  // matchmaking + discovery filter
+influencerInfoSchema.index({ categories: 1 });          // category-based influencer search
+influencerInfoSchema.index({ referralCode: 1 }, { unique: true, sparse: true }); // referral attribution lookups
 influencerSocialsSchema.index({ influencerId: 1 });
 influencerAnalyticsSchema.index({ influencerId: 1 });
 

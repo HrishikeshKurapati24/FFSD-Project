@@ -3,11 +3,12 @@ const { InfluencerInfo } = require('../config/InfluencerMongo');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const backfillReferralCodes = async () => {
+const runMigration = async () => {
     try {
         // Connect to MongoDB
         if (mongoose.connection.readyState === 0) {
-            await mongoose.connect(process.env.MONGO_URI);
+            const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/collabsync';
+            await mongoose.connect(mongoUri);
             console.log('✅ Connected to MongoDB');
         }
 
@@ -49,12 +50,17 @@ const backfillReferralCodes = async () => {
         }
 
         console.log(`\n🎉 Successfully backfilled ${updatedCount} referral codes.`);
-        process.exit(0);
+        if (require.main === module) process.exit(0);
 
     } catch (error) {
         console.error('❌ Error backfilling referral codes:', error);
-        process.exit(1);
+        if (require.main === module) process.exit(1);
+        throw error;
     }
 };
 
-backfillReferralCodes();
+if (require.main === module) {
+    runMigration();
+}
+
+module.exports = { runMigration };

@@ -4,22 +4,12 @@ const { isAPIRequest } = require("../../utils/requestUtils");
 const CollaborationController = {
     async getAllCollaborations(req, res) {
         try {
-            let collaborations = await AdminCollaborationService.getAllCollaborations();
-
-            // Map collaborations to ensure brand and influencer names are correctly set
-            collaborations = collaborations.map(collab => ({
-                ...collab,
-                brand: collab.brand || '',
-                influencers: (collab.influencers || []).map(inf => ({
-                    ...inf,
-                    influencer: inf.influencer || ''
-                }))
-            }));
+            const data = await AdminCollaborationService.getAllCollaborations(req.query);
 
             res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({
                 success: true,
-                collaborations
+                ...data
             });
         } catch (error) {
             console.error("Error fetching collaborations:", error);

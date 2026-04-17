@@ -100,6 +100,26 @@ const campaignInfoSchema = new mongoose.Schema({
             min: [0, 'Number of videos cannot be negative'],
             default: 0
         }
+    }],
+    // Denormalized fields for high-performance reads
+    // ── High-Performance Embedding (Phase 5) ──────────────────────────────────
+    brandName: { type: String, trim: true },
+    metrics: {
+        overall_progress:  { type: Number, default: 0 },
+        performance_score: { type: Number, default: 0 },
+        revenue:           { type: Number, default: 0 },
+        roi:              { type: Number, default: 0 },
+        clicks:           { type: Number, default: 0 },
+        conversions:      { type: Number, default: 0 },
+        engagement_rate:  { type: Number, default: 0 },
+        reach:            { type: Number, default: 0 },
+        impressions:      { type: Number, default: 0 }
+    },
+    featured_products: [{
+        product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+        name:       { type: String, trim: true },
+        price:      { type: Number, default: 0 },
+        thumbnail:  { type: String, trim: true }
     }]
 }, {
     timestamps: true
@@ -267,6 +287,9 @@ const campaignInfluencersSchema = new mongoose.Schema({
         min: [0, 'Timeliness score cannot be negative'],
         max: [100, 'Timeliness score cannot exceed 100']
     },
+    // Denormalized fields for high-performance reads
+    influencerName: { type: String, trim: true },
+    influencerAvatar: { type: String, trim: true },
     deliverables: [{
         title: {
             type: String,
@@ -336,11 +359,23 @@ const campaignInfluencersSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Create indexes for better query performance
-campaignInfoSchema.index({ brand_id: 1, status: 1 });
+// ── Indexes ──────────────────────────────────────────────────────────────────
+// CampaignInfo
+campaignInfoSchema.index({ brand_id: 1, status: 1 });           // brand's campaign list
+campaignInfoSchema.index({ status: 1, createdAt: -1 });         // FIXED B2: explore collabs (was COLLSCAN)
+
+// CampaignMetrics
 campaignMetricsSchema.index({ campaign_id: 1, brand_id: 1 });
+
+// CampaignPayments
 campaignPaymentsSchema.index({ campaign_id: 1, brand_id: 1, influencer_id: 1 });
-campaignInfluencersSchema.index({ campaign_id: 1, influencer_id: 1 });
+campaignPaymentsSchema.index({ influencer_id: 1, payment_date: -1 }); // FIXED B4: monthly earnings agg
+campaignPaymentsSchema.index({ brand_id: 1, payment_date: -1 });      // brand payment history
+
+// CampaignInfluencers – the hottest collection
+campaignInfluencersSchema.index({ campaign_id: 1, influencer_id: 1 }); // keep existing
+campaignInfluencersSchema.index({ influencer_id: 1, status: 1 });      // FIXED B1/B3: dashboard queries (was COLLSCAN, 53:1 ratio)
+campaignInfluencersSchema.index({ campaign_id: 1, status: 1 });        // brand: filter influencers by status
 
 // Create models
 const CampaignInfo = mongoose.model('CampaignInfo', campaignInfoSchema);

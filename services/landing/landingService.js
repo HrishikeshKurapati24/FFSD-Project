@@ -38,12 +38,12 @@ class LandingService {
             brandName: brand.brandName,
             industry: brand.industry,
             logoUrl: brand.logoUrl,
-            completedCampaigns: brand.completedCampaigns || 0,
-            influencerPartnerships: brand.influencerPartnerships || 0,
+            completedCampaigns: brand.performance_metrics?.totalCampaigns || 0,
+            influencerPartnerships: brand.performance_metrics?.activeCampaigns || 0,
             categories: brand.categories || ['General'],
-            avgCampaignRating: brand.avgCampaignRating || 0,
-            totalFollowers: 0, // Simplified for now
-            avgEngagementRate: 0 // Simplified for now
+            avgCampaignRating: brand.performance_metrics?.avgROI || 0,
+            totalFollowers: brand.performance_metrics?.totalReach || 0,
+            avgEngagementRate: brand.performance_metrics?.totalImpressions || 0
         }));
     }
 
@@ -82,12 +82,12 @@ class LandingService {
             fullName: influencer.fullName,
             niche: influencer.niche,
             profilePicUrl: influencer.profilePicUrl,
-            avgRating: influencer.avgRating || 0,
+            avgRating: influencer.analytics_snapshot?.avgRating || 0,
             completedCollabs: influencer.completedCollabs || 0,
             categories: influencer.categories || ['General'],
-            socialPlatforms: ['instagram', 'youtube'], // Simplified for now
-            totalFollowers: Math.floor(Math.random() * 1000000) + 10000, // Random for demo
-            avgEngagementRate: Math.floor(Math.random() * 10) + 3 // Random for demo
+            socialPlatforms: influencer.socialProfiles?.map(s => s.platform) || [],
+            totalFollowers: influencer.analytics_snapshot?.totalFollowers || 0,
+            avgEngagementRate: influencer.analytics_snapshot?.avgEngagementRate || 0
         }));
     }
 
@@ -126,7 +126,16 @@ class LandingService {
             username: username,
             displayName: brandName,
             influenceRegions: 'Global',
-            primaryMarket: 'Global'
+            primaryMarket: 'Global',
+            // High-Performance Embedding
+            socialProfiles: [],
+            performance_metrics: {
+                totalCampaigns: 0,
+                activeCampaigns: 0,
+                totalSpend: 0,
+                totalRevenue: 0,
+                avgROI: 0
+            }
         });
 
         const brandSocials = new BrandSocials({
@@ -191,7 +200,20 @@ class LandingService {
             verified: false,
             status: 'active',
             influenceRegions: 'Global',
-            primaryMarket: 'Global'
+            primaryMarket: 'Global',
+            // High-Performance Embedding
+            socialProfiles: [{
+                platform: platform,
+                handle: socialHandle,
+                followers: audience || 0,
+                lastUpdated: new Date()
+            }],
+            analytics_snapshot: {
+                totalFollowers: audience || 0,
+                avgEngagementRate: 0,
+                monthlyEarnings: 0,
+                avgRating: 0
+            }
         });
 
         const influencerSocials = new InfluencerSocials({

@@ -21,11 +21,17 @@ export default function FeedbackAndModeration() {
         date: ''
     });
 
+    const [page, setPage] = useState(1);
+    const [meta, setMeta] = useState({ total: 0, pages: 1 });
+
     useEffect(() => {
         fetchUserData();
-        fetchFeedbacks();
         fetchNotifications();
     }, []);
+
+    useEffect(() => {
+        fetchFeedbacks();
+    }, [filters, page]);
 
     const fetchNotifications = async () => {
         try {
@@ -125,7 +131,16 @@ export default function FeedbackAndModeration() {
 
     const fetchFeedbacks = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/feedback_and_moderation`, {
+            const queryParams = new URLSearchParams({
+                page,
+                limit: 10,
+                search: filters.search,
+                status: filters.status,
+                type: filters.type,
+                userRole: filters.userRole
+            }).toString();
+
+            const response = await fetch(`${API_BASE_URL}/admin/feedback_and_moderation?${queryParams}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -142,8 +157,8 @@ export default function FeedbackAndModeration() {
                 const data = await response.json();
                 if (data.success && data.feedbacks) {
                     setFeedbacks(data.feedbacks);
-                } else if (Array.isArray(data)) {
-                    setFeedbacks(data);
+                    setFilteredFeedbacks(data.feedbacks); // Using state for consistency with existing render logic
+                    if (data.meta) setMeta(data.meta);
                 }
             }
         } catch (error) {
@@ -151,57 +166,12 @@ export default function FeedbackAndModeration() {
         }
     };
 
-    const filterFeedbacks = () => {
-        let filtered = [...feedbacks];
-
-        // Search text
-        if (filters.search) {
-            const searchLower = filters.search.toLowerCase();
-            filtered = filtered.filter(feedback => {
-                const subjectMatch = (feedback.subject || feedback.title || '').toLowerCase().includes(searchLower);
-                const userMatch = (feedback.userName || feedback.user || '').toLowerCase().includes(searchLower);
-                const messageMatch = (feedback.message || feedback.content || '').toLowerCase().includes(searchLower);
-                return subjectMatch || userMatch || messageMatch;
-            });
-        }
-
-        // Status filter
-        if (filters.status !== 'all') {
-            filtered = filtered.filter(feedback =>
-                (feedback.status || 'pending').toLowerCase() === filters.status.toLowerCase()
-            );
-        }
-
-        // Category filter (type: complaint, suggestion, etc.)
-        if (filters.type !== 'all') {
-            filtered = filtered.filter(feedback =>
-                (feedback.type || 'general').toLowerCase() === filters.type.toLowerCase()
-            );
-        }
-
-        // User role filter (influencer, brand, customer)
-        if (filters.userRole !== 'all') {
-            filtered = filtered.filter(feedback =>
-                (feedback.userType || '').toLowerCase() === filters.userRole.toLowerCase()
-            );
-        }
-
-        // Date filter
-        if (filters.date) {
-            filtered = filtered.filter(feedback => {
-                const feedbackDate = feedback.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : feedback.date || '';
-                return feedbackDate.includes(filters.date);
-            });
-        }
-
-        setFilteredFeedbacks(filtered);
-    };
-
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({
             ...prev,
             [name]: value
         }));
+        setPage(1); // Reset to first page on filter change
     };
 
     const resetFilters = () => {
@@ -481,6 +451,29 @@ export default function FeedbackAndModeration() {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {meta.pages > 1 && (
+                        <div className={styles.pagination} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '30px', gap: '20px' }}>
+                            <button
+                                className={styles.sortBtn}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                            >
+                                <i className="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <span style={{ fontWeight: '600' }}>Page {page} of {meta.pages}</span>
+                            <button
+                                className={styles.sortBtn}
+                                onClick={() => setPage(p => Math.min(meta.pages, p + 1))}
+                                disabled={page === meta.pages}
+                                style={{ opacity: page === meta.pages ? 0.5 : 1, cursor: page === meta.pages ? 'not-allowed' : 'pointer' }}
+                            >
+                                Next <i className="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 {/* Feedback Details Modal */}

@@ -143,6 +143,12 @@ const paymentHistorySchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes — UserSubscription.userId+userType is the hottest lookup in the app
+// (called on every API request via SubscriptionService.checkSubscriptionExpiry)
+userSubscriptionSchema.index({ userId: 1, userType: 1 });        // primary subscription lookup
+userSubscriptionSchema.index({ status: 1, endDate: 1 });         // expiry batch jobs
+paymentHistorySchema.index({ userId: 1, userType: 1, createdAt: -1 }); // billing history page
+
 // Create models
 const SubscriptionPlan = mongoose.model('SubscriptionPlan', subscriptionPlanSchema);
 const UserSubscription = mongoose.model('UserSubscription', userSubscriptionSchema);

@@ -110,26 +110,49 @@ class adminDashboardService {
             amount: tx.amount
         }));
 
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1);
+
+        // Real Monthly Revenue Data
+        const revenueGrowthAgg = await CampaignPayments.aggregate([
+            { $match: { status: "completed", payment_date: { $gte: sixMonthsAgo } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$payment_date" } },
+                    total: { $sum: "$amount" }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        // Real User Growth Data (Brands + Influencers combined)
+        const brandGrowthAgg = await BrandInfo.aggregate([
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } }, count: { $sum: 1 } } }
+        ]);
+        const influencerGrowthAgg = await InfluencerInfo.aggregate([
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } }, count: { $sum: 1 } } }
+        ]);
+
+        const monthsMapping = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const monthlyRevenueData = [];
-        const monthlyLabels = [];
-        for (let i = 5; i >= 0; i--) {
-            const date = new Date();
-            date.setMonth(date.getMonth() - i);
-            monthlyLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-
-            const baseRevenue = totalRevenue / 6;
-            const variation = (Math.random() - 0.5) * 0.4;
-            monthlyRevenueData.push(Math.round(baseRevenue * (1 + variation)));
-        }
-
         const userGrowthData = [];
-        const userGrowthLabels = [];
+        const monthlyLabels = [];
+
         for (let i = 5; i >= 0; i--) {
-            const date = new Date();
-            date.setMonth(date.getMonth() - i);
-            userGrowthLabels.push(date.toLocaleDateString('en-US', { month: 'short' }));
-            const growthFactor = (6 - i) / 6;
-            userGrowthData.push(Math.round((brandCount + influencerCount) * growthFactor * 0.8));
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+            monthlyLabels.push(monthsMapping[d.getMonth()]);
+
+            const revFound = revenueGrowthAgg.find(a => a._id === key);
+            monthlyRevenueData.push(revFound ? revFound.total : 0);
+
+            const bFound = brandGrowthAgg.find(a => a._id === key);
+            const iFound = influencerGrowthAgg.find(a => a._id === key);
+            userGrowthData.push((bFound ? bFound.count : 0) + (iFound ? iFound.count : 0));
         }
 
         const analytics = [
@@ -151,7 +174,7 @@ class adminDashboardService {
                 title: "User Growth Over Time",
                 chartId: "userGrowthChart",
                 type: "bar",
-                labels: userGrowthLabels,
+                labels: monthlyLabels,
                 values: userGrowthData
             },
             {
@@ -165,15 +188,18 @@ class adminDashboardService {
 
         let topBrands = [];
         try {
-            topBrands = await CampaignPayments.aggregate([
-                { $match: { status: "completed" } },
-                { $group: { _id: "$brand_id", totalRevenue: { $sum: "$amount" }, dealCount: { $sum: 1 } } },
-                { $sort: { totalRevenue: -1 } },
-                { $limit: 5 },
-                { $lookup: { from: "brandinfos", localField: "_id", foreignField: "_id", as: "brand" } },
-                { $unwind: "$brand" },
-                { $project: { name: "$brand.brandName", totalRevenue: 1, dealCount: 1 } }
-            ]);
+            // High-Performance Embedding: Use the performance_metrics snapshot
+            topBrands = await BrandInfo.find({ status: 'active' })
+                .sort({ 'performance_metrics.totalRevenue': -1 })
+                .limit(5)
+                .select('brandName performance_metrics')
+                .lean();
+
+            topBrands = topBrands.map(brand => ({
+                name: brand.brandName,
+                totalRevenue: brand.performance_metrics?.totalRevenue || 0,
+                dealCount: brand.performance_metrics?.totalCampaigns || 0
+            }));
         } catch (error) {
             console.log("Error fetching top brands:", error);
             topBrands = [];
@@ -181,31 +207,17 @@ class adminDashboardService {
 
         let topInfluencers = [];
         try {
-            const topAnalytics = await InfluencerAnalytics.find({})
-                .sort({ totalFollowers: -1 })
+            // High-Performance Embedding: Use the analytics_snapshot directly
+            const topProfiles = await InfluencerInfo.find({ status: 'active' })
+                .sort({ 'analytics_snapshot.totalFollowers': -1 })
                 .limit(5)
                 .lean();
 
-            if (topAnalytics.length > 0) {
-                topInfluencers = await Promise.all(topAnalytics.map(async (ana) => {
-                    const info = await InfluencerInfo.findById(ana.influencerId).lean();
-                    return {
-                        displayName: info?.displayName || info?.fullName || 'Unknown',
-                        audienceSize: ana.totalFollowers || 0,
-                        categories: info?.categories || []
-                    };
-                }));
-            } else {
-                const fallbackInfluencers = await InfluencerInfo.find({})
-                    .limit(5)
-                    .lean();
-
-                topInfluencers = fallbackInfluencers.map(inf => ({
-                    displayName: inf.displayName || inf.fullName || 'Unknown',
-                    audienceSize: 0,
-                    categories: inf.categories || []
-                }));
-            }
+            topInfluencers = topProfiles.map(inf => ({
+                displayName: inf.displayName || inf.fullName || 'Unknown',
+                audienceSize: inf.analytics_snapshot?.totalFollowers || 0,
+                categories: inf.categories || []
+            }));
         } catch (error) {
             console.log("Error fetching top influencers:", error);
             topInfluencers = [];

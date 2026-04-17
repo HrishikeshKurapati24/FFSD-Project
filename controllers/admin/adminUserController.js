@@ -4,7 +4,7 @@ const { isAPIRequest } = require("../../utils/requestUtils");
 const UserManagementController = {
     async getUserManagementPage(req, res) {
         try {
-            const data = await AdminUserService.getUserManagementData();
+            const data = await AdminUserService.getUserManagementData(req.query);
 
             res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({

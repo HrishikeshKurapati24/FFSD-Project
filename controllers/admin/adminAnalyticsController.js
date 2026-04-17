@@ -79,7 +79,7 @@ const AnalyticsController = {
     getMatchmakingRecommendations: async (req, res) => {
         try {
             const { brandId } = req.params;
-            const recommendations = await AdminAnalyticsService.getMatchmakingRecommendations(brandId);
+            const recommendations = await AdminAnalyticsService.getMatchmakingRecommendations(brandId, req.query);
             res.status(200).json({ success: true, data: recommendations });
         } catch (error) {
             console.error('Error in getMatchmakingRecommendations:', error);
