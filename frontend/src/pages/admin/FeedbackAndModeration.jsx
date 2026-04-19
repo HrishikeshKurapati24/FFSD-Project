@@ -99,9 +99,7 @@ export default function FeedbackAndModeration() {
         }
     };
 
-    useEffect(() => {
-        filterFeedbacks();
-    }, [filters, feedbacks]);
+
 
     const fetchUserData = async () => {
         try {

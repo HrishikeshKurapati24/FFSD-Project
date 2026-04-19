@@ -13,7 +13,7 @@ const TopContentSection = ({ collaborations = [] }) => (
             </div>
 
             <h3 className="post-title">
-              {post.title || "Untitled Post"}
+              {collab.title || "Untitled Post"}
             </h3>
 
             <div className="content-stats">

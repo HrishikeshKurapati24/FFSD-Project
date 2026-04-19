@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const { BrandInfo, BrandSocials, BrandAnalytics } = require('../../models/BrandMongo');
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('../../models/InfluencerMongo');
-const AdminRealtimeEmitter = require('../admin/AdminRealtimeEmitter');
+const AdminRealtimeEmitter = require('../admin/adminRealtimeEmitter');
 
 class LandingService {
     /**

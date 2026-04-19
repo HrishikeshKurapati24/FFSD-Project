@@ -11,7 +11,7 @@ const {
 const { getRazorpayConfig } = require('../payment/razorpayGatewayService');
 const brandProfileService = require('./brandProfileService');
 const mongoose = require('mongoose');
-const AdminRealtimeEmitter = require('../admin/AdminRealtimeEmitter');
+const AdminRealtimeEmitter = require('../admin/adminRealtimeEmitter');
 
 class brandCampaignService {
     // Get recent completed campaigns for a brand (limited)

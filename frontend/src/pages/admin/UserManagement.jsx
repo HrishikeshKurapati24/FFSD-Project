@@ -78,10 +78,7 @@ export default function UserManagement() {
                         read: readNotifications.includes(n.id || n._id) || n.read
                     }));
 
-                    setDashboardData(prev => ({
-                        ...prev,
-                        notifications: updatedNotifications
-                    }));
+                    setNotifications(updatedNotifications);
                 }
             }
         } catch (error) {
@@ -454,17 +451,6 @@ export default function UserManagement() {
         }
     };
 
-    const toggleDarkMode = () => {
-        const newDarkMode = !darkMode;
-        setDarkMode(newDarkMode);
-        if (newDarkMode) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('darkMode', 'enabled');
-        } else {
-            document.body.classList.remove('dark-mode');
-            localStorage.setItem('darkMode', 'disabled');
-        }
-    };
 
     const handleLogout = () => {
         window.location.href = '/admin/logout';

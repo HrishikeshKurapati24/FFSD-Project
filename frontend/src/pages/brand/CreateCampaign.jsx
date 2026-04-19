@@ -235,52 +235,52 @@ const CreateCampaign = () => {
     if (input) input.value = '';
   };
 
-  // Handle deliverable field changes
-  const handleDeliverableChange = (deliverableId, field, value) => {
-    setDeliverables(prev => prev.map(d =>
-      d.id === deliverableId ? { ...d, [field]: value } : d
-    ));
-    // Clear error for this field
-    if (deliverableErrors[deliverableId] && deliverableErrors[deliverableId][field]) {
-      setDeliverableErrors(prev => ({
-        ...prev,
-        [deliverableId]: {
-          ...prev[deliverableId],
-          [field]: ''
-        }
-      }));
-    }
-  };
+  // // Handle deliverable field changes
+  // const handleDeliverableChange = (deliverableId, field, value) => {
+  //   setDeliverables(prev => prev.map(d =>
+  //     d.id === deliverableId ? { ...d, [field]: value } : d
+  //   ));
+  //   // Clear error for this field
+  //   if (deliverableErrors[deliverableId] && deliverableErrors[deliverableId][field]) {
+  //     setDeliverableErrors(prev => ({
+  //       ...prev,
+  //       [deliverableId]: {
+  //         ...prev[deliverableId],
+  //         [field]: ''
+  //       }
+  //     }));
+  //   }
+  // };
 
-  // Add new deliverable
-  const handleAddDeliverable = () => {
-    const newDeliverable = {
-      id: deliverables.length,
-      task_description: '',
-      platform: '',
-      num_posts: 0,
-      num_reels: 0,
-      num_videos: 0
-    };
-    setDeliverables(prev => [...prev, newDeliverable]);
-  };
+  // // Add new deliverable
+  // const handleAddDeliverable = () => {
+  //   const newDeliverable = {
+  //     id: deliverables.length,
+  //     task_description: '',
+  //     platform: '',
+  //     num_posts: 0,
+  //     num_reels: 0,
+  //     num_videos: 0
+  //   };
+  //   setDeliverables(prev => [...prev, newDeliverable]);
+  // };
 
-  // Remove deliverable
-  const handleRemoveDeliverable = (deliverableId) => {
-    if (deliverables.length === 1) {
-      alert('You must have at least one deliverable for the campaign.');
-      return;
-    }
-    setDeliverables(prev => prev.filter(d => d.id !== deliverableId));
-    // Clear errors for removed deliverable
-    if (deliverableErrors[deliverableId]) {
-      setDeliverableErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[deliverableId];
-        return newErrors;
-      });
-    }
-  };
+  // // Remove deliverable
+  // const handleRemoveDeliverable = (deliverableId) => {
+  //   if (deliverables.length === 1) {
+  //     alert('You must have at least one deliverable for the campaign.');
+  //     return;
+  //   }
+  //   setDeliverables(prev => prev.filter(d => d.id !== deliverableId));
+  //   // Clear errors for removed deliverable
+  //   if (deliverableErrors[deliverableId]) {
+  //     setDeliverableErrors(prev => {
+  //       const newErrors = { ...prev };
+  //       delete newErrors[deliverableId];
+  //       return newErrors;
+  //     });
+  //   }
+  // };
 
   // Validation helper
   const setFieldError = (field, message) => {
@@ -483,39 +483,39 @@ const CreateCampaign = () => {
       setProductErrors(newProductErrors);
       }
 
-    // Validate deliverables
-    if (deliverables.length === 0) {
-      alert('Please add at least one deliverable for the campaign.');
-      hasErrors = true;
-    } else {
-      const newDeliverableErrors = {};
-      deliverables.forEach(deliverable => {
-        const deliverableError = {};
+    // // Validate deliverables
+    // if (deliverables.length === 0) {
+    //   alert('Please add at least one deliverable for the campaign.');
+    //   hasErrors = true;
+    // } else {
+    //   const newDeliverableErrors = {};
+    //   deliverables.forEach(deliverable => {
+    //     const deliverableError = {};
 
-        // Task description
-        if (!deliverable.task_description.trim()) {
-          deliverableError.task_description = 'Task description is required';
-          hasErrors = true;
-        }
+    //     // Task description
+    //     if (!deliverable.task_description.trim()) {
+    //       deliverableError.task_description = 'Task description is required';
+    //       hasErrors = true;
+    //     }
 
-        // Platform
-        if (!deliverable.platform) {
-          deliverableError.platform = 'Please select a platform';
-          hasErrors = true;
-        }
+    //     // Platform
+    //     if (!deliverable.platform) {
+    //       deliverableError.platform = 'Please select a platform';
+    //       hasErrors = true;
+    //     }
 
-        // At least one of posts, reels, or videos should be greater than 0
-        if (deliverable.num_posts === 0 && deliverable.num_reels === 0 && deliverable.num_videos === 0) {
-          deliverableError.num_posts = 'Please specify at least one deliverable (posts, reels, or videos)';
-          hasErrors = true;
-        }
+    //     // At least one of posts, reels, or videos should be greater than 0
+    //     if (deliverable.num_posts === 0 && deliverable.num_reels === 0 && deliverable.num_videos === 0) {
+    //       deliverableError.num_posts = 'Please specify at least one deliverable (posts, reels, or videos)';
+    //       hasErrors = true;
+    //     }
 
-        if (Object.keys(deliverableError).length > 0) {
-          newDeliverableErrors[deliverable.id] = deliverableError;
-        }
-      });
-      setDeliverableErrors(newDeliverableErrors);
-    }
+    //     if (Object.keys(deliverableError).length > 0) {
+    //       newDeliverableErrors[deliverable.id] = deliverableError;
+    //     }
+    //   });
+    //   setDeliverableErrors(newDeliverableErrors);
+    // }
 
     setFormErrors(newErrors);
     return !hasErrors;

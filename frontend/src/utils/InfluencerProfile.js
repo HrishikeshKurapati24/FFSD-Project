@@ -35,13 +35,13 @@
             // Close modals when clicking outside
             window.addEventListener('click', function (event) {
                 if (event.target === editModal) {
-                    closeEditModal();
+                    window.closeEditModal();
                 }
                 if (event.target === deleteModal) {
-                    closeDeleteModal();
+                    window.closeDeleteModal();
                 }
                 if (event.target === editImagesModal) {
-                    closeEditImagesModal();
+                    window.closeEditImagesModal();
                 }
             });
 
@@ -338,7 +338,7 @@
             const deleteBtn = document.getElementById('deleteBtn');
 
             if (confirmDeleteInput && deleteBtn) {
-                confirmDeleteInput.addEventListener('input', function (e) {
+                confirmDeleteInput.addEventListener('input', function () {
                     deleteBtn.disabled = this.value !== 'DELETE';
                 });
             }
@@ -373,11 +373,11 @@
             };
 
             window.addCategory = function () {
-                addTag('categoriesContainer', 'categoryInput', 'categories');
+                window.addTag('categoriesContainer', 'categoryInput', 'categories');
             };
 
             window.addLanguage = function () {
-                addTag('languagesContainer', 'languageInput', 'languages');
+                window.addTag('languagesContainer', 'languageInput', 'languages');
             };
 
             window.removeTag = function (element) {

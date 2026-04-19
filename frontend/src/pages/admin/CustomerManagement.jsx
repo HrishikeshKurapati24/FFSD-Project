@@ -85,10 +85,7 @@ export default function CustomerManagement() {
                         read: readNotifications.includes(n.id || n._id) || n.read
                     }));
 
-                    setDashboardData(prev => ({
-                        ...prev,
-                        notifications: updatedNotifications
-                    }));
+                    setNotifications(updatedNotifications);
                 }
             }
         } catch (error) {
