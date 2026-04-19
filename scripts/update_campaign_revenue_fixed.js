@@ -49,6 +49,8 @@ const CampaignInfoSchema = new mongoose.Schema({
 });
 const CampaignInfo = mongoose.models.CampaignInfo || mongoose.model('CampaignInfo', CampaignInfoSchema);
 
+const AdminRealtimeEmitter = require('../services/admin/adminRealtimeEmitter');
+
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/collabsync';
 
 const runMigration = async () => {
@@ -155,6 +157,15 @@ const runMigration = async () => {
         }
 
         console.log('Update complete!');
+
+        // Emit real-time updates for admin
+        try {
+            AdminRealtimeEmitter.emitRevenueUpdate({ source: 'migration_script' });
+            AdminRealtimeEmitter.emitMetricsUpdate({ source: 'migration_script' });
+        } catch (emitterErr) {
+            console.error('Failed to emit real-time updates:', emitterErr.message);
+        }
+
         if (require.main === module) process.exit(0);
     } catch (error) {
         console.error('Error updating revenue:', error);

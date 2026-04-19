@@ -11,6 +11,7 @@ const {
 const { getRazorpayConfig } = require('../payment/razorpayGatewayService');
 const brandProfileService = require('./brandProfileService');
 const mongoose = require('mongoose');
+const AdminRealtimeEmitter = require('../admin/AdminRealtimeEmitter');
 
 class brandCampaignService {
     // Get recent completed campaigns for a brand (limited)
@@ -1384,6 +1385,13 @@ class brandCampaignService {
 
         const savedCampaign = await campaignInfo.save();
 
+        // Emit real-time update for admin
+        AdminRealtimeEmitter.emitCampaignUpdate({
+            campaignId: savedCampaign._id,
+            action: 'created',
+            status: 'request'
+        });
+
         if (products && Array.isArray(products)) {
             const { Product } = require('../../models/ProductMongo');
             const { uploadBufferToCloudinary } = require('../../utils/cloudinary');
@@ -1462,6 +1470,13 @@ class brandCampaignService {
         campaign.status = 'active';
         await campaign.save();
 
+        // Emit real-time update for admin
+        AdminRealtimeEmitter.emitCampaignUpdate({
+            campaignId: campaign._id,
+            action: 'activated',
+            status: 'active'
+        });
+
         return { success: true };
     }
 
@@ -1539,6 +1554,13 @@ class brandCampaignService {
         campaign.status = 'completed';
         campaign.end_date = new Date();
         await campaign.save();
+
+        // Emit real-time update for admin
+        AdminRealtimeEmitter.emitCampaignUpdate({
+            campaignId: campaign._id,
+            action: 'completed',
+            status: 'completed'
+        });
 
         const { BrandInfo } = require('../../models/BrandMongo');
         const { InfluencerInfo } = require('../../models/InfluencerMongo');

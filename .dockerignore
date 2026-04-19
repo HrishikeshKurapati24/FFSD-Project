@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+.vscode
+.cursor
+.antigravity
+tests
+*.md
+docs
+frontend/node_modules
+frontend/dist

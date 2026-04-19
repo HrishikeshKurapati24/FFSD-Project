@@ -1,5 +1,6 @@
 const { Notification } = require('../models/NotificationMongo');
 const mongoose = require('mongoose');
+const AdminRealtimeEmitter = require('../services/admin/adminRealtimeEmitter');
 
 // Fetch notifications for the authenticated user (brand or influencer)
 exports.getNotifications = async (req, res) => {
@@ -83,6 +84,18 @@ exports.createNotification = async ({ recipientId, recipientType, senderId, send
         });
 
         await n.save();
+
+        // Emit to admin if it's an admin-relevant notification
+        // Note: Admin notifications are often generated on-the-fly from counts,
+        // but we emit a generic 'new' event to tell the admin dashboard to refresh.
+        if (recipientType === 'admin' || type.startsWith('admin_') || ['payment_verification', 'collaboration_request'].includes(type)) {
+            AdminRealtimeEmitter.emitNotification({
+                type,
+                title,
+                message: body
+            });
+        }
+
         return n;
     } catch (error) {
         console.error('Failed to create notification:', error);

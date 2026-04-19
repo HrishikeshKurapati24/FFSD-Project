@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const { BrandInfo, BrandSocials, BrandAnalytics } = require('../../models/BrandMongo');
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('../../models/InfluencerMongo');
+const AdminRealtimeEmitter = require('../admin/AdminRealtimeEmitter');
 
 class LandingService {
     /**
@@ -158,6 +159,13 @@ class LandingService {
             brandAnalytics.save()
         ]);
 
+        // Emit real-time notification for admin
+        AdminRealtimeEmitter.emitNotification({
+            type: 'user_registration',
+            title: 'New Brand Registered',
+            message: `${brandName} has just joined the platform.`
+        });
+
         return brand._id;
     }
 
@@ -240,6 +248,13 @@ class LandingService {
             influencerSocials.save(),
             influencerAnalytics.save()
         ]);
+
+        // Emit real-time notification for admin
+        AdminRealtimeEmitter.emitNotification({
+            type: 'user_registration',
+            title: 'New Influencer Registered',
+            message: `${fullName} has just joined the platform.`
+        });
 
         return influencer._id;
     }

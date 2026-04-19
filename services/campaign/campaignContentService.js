@@ -6,6 +6,7 @@ const { InfluencerInfo } = require('../../models/InfluencerMongo');
 const { uploadToCloudinary } = require('../../utils/cloudinary');
 const notificationController = require('../../monolithic_files/notificationController');
 const CollaborationModel = require('../CollaborationModel');
+const AdminRealtimeEmitter = require('../admin/adminRealtimeEmitter');
 
 class CampaignContentService {
 
@@ -138,6 +139,14 @@ class CampaignContentService {
         content.brand_feedback = feedback;
         await content.save();
 
+        // Emit real-time update for admin (Content Review)
+        AdminRealtimeEmitter.emitCampaignUpdate({
+            campaignId: content.campaign_id._id,
+            action: 'content_reviewed',
+            contentId: content._id,
+            reviewStatus: action
+        });
+
         if (content.deliverable_id) {
             try {
                 const collab = await CampaignInfluencers.findOne({ campaign_id: content.campaign_id._id, 'deliverables._id': content.deliverable_id });
@@ -232,6 +241,14 @@ class CampaignContentService {
         content.published_at = new Date();
         if (externalPostUrl) content.external_post_url = externalPostUrl;
         await content.save();
+
+        // Emit real-time update for admin (Content Status Change)
+        AdminRealtimeEmitter.emitCampaignUpdate({
+            campaignId: content.campaign_id._id,
+            action: 'content_status_updated',
+            contentId: content._id,
+            newStatus: status
+        });
 
         if (status === 'published' && content.deliverable_id && externalPostUrl) {
             try {

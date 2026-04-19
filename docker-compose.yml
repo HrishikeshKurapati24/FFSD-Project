@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB: Persistent storage for CollabSync
+  mongodb:
+    image: mongo:latest
+    container_name: collabsync-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - collabsync-network
+
+  # 2. Redis: High-performance caching, Sockets, and BullMQ queues
+  redis:
+    image: redis:alpine
+    container_name: collabsync-cache
+    ports:
+      - "6379:6379"
+    networks:
+      - collabsync-network
+
+  # 3. Elasticsearch: Full-text search and influencer discovery engine
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: collabsync-search
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    networks:
+      - collabsync-network
+
+  # 4. Backend: The main Node.js API and Real-time Emitting logic
+  backend:
+    build: .
+    container_name: collabsync-api
+    ports:
+      - "3000:3000"
+    environment:
+      # Use internal service names instead of localhost for internal communication
+      - MONGO_URI=mongodb://mongodb:27017/collabsync
+      - REDIS_URL=redis://redis:6379
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+      - NODE_ENV=production
+      # - JWT_SECRET=your_secret_here (Optional: load from .env file)
+    depends_on:
+      - mongodb
+      - redis
+      - elasticsearch
+    networks:
+      - collabsync-network
+
+  # 5. Frontend: The React web application served by Nginx
+  frontend:
+    build: ./frontend
+    container_name: collabsync-web
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - collabsync-network
+
+# Use named volumes to persist database data between container restarts
+volumes:
+  mongo-data:
+
+# Define a private network for internal service communication
+networks:
+  collabsync-network:
+    driver: bridge

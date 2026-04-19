@@ -8,6 +8,7 @@ const ADMIN_EVENTS = {
   REVENUE_UPDATE: 'admin:revenue:update',
   ORDER_UPDATE: 'admin:order:update',
   METRICS_UPDATE: 'admin:metrics:update',
+  NOTIFICATION_NEW: 'admin:notification:new',
 };
 
 let metricsTimer = null;
@@ -56,10 +57,15 @@ function emitMetricsUpdate(payload = {}, options = {}) {
   return true;
 }
 
+function emitNotification(payload = {}) {
+  return emitToAdmin(ADMIN_EVENTS.NOTIFICATION_NEW, payload);
+}
+
 module.exports = {
   ADMIN_EVENTS,
   emitCampaignUpdate,
   emitRevenueUpdate,
   emitOrderUpdate,
   emitMetricsUpdate,
+  emitNotification,
 };

@@ -32,7 +32,9 @@ const { initAdminNamespace } = require('./sockets/adminSocket');
 const { setIO } = require('./services/realtime/socketServer');
 const { startAnalyticsSimulationScheduler } = require('./services/analytics/analyticsSimulationScheduler');
 const { startAnalyticsSimulationWorker } = require('./services/queues/analyticsSimulationQueue');
+const { scheduleSubscriptionExpiryCheck, startSubscriptionWorker } = require('./services/queues/subscriptionQueue');
 const { runStartupBenchmark } = require('./scripts/test_redis_5_scenarios');
+const AdminRealtimeEmitter = require('./services/admin/adminRealtimeEmitter');
 
 // Swagger Configuration
 const swaggerOptions = {
@@ -358,6 +360,13 @@ app.use((req, res, next) => {
 //             brandAnalytics.save()
 //         ]);
 // 
+//         // Emit real-time notification for admin
+//         AdminRealtimeEmitter.emitNotification({
+//             type: 'user_registration',
+//             title: 'New Brand Registered',
+//             message: `${brandName} has just joined the platform.`
+//         });
+// 
 //         res.status(201).json({
 //             message: 'Brand account created successfully',
 //             brandId: brand._id,
@@ -527,6 +536,12 @@ const startServer = async () => {
             } else {
                 console.log('ℹ️  Phase 2 BullMQ worker not started (REDIS_URL missing) — fallback direct mode enabled');
             }
+            
+            // Start subscription worker too
+            const subWorker = startSubscriptionWorker();
+            if (subWorker) {
+                console.log('✅ Subscription BullMQ worker started');
+            }
         }
         
         // Run Redis Performance Benchmark
@@ -539,20 +554,25 @@ const startServer = async () => {
             console.log('✅ Admin WebSocket namespace ready at /admin');
         });
 
-        // Schedule periodic subscription expiry check (every hour)
+        // Schedule periodic subscription expiry check
         const SubscriptionService = require('./services/subscription/subscriptionService');
 
-        // Run immediately on startup
+        // Run initial check immediately on startup
         console.log('🔍 Running initial subscription expiry check...');
         await SubscriptionService.checkAndExpireSubscriptions();
 
-        // Then run every hour
-        setInterval(async () => {
-            console.log('🔍 Running scheduled subscription expiry check...');
-            await SubscriptionService.checkAndExpireSubscriptions();
-        }, 60 * 60 * 1000); // 1 hour in milliseconds
+        // Use BullMQ for scheduling if possible; fallback to setInterval
+        const subQueue = await scheduleSubscriptionExpiryCheck();
+        if (subQueue) {
+            console.log('✅ Subscription expiry check scheduled via BullMQ (every hour)');
+        } else {
+            console.log('ℹ️  Scheduling subscription expiry check via fallback setInterval (every hour)');
+            setInterval(async () => {
+                console.log('🔍 Running scheduled subscription expiry check (fallback)...');
+                await SubscriptionService.checkAndExpireSubscriptions();
+            }, 60 * 60 * 1000); // 1 hour in milliseconds
+        }
 
-        console.log('✅ Subscription expiry checker scheduled (runs every hour)');
     } catch (err) {
         console.error('❌ Error starting server:', err);
         process.exit(1);
