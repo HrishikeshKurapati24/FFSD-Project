@@ -257,32 +257,36 @@ class CollaborationModel {
 
     static async getPerformanceMetrics(influencerId) {
         try {
+            const CampaignInfluencers = mongoose.model('CampaignInfluencers');
             const CampaignMetrics = mongoose.model('CampaignMetrics');
-            const result = await CampaignMetrics.aggregate([
-                {
-                    $lookup: {
-                        from: 'campaigninfos',
-                        localField: 'campaign_id',
-                        foreignField: '_id',
-                        as: 'campaign'
-                    }
-                },
-                { $unwind: '$campaign' },
+            const result = await CampaignInfluencers.aggregate([
                 {
                     $match: {
-                        'campaign.influencer_id': new mongoose.Types.ObjectId(influencerId)
+                        influencer_id: new mongoose.Types.ObjectId(influencerId),
+                        status: 'active'
                     }
                 },
+                {
+                    $lookup: {
+                        from: CampaignMetrics.collection.name,
+                        localField: 'campaign_id',
+                        foreignField: 'campaign_id',
+                        as: 'metrics'
+                    }
+                },
+                { $unwind: '$metrics' },
                 {
                     $group: {
                         _id: null,
-                        avg_engagement_rate: { $avg: '$engagement_rate' },
-                        avg_reach: { $avg: '$reach' },
-                        avg_conversion_rate: { $avg: '$conversion_rate' },
-                        avg_timeliness: { $avg: '$timeliness_score' }
+                        avg_engagement_rate: { $avg: '$metrics.engagement_rate' },
+                        avg_reach: { $avg: '$metrics.reach' },
+                        avg_conversion_rate: { $avg: '$metrics.conversion_rate' },
+                        avg_timeliness: { $avg: '$metrics.timeliness_score' }
                     }
                 }
             ]);
+
+
 
             if (!result[0]) {
                 return {
@@ -301,6 +305,7 @@ class CollaborationModel {
                 contentQuality: result[0].avg_content_quality || 0,
                 timeliness: result[0].avg_timeliness || 0
             };
+
         } catch (error) {
             console.error('Error in getPerformanceMetrics:', error);
             throw error;

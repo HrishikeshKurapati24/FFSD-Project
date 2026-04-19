@@ -14,6 +14,7 @@ const {
     markIntentBusinessApplied
 } = require('../payment/paymentIntentService');
 const { getRazorpayConfig } = require('../payment/razorpayGatewayService');
+const AdminRealtimeEmitter = require('../admin/adminRealtimeEmitter');
 
 class CustomerShoppingService {
     static async getAllCampaignsData() {
@@ -441,6 +442,39 @@ class CustomerShoppingService {
         newOrder.items = orderItems;
         newOrder.commission_amount = CustomerShoppingService.roundTo3(totalCommission);
         await newOrder.save();
+
+        const impactedCampaignIds = Array.from(campaignStatsUpdate.keys());
+        const impactedBrandIds = [
+            ...new Set(
+                productsForAttribution
+                    .map(p => p?.brand_id?.toString?.() || (p?.brand_id ? String(p.brand_id) : null))
+                    .filter(Boolean)
+            )
+        ];
+
+        AdminRealtimeEmitter.emitOrderUpdate({
+            source: 'customer_checkout',
+            orderId: newOrder._id.toString(),
+            status: newOrder.status,
+            totalAmount: newOrder.total_amount,
+            brandIds: impactedBrandIds
+        });
+        AdminRealtimeEmitter.emitRevenueUpdate({
+            source: 'customer_checkout',
+            orderId: newOrder._id.toString(),
+            amount: newOrder.total_amount,
+            campaignIds: impactedCampaignIds
+        });
+        AdminRealtimeEmitter.emitCampaignUpdate({
+            source: 'customer_checkout',
+            campaignIds: impactedCampaignIds,
+            influencerId: attributedInfluencer?._id?.toString?.() || null
+        });
+        AdminRealtimeEmitter.emitMetricsUpdate({
+            reason: 'new_paid_order',
+            orderId: newOrder._id.toString(),
+            campaignIds: impactedCampaignIds
+        });
 
         for (const [campId, stats] of campaignStatsUpdate) {
             await CampaignMetrics.findOneAndUpdate(

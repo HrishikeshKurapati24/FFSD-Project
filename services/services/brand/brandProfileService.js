@@ -271,13 +271,16 @@ class brandProfileService {
                 if (allowedFields[field]) {
                     const fieldConfig = allowedFields[field];
 
-                    // Type validation
-                    if (fieldConfig.type === 'string' && typeof value !== 'string') {
-                        throw new Error(`Invalid type for ${field}. Expected string.`);
+                    // Type validation (only if value is provided)
+                    if (value !== undefined && value !== null) {
+                        if (fieldConfig.type === 'string' && typeof value !== 'string') {
+                            throw new Error(`Invalid type for ${field}. Expected string.`);
+                        }
+                        if (fieldConfig.type === 'array' && !Array.isArray(value)) {
+                            throw new Error(`Invalid type for ${field}. Expected array.`);
+                        }
                     }
-                    if (fieldConfig.type === 'array' && !Array.isArray(value)) {
-                        throw new Error(`Invalid type for ${field}. Expected array.`);
-                    }
+
 
                     // Enum validation
                     if (fieldConfig.enum && !fieldConfig.enum.includes(value)) {
@@ -490,12 +493,37 @@ class brandProfileService {
 
         let filteredInfluencers = [];
         try {
+            const ElasticsearchService = require('../search/elasticsearchService');
+            const esResults = await ElasticsearchService.search('influencers', searchQuery, {
+                categories: selectedCategory !== 'all' ? selectedCategory : undefined
+            }, 0, 50);
+
+            // Fetch full docs or just use ES results? 
+            // The requirement says "replace MongoDB search endpoints with Elasticsearch-powered queries".
+            // To maintain compatibility with existing logic (populating previousCollaborations), 
+            // I'll use the IDs from ES to fetch from Mongo, OR just return ES data if it's enough.
+            // Since we need to populate, fetching from Mongo with $in is better.
+            
+            if (esResults.hits.length > 0) {
+                const influencerIds = esResults.hits.map(h => h._id);
+                filteredInfluencers = await InfluencerInfo.find({ _id: { $in: influencerIds } })
+                    .select('fullName displayName username profilePicUrl bio verified categories totalFollowers avgEngagementRate audienceDemographics stats socialProfiles')
+                    .lean();
+                
+                // Re-sort to match ES relevance
+                filteredInfluencers.sort((a, b) => {
+                    return influencerIds.indexOf(a._id.toString()) - influencerIds.indexOf(b._id.toString());
+                });
+            }
+        } catch (e) { 
+            console.error('Error in Elasticsearch fetch, falling back to MongoDB:', e);
+            // Fallback to original Mongo query if ES fails
             filteredInfluencers = await InfluencerInfo.find(query)
                 .select('fullName displayName username profilePicUrl bio verified categories totalFollowers avgEngagementRate audienceDemographics stats socialProfiles')
-                .collation({ locale: 'en', strength: 2 }) // Enable Case-Insensitive Index usage for fullName/username
+                .collation({ locale: 'en', strength: 2 })
                 .limit(50)
                 .lean();
-        } catch (e) { console.error('Error in explore DB fetch:', e); }
+        }
 
         // Fetch unique categories directly using MongoDB Distinct (No full collection loading!)
         let categories = [];

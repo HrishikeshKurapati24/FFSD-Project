@@ -10,7 +10,7 @@ class adminDashboardService {
      * Verifies admin credentials
      */
     static async verifyAdminUser(username, password) {
-        const user = await Admin.findOne({ username });
+        const user = await Admin.findOne({ username }).select('+password');
         if (!user) {
             throw new Error('Invalid credentials');
         }
@@ -274,7 +274,7 @@ class adminDashboardService {
             totalRevenue, revenueGrowth, avgDealSize,
             totalSoldQuantity, avgProductPrice, totalProducts,
             recentTransactions, monthlyRevenueData, monthlyLabels,
-            userGrowthData, userGrowthLabels, analytics,
+            userGrowthData, userGrowthLabels: monthlyLabels, analytics,
             topBrands, topInfluencers, stats
         };
     }

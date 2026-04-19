@@ -1,11 +1,6 @@
 const crypto = require('crypto');
 const { PaymentIntent } = require('../../models/PaymentIntentMongo');
-const {
-    createOrder,
-    verifyPaymentSignature,
-    fetchPayment,
-    getRazorpayConfig
-} = require('./razorpayGatewayService');
+const gateway = require('./razorpayGatewayService');
 
 const buildReceipt = (type) => {
     const suffix = crypto.randomBytes(6).toString('hex');
@@ -59,7 +54,7 @@ const createRazorpayOrderForIntent = async (intentId) => {
         };
     }
 
-    const order = await createOrder({
+    const order = await gateway.createOrder({
         amount: intent.amount,
         currency: intent.currency,
         receipt: intent.receipt,
@@ -98,13 +93,13 @@ const verifyClientPaymentAndCaptureIntent = async ({
         throw new Error('Invalid Razorpay order ID for payment intent');
     }
 
-    const signatureValid = verifyPaymentSignature({
+    const isSignatureValid = gateway.verifyPaymentSignature({
         orderId: razorpayOrderId,
         paymentId: razorpayPaymentId,
         signature: razorpaySignature
     });
 
-    if (!signatureValid) {
+    if (!isSignatureValid) {
         intent.status = 'failed';
         intent.failureReason = 'Signature verification failed';
         await intent.save();
@@ -113,10 +108,10 @@ const verifyClientPaymentAndCaptureIntent = async ({
 
     let paymentStatus = 'captured';
     try {
-        const payment = await fetchPayment(razorpayPaymentId);
-        paymentStatus = payment?.status || paymentStatus;
+        const payment = await gateway.fetchPayment(razorpayPaymentId);
+        paymentStatus = payment.status;
     } catch (error) {
-        // Non-blocking fetch failure; signature verification already passed.
+        console.error('Error fetching payment status:', error);
     }
 
     intent.razorpay = {
@@ -193,5 +188,5 @@ module.exports = {
     markIntentFailed,
     findIntentByOrderId,
     touchWebhookState,
-    getRazorpayConfig
+    getRazorpayConfig: gateway.getRazorpayConfig
 };

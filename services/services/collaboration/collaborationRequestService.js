@@ -73,8 +73,9 @@ class collaborationRequestService {
             const request = await CampaignInfluencers.findById(requestId);
             if (!request) throw new Error('Request not found');
 
-            request.status = 'declined';
+            request.status = 'cancelled';
             await request.save();
+
 
             return { success: true };
         } catch (error) {

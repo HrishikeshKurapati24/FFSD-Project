@@ -297,12 +297,20 @@ class collaborationMetricsService {
             const campaign = await CampaignInfo.findById(campaignId).select('brand_id');
             if (campaign) {
                 const CampaignMetrics = mongoose.model('CampaignMetrics');
-                await CampaignMetrics.findOneAndUpdate(
-                    { campaign_id: campaignId, brand_id: campaign.brand_id },
-                    { $set: { overall_progress: overallProgress } },
-                    { upsert: true, new: true }
-                );
+                await Promise.all([
+                    CampaignInfo.updateOne(
+                        { _id: campaignId },
+                        { $set: { 'metrics.overall_progress': overallProgress } }
+                    ),
+                    CampaignMetrics.findOneAndUpdate(
+                        { campaign_id: campaignId, brand_id: campaign.brand_id },
+                        { $set: { overall_progress: overallProgress } },
+                        { upsert: true, new: true }
+                    )
+                ]);
             }
+
+
         } catch (error) {
             console.error('Error in updateCampaignMetrics:', error);
         }

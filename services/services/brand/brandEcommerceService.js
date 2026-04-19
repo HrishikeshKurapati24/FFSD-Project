@@ -2,6 +2,7 @@ const { Order } = require('../../models/OrderMongo');
 const { Product } = require('../../models/ProductMongo');
 const { CampaignInfo } = require('../../models/CampaignMongo');
 const notificationController = require('../../monolithic_files/notificationController');
+const AdminRealtimeEmitter = require('../admin/adminRealtimeEmitter');
 
 class brandEcommerceService {
     static async getBrandProducts(brandId) {
@@ -102,7 +103,14 @@ class brandEcommerceService {
             throw new Error(`Cannot transition from ${order.status} to ${newStatus}`);
         }
 
+        const previousStatus = order.status || 'pending';
         order.status = newStatus;
+        
+        // Ensure status_history exists (handles legacy documents without the array)
+        if (!order.status_history) {
+            order.status_history = [];
+        }
+
         order.status_history.push({
             status: newStatus,
             timestamp: new Date(),
@@ -110,6 +118,21 @@ class brandEcommerceService {
         });
 
         await order.save();
+
+        AdminRealtimeEmitter.emitOrderUpdate({
+            source: 'brand_order_status',
+            orderId: order._id.toString(),
+            brandId: brandId?.toString?.() || brandId,
+            previousStatus,
+            newStatus,
+            totalAmount: order.total_amount || 0
+        });
+        AdminRealtimeEmitter.emitMetricsUpdate({
+            reason: 'order_status_changed',
+            orderId: order._id.toString(),
+            newStatus
+        });
+
         return order;
     }
 

@@ -138,6 +138,48 @@ class SubscriptionService {
         return await subscription.save();
     }
 
+    // Create a default free subscription for a new user
+    static async createDefaultFreeSubscription(userId, userType) {
+        try {
+            const normalizedType = this.normalizeUserType(userType);
+            const plans = await this.getPlansForUserType(normalizedType);
+            const freePlan = plans.find(p => p.name === 'Free');
+
+            if (!freePlan) {
+                console.error(`[SubscriptionService] No free plan found for ${normalizedType}`);
+                return null;
+            }
+
+            const mappedUserType = this.mapUserModel(normalizedType);
+            const startDate = new Date();
+            const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days default
+
+            const newSubscription = await UserSubscription.create({
+                userId,
+                userType: mappedUserType,
+                planId: freePlan._id,
+                billingCycle: 'monthly',
+                status: 'active',
+                startDate,
+                endDate,
+                amount: 0,
+                usage: {
+                    campaignsUsed: 0,
+                    influencersConnected: 0,
+                    brandsConnected: 0,
+                    storageUsedGB: 0,
+                    uploadsThisMonth: 0
+                }
+            });
+
+            return await UserSubscription.findById(newSubscription._id).populate('planId');
+        } catch (error) {
+            console.error(`[SubscriptionService] Error creating default free subscription:`, error);
+            return null;
+        }
+    }
+
+
     static normalizeUserType(userType) {
         if (!userType) return null;
         const normalized = String(userType).toLowerCase();

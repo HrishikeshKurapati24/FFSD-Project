@@ -1,6 +1,6 @@
 const { BrandAnalytics, BrandInfo } = require('../../models/BrandMongo');
 const { InfluencerAnalytics, InfluencerInfo } = require('../../models/InfluencerMongo');
-const { CampaignInfo, CampaignMetrics } = require('../../models/CampaignMongo');
+const { CampaignInfo, CampaignMetrics, CampaignPayments } = require('../../models/CampaignMongo');
 
 class adminAnalyticsService {
     static async getBrandAnalytics() {
