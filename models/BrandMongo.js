@@ -1,4 +1,6 @@
 const { mongoose } = require('../mongoDB');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 // Schema for brandInfo
 const brandInfoSchema = new mongoose.Schema({
@@ -20,7 +22,8 @@ const brandInfoSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Password is required'],
-        minlength: [8, 'Password must be at least 8 characters long']
+        minlength: [8, 'Password must be at least 8 characters long'],
+        select: false
     },
     username: {
         type: String,
@@ -427,6 +430,52 @@ brandInfoSchema.index({ industry: 1 });                    // explore page brand
 brandInfoSchema.index({ verified: 1, industry: 1 });       // matchmaking (analogous to InfluencerInfo)
 brandSocialsSchema.index({ brandId: 1 });
 brandAnalyticsSchema.index({ brandId: 1 });
+
+// Elasticsearch Synchronization Hooks
+brandInfoSchema.post('save', async function (doc) {
+    try {
+        const ElasticsearchService = require('../services/search/elasticsearchService');
+        await ElasticsearchService.indexDocument('brands', doc._id.toString(), {
+            brandName: doc.brandName,
+            displayName: doc.displayName,
+            username: doc.username,
+            industry: doc.industry,
+            description: doc.description,
+            bio: doc.bio,
+            logoUrl: doc.logoUrl,
+            verified: doc.verified,
+            completedCampaigns: doc.completedCampaigns || 0
+        });
+    } catch (error) {
+        console.error('[Elasticsearch Sync] Error after BrandInfo save:', error.message);
+    }
+});
+
+const syncDeleteBrand = async function (doc) {
+    if (doc) {
+        try {
+            const ElasticsearchService = require('../services/search/elasticsearchService');
+            await ElasticsearchService.deleteDocument('brands', doc._id.toString());
+        } catch (error) {
+            console.error('[Elasticsearch Sync] Error after BrandInfo delete:', error.message);
+        }
+    }
+};
+
+brandInfoSchema.post('remove', syncDeleteBrand);
+brandInfoSchema.post('findOneAndDelete', syncDeleteBrand);
+
+// Pre-save hook to hash password before saving
+brandInfoSchema.pre('save', async function (next) {
+    if (this.isModified('password') || this.isNew) {
+        try {
+            this.password = await bcrypt.hash(this.password, saltRounds);
+        } catch (err) {
+            return next(err);
+        }
+    }
+    next();
+});
 
 // Create models
 const BrandInfo = mongoose.model('BrandInfo', brandInfoSchema);

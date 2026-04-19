@@ -569,6 +569,7 @@ const brandController = require('../controllers/brand/brandProfileController');
 const influencerProfileController = require('../controllers/influencer/influencerProfileController');
 const influencerCampaignController = require('../controllers/influencer/influencerCampaignController');
 const influencerDiscoveryController = require('../controllers/influencer/influencerDiscoveryController');
+const { routeCache } = require('../middleware/routeCache');
 const influencerController = influencerProfileController; // Keep for backward compatibility
 const CampaignContentController = require('../controllers/campaign/campaignContentController');
 const multer = require('multer');
@@ -708,10 +709,10 @@ const validateProfileUpdate = [
 ];
 
 // Dashboard routes
-router.get('/home', influencerProfileController.getInfluencerDashboard);
+router.get('/home', routeCache({ namespace: 'influencer:dashboard', ttlSeconds: 300 }), influencerProfileController.getInfluencerDashboard);
 
 // New route for brand explore page for influencer
-router.get('/explore', influencerDiscoveryController.getBrandExplorePage);
+router.get('/explore', routeCache({ namespace: 'influencer:explore', ttlSeconds: 600 }), influencerDiscoveryController.getBrandExplorePage);
 
 // Route for matchmaking recommendations
 router.get('/matchmaking', influencerDiscoveryController.getMatchmakingRecommendations);
@@ -822,7 +823,7 @@ router.post('/profile/update', upload.fields([
 ]), influencerController.updateInfluencerProfile);
 
 // Route for the collab details page
-router.get('/collab', influencerCampaignController.getExploreCollabs);
+router.get('/collab', routeCache({ namespace: 'collab:explore', ttlSeconds: 600 }), influencerCampaignController.getExploreCollabs);
 
 
 router.get('/collab/:id', influencerCampaignController.getExploreCollabDetails);

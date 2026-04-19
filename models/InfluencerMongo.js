@@ -1,4 +1,6 @@
 const { mongoose } = require('../mongoDB');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 // Schema for influencer_info
 const influencerInfoSchema = new mongoose.Schema({
@@ -20,7 +22,8 @@ const influencerInfoSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Password is required'],
-        minlength: [8, 'Password must be at least 8 characters long']
+        minlength: [8, 'Password must be at least 8 characters long'],
+        select: false
     },
     username: {
         type: String,
@@ -406,6 +409,53 @@ influencerInfoSchema.index({ categories: 1 });          // category-based influe
 influencerInfoSchema.index({ referralCode: 1 }, { unique: true, sparse: true }); // referral attribution lookups
 influencerSocialsSchema.index({ influencerId: 1 });
 influencerAnalyticsSchema.index({ influencerId: 1 });
+
+// Elasticsearch Synchronization Hooks
+influencerInfoSchema.post('save', async function (doc) {
+    try {
+        const ElasticsearchService = require('../services/search/elasticsearchService');
+        await ElasticsearchService.indexDocument('influencers', doc._id.toString(), {
+            fullName: doc.fullName,
+            displayName: doc.displayName,
+            username: doc.username,
+            bio: doc.bio,
+            categories: doc.categories,
+            profilePicUrl: doc.profilePicUrl,
+            verified: doc.verified,
+            totalFollowers: doc.analytics_snapshot?.totalFollowers || 0,
+            avgEngagementRate: doc.analytics_snapshot?.avgEngagementRate || 0
+        });
+    } catch (error) {
+        console.error('[Elasticsearch Sync] Error after InfluencerInfo save:', error.message);
+    }
+});
+
+// Middleware for deletion (covers findOneAndDelete and remove)
+const syncDeleteInfluencer = async function (doc) {
+    if (doc) {
+        try {
+            const ElasticsearchService = require('../services/search/elasticsearchService');
+            await ElasticsearchService.deleteDocument('influencers', doc._id.toString());
+        } catch (error) {
+            console.error('[Elasticsearch Sync] Error after InfluencerInfo delete:', error.message);
+        }
+    }
+};
+
+influencerInfoSchema.post('remove', syncDeleteInfluencer);
+influencerInfoSchema.post('findOneAndDelete', syncDeleteInfluencer);
+
+// Pre-save hook to hash influencer password before saving
+influencerInfoSchema.pre('save', async function (next) {
+    if (this.isModified('password') || this.isNew) {
+        try {
+            this.password = await bcrypt.hash(this.password, saltRounds);
+        } catch (err) {
+            return next(err);
+        }
+    }
+    next();
+});
 
 // Create models
 const InfluencerInfo = mongoose.model('InfluencerInfo', influencerInfoSchema);
