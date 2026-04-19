@@ -4,11 +4,11 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // Import models directly - ALL of them to ensure schema registration
-const { BrandInfo } = require('../config/BrandMongo');
-const { InfluencerInfo } = require('../config/InfluencerMongo');
-const { CampaignInfo } = require('../config/CampaignMongo');
-const { Order } = require('../config/OrderMongo');
-const { Product } = require('../config/ProductMongo');
+const { BrandInfo } = require('../models/BrandMongo');
+const { InfluencerInfo } = require('../models/InfluencerMongo');
+const { CampaignInfo } = require('../models/CampaignMongo');
+const { Order } = require('../models/OrderMongo');
+const { Product } = require('../models/ProductMongo');
 
 const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/collabsync';
 
@@ -19,7 +19,7 @@ const connectDB = async () => {
         console.log('✅ MongoDB connected successfully');
     } catch (err) {
         console.error('❌ MongoDB connection error:', err);
-        process.exit(1);
+        throw err;
     }
 };
 
@@ -47,7 +47,7 @@ const runMigration = async () => {
 
         if (campaigns.length === 0) {
             console.log('⚠️  No active/completed campaigns found. Please create campaigns first.');
-            process.exit(0);
+            return;
         }
 
         console.log(`📊 Found ${campaigns.length} campaigns to generate orders for`);
@@ -59,7 +59,7 @@ const runMigration = async () => {
 
         if (influencers.length === 0) {
             console.log('⚠️  No influencers with referral codes found. Run backfill script first.');
-            process.exit(0);
+            return;
         }
 
         console.log(`👥 Found ${influencers.length} influencers with referral codes\n`);
@@ -72,7 +72,7 @@ const runMigration = async () => {
 
         if (products.length === 0) {
             console.log('⚠️  No products found. Please add products first.');
-            process.exit(0);
+            return;
         }
 
         console.log(`📦 Found ${products.length} products to include in orders\n`);

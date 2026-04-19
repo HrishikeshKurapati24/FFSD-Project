@@ -1,0 +1,304 @@
+{
+  "run_at": "2026-04-17T13:02:08.129Z",
+  "phase": "BEFORE optimization",
+  "mongo_uri": "mongodb+srv://<credentials>@cluster0.qlnu1kv.mongodb.net/Collab_Sync_DB?appName=Cluster0",
+  "sample_ids": {
+    "influencerId": "68eacaf128d20ff5089b8964",
+    "campaignId": "68eacaf128d20ff5089b8987",
+    "brandId": "68eaad29aa0b06c2e62e0756",
+    "recipientId": "68eaad29aa0b06c2e62e0756"
+  },
+  "collection_sizes": {
+    "campaigninfluencers": 53,
+    "campaigninfos": 44,
+    "influencerinfos": 11,
+    "notifications": 65,
+    "products": 25,
+    "campaignpayments": 33
+  },
+  "existing_indexes": {
+    "campaigninfluencers": [
+      {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      }
+    ],
+    "campaigninfos": [
+      {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      },
+      {
+        "v": 2,
+        "key": {
+          "brand_id": 1,
+          "status": 1
+        },
+        "name": "brand_id_1_status_1",
+        "background": true
+      }
+    ],
+    "influencerinfos": [
+      {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      }
+    ],
+    "notifications": [
+      {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      }
+    ],
+    "products": [
+      {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      }
+    ],
+    "campaignpayments": [
+      {
+        "v": 2,
+        "key": {
+          "_id": 1
+        },
+        "name": "_id_"
+      }
+    ]
+  },
+  "benchmarks": [
+    {
+      "label": "B1 | CampaignInfluencers.find({ influencer_id, status:\"active\" })",
+      "elapsed_ms": 77,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 53,
+      "totalDocsReturned": 3,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 17.67
+    },
+    {
+      "label": "B2 | CampaignInfo.find({ status:\"request\" }) – unbounded",
+      "elapsed_ms": 42,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 44,
+      "totalDocsReturned": 6,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 7.33
+    },
+    {
+      "label": "B3 | CampaignInfluencers.find({ influencer_id, status:{$in:[...]} })",
+      "elapsed_ms": 53,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 53,
+      "totalDocsReturned": 1,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 53
+    },
+    {
+      "label": "B4 | CampaignPayments monthly earnings aggregation",
+      "elapsed_ms": 45,
+      "rowsReturned": 0,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    },
+    {
+      "label": "B5 | InfluencerInfo.findById (full document, no projection)",
+      "elapsed_ms": 58,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 1,
+      "totalDocsReturned": 1,
+      "indexesUsed": [
+        "_id_"
+      ],
+      "scanType": "UNKNOWN",
+      "scanRatio": 1
+    },
+    {
+      "label": "B6 | InfluencerAnalytics.findOne({ influencerId }) – separate round-trip",
+      "elapsed_ms": 47,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 19,
+      "totalDocsReturned": 1,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 19
+    },
+    {
+      "label": "B7 | Notification.find({ recipientId, read:false })",
+      "elapsed_ms": 719,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 65,
+      "totalDocsReturned": 18,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 3.61
+    },
+    {
+      "label": "B8 | Product.find({ campaign_id:{$in:[...campaignIds]} })",
+      "elapsed_ms": 284,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 25,
+      "totalDocsReturned": 3,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 8.33
+    },
+    {
+      "label": "B9 | Full dashboard flow (3-round-trip: CampaignInfluencers → CampaignMetrics → InfluencerAnalytics)",
+      "elapsed_ms": 717,
+      "rowsReturned": 1,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    },
+    {
+      "label": "B10 | BrandInfo.find({ industry, verified: true })",
+      "elapsed_ms": 78,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 13,
+      "totalDocsReturned": 0,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": null
+    },
+    {
+      "label": "B11 | Order.find({ influencer_id }).sort({createdAt: -1})",
+      "elapsed_ms": 73,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 0,
+      "totalDocsReturned": 0,
+      "indexesUsed": [
+        "influencer_id_1_createdAt_-1"
+      ],
+      "scanType": "IXSCAN ✅",
+      "scanRatio": null
+    },
+    {
+      "label": "B12 | UserSubscription.findOne({ userId, userType })",
+      "elapsed_ms": 52,
+      "executionTimeMillis": 1,
+      "totalDocsExamined": 45,
+      "totalDocsReturned": 1,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 45
+    },
+    {
+      "label": "B13 | InfluencerInfo.find({ fullName: /influ/i }) — Partial Match Search",
+      "elapsed_ms": 59,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 11,
+      "totalDocsReturned": 0,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": null
+    },
+    {
+      "label": "B14 | Legacy Analytics - Raw Monthly Aggregation (No Snapshots)",
+      "elapsed_ms": 349,
+      "rowsReturned": 5,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    },
+    {
+      "label": "B15 | Legacy Global Search - Brute Force Regex (3 queries)",
+      "elapsed_ms": 77,
+      "rowsReturned": 1,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    },
+    {
+      "label": "B16 | Feedback.find() - Legacy Full Fetch (No Pagination)",
+      "elapsed_ms": 54,
+      "executionTimeMillis": 0,
+      "totalDocsExamined": 4,
+      "totalDocsReturned": 0,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": null
+    },
+    {
+      "label": "B17 | CampaignInfo + $lookup BrandName (Legacy Join)",
+      "elapsed_ms": 75,
+      "executionTimeMillis": 1,
+      "totalDocsExamined": 20,
+      "totalDocsReturned": 10,
+      "indexesUsed": [
+        "(none)"
+      ],
+      "scanType": "COLLSCAN ⚠️",
+      "scanRatio": 2
+    },
+    {
+      "label": "B18 | Brand Dashboard: Recent Campaigns (Legacy Parallel Fetch)",
+      "elapsed_ms": 116,
+      "rowsReturned": 1,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    },
+    {
+      "label": "B19 | Brand View: Influencer Profile (Legacy Parallel Fetch)",
+      "elapsed_ms": 310,
+      "rowsReturned": 1,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    },
+    {
+      "label": "B20 | Discovery: Fetch Active Brands (Legacy Generic Pull)",
+      "elapsed_ms": 84,
+      "rowsReturned": 10,
+      "note": "Service-flow timer (no explain – aggregation or multi-step)"
+    }
+  ],
+  "summary": {
+    "total_benchmarks": 20,
+    "collscan_count": 11,
+    "ixscan_count": 1,
+    "error_count": 0,
+    "avg_elapsed_ms": 168,
+    "collscan_queries": [
+      "B1 | CampaignInfluencers.find({ influencer_id, status:\"active\" })",
+      "B2 | CampaignInfo.find({ status:\"request\" }) – unbounded",
+      "B3 | CampaignInfluencers.find({ influencer_id, status:{$in:[...]} })",
+      "B6 | InfluencerAnalytics.findOne({ influencerId }) – separate round-trip",
+      "B7 | Notification.find({ recipientId, read:false })",
+      "B8 | Product.find({ campaign_id:{$in:[...campaignIds]} })",
+      "B10 | BrandInfo.find({ industry, verified: true })",
+      "B12 | UserSubscription.findOne({ userId, userType })",
+      "B13 | InfluencerInfo.find({ fullName: /influ/i }) — Partial Match Search",
+      "B16 | Feedback.find() - Legacy Full Fetch (No Pagination)",
+      "B17 | CampaignInfo + $lookup BrandName (Legacy Join)"
+    ]
+  }
+}

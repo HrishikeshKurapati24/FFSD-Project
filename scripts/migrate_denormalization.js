@@ -46,7 +46,9 @@ async function migrate() {
     } catch (error) {
         console.error('Migration failed:', error);
     } finally {
-        mongoose.connection.close();
+        if (require.main === module && mongoose.connection.readyState !== 0) {
+            await mongoose.connection.close();
+        }
     }
 }
 module.exports = { runMigration: migrate };

@@ -140,6 +140,8 @@ async function main() {
   const { Notification }                                         = require('../models/NotificationMongo');
   const { UserSubscription, PaymentHistory }                     = require('../models/SubscriptionMongo');
   const { Order }                                                = require('../models/OrderMongo');
+  require('../models/AnalyticsSnapshot');
+  require('../models/Feedback');
 
   // ── 0. Drop ALL existing indexes for a clean slate ─────────────────────────
   console.log('🗑️  Dropping all existing indexes to ensure a clean slate…');
@@ -193,13 +195,13 @@ async function main() {
   const AdminSnapshotService = require('../services/admin/adminSnapshotService');
   await AdminSnapshotService.seedHistoricalSnapshots();
 
-  const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../models/CampaignMongo');
-  const { InfluencerInfo, InfluencerAnalytics }                 = require('../models/InfluencerMongo');
-  const { BrandInfo }                                            = require('../models/BrandMongo');
-  const { Product }                                              = require('../models/ProductMongo');
-  const { Notification }                                         = require('../models/NotificationMongo');
-  const { UserSubscription, PaymentHistory }                     = require('../models/SubscriptionMongo');
-  const { Order }                                                = require('../models/OrderMongo');
+  // const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../models/CampaignMongo');
+  // const { InfluencerInfo, InfluencerAnalytics }                 = require('../models/InfluencerMongo');
+  // const { BrandInfo }                                            = require('../models/BrandMongo');
+  // const { Product }                                              = require('../models/ProductMongo');
+  // const { Notification }                                         = require('../models/NotificationMongo');
+  // const { UserSubscription, PaymentHistory }                     = require('../models/SubscriptionMongo');
+  // const { Order }                                                = require('../models/OrderMongo');
   const CollaborationModel                                       = require('../services/CollaborationModel');
 
   // ── 1. Force-create ALL compound indexes ────────────────────────────────────
@@ -462,7 +464,7 @@ async function main() {
   results.push(await timeQuery('B12 | UserSubscription.findOne({ userId, userType })', async () => {
     if (!influencerId) return null;
     return UserSubscription
-      .find({ userId: influencerId, userType: 'influencer' })
+      .find({ userId: influencerId, userType: 'InfluencerInfo' })
       .explain('executionStats');
   }));
 

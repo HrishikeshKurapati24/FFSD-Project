@@ -1,5 +1,5 @@
 const { mongoose } = require('../mongoDB');
-const { InfluencerInfo } = require('../config/InfluencerMongo');
+const { InfluencerInfo } = require('../models/InfluencerMongo');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
