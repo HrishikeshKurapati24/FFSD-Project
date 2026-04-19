@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import styles from '../../../styles/admin/CampaignAnalytics.module.css';
 import { API_BASE_URL } from '../../../services/api';
+import { getAdminSocket, ADMIN_SOCKET_EVENTS } from '../../../services/adminSocket';
 
 const CampaignAnalytics = () => {
   const handleGoBack = () => {
@@ -21,46 +22,74 @@ const CampaignAnalytics = () => {
   const timeRangeRef = useRef(null);
   const chartsInitializedRef = useRef(false);
 
+  const fetchCampaignAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/admin/campaign-analytics`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/admin/login';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          setMetrics(data);
+        } else {
+          setError('Unable to load analytics data. Please try again.');
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch campaign analytics' }));
+        setError(errorData.message || 'Failed to load campaign analytics');
+      }
+    } catch (err) {
+      console.error('Error fetching campaign analytics:', err);
+      setError('Failed to load campaign analytics data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch campaign analytics data
   useEffect(() => {
-    const fetchCampaignAnalytics = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/admin/campaign-analytics`, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
+    fetchCampaignAnalytics();
+  }, [fetchCampaignAnalytics]);
 
-        if (response.status === 401) {
-          window.location.href = '/admin/login';
-          return;
-        }
+  // Realtime refresh
+  useEffect(() => {
+    const socket = getAdminSocket();
+    const refresh = () => fetchCampaignAnalytics();
 
-        if (response.ok) {
-          const data = await response.json();
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            setMetrics(data);
-          } else {
-            setError('Unable to load analytics data. Please try again.');
-          }
-        } else {
-          const errorData = await response.json().catch(() => ({ message: 'Failed to fetch campaign analytics' }));
-          setError(errorData.message || 'Failed to load campaign analytics');
-        }
-      } catch (err) {
-        console.error('Error fetching campaign analytics:', err);
-        setError('Failed to load campaign analytics data');
-      } finally {
-        setLoading(false);
+    const handleConnectError = (err) => {
+      if (String(err?.message || '').toLowerCase().includes('auth')) {
+        window.location.href = '/admin/login';
       }
     };
 
-    fetchCampaignAnalytics();
-  }, []);
+    if (!socket.connected) socket.connect();
+
+    socket.on(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refresh);
+    socket.on('connect_error', handleConnectError);
+
+    return () => {
+      socket.off(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refresh);
+      socket.off('connect_error', handleConnectError);
+    };
+  }, [fetchCampaignAnalytics]);
 
   // Cleanup charts on unmount
   useEffect(() => {

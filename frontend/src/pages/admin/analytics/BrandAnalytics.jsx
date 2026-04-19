@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import styles from '../../../styles/admin/BrandAnalytics.module.css';
 import { API_BASE_URL } from '../../../services/api';
+import { getAdminSocket, ADMIN_SOCKET_EVENTS } from '../../../services/adminSocket';
 
 const BrandAnalytics = () => {
   const handleGoBack = () => {
@@ -25,41 +26,69 @@ const BrandAnalytics = () => {
   const timeRangeRef = useRef(null);
   const chartsInitializedRef = useRef(false);
 
+  const fetchBrandAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/admin/brand-analytics`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/admin/login';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setMetrics(data);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch brand analytics' }));
+        setError(errorData.message || 'Failed to load brand analytics');
+      }
+    } catch (err) {
+      console.error('Error fetching brand analytics:', err);
+      setError('Failed to load brand analytics data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch brand analytics data
   useEffect(() => {
-    const fetchBrandAnalytics = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/admin/brand-analytics`, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
+    fetchBrandAnalytics();
+  }, [fetchBrandAnalytics]);
 
-        if (response.status === 401) {
-          window.location.href = '/admin/login';
-          return;
-        }
+  // Realtime refresh
+  useEffect(() => {
+    const socket = getAdminSocket();
+    const refresh = () => fetchBrandAnalytics();
 
-        if (response.ok) {
-          const data = await response.json();
-          setMetrics(data);
-        } else {
-          const errorData = await response.json().catch(() => ({ message: 'Failed to fetch brand analytics' }));
-          setError(errorData.message || 'Failed to load brand analytics');
-        }
-      } catch (err) {
-        console.error('Error fetching brand analytics:', err);
-        setError('Failed to load brand analytics data');
-      } finally {
-        setLoading(false);
+    const handleConnectError = (err) => {
+      if (String(err?.message || '').toLowerCase().includes('auth')) {
+        window.location.href = '/admin/login';
       }
     };
 
-    fetchBrandAnalytics();
-  }, []);
+    if (!socket.connected) socket.connect();
+
+    socket.on(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refresh);
+    socket.on('connect_error', handleConnectError);
+
+    return () => {
+      socket.off(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refresh);
+      socket.off('connect_error', handleConnectError);
+    };
+  }, [fetchBrandAnalytics]);
 
   // Destroy charts on unmount
   useEffect(() => {

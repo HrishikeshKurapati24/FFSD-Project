@@ -778,6 +778,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const { AdminSettingsController, isAPIRequest } = require('../controllers/admin/adminSettingsController');
+const { verifyJWTFromCookie: verifyUserJWT } = require('../controllers/auth/authController');
 
 dotenv.config();
 
@@ -897,8 +898,18 @@ const adminAuth = async (req, res, next) => {
             }
         }
 
-        // No authentication found — always return 401 JSON (no redirect)
+        // No authentication found — check if they are logged in as a non-admin
         if (!userId) {
+            const user = verifyUserJWT(req);
+            if (user) {
+                // Logged in as non-admin, return 403 Forbidden
+                return res.status(403).json({
+                    success: false,
+                    message: 'Forbidden',
+                    error: 'Access denied: Admin only'
+                });
+            }
+
             return res.status(401).json({
                 success: false,
                 message: 'Unauthorized',

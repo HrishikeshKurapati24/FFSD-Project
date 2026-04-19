@@ -1,7 +1,7 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
+const { Admin } = require('../mongoDB');
 
 const ADMIN_NAMESPACE = '/admin';
 const ADMIN_EVENTS = {

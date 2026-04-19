@@ -62,22 +62,49 @@ const getExploreCollabs = async (req, res) => {
     const { Product } = require('../../models/ProductMongo');
     const mongoose = require('mongoose');
 
+    const searchQuery = req.query.search || '';
+
     // ── Pagination params ─────────────────────────────────────────────────────
     const page  = Math.max(1, parseInt(req.query.page)  || 1);
     const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 100);
     const skip  = (page - 1) * limit;
 
-    // PROJECTION: only fields used on the explore card — uses {status, createdAt} index
-    const [allRequests, totalCampaigns] = await Promise.all([
-      CampaignInfo.find({ status: 'request' })
-        .select('title description budget duration required_channels min_followers target_audience brand_id createdAt')
-        .populate('brand_id', 'brandName logoUrl')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      CampaignInfo.countDocuments({ status: 'request' })
-    ]);
+    let allRequests = [];
+    let totalCampaigns = 0;
+
+    try {
+        const ElasticsearchService = require('../../services/search/elasticsearchService');
+        const esResults = await ElasticsearchService.search('campaigns', searchQuery, {
+            status: 'request'
+        }, skip, limit);
+
+        totalCampaigns = esResults.total;
+        if (esResults.hits.length > 0) {
+            const campaignIds = esResults.hits.map(h => h._id);
+            allRequests = await CampaignInfo.find({ _id: { $in: campaignIds } })
+                .select('title description budget duration required_channels min_followers target_audience brand_id createdAt')
+                .populate('brand_id', 'brandName logoUrl')
+                .lean();
+            
+            // Sort by ES relevance
+            allRequests.sort((a, b) => {
+                return campaignIds.indexOf(a._id.toString()) - campaignIds.indexOf(b._id.toString());
+            });
+        }
+    } catch (error) {
+        console.error('Error in Elasticsearch campaign search, falling back to MongoDB:', error);
+        // PROJECTION: only fields used on the explore card — uses {status, createdAt} index
+        [allRequests, totalCampaigns] = await Promise.all([
+          CampaignInfo.find({ status: 'request' })
+            .select('title description budget duration required_channels min_followers target_audience brand_id createdAt')
+            .populate('brand_id', 'brandName logoUrl')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+          CampaignInfo.countDocuments({ status: 'request' })
+        ]);
+    }
 
     // Exclude campaigns this influencer already has an open invite/request for
     const existingInvites = await CampaignInfluencers.find({

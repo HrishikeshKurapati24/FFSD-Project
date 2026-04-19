@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import styles from '../../../styles/admin/InfluencerAnalytics.module.css';
 import { API_BASE_URL } from '../../../services/api';
+import { getAdminSocket, ADMIN_SOCKET_EVENTS } from '../../../services/adminSocket';
 
 const InfluencerAnalytics = () => {
   const handleGoBack = () => {
@@ -25,41 +26,69 @@ const InfluencerAnalytics = () => {
   const timeRangeRef = useRef(null);
   const chartsInitializedRef = useRef(false);
 
+  const fetchInfluencerAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/admin/influencer-analytics`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/admin/login';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setMetrics(data);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch influencer analytics' }));
+        setError(errorData.message || 'Failed to load influencer analytics');
+      }
+    } catch (err) {
+      console.error('Error fetching influencer analytics:', err);
+      setError('Failed to load influencer analytics data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch influencer analytics data
   useEffect(() => {
-    const fetchInfluencerAnalytics = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/admin/influencer-analytics`, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
+    fetchInfluencerAnalytics();
+  }, [fetchInfluencerAnalytics]);
 
-        if (response.status === 401) {
-          window.location.href = '/admin/login';
-          return;
-        }
+  // Realtime refresh
+  useEffect(() => {
+    const socket = getAdminSocket();
+    const refresh = () => fetchInfluencerAnalytics();
 
-        if (response.ok) {
-          const data = await response.json();
-          setMetrics(data);
-        } else {
-          const errorData = await response.json().catch(() => ({ message: 'Failed to fetch influencer analytics' }));
-          setError(errorData.message || 'Failed to load influencer analytics');
-        }
-      } catch (err) {
-        console.error('Error fetching influencer analytics:', err);
-        setError('Failed to load influencer analytics data');
-      } finally {
-        setLoading(false);
+    const handleConnectError = (err) => {
+      if (String(err?.message || '').toLowerCase().includes('auth')) {
+        window.location.href = '/admin/login';
       }
     };
 
-    fetchInfluencerAnalytics();
-  }, []);
+    if (!socket.connected) socket.connect();
+
+    socket.on(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refresh);
+    socket.on(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refresh);
+    socket.on('connect_error', handleConnectError);
+
+    return () => {
+      socket.off(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refresh);
+      socket.off(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refresh);
+      socket.off('connect_error', handleConnectError);
+    };
+  }, [fetchInfluencerAnalytics]);
 
   // Cleanup all charts on unmount
   useEffect(() => {

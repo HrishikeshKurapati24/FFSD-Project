@@ -8,8 +8,8 @@ const SubscriptionService = require('../services/subscription/subscriptionServic
 const checkSubscriptionLimit = (action) => {
     return async (req, res, next) => {
         try {
-            const userId = req.session.user.id;
-            const userType = req.session.user.role;
+            const userId = req.session?.user?.id;
+            const userType = req.session?.user?.role;
 
             if (!userId || !userType) {
                 return res.status(401).json({
@@ -49,8 +49,8 @@ const checkSubscriptionLimit = (action) => {
 const updateSubscriptionUsage = (usageType, amount = 1) => {
     return async (req, res, next) => {
         try {
-            const userId = req.session.user.id;
-            const userType = req.session.user.role;
+            const userId = req.session?.user?.id;
+            const userType = req.session?.user?.role;
 
             if (userId && userType) {
                 const usageUpdate = {};

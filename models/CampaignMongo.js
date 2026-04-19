@@ -113,7 +113,10 @@ const campaignInfoSchema = new mongoose.Schema({
         conversions:      { type: Number, default: 0 },
         engagement_rate:  { type: Number, default: 0 },
         reach:            { type: Number, default: 0 },
-        impressions:      { type: Number, default: 0 }
+        impressions:      { type: Number, default: 0 },
+        likes:            { type: Number, default: 0 },
+        comments:         { type: Number, default: 0 },
+        simulated_at:     { type: Date }
     },
     featured_products: [{
         product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
@@ -169,6 +172,16 @@ const campaignMetricsSchema = new mongoose.Schema({
     impressions: {
         type: Number,
         min: [0, 'Impressions cannot be negative']
+    },
+    likes: {
+        type: Number,
+        min: [0, 'Likes cannot be negative'],
+        default: 0
+    },
+    comments: {
+        type: Number,
+        min: [0, 'Comments cannot be negative'],
+        default: 0
     },
     revenue: {
         type: Number,
@@ -268,6 +281,21 @@ const campaignInfluencersSchema = new mongoose.Schema({
         type: Number,
         min: [0, 'Clicks cannot be negative']
     },
+    impressions: {
+        type: Number,
+        min: [0, 'Impressions cannot be negative'],
+        default: 0
+    },
+    likes: {
+        type: Number,
+        min: [0, 'Likes cannot be negative'],
+        default: 0
+    },
+    comments: {
+        type: Number,
+        min: [0, 'Comments cannot be negative'],
+        default: 0
+    },
     conversions: {
         type: Number,
         min: [0, 'Conversions cannot be negative']
@@ -290,6 +318,8 @@ const campaignInfluencersSchema = new mongoose.Schema({
     // Denormalized fields for high-performance reads
     influencerName: { type: String, trim: true },
     influencerAvatar: { type: String, trim: true },
+    last_simulated_at: { type: Date },
+    simulated_post_count: { type: Number, default: 0 },
     deliverables: [{
         title: {
             type: String,
@@ -376,6 +406,39 @@ campaignPaymentsSchema.index({ brand_id: 1, payment_date: -1 });      // brand p
 campaignInfluencersSchema.index({ campaign_id: 1, influencer_id: 1 }); // keep existing
 campaignInfluencersSchema.index({ influencer_id: 1, status: 1 });      // FIXED B1/B3: dashboard queries (was COLLSCAN, 53:1 ratio)
 campaignInfluencersSchema.index({ campaign_id: 1, status: 1 });        // brand: filter influencers by status
+
+// Elasticsearch Synchronization Hooks
+campaignInfoSchema.post('save', async function (doc) {
+    try {
+        const ElasticsearchService = require('../services/search/elasticsearchService');
+        await ElasticsearchService.indexDocument('campaigns', doc._id.toString(), {
+            title: doc.title,
+            description: doc.description,
+            status: doc.status,
+            budget: doc.budget,
+            min_followers: doc.min_followers,
+            required_channels: doc.required_channels,
+            brand_id: doc.brand_id.toString(),
+            brandName: doc.brandName
+        });
+    } catch (error) {
+        console.error('[Elasticsearch Sync] Error after CampaignInfo save:', error.message);
+    }
+});
+
+const syncDeleteCampaign = async function (doc) {
+    if (doc) {
+        try {
+            const ElasticsearchService = require('../services/search/elasticsearchService');
+            await ElasticsearchService.deleteDocument('campaigns', doc._id.toString());
+        } catch (error) {
+            console.error('[Elasticsearch Sync] Error after CampaignInfo delete:', error.message);
+        }
+    }
+};
+
+campaignInfoSchema.post('remove', syncDeleteCampaign);
+campaignInfoSchema.post('findOneAndDelete', syncDeleteCampaign);
 
 // Create models
 const CampaignInfo = mongoose.model('CampaignInfo', campaignInfoSchema);

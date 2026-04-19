@@ -1,0 +1,92 @@
+# CollabSync - Project Documentation & DDD Design Analysis
+
+## 1) Project Description
+
+**Title**: CollabSync
+
+**Description**: 
+CollabSync is a state-of-the-art Influencer Marketing and E-commerce platform designed to bridge the gap between Brands, Influencers, and Customers. At its core, it facilitates the end-to-end lifecycle of marketing campaigns—from initial discovery and collaboration between brands and influencers to real-time performance tracking and ROI analysis. 
+
+Unique to the platform is its integrated "Shoppable Content" engine, which allows influencers to promote specific products from a brand's catalog and enables customers to purchase them directly through influencer-driven storefronts. This seamless synergy between marketing and sales is powered by a robust architecture (simulated via modular services) including real-time simulation metrics, secure payment processing via Razorpay, and high-performance search powered by Elasticsearch. The platform also features tiered subscription models for both brands and influencers, providing scalable tools for account management, campaign analytics, and cross-platform social media integration.
+
+---
+
+## 2) Domain-Driven Design (DDD) Analysis
+
+### a) Bounded Contexts
+Based on the modular structure of the models and services, the project is divided into the following Bounded Contexts:
+
+1.  **Identity & Access Context (IAM)**: Manages authentication (JWT/bcrypt), authorization, and core profile security for Brands, Influencers, and Customers.
+2.  **Marketing & Campaigns Context**: Handles the definition, lifecycle states (draft, active, completed), and strategic goal-setting of marketing campaigns.
+3.  **Collaboration Context**: Manages the "handshake" between brands and influencers, including invitations, content submissions, and deliverables approval workflows.
+4.  **E-Commerce & Shop Context**: Manages the product catalog, order processing, and customer shopping experiences linked to influencer content.
+5.  **Marketing Attribution Context**: Tracks referral codes and clicks to attribute sales to specific influencers for commission calculations.
+6.  **Billing & Monetization Context**: Handles platform subscription tiers (Free, Basic, Premium), usage limits, and payout processing via Razorpay.
+7.  **Analytics & Simulation Context**: An autonomous boundary for calculating real-time metrics (reach, impressions, ROI) and simulating market performance through dedicated workers.
+
+---
+
+### b) Context Mappings
+The interactions between these contexts are mapped as follows:
+
+*   **IAM (Upstream/OHS)**: Acts as an Open Host Service to all other contexts. All modules depend on verified user identities provided by this context.
+*   **Campaign (Upstream) -> Collaboration (Downstream)**: Collaboration logic depends on campaign requirements and budget constraints (Customer-Supplier relationship).
+*   **Campaign (Upstream) -> E-Commerce (Downstream)**: Products are assigned to specific campaigns, making E-Commerce downstream to marketing decisions.
+*   **E-Commerce (Upstream) -> Attribution (Downstream)**: Successful sales in the E-Commerce context trigger events in the Attribution context to calculate influencer revenue.
+*   **Analytics (Downstream)**: Consumes data streams from both **Campaign** and **E-Commerce** contexts (Conformist relationship) to generate unified performance reports.
+
+---
+
+### c) Sub-model Details (Entities, Value Objects, & Services)
+
+#### i. Campaign Sub-model
+*   **Entities**: `CampaignInfo` (Root), `CampaignMetrics`, `CampaignInfluencer`, `CampaignPayment`.
+*   **Value Objects**: `Deliverable` (embedded object), `CampaignStatus` (enum), `Objective` (embedded).
+*   **Services**: `CampaignLifecycleService`, `CampaignDiscoveryService`.
+
+#### ii. E-Commerce Sub-model
+*   **Entities**: `Product` (Root), `Order` (Root), `ProductCustomer`.
+*   **Value Objects**: `ShippingAddress` (embedded), `StatusHistory` (embedded), `MediaUrl` (embedded).
+*   **Services**: `OrderProcessingService`, `ProductCatalogService`.
+
+#### iii. Influencer Sub-model
+*   **Entities**: `InfluencerInfo` (Root), `InfluencerAnalytics`.
+*   **Value Objects**: `SocialProfile` (embedded), `AudienceDemographic` (embedded).
+*   **Services**: `InfluencerProfileService`, `SocialSyncService` (Elasticsearch Sync).
+
+#### iv. Branding Sub-model
+*   **Entities**: `BrandInfo` (Root), `BrandAnalytics`.
+*   **Value Objects**: `BillingAddress`, `PerformanceMetrics` (embedded).
+*   **Services**: `BrandManagementService`, `MatchmakingService`.
+
+---
+
+### d) Cardinality Ratios
+The following technical relationships define the model's structure:
+
+1.  **Brand : Campaign (1 : N)**: A single brand can own and manage multiple marketing campaigns.
+2.  **Campaign : Influencer (N : M)**: Many influencers can apply to multiple campaigns, and a campaign can host many influencers (resolved via the `CampaignInfluencer` mapping entity).
+3.  **Campaign : Product (1 : N)**: A specific campaign promotes one or more products from the brand's catalog.
+4.  **Influencer : Order (1 : N)**: An influencer can generate multiple customer orders through a unique referral code.
+5.  **Customer : Order (1 : N)**: A customer can place multiple orders, but each order is logically tethered to exactly one customer identity (or guest info).
+
+---
+
+### e) Aggregates
+Aggregates are used to maintain consistency boundaries within the model:
+
+1.  **Brand Aggregate**: 
+    - **Root Entity**: `BrandInfo`.
+    - **Members**: `BrandSocials`, `BrandAnalytics`, `BrandAccountDetails`.
+2.  **Campaign Aggregate**:
+    - **Root Entity**: `CampaignInfo`.
+    - **Members**: `CampaignMetrics`, `CampaignInfluencer` (list), `FeaturedProducts` (list).
+3.  **Order Aggregate**:
+    - **Root Entity**: `Order`.
+    - **Members**: `OrderItems` (line items), `ShippingDetails`, `StatusHistory`.
+4.  **Influencer Aggregate**:
+    - **Root Entity**: `InfluencerInfo`.
+    - **Members**: `InfluencerSocials`, `InfluencerAnalytics`, `BestPosts`.
+5.  **Subscription Aggregate**:
+    - **Root Entity**: `UserSubscription`.
+    - **Members**: `UsageStats`, `PaymentHistory`.

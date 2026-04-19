@@ -63,7 +63,8 @@ const adminSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        minlength: 6
+        minlength: 6,
+        select: false
     },
     role: {
         type: String,
@@ -77,6 +78,19 @@ const adminSchema = new mongoose.Schema({
 }, {
     collection: 'adminUser',
     timestamps: true
+});
+
+// Pre-save hook to hash admin password before saving
+adminSchema.pre('save', async function (next) {
+    if (this.isModified('password') || this.isNew) {
+        try {
+            const saltRounds = 10;
+            this.password = await bcrypt.hash(this.password, saltRounds);
+        } catch (err) {
+            return next(err);
+        }
+    }
+    next();
 });
 
 const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);

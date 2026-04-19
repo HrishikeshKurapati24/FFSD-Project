@@ -4,6 +4,7 @@ import Chart from 'chart.js/auto';
 import styles from '../../styles/admin/dashboard.module.css';
 import adminStyles from '../../styles/admin/admin_dashboard.module.css';
 import { API_BASE_URL } from '../../services/api';
+import { getAdminSocket, ADMIN_SOCKET_EVENTS } from '../../services/adminSocket';
 import AdminNavbar from '../../components/admin/AdminNavbar';
 
 export default function Dashboard() {
@@ -43,6 +44,37 @@ export default function Dashboard() {
         }, 30000);
 
         return () => clearInterval(notificationsInterval);
+    }, []);
+
+    useEffect(() => {
+        const socket = getAdminSocket();
+
+        const refreshAll = () => {
+            fetchDashboardData();
+            fetchNotifications();
+        };
+
+        const handleConnectError = (err) => {
+            if (String(err?.message || '').toLowerCase().includes('auth')) {
+                window.location.href = '/admin/login';
+            }
+        };
+
+        if (!socket.connected) socket.connect();
+
+        socket.on(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refreshAll);
+        socket.on(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refreshAll);
+        socket.on(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refreshAll);
+        socket.on(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refreshAll);
+        socket.on('connect_error', handleConnectError);
+
+        return () => {
+            socket.off(ADMIN_SOCKET_EVENTS.CAMPAIGN_UPDATE, refreshAll);
+            socket.off(ADMIN_SOCKET_EVENTS.REVENUE_UPDATE, refreshAll);
+            socket.off(ADMIN_SOCKET_EVENTS.ORDER_UPDATE, refreshAll);
+            socket.off(ADMIN_SOCKET_EVENTS.METRICS_UPDATE, refreshAll);
+            socket.off('connect_error', handleConnectError);
+        };
     }, []);
 
     useEffect(() => {

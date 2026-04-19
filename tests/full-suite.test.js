@@ -4,6 +4,16 @@
  * Run this file using: npm test tests/full-suite.test.js
  */
 
+// Global mocks for the entire suite to prevent require-order issues
+jest.mock('../services/payment/razorpayGatewayService', () => ({
+    createOrder: jest.fn(),
+    verifyPaymentSignature: jest.fn(),
+    verifyWebhookSignature: jest.fn(),
+    fetchPayment: jest.fn(),
+    asPaise: (amount) => Math.round(Number(amount) * 100),
+    getRazorpayConfig: jest.fn().mockReturnValue({ enabled: true, keyId: 'test', keySecret: 'test' })
+}));
+
 describe('Full Application Test Suite', () => {
     // ── Authentication & Authorization ──────────────────────────────
     require('./routes/authRoutes.test');

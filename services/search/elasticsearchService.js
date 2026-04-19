@@ -108,8 +108,8 @@ class ElasticsearchService {
         }))
       };
     } catch (error) {
-      console.error(`[Elasticsearch] Search error in ${index}:`, error.response?.data || error.message);
-      return { total: 0, hits: [] };
+      // Re-throw to allow caller to handle fallback
+      throw error;
     }
   }
 

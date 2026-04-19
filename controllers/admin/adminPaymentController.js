@@ -1,5 +1,6 @@
 const AdminPaymentService = require("../../services/admin/adminPaymentService");
 const { isAPIRequest } = require("../../utils/requestUtils");
+const AdminRealtimeEmitter = require("../../services/admin/adminRealtimeEmitter");
 
 const PaymentController = {
     async getAllPayments(req, res) {
@@ -56,6 +57,19 @@ const PaymentController = {
             const id = req.params.id;
             const { status } = req.body;
             const result = await AdminPaymentService.updatePaymentStatus(id, status);
+
+            if (result?.success) {
+                AdminRealtimeEmitter.emitRevenueUpdate({
+                    source: 'admin_payment_status',
+                    paymentId: id,
+                    status
+                });
+                AdminRealtimeEmitter.emitMetricsUpdate({
+                    reason: 'payment_status_changed',
+                    paymentId: id
+                });
+            }
+
             res.json(result);
         } catch (error) {
             console.error("Error updating payment status:", error);

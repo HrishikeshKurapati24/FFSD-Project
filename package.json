@@ -4,8 +4,12 @@
   "description": "AdminAndCustomerPages",
   "main": "app.js",
   "scripts": {
-    "test": "test",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage --forceExit",
     "start": "node app.js",
+    "worker:analytics-simulation": "node scripts/workers/analyticsSimulationWorker.js",
+    "simulate:phase2:once": "node scripts/run_phase2_simulation_once.js",
     "init-data": "node initData.js",
     "build": "echo 'No build step required for backend'"
   },
@@ -19,8 +23,10 @@
   "author": "Hrishikesh Kurapati",
   "license": "ISC",
   "dependencies": {
+    "@elastic/elasticsearch": "^7.17.14",
     "axios": "^1.13.5",
     "bcrypt": "^5.1.1",
+    "bullmq": "^5.58.0",
     "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -33,6 +39,7 @@
     "express-validator": "^7.2.1",
     "form-data": "^4.0.5",
     "helmet": "^8.1.0",
+    "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
     "morgan": "^1.10.1",
@@ -40,10 +47,17 @@
     "nodemailer": "^7.0.2",
     "path": "^0.12.7",
     "razorpay": "^2.9.6",
+    "socket.io": "^4.8.3",
     "sqlite3": "^5.1.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0",
     "vite": "^7.2.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "mongodb-memory-server": "^11.0.1",
+    "supertest": "^7.2.2"
   }
 }

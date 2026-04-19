@@ -676,6 +676,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { routeCache } = require('../middleware/routeCache');
 const brandProfileController = require('../controllers/brand/brandProfileController');
 const brandDiscoveryController = require('../controllers/brand/brandDiscoveryController');
 const brandCampaignController = require('../controllers/brand/brandCampaignController');
@@ -809,10 +810,10 @@ const verifyBrandId = (req, res, next) => {
 // Apply brand ID verification to all routes
 router.use('/', verifyBrandId);
 
-router.get('/home', brandController.getBrandDashboard);
+router.get('/home', routeCache({ namespace: 'brand:dashboard', ttlSeconds: 300 }), brandController.getBrandDashboard);
 
 // Route for the influencer explore page
-router.get('/explore', brandController.getExplorePage);
+router.get('/explore', routeCache({ namespace: 'brand:explore', ttlSeconds: 600 }), brandController.getExplorePage);
 
 
 // Update the influencer profile route to handle both URL parameter and query parameter

@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const app = express();
 const helmet = require('helmet');
@@ -14,6 +16,10 @@ const { router: authRouter, isAuthenticated, isBrand, isInfluencer } = require('
 const landingRoutes = require('./routes/landingRoutes');
 const path = require('path');
 const { connectDB } = require('./mongoDB');
+const ElasticsearchService = require('./services/search/elasticsearchService');
+
+
+
 const { BrandInfo, BrandSocials, BrandAnalytics } = require('./models/BrandMongo');
 const { InfluencerInfo, InfluencerSocials, InfluencerAnalytics } = require('./models/InfluencerMongo');
 const cookieParser = require('cookie-parser');
@@ -22,6 +28,11 @@ const { asyncErrorWrapper } = require('./middleware/asyncErrorWrapper');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const paymentWebhookController = require('./controllers/paymentWebhookController');
+const { initAdminNamespace } = require('./sockets/adminSocket');
+const { setIO } = require('./services/realtime/socketServer');
+const { startAnalyticsSimulationScheduler } = require('./services/analytics/analyticsSimulationScheduler');
+const { startAnalyticsSimulationWorker } = require('./services/queues/analyticsSimulationQueue');
+const { runStartupBenchmark } = require('./scripts/test_redis_5_scenarios');
 
 // Swagger Configuration
 const swaggerOptions = {
@@ -491,8 +502,41 @@ const initializeApp = async () => {
 const startServer = async () => {
     try {
         await initializeApp();
-        app.listen(PORT, () => {
+        const httpServer = http.createServer(app);
+        const io = new Server(httpServer, {
+            cors: {
+                origin: function (origin, callback) {
+                    if (!origin) return callback(null, true);
+                    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+                        return callback(null, true);
+                    }
+                    return callback(new Error('Not allowed by CORS'));
+                },
+                credentials: true,
+                methods: ['GET', 'POST']
+            }
+        });
+
+        setIO(io);
+        initAdminNamespace(io);
+        const workerEnabled = (process.env.ANALYTICS_SIMULATION_INLINE_WORKER || 'true').toLowerCase() === 'true';
+        if (workerEnabled) {
+            const worker = startAnalyticsSimulationWorker();
+            if (worker) {
+                console.log('✅ Phase 2 BullMQ worker started in app process');
+            } else {
+                console.log('ℹ️  Phase 2 BullMQ worker not started (REDIS_URL missing) — fallback direct mode enabled');
+            }
+        }
+        
+        // Run Redis Performance Benchmark
+        await runStartupBenchmark();
+
+        await startAnalyticsSimulationScheduler();
+
+        httpServer.listen(PORT, () => {
             console.log(`✅ Server is running on port ${PORT}`);
+            console.log('✅ Admin WebSocket namespace ready at /admin');
         });
 
         // Schedule periodic subscription expiry check (every hour)
