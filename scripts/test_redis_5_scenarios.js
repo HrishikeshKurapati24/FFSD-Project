@@ -3,22 +3,37 @@
 require('dotenv').config();
 const { connectDB, closeConnection } = require('../mongoDB');
 const { getJSON, setJSON, getClient } = require('../services/cache/redisCacheService');
-const { CampaignInfo, CampaignInfluencers, CampaignPayments } = require('../models/CampaignMongo');
 const { BrandInfo } = require('../models/BrandMongo');
 const { InfluencerInfo } = require('../models/InfluencerMongo');
 
-async function measureScenario(scenarioName, key, dbCallFn) {
+// Import services for real-world load simulation
+const brandProfileService = require('../services/brand/brandProfileService');
+const influencerProfileService = require('../services/influencer/influencerProfileService');
+const InfluencerDiscoveryService = require('../services/influencer/influencerDiscoveryService');
+
+async function measureScenario(scenarioName, key, dataFetchFn) {
     console.log(`\n▶ Running Scenario: ${scenarioName}`);
     
-    // 1. MISS (Real DB Call)
+    // 1. MISS (Real DB Call / Service Logic)
     const startDb = performance.now();
-    const data = await dbCallFn();
+    let data;
+    try {
+        data = await dataFetchFn();
+    } catch (err) {
+        console.error(`   ❌ Error fetching data for ${scenarioName}:`, err.message);
+        return { scenario: scenarioName, missTime: 0, hitTime: 0, improvement: 0 };
+    }
     const endDb = performance.now();
     const dbTime = endDb - startDb;
-    console.log(`   [MISS] MongoDB execution: ${dbTime.toFixed(2)}ms`);
+    console.log(`   [MISS] Data processing: ${dbTime.toFixed(2)}ms`);
+
+    if (!data) {
+        console.log(`   ⚠️  No data returned. Skipping cache tests.`);
+        return { scenario: scenarioName, missTime: dbTime, hitTime: 0, improvement: 0 };
+    }
 
     // 2. SET (Write to Cache)
-    await setJSON(key, data, 60);
+    await setJSON(key, data, 120);
 
     // 3. HIT (Read from Cache - average of 5 runs)
     const hitTimes = [];
@@ -31,7 +46,7 @@ async function measureScenario(scenarioName, key, dbCallFn) {
     const hitTime = hitTimes.reduce((a, b) => a + b, 0) / hitTimes.length;
     console.log(`   [HIT]  Redis retrieval: ${hitTime.toFixed(2)}ms`);
 
-    const improvement = ((dbTime - hitTime) / dbTime) * 100;
+    const improvement = dbTime > 0 ? ((dbTime - hitTime) / dbTime) * 100 : 0;
     console.log(`   🚀 Improvement: ${improvement.toFixed(1)}%`);
 
     return {
@@ -49,115 +64,71 @@ async function runStartupBenchmark() {
         return;
     }
 
-    console.log('\n🚀 Starting Startup Redis Performance Benchmark...');
+    console.log('\n🚀 Starting Real-World Dashboard & Explore Benchmark...');
+    
+    // Fetch test IDs (Resilient fetching: Try active first, otherwise take any)
+    const brand = await BrandInfo.findOne({ status: 'active' }).select('_id').lean() 
+                 || await BrandInfo.findOne().select('_id').lean();
+    
+    const influencer = await InfluencerInfo.findOne({ status: 'active' }).select('_id').lean()
+                      || await InfluencerInfo.findOne().select('_id').lean();
+
+    if (!brand || !influencer) {
+        console.error('❌ Could not find valid test brand or influencer in database. Please seed data first.');
+        return;
+    }
+
+    const brandId = brand._id.toString();
+    const influencerId = influencer._id.toString();
+
     const results = [];
 
-    // Scenario 1: System-Wide Financial Audit (Massive Aggregation)
-    results.push(await measureScenario('1. System-Wide Financial Audit', 'cache:perf:scenario1', async () => {
-        return CampaignPayments.aggregate([
-            { $lookup: { from: 'campaigninfos', localField: 'campaign_id', foreignField: '_id', as: 'campaign' } },
-            { $unwind: '$campaign' },
-            { $lookup: { from: 'brandinfos', localField: 'brand_id', foreignField: '_id', as: 'brand' } },
-            { $unwind: '$brand' },
-            { $group: {
-                _id: { brandId: '$brand._id', status: '$status' },
-                totalAmount: { $sum: '$amount' },
-                paymentCount: { $sum: 1 },
-                avgPayment: { $avg: '$amount' }
-            }},
-            { $sort: { totalAmount: -1 } },
-            { $limit: 100 }
-        ]);
+    // Scenario 1: Brand Dashboard (Complex multi-service aggregation)
+    results.push(await measureScenario('1. Brand Dashboard Load', `cache:dash:brand:${brandId}`, async () => {
+        const SubscriptionService = require('../services/subscription/subscriptionService');
+        const brandCampaignService = require('../services/brand/brandCampaignService');
+        const { Product } = require('../models/ProductMongo');
+        return brandProfileService.getBrandDashboardData(brandId, null, SubscriptionService, brandCampaignService, Product);
     }));
 
-    // Scenario 2: Influencer Deep Analytics Pipeline
-    results.push(await measureScenario('2. Global Influencer Performance', 'cache:perf:scenario2', async () => {
-        return InfluencerInfo.aggregate([
-            { $match: { 'analytics_snapshot.totalFollowers': { $gt: 10000 } } },
-            { $lookup: { from: 'campaigninfluencers', localField: '_id', foreignField: 'influencer_id', as: 'collabs' } },
-            { $unwind: '$collabs' },
-            { $match: { 'collabs.status': 'completed' } },
-            { $group: {
-                _id: '$_id',
-                name: { $first: '$user.fullName' },
-                totalEarnings: { $sum: '$collabs.payment_details.amount' },
-                avgEngagement: { $avg: '$collabs.metrics.engagement_rate' },
-                completedCollabs: { $sum: 1 }
-            }},
-            { $match: { completedCollabs: { $gt: 2 } } },
-            { $sort: { totalEarnings: -1 } },
-            { $limit: 50 }
-        ]);
+    // Scenario 2: Influencer Dashboard (Queue status & Earnings aggregation)
+    results.push(await measureScenario('2. Influencer Dashboard Load', `cache:dash:influencer:${influencerId}`, async () => {
+        return influencerProfileService.getInfluencerDashboardData(influencerId);
     }));
 
-    // Scenario 3: Brand ROI & Campaign Health
-    results.push(await measureScenario('3. Brand ROI & Campaign Health', 'cache:perf:scenario3', async () => {
-        return CampaignInfo.aggregate([
-            { $lookup: { from: 'campaigninfluencers', localField: '_id', foreignField: 'campaign_id', as: 'participants' } },
-            { $unwind: '$participants' },
-            { $group: {
-                _id: '$brand_id',
-                totalBudget: { $sum: '$budget' },
-                totalSpent: { $sum: '$participants.payment_details.amount' },
-                totalReach: { $sum: '$participants.metrics.impressions' },
-                activeCampaigns: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } }
-            }},
-            { $addFields: { roiScore: { $divide: ['$totalReach', { $max: ['$totalSpent', 1] }] } } },
-            { $sort: { roiScore: -1 } },
-            { $limit: 50 }
-        ]);
+    // Scenario 3: Brand Explore (Discovering Influencers via ES/Mongo)
+    results.push(await measureScenario('3. Brand Explore (Discovery)', `cache:explore:influencers:all`, async () => {
+        return brandProfileService.getExplorePageData(brandId, 'all', '');
     }));
 
-    // Scenario 4: Complex Multi-Faceted Demographics Search
-    results.push(await measureScenario('4. Multi-Faceted Demographics Search', 'cache:perf:scenario4', async () => {
-        return InfluencerInfo.aggregate([
-            { $match: { 'platforms.platformName': 'instagram', status: 'active' } },
-            { $lookup: { from: 'campaigninfluencers', localField: '_id', foreignField: 'influencer_id', as: 'active_deals' } },
-            { $addFields: { activeDealCount: { $size: { $filter: { input: '$active_deals', as: 'deal', cond: { $eq: ['$$deal.status', 'active'] } } } } } },
-            { $match: { activeDealCount: { $lt: 3 } } }, // Find influencers who aren't too busy
-            { $project: { user: 1, 'analytics_snapshot': 1, activeDealCount: 1 } },
-            { $sort: { 'analytics_snapshot.totalFollowers': -1 } },
-            { $limit: 100 }
-        ]);
-    }));
-
-    // Scenario 5: Platform-wide Campaign Metrics Grouping
-    results.push(await measureScenario('5. Platform-wide Campaign Metrics Grouping', 'cache:perf:scenario5', async () => {
-        return CampaignInfo.aggregate([
-            { $unwind: '$platforms' },
-            { $lookup: { from: 'campaigninfluencers', localField: '_id', foreignField: 'campaign_id', as: 'performances' } },
-            { $unwind: { path: '$performances', preserveNullAndEmptyArrays: true } },
-            { $group: {
-                _id: '$platforms',
-                totalCampaigns: { $addToSet: '$_id' },
-                avgBudget: { $avg: '$budget' },
-                totalImpressions: { $sum: '$performances.metrics.impressions' },
-                totalClicks: { $sum: '$performances.metrics.clicks' }
-            }},
-            { $project: { platform: '$_id', campaignCount: { $size: '$totalCampaigns' }, avgBudget: 1, totalImpressions: 1, totalClicks: 1, _id: 0 } },
-            { $sort: { totalImpressions: -1 } }
-        ]);
+    // Scenario 4: Influencer Explore (Discovering Brands via ES/Mongo)
+    results.push(await measureScenario('4. Influencer Explore (Brand Discovery)', `cache:explore:brands:all`, async () => {
+        return InfluencerDiscoveryService.getBrandExploreData('all', '');
     }));
 
     console.log('\n=============================================');
-    console.log('         STARTUP REDIS BENCHMARK RESULTS     ');
+    console.log('       DASHBOARD & EXPLORE CACHE METRICS     ');
     console.log('=============================================');
-    console.log(`| Scenario | DB Miss (ms) | Redis Hit (ms) | Speedup (%) |`);
+    console.log(`| Scenario | Cold Load (ms) | Redis Hit (ms) | Speedup (%) |`);
     console.log(`| :--- | :---: | :---: | :---: |`);
     results.forEach(r => {
-        console.log(`| ${r.scenario} | ${r.missTime.toFixed(1)} | ${r.hitTime.toFixed(2)} | **${r.improvement.toFixed(1)}%** |`);
+        console.log(`| ${r.scenario.padEnd(25)} | ${r.missTime.toFixed(1).padStart(10)} | ${r.hitTime.toFixed(2).padStart(10)} | **${r.improvement.toFixed(1)}%** |`);
     });
     console.log('=============================================\n');
 }
 
 // Allow running independently
 if (require.main === module) {
-    const { connectDB, closeConnection } = require('../mongoDB');
     (async () => {
-        await connectDB();
-        await runStartupBenchmark();
-        await closeConnection();
-        process.exit(0);
+        try {
+            await connectDB();
+            await runStartupBenchmark();
+            await closeConnection();
+            process.exit(0);
+        } catch (err) {
+            console.error('Benchmark failed:', err);
+            process.exit(1);
+        }
     })();
 }
 
